@@ -3,7 +3,7 @@
 提供修改百度贴吧底栏等个性化功能。An Xposed module for Baidu Tieba with personalized functions.
 
 [![Chat](https://img.shields.io/badge/Telegram-Chat-blue.svg?logo=telegram)](https://t.me/TabSwitch)
-[![Download](https://img.shields.io/github/v/release/GuhDoy/TiebaTS?label=Download)](https://github.com/release/GuhDoy/releases/latest)
+[![Download](https://img.shields.io/github/v/release/GuhDoy/TiebaTS?label=Download)](https://github.com/GuhDoy/TiebaTS/releases/latest)
 
 ## 当前功能
 
@@ -20,7 +20,7 @@
 
 ## 特别鸣谢
 
-[LicenseActivity](https://github.com/GuhDoy/TiebaTS/blob/main/app/src/main/java/gm/tieba/tabswitch/ui/LicenseActivity.java)
+详见[LicenseActivity.java](https://github.com/GuhDoy/TiebaTS/blob/main/app/src/main/java/gm/tieba/tabswitch/ui/LicenseActivity.java)
 
 ## 下载
 
@@ -29,4 +29,5 @@
 ## 协议
 
 复制或参考hook规则用于开发百度贴吧模块需遵守[GNU General Public Licence, version 3](https://choosealicense.com/licenses/gpl-3.0/)
+
 复制或参考其它代码用于开发其它模块或软件需遵守[Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0.html)
