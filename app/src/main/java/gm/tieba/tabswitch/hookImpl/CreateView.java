@@ -68,6 +68,7 @@ public class CreateView extends Hook {
                                             intent.setClassName(activity, "com.baidu.tieba.myCollection.CollectTabActivity");
                                             activity.startActivity(intent);
                                         });
+                                        return;
                                     }
                                 }
                             }

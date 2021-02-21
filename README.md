@@ -24,7 +24,7 @@
 
 ## 下载
 
-[Github Release](https://github.com/release/GuhDoy/releases/latest)
+[Github Release](https://github.com/GuhDoy/TiebaTS/releases/latest)
 
 ## 协议
 

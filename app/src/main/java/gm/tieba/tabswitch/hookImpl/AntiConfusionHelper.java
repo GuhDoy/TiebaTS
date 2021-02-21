@@ -43,7 +43,7 @@ public class AntiConfusionHelper extends Hook {
         ClassDataItem.EncodedMethod[] methods = null;
         try {
             if (type == 0) methods = cls.getClassData().getDirectMethods();
-            if (type == 1) methods = cls.getClassData().getVirtualMethods();
+            else if (type == 1) methods = cls.getClassData().getVirtualMethods();
         } catch (NullPointerException e) {
             return false;
         }

@@ -57,7 +57,7 @@ public class AntiConfusion extends Hook {
                 }
                 alertDialog.show();
                 new Thread(() -> {
-                    File dexDir = new File(activity.getExternalCacheDir().getAbsolutePath() + File.separator + "dex");
+                    File dexDir = new File(activity.getCacheDir().getAbsolutePath() + File.separator + "dex");
                     try {
                         if (dexDir.exists()) IO.deleteFiles(dexDir);
                         dexDir.mkdirs();
@@ -111,8 +111,6 @@ public class AntiConfusion extends Hook {
                         String finalMainProgress2 = mainProgress;
                         activity.runOnUiThread(() -> textView.setText(String.format("%s\n%s\n反混淆完成，即将重启", finalSearchProgress2, finalMainProgress2)));
                         AntiConfusionHelper.putMapListToDb(db);
-                        SharedPreferences.Editor editor = tsConfig.edit();
-                        editor.putString("anti-confusion_version", sharedPreferences.getString("key_rate_version", ""));
                         SharedPreferences tsPreference = activity.getSharedPreferences("TS_preference", Context.MODE_PRIVATE);
                         if (tsPreference.getBoolean("clean_dir", false)) {
                             IO.deleteFiles(activity.getFilesDir());
@@ -120,13 +118,14 @@ public class AntiConfusion extends Hook {
                             IO.deleteFiles(new File(activity.getCacheDir().getAbsolutePath() + "image"));
                             IO.deleteFiles(activity.getExternalCacheDir());
                         } else IO.deleteFiles(dexDir);
-                        editor.commit();
                         XposedBridge.log("anti-confusion accomplished, last version: " + tsConfig.getString("anti-confusion_version", "unknown")
                                 + ", current version: " + sharedPreferences.getString("key_rate_version", "unknown"));
+                        SharedPreferences.Editor editor = tsConfig.edit();
+                        editor.putString("anti-confusion_version", sharedPreferences.getString("key_rate_version", ""));
+                        editor.commit();
                         //重启
                         Intent intent = activity.getPackageManager().getLaunchIntentForPackage(activity.getPackageName());
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                        activity.finishAffinity();
                         activity.startActivity(intent);
                         System.exit(0);
                     } catch (Throwable throwable) {

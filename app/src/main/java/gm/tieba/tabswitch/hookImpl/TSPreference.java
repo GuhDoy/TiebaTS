@@ -3,6 +3,7 @@ package gm.tieba.tabswitch.hookImpl;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -12,6 +13,8 @@ import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
+import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
@@ -25,12 +28,12 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import de.robv.android.xposed.XC_MethodHook;
+import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import gm.tieba.tabswitch.BuildConfig;
 import gm.tieba.tabswitch.Hook;
 import gm.tieba.tabswitch.R;
-import gm.tieba.tabswitch.util.XpatchAssetHelper;
 
 public class TSPreference extends Hook {
     private static boolean isShowDialog = false;
@@ -48,7 +51,8 @@ public class TSPreference extends Hook {
         XposedHelpers.findAndHookMethod(Activity.class, "onResume", new XC_MethodHook() {
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 Activity activity = (Activity) param.thisObject;
-                if (isShowDialog && !activity.getClass().getName().equals("com.baidu.tieba.LogoActivity"))
+                if (isShowDialog && !activity.getClass().getName().equals("com.baidu.tieba.LogoActivity")
+                        && !activity.getClass().getName().equals("com.baidu.tieba.launcherGuide.tblauncher.GuideActivity"))
                     showTSPreferenceDialog(lpparam, activity);
             }
         });
@@ -60,6 +64,19 @@ public class TSPreference extends Hook {
                 LinearLayout TSPreferenceButton = TSPreferenceHelper.generateButton(lpparam, activity, "贴吧TS设置", null);
                 parent.addView(TSPreferenceButton, 11);
                 TSPreferenceButton.setOnClickListener(v -> showTSPreferenceDialog(lpparam, activity));
+            }
+        });
+        XposedHelpers.findAndHookMethod(Dialog.class, "dismissDialog", new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(MethodHookParam param) {
+                Dialog dialog = (Dialog) param.thisObject;
+                if (dialog.isShowing()) {
+                    View view = dialog.getWindow().getCurrentFocus();
+                    if (view != null) {
+                        InputMethodManager imm = (InputMethodManager) view.getContext().getSystemService(Activity.INPUT_METHOD_SERVICE);
+                        imm.hideSoftInputFromWindow(view.getRootView().getWindowToken(), 0);
+                    }
+                }
             }
         });
     }
@@ -316,10 +333,6 @@ public class TSPreference extends Hook {
                     }).create();
         }
         alertDialog.show();
-        alertDialog.setOnDismissListener(dialog -> {
-            InputMethodManager imm = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(alertDialog.getWindow().getCurrentFocus().getRootView().getWindowToken(), 0);
-        });
         alertDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         alertDialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> {
             int selectionStart = editText.getSelectionStart();

@@ -72,6 +72,7 @@ public class Purify extends Hook {
                             int[] ints = (int[]) field.get(param.thisObject);
                             for (int i = 0; i < ints.length; i++)
                                 ints[i] = 0;
+                            return;
                         }
                     }
                 }
@@ -100,7 +101,7 @@ public class Purify extends Hook {
         } catch (XposedHelpers.ClassNotFoundError ignored) {
         }
         //首页直播推荐卡片
-        //查找card_home_page_ala_live_item_new，会有两个结果，查找后一个结果所在类构造函数调用
+        //搜索card_home_page_ala_live_item_new，会有两个结果，查找后一个结果所在类构造函数调用
         try {
             Method[] alas = lpparam.classLoader.loadClass("com.baidu.tieba.homepage.personalize.adapter.HomePageAlaLiveThreadAdapter").getDeclaredMethods();
             for (Method ala : alas)
@@ -124,8 +125,9 @@ public class Purify extends Hook {
                 for (Field field : fields) {
                     field.setAccessible(true);
                     if (field.get(param.thisObject) instanceof ImageView) {
-                        View view = (View) field.get(param.thisObject);
-                        if (view != null) view.setVisibility(View.GONE);
+                        ImageView imageView = (ImageView) field.get(param.thisObject);
+                        imageView.setVisibility(View.GONE);
+                        return;
                     }
                 }
             }

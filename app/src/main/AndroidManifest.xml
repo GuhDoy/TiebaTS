@@ -3,7 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="gm.tieba.tabswitch">
 
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission
@@ -15,7 +14,6 @@
         <package android:name="com.baidu.tieba" />
         <package android:name="com.eg.android.AlipayGphone" />
         <package android:name="com.tencent.mm" />
-        <package android:name="bin.mt.plus" />
     </queries>
     <application
         android:icon="@mipmap/ic_launcher"

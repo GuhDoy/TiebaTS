@@ -7,6 +7,8 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Looper;
 import android.view.View;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import java.lang.reflect.Field;
@@ -121,7 +123,11 @@ public class HookDispatcher extends Hook {
                             if (list == null) return;
                             for (int i = 0; i < list.size(); i++) {
                                 String text = list.get(i).toString();
-                                text = text.substring(text.indexOf("text=") + 5, text.indexOf(", topic_special_icon="));
+                                try {
+                                    text = text.substring(text.indexOf("text=") + 5, text.indexOf(", topic_special_icon="));
+                                } catch (StringIndexOutOfBoundsException e) {
+                                    continue;
+                                }
                                 if (Pattern.compile(contentFilter).matcher(text).find()) {
                                     list.remove(i);
                                     i--;
@@ -138,8 +144,11 @@ public class HookDispatcher extends Hook {
                             if (list == null) return;
                             for (int i = 0; i < list.size(); i++) {
                                 String text = list.get(i).toString();
-                                //出现过1次StringIndexOutOfBoundsException
-                                text = text.substring(text.indexOf("text=") + 5, text.indexOf(", topic_special_icon="));
+                                try {
+                                    text = text.substring(text.indexOf("text=") + 5, text.indexOf(", topic_special_icon="));
+                                } catch (StringIndexOutOfBoundsException e) {
+                                    continue;
+                                }
                                 if (Pattern.compile(contentFilter).matcher(text).find()) {
                                     list.remove(i);
                                     i--;
@@ -211,12 +220,22 @@ public class HookDispatcher extends Hook {
                     if (!(Boolean) entry.getValue()) return;
                     for (int i = 0; i < ruleMapList.size(); i++) {
                         Map<String, String> map = ruleMapList.get(i);
-                        if (Objects.equals(map.get("rule"), "Lcom/baidu/tieba/R$string;->toast_font_size_xlarge:I")) {
-                            Method[] methods = lpparam.classLoader.loadClass(map.get("class")).getDeclaredMethods();
-                            for (Method method : methods)
-                                if (method.getReturnType().toString().equals("void"))
-                                    XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(null));
-                        }
+                        if (Objects.equals(map.get("rule"), "Lcom/baidu/tieba/R$id;->new_pb_list:I"))
+                            XposedBridge.hookAllConstructors(XposedHelpers.findClass(map.get("class"), lpparam.classLoader), new XC_MethodHook() {
+                                protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                                    Field[] fields = param.thisObject.getClass().getDeclaredFields();
+                                    for (Field field : fields) {
+                                        field.setAccessible(true);
+                                        if (field.get(param.thisObject) instanceof RelativeLayout) {
+                                            RelativeLayout relativeLayout = (RelativeLayout) field.get(param.thisObject);
+                                            ListView listView = relativeLayout.findViewById(lpparam.classLoader.loadClass("com.baidu.tieba.R$id").getField("new_pb_list").getInt(null));
+                                            if (listView == null) continue;
+                                            listView.setOnTouchListener((v, event) -> false);
+                                            return;
+                                        }
+                                    }
+                                }
+                            });
                     }
                     break;
             }

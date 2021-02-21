@@ -31,9 +31,11 @@ public class PurifyMy extends Hook {
                             for (Field field : fields) {
                                 field.setAccessible(true);
                                 if (field.get(param.thisObject) instanceof ImageView) {
-                                    ImageView hookedView = (ImageView) field.get(param.thisObject);
-                                    if (hookedView.getId() == lpparam.classLoader.loadClass("com.baidu.tieba.R$id").getField("person_navigation_dressup_img").getInt(null))
-                                        hookedView.setVisibility(View.GONE);
+                                    ImageView imageView = (ImageView) field.get(param.thisObject);
+                                    if (imageView.getId() == lpparam.classLoader.loadClass("com.baidu.tieba.R$id").getField("person_navigation_dressup_img").getInt(null)) {
+                                        imageView.setVisibility(View.GONE);
+                                        return;
+                                    }
                                 }
                             }
                         }
@@ -49,9 +51,11 @@ public class PurifyMy extends Hook {
                                     for (Field field : fields) {
                                         field.setAccessible(true);
                                         if (field.get(param.thisObject) instanceof View) {
-                                            View hookedView = (View) field.get(param.thisObject);
-                                            if (hookedView.getId() == lpparam.classLoader.loadClass("com.baidu.tieba.R$id").getField("function_item_bottom_divider").getInt(null))
-                                                hookedView.setVisibility(View.GONE);
+                                            View view = (View) field.get(param.thisObject);
+                                            if (view.getId() == lpparam.classLoader.loadClass("com.baidu.tieba.R$id").getField("function_item_bottom_divider").getInt(null)) {
+                                                view.setVisibility(View.GONE);
+                                                return;
+                                            }
                                         }
                                     }
                                 }
@@ -78,6 +82,7 @@ public class PurifyMy extends Hook {
                                                 iterator.next();
                                                 iterator.remove();
                                             }
+                                            return;
                                         }
                                     }
                                 }

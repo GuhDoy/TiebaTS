@@ -123,11 +123,7 @@ public class RepackageProcessor {
     public static class getSignTask implements Runnable {
         @Override
         public void run() {
-            try {
-                apkSignInfo = XpatchAssetHelper.getApkSignInfo(inApk.getPath());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            apkSignInfo = XpatchAssetHelper.getApkSignInfo(inApk.getPath());
         }
     }
 

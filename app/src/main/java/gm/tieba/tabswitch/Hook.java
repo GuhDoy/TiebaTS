@@ -1,16 +1,25 @@
 package gm.tieba.tabswitch;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.Application;
 import android.app.Instrumentation;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.Toast;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
@@ -50,13 +59,22 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
                         int totalRuleSize = ruleMapList.size();
                         for (int i = 0; i < ruleMapList.size(); i++) {
                             Map<String, String> map = ruleMapList.get(i);
-                            if ("".equals(map.get("class"))) {
+                            if ("".equals(map.get("class")) || "".equals(map.get("method"))) {
                                 ruleMapList.remove(i);
                                 i--;
                             }
                         }
-                        if (ruleMapList.size() != totalRuleSize)
-                            XposedBridge.log("TS warning: rules incomplete (" + ruleMapList.size() + "/" + totalRuleSize + ")");
+                        if (ruleMapList.size() != totalRuleSize) {
+                            SharedPreferences sharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE);
+                            String tsWarning = "TS warning: rules incomplete (" + ruleMapList.size() + "/" + totalRuleSize + "), current version: " + sharedPreferences.getString("key_rate_version", "unknown");
+                            XposedBridge.log(tsWarning);
+                            XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", lpparam.classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
+                                protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                                    Activity activity = (Activity) param.thisObject;
+                                    Toast.makeText(activity, tsWarning, Toast.LENGTH_LONG).show();
+                                }
+                            });
+                        }
 
                         XposedHelpers.findAndHookMethod("com.baidu.tbadk.core.data.AccountData", lpparam.classLoader, "getBDUSS", new XC_MethodHook() {
                             protected void afterHookedMethod(MethodHookParam param) throws Throwable {

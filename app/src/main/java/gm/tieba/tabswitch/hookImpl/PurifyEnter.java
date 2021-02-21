@@ -35,9 +35,8 @@ public class PurifyEnter extends Hook {
                             for (Field field : fields) {
                                 field.setAccessible(true);
                                 if (field.get(param.thisObject) instanceof View) {
-                                    View hookedView = (View) field.get(param.thisObject);
-                                    if (hookedView != null)
-                                        hookedView.setVisibility(View.GONE);
+                                    View view = (View) field.get(param.thisObject);
+                                    view.setVisibility(View.GONE);
                                 }
                             }
                         }
@@ -64,12 +63,10 @@ public class PurifyEnter extends Hook {
                         for (Field field : fields) {
                             field.setAccessible(true);
                             if (field.get(param.thisObject) instanceof View) {
-                                View hookedView = (View) field.get(param.thisObject);
-                                if (hookedView != null) {
-                                    hookedView.setVisibility(View.INVISIBLE);
-                                    ViewGroup.LayoutParams lp = hookedView.getLayoutParams();
-                                    lp.height = DisplayHelper.dip2Px(activity, 3);
-                                }
+                                View view = (View) field.get(param.thisObject);
+                                view.setVisibility(View.INVISIBLE);
+                                ViewGroup.LayoutParams lp = view.getLayoutParams();
+                                lp.height = DisplayHelper.dip2Px(activity, 3);
                             }
                         }
                     }
