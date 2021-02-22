@@ -5,21 +5,15 @@ import android.app.Activity;
 import android.app.Application;
 import android.app.Instrumentation;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
@@ -49,10 +43,10 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
             XposedHelpers.findAndHookMethod(Instrumentation.class, "callApplicationOnCreate", Application.class, new XC_MethodHook() {
                 protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                     if (param.args[0] instanceof Application) {
+                        ClassLoader classLoader = lpparam.classLoader;
                         Context context = ((Application) param.args[0]).getApplicationContext();
-                        TSPreference.hook(lpparam);
-                        AntiConfusion.hook(lpparam);
 
+                        AntiConfusion.hook(classLoader);
                         SQLiteDatabase db = context.openOrCreateDatabase("Rules.db", Context.MODE_PRIVATE, null);
                         ruleMapList = AntiConfusionHelper.convertDbToMapList(db);
                         db.close();
@@ -68,27 +62,26 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
                             SharedPreferences sharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE);
                             String tsWarning = "TS warning: rules incomplete (" + ruleMapList.size() + "/" + totalRuleSize + "), current version: " + sharedPreferences.getString("key_rate_version", "unknown");
                             XposedBridge.log(tsWarning);
-                            XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", lpparam.classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
+                            XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
                                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                                     Activity activity = (Activity) param.thisObject;
-                                    Toast.makeText(activity, tsWarning, Toast.LENGTH_LONG).show();
+                                    Toast.makeText(activity.getApplicationContext(), tsWarning, Toast.LENGTH_LONG).show();
                                 }
                             });
                         }
 
-                        XposedHelpers.findAndHookMethod("com.baidu.tbadk.core.data.AccountData", lpparam.classLoader, "getBDUSS", new XC_MethodHook() {
+                        TSPreference.hook(classLoader);
+                        XposedHelpers.findAndHookMethod("com.baidu.tbadk.core.data.AccountData", classLoader, "getBDUSS", new XC_MethodHook() {
                             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                                 BDUSS = String.valueOf(param.getResult());
                             }
                         });
-
                         SharedPreferences tsCache = context.getSharedPreferences("TS_cache", Context.MODE_PRIVATE);
                         follow = tsCache.getStringSet("follow", null);
-
                         SharedPreferences tsPreference = context.getSharedPreferences("TS_preference", Context.MODE_PRIVATE);
                         preferenceMap = tsPreference.getAll();
                         for (Map.Entry<String, ?> entry : preferenceMap.entrySet())
-                            HookDispatcher.hook(lpparam, entry);
+                            HookDispatcher.hook(classLoader, entry, context);
                     }
                 }
             });

@@ -40,8 +40,8 @@ public class TSPreference extends Hook {
     private static int count_author = 0;
     private static int count_ze = 0;
 
-    public static void hook(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.LogoActivity", lpparam.classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
+    public static void hook(ClassLoader classLoader) throws Throwable {
+        XposedHelpers.findAndHookMethod("com.baidu.tieba.LogoActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 Activity activity = (Activity) param.thisObject;
                 if (activity.getIntent().getBooleanExtra("openTSPreference", false))
@@ -53,17 +53,17 @@ public class TSPreference extends Hook {
                 Activity activity = (Activity) param.thisObject;
                 if (isShowDialog && !activity.getClass().getName().equals("com.baidu.tieba.LogoActivity")
                         && !activity.getClass().getName().equals("com.baidu.tieba.launcherGuide.tblauncher.GuideActivity"))
-                    showTSPreferenceDialog(lpparam, activity);
+                    showTSPreferenceDialog(classLoader, activity);
             }
         });
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.setting.more.MoreActivity", lpparam.classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
+        XposedHelpers.findAndHookMethod("com.baidu.tieba.setting.more.MoreActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 Activity activity = (Activity) param.thisObject;
-                FrameLayout browseSetting = activity.findViewById(lpparam.classLoader.loadClass("com.baidu.tieba.R$id").getField("browseSetting").getInt(null));
+                FrameLayout browseSetting = activity.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("browseSetting").getInt(null));
                 LinearLayout parent = (LinearLayout) browseSetting.getParent();
-                LinearLayout TSPreferenceButton = TSPreferenceHelper.generateButton(lpparam, activity, "贴吧TS设置", null);
+                LinearLayout TSPreferenceButton = TSPreferenceHelper.generateButton(classLoader, activity, "贴吧TS设置", null);
                 parent.addView(TSPreferenceButton, 11);
-                TSPreferenceButton.setOnClickListener(v -> showTSPreferenceDialog(lpparam, activity));
+                TSPreferenceButton.setOnClickListener(v -> showTSPreferenceDialog(classLoader, activity));
             }
         });
         XposedHelpers.findAndHookMethod(Dialog.class, "dismissDialog", new XC_MethodHook() {
@@ -82,7 +82,7 @@ public class TSPreference extends Hook {
     }
 
     @SuppressLint("ApplySharedPref")
-    private static void showTSPreferenceDialog(XC_LoadPackage.LoadPackageParam lpparam, Activity activity) {
+    private static void showTSPreferenceDialog(ClassLoader classLoader, Activity activity) {
         SharedPreferences tsConfig = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
         if (!tsConfig.getBoolean("EULA", false)) {
             StringBuilder stringBuilder = new StringBuilder().append("本模块开源免费，不会主动发起网络请求，不会上传任何用户数据，旨在技术交流。请勿将本模块用于商业或非法用途，由此产生的后果与开发者无关。\n若您不同意此协议，请立即卸载本模块！无论您以何种形式或方式使用本模块，皆视为您已同意此协议！");
@@ -102,7 +102,7 @@ public class TSPreference extends Hook {
                         SharedPreferences.Editor editor = tsConfig.edit();
                         editor.putBoolean("EULA", true);
                         editor.apply();
-                        showTSPreferenceDialog(lpparam, activity);
+                        showTSPreferenceDialog(classLoader, activity);
                     }).create();
             alertDialog.show();
             return;
@@ -114,17 +114,17 @@ public class TSPreference extends Hook {
         if (tsConfig.getBoolean("ze", false))
             linearLayout.addView(TSPreferenceHelper.generateTextView(activity, "轻车简从"));
         else linearLayout.addView(TSPreferenceHelper.generateTextView(activity, "净化界面"));
-        LinearLayout modifyTab = TSPreferenceHelper.generateButton(lpparam, activity, "修改底栏", null);
-        modifyTab.setOnClickListener(v -> showModifyTabDialog(lpparam, activity));
-        TSPreferenceHelper.SwitchViewHolder purify = new TSPreferenceHelper.SwitchViewHolder(lpparam, activity, "真正的净化界面", tsPreference.getBoolean("purify", false));
-        TSPreferenceHelper.SwitchViewHolder purifyEnter = new TSPreferenceHelper.SwitchViewHolder(lpparam, activity, "净化进吧", tsPreference.getBoolean("purify_enter", false));
-        TSPreferenceHelper.SwitchViewHolder purifyMy = new TSPreferenceHelper.SwitchViewHolder(lpparam, activity, "净化我的", tsPreference.getBoolean("purify_my", false));
-        TSPreferenceHelper.SwitchViewHolder redTip = new TSPreferenceHelper.SwitchViewHolder(lpparam, activity, "隐藏小红点", tsPreference.getBoolean("red_tip", false));
-        TSPreferenceHelper.SwitchViewHolder followFilter = new TSPreferenceHelper.SwitchViewHolder(lpparam, activity, "只推荐已关注的吧", tsPreference.getBoolean("follow_filter", false));
-        TSPreferenceHelper.SwitchViewHolder personalizedFilter = new TSPreferenceHelper.SwitchViewHolder(lpparam, activity, "过滤首页推荐", tsPreference.getString("personalized_filter", null) != null);
+        LinearLayout modifyTab = TSPreferenceHelper.generateButton(classLoader, activity, "修改底栏", null);
+        modifyTab.setOnClickListener(v -> showModifyTabDialog(classLoader, activity));
+        TSPreferenceHelper.SwitchViewHolder purify = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "真正的净化界面", tsPreference.getBoolean("purify", false));
+        TSPreferenceHelper.SwitchViewHolder purifyEnter = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "净化进吧", tsPreference.getBoolean("purify_enter", false));
+        TSPreferenceHelper.SwitchViewHolder purifyMy = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "净化我的", tsPreference.getBoolean("purify_my", false));
+        TSPreferenceHelper.SwitchViewHolder redTip = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "隐藏小红点", tsPreference.getBoolean("red_tip", false));
+        TSPreferenceHelper.SwitchViewHolder followFilter = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "只推荐已关注的吧", tsPreference.getBoolean("follow_filter", false));
+        TSPreferenceHelper.SwitchViewHolder personalizedFilter = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "过滤首页推荐", tsPreference.getString("personalized_filter", null) != null);
         personalizedFilter.newSwitch.setOnClickListener(v -> showRegexDialog(activity, personalizedFilter, "过滤首页推荐", "personalized_filter"));
         personalizedFilter.switchInstance.setOnTouchListener((v, event) -> false);
-        TSPreferenceHelper.SwitchViewHolder contentFilter = new TSPreferenceHelper.SwitchViewHolder(lpparam, activity, "过滤帖子回复", tsPreference.getString("content_filter", null) != null);
+        TSPreferenceHelper.SwitchViewHolder contentFilter = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "过滤帖子回复", tsPreference.getString("content_filter", null) != null);
         contentFilter.newSwitch.setOnClickListener(v -> showRegexDialog(activity, contentFilter, "过滤帖子回复", "content_filter"));
         contentFilter.switchInstance.setOnTouchListener((v, event) -> false);
         linearLayout.addView(modifyTab);
@@ -138,12 +138,12 @@ public class TSPreference extends Hook {
         if (tsConfig.getBoolean("ze", false))
             linearLayout.addView(TSPreferenceHelper.generateTextView(activity, "别出新意"));
         else linearLayout.addView(TSPreferenceHelper.generateTextView(activity, "增加功能"));
-        TSPreferenceHelper.SwitchViewHolder createView = new TSPreferenceHelper.SwitchViewHolder(lpparam, activity, "进吧增加收藏、历史", tsPreference.getBoolean("create_view", false));
+        TSPreferenceHelper.SwitchViewHolder createView = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "进吧增加收藏、历史", tsPreference.getBoolean("create_view", false));
         linearLayout.addView(createView.newSwitch);
         if (tsConfig.getBoolean("ze", false))
             linearLayout.addView(TSPreferenceHelper.generateTextView(activity, "垂手可得"));
         else linearLayout.addView(TSPreferenceHelper.generateTextView(activity, "自动化"));
-        TSPreferenceHelper.SwitchViewHolder autoSign = new TSPreferenceHelper.SwitchViewHolder(lpparam, activity, "自动签到", tsPreference.getBoolean("auto_sign", false));
+        TSPreferenceHelper.SwitchViewHolder autoSign = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "自动签到", tsPreference.getBoolean("auto_sign", false));
         if (!tsConfig.getBoolean("auto_sign", false)) {
             autoSign.newSwitch.setOnClickListener(v -> {
                 AlertDialog alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
@@ -159,22 +159,24 @@ public class TSPreference extends Hook {
             });
             autoSign.switchInstance.setOnTouchListener((v, event) -> false);
         }
-        TSPreferenceHelper.SwitchViewHolder openSign = new TSPreferenceHelper.SwitchViewHolder(lpparam, activity, "自动打开一键签到", tsPreference.getBoolean("open_sign", false));
-        TSPreferenceHelper.SwitchViewHolder cleanDir = new TSPreferenceHelper.SwitchViewHolder(lpparam, activity, "更新时清理缓存", tsPreference.getBoolean("clean_dir", false));
+        TSPreferenceHelper.SwitchViewHolder openSign = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "自动打开一键签到", tsPreference.getBoolean("open_sign", false));
+        TSPreferenceHelper.SwitchViewHolder cleanDir = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "更新时清理缓存", tsPreference.getBoolean("clean_dir", false));
         linearLayout.addView(autoSign.newSwitch);
         linearLayout.addView(openSign.newSwitch);
         linearLayout.addView(cleanDir.newSwitch);
         if (tsConfig.getBoolean("ze", false))
             linearLayout.addView(TSPreferenceHelper.generateTextView(activity, "奇怪怪"));
         else linearLayout.addView(TSPreferenceHelper.generateTextView(activity, "其它"));
-        TSPreferenceHelper.SwitchViewHolder fontSize = new TSPreferenceHelper.SwitchViewHolder(lpparam, activity, "禁用帖子缩放手势", tsPreference.getBoolean("font_size", false));
-        TSPreferenceHelper.SwitchViewHolder personalizedFilterLog = new TSPreferenceHelper.SwitchViewHolder(lpparam, activity, "打印过滤首页推荐日志", tsPreference.getBoolean("personalized_filter_log", false));
+        TSPreferenceHelper.SwitchViewHolder fontSize = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "禁用帖子缩放手势", tsPreference.getBoolean("font_size", false));
+        TSPreferenceHelper.SwitchViewHolder eyeshieldMode = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "用夜间模式代替深色模式", tsPreference.getBoolean("eyeshield_mode", false));
+        TSPreferenceHelper.SwitchViewHolder personalizedFilterLog = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "打印过滤首页推荐日志", tsPreference.getBoolean("personalized_filter_log", false));
         linearLayout.addView(fontSize.newSwitch);
+        linearLayout.addView(eyeshieldMode.newSwitch);
         linearLayout.addView(personalizedFilterLog.newSwitch);
         if (tsConfig.getBoolean("ze", false))
             linearLayout.addView(TSPreferenceHelper.generateTextView(activity, "关于就是关于"));
         else linearLayout.addView(TSPreferenceHelper.generateTextView(activity, "关于"));
-        LinearLayout version = TSPreferenceHelper.generateButton(lpparam, activity, "版本", BuildConfig.VERSION_NAME);
+        LinearLayout version = TSPreferenceHelper.generateButton(classLoader, activity, "版本", BuildConfig.VERSION_NAME);
         version.setOnClickListener(v -> {
             Intent intentToResolve = TSPreferenceHelper.launchModuleIntent(activity);
             if (intentToResolve == null) return;
@@ -184,14 +186,14 @@ public class TSPreference extends Hook {
             intent.setClassName(ris.get(0).activityInfo.packageName, ris.get(0).activityInfo.name);
             activity.startActivity(intent);
         });
-        LinearLayout telegram = TSPreferenceHelper.generateButton(lpparam, activity, "TG群", "及时获取更新");
+        LinearLayout telegram = TSPreferenceHelper.generateButton(classLoader, activity, "TG群", "及时获取更新");
         telegram.setOnClickListener(v -> {
             Intent intent = new Intent();
             intent.setAction("android.intent.action.VIEW");
             intent.setData(Uri.parse("https://t.me/TabSwitch"));
             activity.startActivity(intent);
         });
-        LinearLayout author = TSPreferenceHelper.generateButton(lpparam, activity, "作者", "developed by GM");
+        LinearLayout author = TSPreferenceHelper.generateButton(classLoader, activity, "作者", "developed by GM");
         author.setOnClickListener(v -> {
             count_author++;
             count_ze++;
@@ -236,6 +238,7 @@ public class TSPreference extends Hook {
             editor.putBoolean("open_sign", openSign.isOn());
             editor.putBoolean("clean_dir", cleanDir.isOn());
             editor.putBoolean("font_size", fontSize.isOn());
+            editor.putBoolean("eyeshield_mode", eyeshieldMode.isOn());
             editor.putBoolean("personalized_filter_log", personalizedFilterLog.isOn());
             editor.commit();
             SharedPreferences sharedPreferences = activity.getSharedPreferences("settings", Context.MODE_PRIVATE);
@@ -254,13 +257,13 @@ public class TSPreference extends Hook {
     }
 
     @SuppressLint("ApplySharedPref")
-    private static void showModifyTabDialog(XC_LoadPackage.LoadPackageParam lpparam, Activity activity) {
+    private static void showModifyTabDialog(ClassLoader classLoader, Activity activity) {
         SharedPreferences tsPreference = activity.getSharedPreferences("TS_preference", Context.MODE_PRIVATE);
-        TSPreferenceHelper.SwitchViewHolder homeRecommend = new TSPreferenceHelper.SwitchViewHolder(lpparam, activity, "隐藏首页", tsPreference.getBoolean("home_recommend", false));
-        TSPreferenceHelper.SwitchViewHolder enterForum = new TSPreferenceHelper.SwitchViewHolder(lpparam, activity, "隐藏进吧", tsPreference.getBoolean("enter_forum", false));
-        TSPreferenceHelper.SwitchViewHolder newCategory = new TSPreferenceHelper.SwitchViewHolder(lpparam, activity, "隐藏频道", tsPreference.getBoolean("new_category", false));
-        TSPreferenceHelper.SwitchViewHolder myMessage = new TSPreferenceHelper.SwitchViewHolder(lpparam, activity, "隐藏消息", tsPreference.getBoolean("my_message", false));
-        TSPreferenceHelper.SwitchViewHolder mine = new TSPreferenceHelper.SwitchViewHolder(lpparam, activity, "隐藏我的", tsPreference.getBoolean("mine", false));
+        TSPreferenceHelper.SwitchViewHolder homeRecommend = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "隐藏首页", tsPreference.getBoolean("home_recommend", false));
+        TSPreferenceHelper.SwitchViewHolder enterForum = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "隐藏进吧", tsPreference.getBoolean("enter_forum", false));
+        TSPreferenceHelper.SwitchViewHolder newCategory = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "隐藏频道", tsPreference.getBoolean("new_category", false));
+        TSPreferenceHelper.SwitchViewHolder myMessage = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "隐藏消息", tsPreference.getBoolean("my_message", false));
+        TSPreferenceHelper.SwitchViewHolder mine = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "隐藏我的", tsPreference.getBoolean("mine", false));
         LinearLayout linearLayout = new LinearLayout(activity);
         linearLayout.setOrientation(LinearLayout.VERTICAL);
         linearLayout.setPadding(50, 0, 50, 0);

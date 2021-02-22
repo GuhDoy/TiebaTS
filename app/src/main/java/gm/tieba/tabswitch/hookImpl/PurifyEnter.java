@@ -19,9 +19,9 @@ import gm.tieba.tabswitch.Hook;
 import gm.tieba.tabswitch.util.DisplayHelper;
 
 public class PurifyEnter extends Hook {
-    public static void hook(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
+    public static void hook(ClassLoader classLoader) throws Throwable {
         try {
-            XposedHelpers.findAndHookMethod("com.baidu.tieba.flutter.view.FlutterEnterForumDelegateStatic", lpparam.classLoader, "createFragmentTabStructure", XC_MethodReplacement.returnConstant(null));
+            XposedHelpers.findAndHookMethod("com.baidu.tieba.flutter.view.FlutterEnterForumDelegateStatic", classLoader, "createFragmentTabStructure", XC_MethodReplacement.returnConstant(null));
         } catch (XposedHelpers.ClassNotFoundError ignored) {
         }
         for (int i = 0; i < ruleMapList.size(); i++) {
@@ -29,7 +29,7 @@ public class PurifyEnter extends Hook {
             switch (Objects.requireNonNull(map.get("rule"))) {
                 case "Lcom/baidu/tieba/R$id;->square_background:I"://吧广场
                 case "Lcom/baidu/tieba/R$id;->create_bar_container:I"://创建自己的吧
-                    XposedBridge.hookAllConstructors(XposedHelpers.findClass(map.get("class"), lpparam.classLoader), new XC_MethodHook() {
+                    XposedBridge.hookAllConstructors(XposedHelpers.findClass(map.get("class"), classLoader), new XC_MethodHook() {
                         protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                             Field[] fields = param.thisObject.getClass().getDeclaredFields();
                             for (Field field : fields) {
@@ -45,14 +45,14 @@ public class PurifyEnter extends Hook {
             }
         }
         //可能感兴趣的吧
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", lpparam.classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
+        XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 Activity activity = (Activity) param.thisObject;
                 Method method = null;
                 try {
-                    method = lpparam.classLoader.loadClass("com.baidu.card.view.RecommendForumLayout").getDeclaredMethod("initUI");
+                    method = classLoader.loadClass("com.baidu.card.view.RecommendForumLayout").getDeclaredMethod("initUI");
                 } catch (NoSuchMethodException e) {
-                    Method[] methods = lpparam.classLoader.loadClass("com.baidu.card.view.RecommendForumLayout").getDeclaredMethods();
+                    Method[] methods = classLoader.loadClass("com.baidu.card.view.RecommendForumLayout").getDeclaredMethods();
                     for (Method md : methods)
                         if (md.getName().equals("a"))
                             method = md;

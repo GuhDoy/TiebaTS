@@ -24,23 +24,18 @@ import gm.tieba.tabswitch.R;
 
 class TSPreferenceHelper extends Hook {
     static TextView generateTextView(Activity activity, String text) {
-        try {
-            TextView textView = new TextView(activity);
-            textView.setText(text);
-            textView.setTextColor(Hook.modRes.getColor(R.color.colorInstall, null));
-            textView.setTextSize(17);
-            textView.setPadding(20, 40, 0, 15);
-            return textView;
-        } catch (Throwable throwable) {
-            XposedBridge.log(throwable);
-        }
-        return null;
+        TextView textView = new TextView(activity);
+        textView.setText(text);
+        textView.setTextColor(Hook.modRes.getColor(R.color.colorInstall, null));
+        textView.setTextSize(17);
+        textView.setPadding(20, 40, 0, 15);
+        return textView;
     }
 
     @SuppressLint("UseCompatLoadingForDrawables")
-    static LinearLayout generateButton(XC_LoadPackage.LoadPackageParam lpparam, Activity activity, String text, String tip) {
+    static LinearLayout generateButton(ClassLoader classLoader, Activity activity, String text, String tip) {
         try {
-            Class<?> TbSettingTextTipView = lpparam.classLoader.loadClass("com.baidu.tbadk.coreExtra.view.TbSettingTextTipView");
+            Class<?> TbSettingTextTipView = classLoader.loadClass("com.baidu.tbadk.coreExtra.view.TbSettingTextTipView");
             Object instance = TbSettingTextTipView.getConstructor(Context.class).newInstance(activity);
             TbSettingTextTipView.getDeclaredMethod("setText", String.class).invoke(instance, text);
             if (tip != null)
@@ -52,8 +47,8 @@ class TSPreferenceHelper extends Hook {
                     LinearLayout newButton = (LinearLayout) linearLayout.get(instance);
                     ((ViewGroup) Objects.requireNonNull(newButton).getParent()).removeView(newButton);
                     if ((activity.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES) {
-                        ((TextView) newButton.findViewById(lpparam.classLoader.loadClass("com.baidu.tieba.R$id").getField("text").getInt(null))).setTextColor(Hook.modRes.getColor(R.color.colorPrimary, null));
-                        ((TextView) newButton.findViewById(lpparam.classLoader.loadClass("com.baidu.tieba.R$id").getField("tip").getInt(null))).setTextColor(Hook.modRes.getColor(R.color.colorPrimary, null));
+                        ((TextView) newButton.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("text").getInt(null))).setTextColor(Hook.modRes.getColor(R.color.colorPrimary, null));
+                        ((TextView) newButton.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("tip").getInt(null))).setTextColor(Hook.modRes.getColor(R.color.colorPrimary, null));
                     }
                     newButton.setBackground(Hook.modRes.getDrawable(R.drawable.item_background_button, null));
                     return newButton;
@@ -70,14 +65,14 @@ class TSPreferenceHelper extends Hook {
         public View switchInstance;
         private ClassLoader classLoader;
 
-        SwitchViewHolder(XC_LoadPackage.LoadPackageParam lpparam, Activity activity, String text, boolean isTurnOn) {
-            this.classLoader = lpparam.classLoader;
+        SwitchViewHolder(ClassLoader classLoader, Activity activity, String text, boolean isTurnOn) {
+            this.classLoader = classLoader;
             try {
-                LinearLayout newSwitch = generateButton(lpparam, activity, text, null);
-                newSwitch.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("arrow2").getInt(null)).setVisibility(View.GONE);
                 Class<?> BdSwitchView = classLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView");
                 switchInstance = (View) BdSwitchView.getConstructor(Context.class).newInstance(activity);
                 switchInstance.setLayoutParams(new LinearLayout.LayoutParams(switchInstance.getWidth(), switchInstance.getHeight(), 0.25f));
+                LinearLayout newSwitch = generateButton(classLoader, activity, text, null);
+                newSwitch.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("arrow2").getInt(null)).setVisibility(View.GONE);
                 newSwitch.addView(switchInstance);
                 if (isTurnOn) turnOn();
                 else turnOff();

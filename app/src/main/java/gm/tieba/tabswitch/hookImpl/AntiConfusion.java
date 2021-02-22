@@ -32,8 +32,8 @@ import gm.tieba.tabswitch.RulesDbHelper;
 import gm.tieba.tabswitch.util.IO;
 
 public class AntiConfusion extends Hook {
-    public static void hook(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.launcherGuide.tblauncher.GuideActivity", lpparam.classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
+    public static void hook(ClassLoader classLoader) throws Throwable {
+        XposedHelpers.findAndHookMethod("com.baidu.tieba.launcherGuide.tblauncher.GuideActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
             @SuppressLint({"ApplySharedPref"})
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 Activity activity = ((Activity) param.thisObject);
@@ -57,7 +57,7 @@ public class AntiConfusion extends Hook {
                 }
                 alertDialog.show();
                 new Thread(() -> {
-                    File dexDir = new File(activity.getCacheDir().getAbsolutePath() + File.separator + "dex");
+                    File dexDir = new File(activity.getCacheDir().getAbsolutePath(), "dex");
                     try {
                         if (dexDir.exists()) IO.deleteFiles(dexDir);
                         dexDir.mkdirs();
