@@ -28,6 +28,7 @@ import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.hookImpl.CreateView;
+import gm.tieba.tabswitch.hookImpl.EyeshieldMode;
 import gm.tieba.tabswitch.hookImpl.HomeRecommend;
 import gm.tieba.tabswitch.hookImpl.Purify;
 import gm.tieba.tabswitch.hookImpl.PurifyEnter;
@@ -35,8 +36,6 @@ import gm.tieba.tabswitch.hookImpl.PurifyMy;
 import gm.tieba.tabswitch.hookImpl.RedTip;
 
 public class HookDispatcher extends Hook {
-    private static boolean isChangeSkin = true;
-
     public static void hook(ClassLoader classLoader, Map.Entry<String, ?> entry, Context context) throws Throwable {
         try {
             switch (entry.getKey()) {
@@ -242,13 +241,7 @@ public class HookDispatcher extends Hook {
                     }
                     break;
                 case "eyeshield_mode":
-                    if (!(Boolean) entry.getValue()) return;
-                    XposedHelpers.findAndHookMethod("com.baidu.tbadk.core.TbadkCoreApplication", classLoader, "setSkinTypeValue", int.class, new XC_MethodHook() {
-                        protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                            if ((context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES)
-                                param.args[0] = 1;
-                        }
-                    });
+                    if ((Boolean) entry.getValue()) EyeshieldMode.hook(classLoader, context);
                     break;
             }
         } catch (XposedHelpers.ClassNotFoundError e) {
