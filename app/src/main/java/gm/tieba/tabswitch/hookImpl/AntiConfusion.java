@@ -121,7 +121,7 @@ public class AntiConfusion extends Hook {
                         XposedBridge.log("anti-confusion accomplished, last version: " + tsConfig.getString("anti-confusion_version", "unknown")
                                 + ", current version: " + sharedPreferences.getString("key_rate_version", "unknown"));
                         SharedPreferences.Editor editor = tsConfig.edit();
-                        editor.putString("anti-confusion_version", sharedPreferences.getString("key_rate_version", ""));
+                        editor.putString("anti-confusion_version", sharedPreferences.getString("key_rate_version", "unknown"));
                         editor.commit();
                         //重启
                         Intent intent = activity.getPackageManager().getLaunchIntentForPackage(activity.getPackageName());

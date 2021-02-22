@@ -180,7 +180,10 @@ public class MainActivity extends AppCompatActivity {
                                     .setTitle("已添加模块")
                                     .setMessage(modules.toString())
                                     .setCancelable(true)
-                                    .setPositiveButton("确定", (dialogInterface, i) -> {
+                                    .setNeutralButton("清空", (dialogInterface, i) -> {
+                                        RepackageProcessor.insertModulesPath = new ArrayList<>();
+                                        RepackageProcessor.xpatchStartDialog.getButton(AlertDialog.BUTTON_NEUTRAL).setText("内置模块");
+                                    }).setPositiveButton("确定", (dialogInterface, i) -> {
                                     }).create();
                             alertDialog.show();
                             return true;
