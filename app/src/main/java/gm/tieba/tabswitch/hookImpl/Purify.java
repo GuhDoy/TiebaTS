@@ -12,6 +12,7 @@ import org.json.JSONObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -109,6 +110,21 @@ public class Purify extends Hook {
                     XposedBridge.hookMethod(ala, XC_MethodReplacement.returnConstant(null));
         } catch (XposedHelpers.ClassNotFoundError ignored) {
         }
+        //首页不属于任何吧的视频
+        XposedHelpers.findAndHookMethod(XposedHelpers.findClass("tbclient.Personalized.DataRes$Builder", classLoader), "build", boolean.class, new XC_MethodHook() {
+            public void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                if (Hook.follow == null) return;
+                Field field = param.thisObject.getClass().getDeclaredField("thread_list");
+                field.setAccessible(true);
+                List<?> list = (List<?>) field.get(param.thisObject);
+                if (list == null) return;
+                for (int i = 0; i < list.size(); i++)
+                    if (list.get(i).toString().contains("fname=,")) {
+                        list.remove(i);
+                        i--;
+                    }
+            }
+        });
         //吧小程序
         XposedBridge.hookAllMethods(XposedHelpers.findClass("com.baidu.tieba.frs.servicearea.ServiceAreaView", classLoader), "setData", XC_MethodReplacement.returnConstant(null));
         //你可能感兴趣的人

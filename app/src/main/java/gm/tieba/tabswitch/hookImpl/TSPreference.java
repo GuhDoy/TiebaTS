@@ -37,8 +37,7 @@ import gm.tieba.tabswitch.R;
 
 public class TSPreference extends Hook {
     private static boolean isShowDialog = false;
-    private static int count_author = 0;
-    private static int count_ze = 0;
+    private static int count = 0;
 
     public static void hook(ClassLoader classLoader) throws Throwable {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.LogoActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
@@ -195,11 +194,10 @@ public class TSPreference extends Hook {
         });
         LinearLayout author = TSPreferenceHelper.generateButton(classLoader, activity, "作者", "developed by GM");
         author.setOnClickListener(v -> {
-            count_author++;
-            count_ze++;
-            if (count_author % 3 == 0)
+            count++;
+            if (count % 3 == 0)
                 Toast.makeText(activity, TSPreferenceHelper.randomToast(), Toast.LENGTH_SHORT).show();
-            if (count_ze >= 10) {
+            if (count >= 10) {
                 SharedPreferences.Editor editor = tsConfig.edit();
                 editor.putBoolean("ze", true);
                 editor.apply();
