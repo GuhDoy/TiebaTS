@@ -95,7 +95,8 @@ public class Purify extends Hook {
         } catch (XposedHelpers.ClassNotFoundError ignored) {
         }
         //帖子直播推荐
-        XposedBridge.hookAllConstructors(XposedHelpers.findClass("tbclient.AlaLiveInfo", classLoader), XC_MethodReplacement.returnConstant(null));
+        //TODO: Someone fix this
+        //XposedBridge.hookAllConstructors(XposedHelpers.findClass("tbclient.AlaLiveInfo", classLoader), XC_MethodReplacement.returnConstant(null));
         //新帖子广告
         try {
             XposedBridge.hookAllMethods(XposedHelpers.findClass("com.fun.ad.sdk.FunAdSdk", classLoader), "init", XC_MethodReplacement.returnConstant(null));
