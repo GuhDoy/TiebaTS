@@ -33,6 +33,8 @@ public class RulesDbHelper extends SQLiteOpenHelper {
         db.execSQL("insert into rules(rule,class,method) values(?,?,?)", new Object[]{"\"https://tieba.baidu.com/mo/q/duxiaoman/index?noshare=1\"", "", ""});
         //签到按钮
         db.execSQL("insert into rules(rule,class,method) values(?,?,?)", new Object[]{"Lcom/baidu/tieba/R$id;->navigationBarGoSignall:I", "", ""});
+        //存储重定向
+        db.execSQL("insert into rules(rule,class,method) values(?,?,?)", new Object[]{"0x4197d783fc000000L", "", ""});
         //调整字号手势
         db.execSQL("insert into rules(rule,class,method) values(?,?,?)", new Object[]{"Lcom/baidu/tieba/R$id;->new_pb_list:I", "", ""});
     }

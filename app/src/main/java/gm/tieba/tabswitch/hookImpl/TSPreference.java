@@ -166,9 +166,11 @@ public class TSPreference extends Hook {
         if (tsConfig.getBoolean("ze", false))
             linearLayout.addView(TSPreferenceHelper.generateTextView(activity, "奇怪怪"));
         else linearLayout.addView(TSPreferenceHelper.generateTextView(activity, "其它"));
+        TSPreferenceHelper.SwitchViewHolder storageRedirect = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "存储重定向", tsPreference.getBoolean("storage_redirect", false));
         TSPreferenceHelper.SwitchViewHolder fontSize = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "禁用帖子缩放手势", tsPreference.getBoolean("font_size", false));
         TSPreferenceHelper.SwitchViewHolder eyeshieldMode = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "用夜间模式代替深色模式", tsPreference.getBoolean("eyeshield_mode", false));
         TSPreferenceHelper.SwitchViewHolder personalizedFilterLog = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "打印过滤首页推荐日志", tsPreference.getBoolean("personalized_filter_log", false));
+        linearLayout.addView(storageRedirect.newSwitch);
         linearLayout.addView(fontSize.newSwitch);
         linearLayout.addView(eyeshieldMode.newSwitch);
         linearLayout.addView(personalizedFilterLog.newSwitch);
@@ -235,6 +237,7 @@ public class TSPreference extends Hook {
             editor.putBoolean("auto_sign", autoSign.isOn());
             editor.putBoolean("open_sign", openSign.isOn());
             editor.putBoolean("clean_dir", cleanDir.isOn());
+            editor.putBoolean("storage_redirect", storageRedirect.isOn());
             editor.putBoolean("font_size", fontSize.isOn());
             editor.putBoolean("eyeshield_mode", eyeshieldMode.isOn());
             editor.putBoolean("personalized_filter_log", personalizedFilterLog.isOn());

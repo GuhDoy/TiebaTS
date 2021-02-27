@@ -4,18 +4,14 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Looper;
 import android.view.View;
-import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
@@ -34,6 +30,7 @@ import gm.tieba.tabswitch.hookImpl.Purify;
 import gm.tieba.tabswitch.hookImpl.PurifyEnter;
 import gm.tieba.tabswitch.hookImpl.PurifyMy;
 import gm.tieba.tabswitch.hookImpl.RedTip;
+import gm.tieba.tabswitch.hookImpl.StorageRedirect;
 
 public class HookDispatcher extends Hook {
     public static void hook(ClassLoader classLoader, Map.Entry<String, ?> entry, Context context) throws Throwable {
@@ -217,6 +214,9 @@ public class HookDispatcher extends Hook {
                             }
                         }
                     });
+                    break;
+                case "storage_redirect":
+                    if ((Boolean) entry.getValue()) StorageRedirect.hook(classLoader, context);
                     break;
                 case "font_size":
                     if (!(Boolean) entry.getValue()) return;

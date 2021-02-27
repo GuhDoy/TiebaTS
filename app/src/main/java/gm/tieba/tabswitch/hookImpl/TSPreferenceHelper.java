@@ -12,6 +12,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Objects;
@@ -78,7 +79,12 @@ class TSPreferenceHelper extends Hook {
                 else turnOff();
                 newSwitch.setOnClickListener(v -> {
                     try {
-                        Method changeState = BdSwitchView.getDeclaredMethod("changeState");
+                        Method changeState;
+                        try {
+                            changeState = BdSwitchView.getDeclaredMethod("changeState");
+                        } catch (NoSuchMethodException e) {
+                            changeState = BdSwitchView.getDeclaredMethod("b");
+                        }
                         changeState.setAccessible(true);
                         changeState.invoke(switchInstance);
                     } catch (Throwable throwable) {
@@ -94,7 +100,13 @@ class TSPreferenceHelper extends Hook {
         boolean isOn() {
             try {
                 Class<?> BdSwitchView = classLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView");
-                return (Boolean) BdSwitchView.getDeclaredMethod("isOn").invoke(switchInstance);
+                boolean isOn;
+                try {
+                    isOn = (Boolean) BdSwitchView.getDeclaredMethod("isOn").invoke(switchInstance);
+                } catch (NoSuchMethodException e) {
+                    isOn = (Boolean) BdSwitchView.getDeclaredMethod("d").invoke(switchInstance);
+                }
+                return isOn;
             } catch (Throwable throwable) {
                 XposedBridge.log(throwable);
             }
@@ -104,7 +116,11 @@ class TSPreferenceHelper extends Hook {
         void turnOn() {
             try {
                 Class<?> BdSwitchView = classLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView");
-                BdSwitchView.getDeclaredMethod("turnOn").invoke(switchInstance);
+                try {
+                    BdSwitchView.getDeclaredMethod("turnOn").invoke(switchInstance);
+                } catch (NoSuchMethodException e) {
+                    BdSwitchView.getDeclaredMethod("i").invoke(switchInstance);
+                }
             } catch (Throwable throwable) {
                 XposedBridge.log(throwable);
             }
@@ -113,7 +129,11 @@ class TSPreferenceHelper extends Hook {
         void turnOff() {
             try {
                 Class<?> BdSwitchView = classLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView");
-                BdSwitchView.getDeclaredMethod("turnOff").invoke(switchInstance);
+                try {
+                    BdSwitchView.getDeclaredMethod("turnOff").invoke(switchInstance);
+                } catch (NoSuchMethodException e) {
+                    BdSwitchView.getDeclaredMethod("f").invoke(switchInstance);
+                }
             } catch (Throwable throwable) {
                 XposedBridge.log(throwable);
             }

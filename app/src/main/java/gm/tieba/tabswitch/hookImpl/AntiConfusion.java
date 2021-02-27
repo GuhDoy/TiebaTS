@@ -94,7 +94,7 @@ public class AntiConfusion extends Hook {
                                 activity.runOnUiThread(() -> textView.setText(String.format("%s\n%s", finalSearchProgress, finalMainProgress)));
 
                                 String signature = classes.get(j).getClassType().getTypeDescriptor();//类签名
-                                if (!signature.startsWith("Le/b/m0/") && !signature.startsWith("Lcom/baidu/tieba/"))
+                                if (!signature.startsWith("Le/b/") && !signature.startsWith("Lcom/baidu/tieba/") && !signature.startsWith("Lcom/baidu/tbadk/core/util/"))
                                     continue;
                                 if (AntiConfusionHelper.searchAndUpdate(classes.get(j), 0) || AntiConfusionHelper.searchAndUpdate(classes.get(j), 1)) {
                                     searched++;

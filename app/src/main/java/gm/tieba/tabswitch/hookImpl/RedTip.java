@@ -1,15 +1,12 @@
 package gm.tieba.tabswitch.hookImpl;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 
-import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import gm.tieba.tabswitch.Hook;
 
 public class RedTip extends Hook {
@@ -30,11 +27,22 @@ public class RedTip extends Hook {
         XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(null));
         //我的ArrayList红点
         //搜索"https://tieba.baidu.com/mo/q/duxiaoman/index?noshare=1"，参数为[boolean]的方法查找调用
-        Class<?> clazz;
+        Class<?> clazz = null;
         try {
             clazz = classLoader.loadClass("com.baidu.tieba.personCenter.b.b$2");
         } catch (ClassNotFoundException e) {
-            clazz = classLoader.loadClass("e.b.m0.d2.d.b$b");
+            //历史记录："e.b.m0.d2.d.b$b","e.b.h0.f2.d.b$b"
+            for (int i = 0; i < ruleMapList.size(); i++) {
+                Map<String, String> map = ruleMapList.get(i);
+                if (Objects.equals(map.get("rule"), "\"https://tieba.baidu.com/mo/q/duxiaoman/index?noshare=1\"")) {
+                    String className = map.get("class");
+                    for (int j = 0; j < 2; j++)
+                        className = className.substring(0, className.lastIndexOf("."));
+                    className += ".d.b$b";
+                    clazz = classLoader.loadClass(className);
+                    break;
+                }
+            }
         }
         XposedBridge.hookAllMethods(clazz, "onMessage", XC_MethodReplacement.returnConstant(null));
     }

@@ -202,8 +202,8 @@ public class MainActivity extends AppCompatActivity {
                         break;
                 }
             } catch (Throwable throwable) {
-                RepackageProcessor.xpatchFailDialog.setMessage(Log.getStackTraceString(throwable));
-                RepackageProcessor.xpatchFailDialog.show();
+                RepackageProcessor.xpatchFailureDialog.setMessage(Log.getStackTraceString(throwable));
+                RepackageProcessor.xpatchFailureDialog.show();
                 throwable.printStackTrace();
             }
     }

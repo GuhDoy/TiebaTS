@@ -1,6 +1,5 @@
 package gm.tieba.tabswitch.util;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
@@ -39,7 +38,7 @@ import gm.tieba.tabswitch.R;
 
 public class RepackageProcessor {
     public static AlertDialog xpatchSuccessDialog;
-    public static AlertDialog xpatchFailDialog;
+    public static AlertDialog xpatchFailureDialog;
     public static AlertDialog xpatchStartDialog;
     public static int recyclerViewId;
     public static File inApk;
@@ -57,7 +56,7 @@ public class RepackageProcessor {
                 .setNegativeButton("取消", (dialogInterface, i) -> {
                 }).setPositiveButton("安装", (dialogInterface, i) -> {
                 }).create();
-        xpatchFailDialog = new AlertDialog.Builder(activity)
+        xpatchFailureDialog = new AlertDialog.Builder(activity)
                 .setIcon(R.mipmap.ic_launcher).setTitle("处理失败").setCancelable(true)
                 .setPositiveButton("确定", (dialogInterface, i) -> {
                 }).create();
@@ -307,8 +306,8 @@ public class RepackageProcessor {
             } catch (Throwable throwable) {
                 activity.runOnUiThread(() -> {
                     activity.findViewById(R.id.progress_container).setVisibility(View.GONE);
-                    xpatchFailDialog.setMessage(inApk.getName() + "\n" + Log.getStackTraceString(throwable));
-                    xpatchFailDialog.show();
+                    xpatchFailureDialog.setMessage(inApk.getName() + "\n" + Log.getStackTraceString(throwable));
+                    xpatchFailureDialog.show();
                 });
                 throwable.printStackTrace();
             } finally {
