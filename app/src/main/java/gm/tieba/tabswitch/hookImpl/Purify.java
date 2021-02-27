@@ -96,14 +96,12 @@ public class Purify extends Hook {
         //帖子直播推荐
         //TODO: Someone fix this
         //XposedBridge.hookAllConstructors(XposedHelpers.findClass("tbclient.AlaLiveInfo", classLoader), XC_MethodReplacement.returnConstant(null));
-        /* an alternative
         XposedHelpers.findAndHookConstructor("tbclient.AlaLiveInfo$Builder", classLoader, XposedHelpers.findClass("tbclient.AlaLiveInfo", classLoader), new XC_MethodHook() {
             public void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 XposedBridge.log(String.valueOf(param.args[0]));
                 param.args[0] = null;
             }
         });
-        */
         //新帖子广告
         try {
             XposedBridge.hookAllMethods(XposedHelpers.findClass("com.fun.ad.sdk.FunAdSdk", classLoader), "init", XC_MethodReplacement.returnConstant(null));

@@ -73,13 +73,13 @@ public class StorageRedirect extends Hook {
             Response response = call.execute();
             InputStream respContent = response.body().byteStream();
 
-            ContentValues newQrCodeDetails = new ContentValues();
-            newQrCodeDetails.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + File.separator + "tieba");
-            newQrCodeDetails.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
-            newQrCodeDetails.put(MediaStore.MediaColumns.MIME_TYPE, "image/" + extension);
+            ContentValues newImageDetails = new ContentValues();
+            newImageDetails.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + File.separator + "tieba");
+            newImageDetails.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+            newImageDetails.put(MediaStore.MediaColumns.MIME_TYPE, "image/" + extension);
             ContentResolver resolver = applicationContext.getContentResolver();
-            Uri qrCodeUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, newQrCodeDetails);
-            ParcelFileDescriptor descriptor = resolver.openFileDescriptor(qrCodeUri, "w");
+            Uri imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, newImageDetails);
+            ParcelFileDescriptor descriptor = resolver.openFileDescriptor(imageUri, "w");
             IO.copyFile(respContent, new FileOutputStream(descriptor.getFileDescriptor()));
             Looper.prepare();
             Toast.makeText(applicationContext, fileName + "." + extension, Toast.LENGTH_SHORT).show();
