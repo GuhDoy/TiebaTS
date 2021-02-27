@@ -3,14 +3,19 @@ package gm.tieba.tabswitch.hookImpl;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.os.Looper;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.widget.Toast;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,6 +35,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Response;
 
 public class StorageRedirect extends Hook {
+    private static ByteArrayOutputStream baos;
+
     public static void hook(ClassLoader classLoader, Context context) throws Throwable {
         XposedHelpers.findAndHookMethod(Environment.class, "getExternalStorageDirectory", new XC_MethodHook() {
             protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
@@ -64,7 +71,6 @@ public class StorageRedirect extends Hook {
     private static int saveImage(String url, Context context) {
         Context applicationContext = context.getApplicationContext();
         String fileName = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("."));
-        String extension = url.substring(url.lastIndexOf(".") + 1);
         try {
             OkHttpClient okHttpClient = new OkHttpClient();
             okhttp3.Request request = new okhttp3.Request.Builder()
@@ -73,20 +79,45 @@ public class StorageRedirect extends Hook {
             Response response = call.execute();
             InputStream respContent = response.body().byteStream();
 
-            ContentValues newImageDetails = new ContentValues();
-            newImageDetails.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + File.separator + "tieba");
-            newImageDetails.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
-            newImageDetails.put(MediaStore.MediaColumns.MIME_TYPE, "image/" + extension);
-            ContentResolver resolver = applicationContext.getContentResolver();
-            Uri imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, newImageDetails);
-            ParcelFileDescriptor descriptor = resolver.openFileDescriptor(imageUri, "w");
-            IO.copyFile(respContent, new FileOutputStream(descriptor.getFileDescriptor()));
+            String extension = getExtension(respContent);
+            respContent = new ByteArrayInputStream(baos.toByteArray());
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ContentValues newImageDetails = new ContentValues();
+                newImageDetails.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + File.separator + "tieba");
+                newImageDetails.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+                newImageDetails.put(MediaStore.MediaColumns.MIME_TYPE, "image/" + extension);
+                ContentResolver resolver = applicationContext.getContentResolver();
+                Uri imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, newImageDetails);
+                ParcelFileDescriptor descriptor = resolver.openFileDescriptor(imageUri, "w");
+                IO.copyFile(respContent, new FileOutputStream(descriptor.getFileDescriptor()));
+            } else {
+                File imageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "tieba");
+                imageDir.mkdirs();
+                IO.copyFileFromStream(respContent, imageDir.getPath() + File.separator + fileName + "." + extension);
+
+                Intent scanIntent = new Intent("android.intent.action.MEDIA_SCANNER_SCAN_DIR");
+                scanIntent.setData(Uri.fromFile(imageDir));
+                applicationContext.sendBroadcast(scanIntent);
+            }
+            baos = null;
             Looper.prepare();
             Toast.makeText(applicationContext, fileName + "." + extension, Toast.LENGTH_SHORT).show();
             Looper.loop();
         } catch (IOException e) {
+            XposedBridge.log(e);
             return -1;
         }
         return 0;
+    }
+
+    private static String getExtension(InputStream inputStream) throws IOException {
+        baos = IO.cloneInputStream(inputStream);
+        inputStream = new ByteArrayInputStream(baos.toByteArray());
+        byte[] buffer = new byte[10];
+        if (inputStream.read(buffer) == -1) throw new IOException();
+        XposedBridge.log(Arrays.toString(buffer));
+        if (Arrays.equals(buffer, new byte[]{-1, -40, -1, -32, 0, 16, 74, 70, 73, 70}))
+            return "jpg";
+        else return "gif";
     }
 }

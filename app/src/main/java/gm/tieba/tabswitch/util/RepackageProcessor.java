@@ -163,6 +163,11 @@ public class RepackageProcessor {
                             zos.putNextEntry("lib/arm64-v8a/libsandhook.so");
                             zos.writeFully(v8a);
                             zos.closeEntry();
+                            v8a = activity.getAssets().open("arm64-v8a/libsandhook-native.so");
+                            extraSize += v8a.available();
+                            zos.putNextEntry("lib/arm64-v8a/libsandhook-native.so");
+                            zos.writeFully(v8a);
+                            zos.closeEntry();
                             for (int j = 0; j < insertModulesPath.size(); j++) {
                                 FileInputStream insertModule = new FileInputStream(insertModulesPath.get(j));
                                 extraSize += insertModule.available();
@@ -178,6 +183,11 @@ public class RepackageProcessor {
                             zos.putNextEntry("lib/armeabi-v7a/libsandhook.so");
                             zos.writeFully(v7a);
                             zos.closeEntry();
+                            v7a = activity.getAssets().open("armeabi-v7a/libsandhook-native.so");
+                            extraSize += v7a.available();
+                            zos.putNextEntry("lib/armeabi-v7a/libsandhook-native.so");
+                            zos.writeFully(v7a);
+                            zos.closeEntry();
                             for (int j = 0; j < insertModulesPath.size(); j++) {
                                 FileInputStream insertModule = new FileInputStream(insertModulesPath.get(j));
                                 extraSize += insertModule.available();
@@ -191,6 +201,11 @@ public class RepackageProcessor {
                             InputStream v7a = activity.getAssets().open("armeabi-v7a/libsandhook.so");
                             extraSize += v7a.available();
                             zos.putNextEntry("lib/armeabi/libsandhook.so");
+                            zos.writeFully(v7a);
+                            zos.closeEntry();
+                            v7a = activity.getAssets().open("armeabi-v7a/libsandhook-native.so");
+                            extraSize += v7a.available();
+                            zos.putNextEntry("lib/armeabi-v7a/libsandhook-native.so");
                             zos.writeFully(v7a);
                             zos.closeEntry();
                             for (int j = 0; j < insertModulesPath.size(); j++) {
@@ -246,6 +261,9 @@ public class RepackageProcessor {
                     if (!haveWrittenV8a && !haveWrittenV7a && !haveWrittenArmeabi) {
                         zos.putNextEntry("lib/armeabi/libsandhook.so");
                         zos.writeFully(activity.getAssets().open("armeabi-v7a/libsandhook.so"));
+                        zos.closeEntry();
+                        zos.putNextEntry("lib/armeabi/libsandhook-native.so");
+                        zos.writeFully(activity.getAssets().open("armeabi-v7a/libsandhook-native.so"));
                         zos.closeEntry();
                         for (int j = 0; j < insertModulesPath.size(); j++) {
                             zos.putNextEntry("lib/armeabi/libxpatch_xp_module_" + j + ".so");

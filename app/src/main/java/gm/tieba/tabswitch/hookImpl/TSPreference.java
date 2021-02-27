@@ -187,6 +187,13 @@ public class TSPreference extends Hook {
             intent.setClassName(ris.get(0).activityInfo.packageName, ris.get(0).activityInfo.name);
             activity.startActivity(intent);
         });
+        LinearLayout github = TSPreferenceHelper.generateButton(classLoader, activity, "源代码", "想要小星星");
+        github.setOnClickListener(v -> {
+            Intent intent = new Intent();
+            intent.setAction("android.intent.action.VIEW");
+            intent.setData(Uri.parse("https://github.com/GuhDoy/TiebaTS"));
+            activity.startActivity(intent);
+        });
         LinearLayout telegram = TSPreferenceHelper.generateButton(classLoader, activity, "TG群", "及时获取更新");
         telegram.setOnClickListener(v -> {
             Intent intent = new Intent();
@@ -206,6 +213,7 @@ public class TSPreference extends Hook {
             }
         });
         linearLayout.addView(version);
+        linearLayout.addView(github);
         linearLayout.addView(telegram);
         linearLayout.addView(author);
         ScrollView scrollView = new ScrollView(activity);

@@ -150,7 +150,7 @@ class TSPreferenceHelper extends Hook {
     }
 
     static String randomToast() {
-        switch (new Random().nextInt(4)) {
+        switch (new Random().nextInt(5)) {
             case 0:
                 return "别点了，新版本在做了";
             case 1:
@@ -159,6 +159,8 @@ class TSPreferenceHelper extends Hook {
                 return "再点人傻了>_<";
             case 3:
                 return "点了也没用~";
+            case 4:
+                return "点个小星星吧:)";
             default:
                 return null;
         }
