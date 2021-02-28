@@ -205,7 +205,7 @@ public class RepackageProcessor {
                             zos.closeEntry();
                             v7a = activity.getAssets().open("armeabi-v7a/libsandhook-native.so");
                             extraSize += v7a.available();
-                            zos.putNextEntry("lib/armeabi-v7a/libsandhook-native.so");
+                            zos.putNextEntry("lib/armeabi/libsandhook-native.so");
                             zos.writeFully(v7a);
                             zos.closeEntry();
                             for (int j = 0; j < insertModulesPath.size(); j++) {

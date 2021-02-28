@@ -115,7 +115,6 @@ public class StorageRedirect extends Hook {
         inputStream = new ByteArrayInputStream(baos.toByteArray());
         byte[] buffer = new byte[10];
         if (inputStream.read(buffer) == -1) throw new IOException();
-        XposedBridge.log(Arrays.toString(buffer));
         if (Arrays.equals(buffer, new byte[]{-1, -40, -1, -32, 0, 16, 74, 70, 73, 70}))
             return "jpg";
         else return "gif";
