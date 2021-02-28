@@ -114,7 +114,7 @@ public class RepackageProcessor {
                 }).setPositiveButton("确定", (dialogInterface, i) -> {
                     Map<String, Boolean> xpatchPreference = new HashMap<>();
                     xpatchPreference.put("signSwitch", signSwitch.isChecked());
-                    xpatchPreference.put("moduleListSwitch", signSwitch.isChecked());
+                    xpatchPreference.put("moduleListSwitch", moduleListSwitch.isChecked());
                     executeXpatch(activity, xpatchPreference);
                 }).create();
     }

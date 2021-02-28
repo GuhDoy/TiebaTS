@@ -52,14 +52,16 @@ public class StorageRedirect extends Hook {
                         case "[class java.lang.String, class [B, class android.content.Context]":
                             XposedBridge.hookMethod(method, new XC_MethodReplacement() {
                                 protected Object replaceHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-                                    return saveImage((String) param.args[0], (Context) param.args[2]);
+                                    return saveImage((String) param.args[0], new ByteArrayInputStream((byte[]) param.args[1]), (Context) param.args[2]);
                                 }
                             });
                             break;
                         case "[class java.lang.String, class java.lang.String, class android.content.Context]":
                             XposedBridge.hookMethod(method, new XC_MethodReplacement() {
                                 protected Object replaceHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-                                    return saveImage((String) param.args[1], (Context) param.args[2]);
+                                    // 贴吧原本保存的图片，感觉比联网下载的糊
+                                    // new FileInputStream((String) param.args[0])
+                                    return saveImage((String) param.args[1], null, (Context) param.args[2]);
                                 }
                             });
                             break;
@@ -68,7 +70,7 @@ public class StorageRedirect extends Hook {
         }
     }
 
-    private static int saveImage(String url, Context context) {
+    private static int saveImage(String url, InputStream inputStream, Context context) {
         Context applicationContext = context.getApplicationContext();
         String fileName = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("."));
         try {
@@ -78,9 +80,9 @@ public class StorageRedirect extends Hook {
             Call call = okHttpClient.newCall(request);
             Response response = call.execute();
             InputStream respContent = response.body().byteStream();
-
             String extension = getExtension(respContent);
-            respContent = new ByteArrayInputStream(baos.toByteArray());
+            if (inputStream == null) respContent = new ByteArrayInputStream(baos.toByteArray());
+            else respContent = inputStream;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 ContentValues newImageDetails = new ContentValues();
                 newImageDetails.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + File.separator + "tieba");
