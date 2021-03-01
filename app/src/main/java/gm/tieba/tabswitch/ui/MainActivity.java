@@ -152,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
                         });
                         DisplayMetrics metrics = getResources().getDisplayMetrics();
                         final int maxWidth = DisplayHelper.px2Dip(this, metrics.widthPixels) - 91;
-                        final int maxHeight = DisplayHelper.px2Dip(this, metrics.heightPixels) - 306;
+                        final int maxHeight = DisplayHelper.px2Dip(this, metrics.heightPixels) - 322;//306
                         final int recyclerViewTotalHeight = RepackageProcessor.moduleList.size() * 64;
                         if (recyclerViewTotalHeight > maxHeight) {
                             ViewGroup.LayoutParams recyclerViewLayoutParams = recyclerView.getLayoutParams();

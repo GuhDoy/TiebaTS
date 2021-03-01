@@ -54,7 +54,7 @@ public class RepackageProcessor {
         xpatchSuccessDialog = new AlertDialog.Builder(activity)
                 .setIcon(R.mipmap.ic_launcher).setTitle("处理完成").setCancelable(false)
                 .setNegativeButton("取消", (dialogInterface, i) -> {
-                }).setPositiveButton("安装", (dialogInterface, i) -> {
+                }).setPositiveButton("确定", (dialogInterface, i) -> {
                 }).create();
         xpatchFailureDialog = new AlertDialog.Builder(activity)
                 .setIcon(R.mipmap.ic_launcher).setTitle("处理失败").setCancelable(true)
@@ -62,17 +62,23 @@ public class RepackageProcessor {
                 }).create();
 
         SwitchCompat signSwitch = new SwitchCompat(activity);
+        SwitchCompat appSwitch = new SwitchCompat(activity);
         SwitchCompat moduleListSwitch = new SwitchCompat(activity);
         TextView tipTextView = new TextView(activity);
         RecyclerView recyclerView = new RecyclerView(activity);
         if ((activity.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES) {
             signSwitch.setTextColor(activity.getResources().getColor(R.color.colorPrimary, null));
+            appSwitch.setTextColor(activity.getResources().getColor(R.color.colorPrimary, null));
             moduleListSwitch.setTextColor(activity.getResources().getColor(R.color.colorPrimary, null));
         } else {
             signSwitch.setTextColor(activity.getResources().getColor(R.color.colorPrimaryDark, null));
+            appSwitch.setTextColor(activity.getResources().getColor(R.color.colorPrimaryDark, null));
             moduleListSwitch.setTextColor(activity.getResources().getColor(R.color.colorPrimaryDark, null));
         }
         signSwitch.setTextSize(16);
+        signSwitch.setText("跳过读取签名");
+        appSwitch.setTextSize(16);
+        appSwitch.setText("替换原始安装包");
         moduleListSwitch.setTextSize(16);
         moduleListSwitch.setOnCheckedChangeListener((compoundButton, b) -> {
             if (b) {
@@ -83,7 +89,6 @@ public class RepackageProcessor {
                 recyclerView.setVisibility(View.VISIBLE);
             }
         });
-        signSwitch.setText("跳过读取签名");
         moduleListSwitch.setText("跳过内置加载模块列表");
         tipTextView.setTextSize(14);
         tipTextView.setPadding(0, 12, 0, 0);
@@ -102,6 +107,7 @@ public class RepackageProcessor {
         linearLayout.setOrientation(LinearLayout.VERTICAL);
         linearLayout.setPadding(50, 0, 50, 0);
         linearLayout.addView(signSwitch);
+        linearLayout.addView(appSwitch);
         linearLayout.addView(moduleListSwitch);
         linearLayout.addView(tipTextView);
         linearLayout.addView(recyclerView);
@@ -114,6 +120,7 @@ public class RepackageProcessor {
                 }).setPositiveButton("确定", (dialogInterface, i) -> {
                     Map<String, Boolean> xpatchPreference = new HashMap<>();
                     xpatchPreference.put("signSwitch", signSwitch.isChecked());
+                    xpatchPreference.put("appSwitch", appSwitch.isChecked());
                     xpatchPreference.put("moduleListSwitch", moduleListSwitch.isChecked());
                     executeXpatch(activity, xpatchPreference);
                 }).create();
@@ -149,6 +156,7 @@ public class RepackageProcessor {
                     boolean haveWrittenArmeabi = false;
                     long extraSize = 0;
                     long inApkSize = inApk.length();
+                    if (xpatchPreference.get("appSwitch")) extraSize += inApkSize;
                     zos.setLevel(Deflater.HUFFMAN_ONLY);
 
                     bin.zip.ZipFile zipFile = new bin.zip.ZipFile(inApk);
@@ -243,6 +251,11 @@ public class RepackageProcessor {
                         zos.write(apkSignInfo.getBytes());
                         zos.closeEntry();
                     }
+                    if (xpatchPreference.get("appSwitch")) {
+                        zos.putNextEntry("assets/xpatch_asset/original_app.apk");
+                        zos.writeFully(new FileInputStream(inApk));
+                        zos.closeEntry();
+                    }
                     if (!xpatchPreference.get("moduleListSwitch")) {
                         StringBuilder sb = new StringBuilder();
                         for (int j = 0; j < moduleList.size(); j++) {
@@ -300,26 +313,26 @@ public class RepackageProcessor {
                 String packageName = ManifestParser.packageName;
                 activity.runOnUiThread(() -> {
                     activity.findViewById(R.id.progress_container).setVisibility(View.GONE);
-                    xpatchSuccessDialog.setMessage(outApk.getName() + "\n安卓系统不允许覆盖安装签名不同的同包名应用，如果您已经安装了签名不同的安装包，我会帮助您先卸载它。");
-                    xpatchSuccessDialog.show();
                     Intent intent = new Intent(Intent.ACTION_VIEW);
                     intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NO_ANIMATION);
                     Uri uri = FileProvider.getUriForFile(activity, "gm.FileProvider", outApk);
                     intent.setDataAndType(uri, "application/vnd.android.package-archive");
-                    xpatchSuccessDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-                        try {
-                            if (activity.getPackageManager().getPackageInfo(ManifestParser.packageName, PackageManager.GET_SIGNING_CERTIFICATES).signingInfo.getApkContentsSigners()[0].hashCode() == -524758043)
-                                throw new PackageManager.NameNotFoundException();
+                    try {
+                        if (activity.getPackageManager().getPackageInfo(ManifestParser.packageName, PackageManager.GET_SIGNING_CERTIFICATES).signingInfo.getApkContentsSigners()[0].hashCode() == -524758043)
+                            throw new PackageManager.NameNotFoundException();
+                        xpatchSuccessDialog.setMessage(outApk.getName() + "\n安卓系统不允许覆盖安装签名不同的同包名应用，您已经安装了签名不同的安装包，需要先卸载它才能安装 Xpatch 安装包。");
+                        xpatchSuccessDialog.show();
+                        xpatchSuccessDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
                             Intent uninstallIntent = new Intent();
                             uninstallIntent.setAction(Intent.ACTION_DELETE);
                             uninstallIntent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                             uninstallIntent.setData(Uri.parse("package:" + packageName));
                             activity.startActivityForResult(uninstallIntent, 0);
-                        } catch (PackageManager.NameNotFoundException e) {
-                            activity.startActivity(intent);
-                            xpatchSuccessDialog.dismiss();
-                        }
-                    });
+                        });
+                    } catch (PackageManager.NameNotFoundException e) {
+                        activity.startActivity(intent);
+                        xpatchSuccessDialog.dismiss();
+                    }
                 });
             } catch (Throwable throwable) {
                 activity.runOnUiThread(() -> {
