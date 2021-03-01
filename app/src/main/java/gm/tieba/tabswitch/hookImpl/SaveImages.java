@@ -37,11 +37,17 @@ import okhttp3.Response;
 
 public class SaveImages extends Hook {
     private static ArrayList<String> arrayList;
+    private static String title;
 
     public static void hook(ClassLoader classLoader) throws Throwable {
         XposedHelpers.findAndHookMethod("com.baidu.tbadk.coreExtra.view.ImagePagerAdapter", classLoader, "setData", ArrayList.class, new XC_MethodHook() {
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 arrayList = (ArrayList<String>) param.args[0];
+            }
+        });
+        XposedHelpers.findAndHookMethod("com.baidu.tbadk.widget.richText.TbRichText", classLoader, "toString", new XC_MethodHook() {
+            protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+                if (param.getResult() != null) title = (String) param.getResult();
             }
         });
         XposedHelpers.findAndHookConstructor("com.baidu.tbadk.coreExtra.view.ImageViewerBottomLayout", classLoader, Context.class, new XC_MethodHook() {
@@ -95,7 +101,7 @@ public class SaveImages extends Hook {
                 respContent = new ByteArrayInputStream(baos.toByteArray());
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     ContentValues newImageDetails = new ContentValues();
-                    newImageDetails.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + File.separator + "tieba");
+                    newImageDetails.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + File.separator + "tieba" + File.separator + title);
                     newImageDetails.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
                     newImageDetails.put(MediaStore.MediaColumns.MIME_TYPE, "image/" + extension);
                     ContentResolver resolver = context.getContentResolver();
@@ -103,7 +109,7 @@ public class SaveImages extends Hook {
                     ParcelFileDescriptor descriptor = resolver.openFileDescriptor(imageUri, "w");
                     IO.copyFile(respContent, new FileOutputStream(descriptor.getFileDescriptor()));
                 } else {
-                    File imageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "tieba");
+                    File imageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + File.separator + "tieba" + File.separator + title);
                     imageDir.mkdirs();
                     IO.copyFileFromStream(respContent, imageDir.getPath() + File.separator + fileName + "." + extension);
 

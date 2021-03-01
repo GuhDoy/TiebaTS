@@ -84,7 +84,7 @@ public class HookDispatcher extends Hook {
                             for (int i = 0; i < list.size(); i++) {
                                 boolean isRemove = true;
                                 for (String pb : Hook.follow)
-                                    if (list.get(i).toString().contains("fname=" + pb + ", forum_info="))
+                                    if (list.get(i).toString().contains(", fname=" + pb + ", forum_info="))
                                         isRemove = false;
                                 if (isRemove) {
                                     list.remove(i);
@@ -125,7 +125,7 @@ public class HookDispatcher extends Hook {
                             for (int i = 0; i < list.size(); i++) {
                                 String text = list.get(i).toString();
                                 try {
-                                    text = text.substring(text.indexOf("text=") + 5, text.indexOf(", topic_special_icon="));
+                                    text = text.substring(text.indexOf(", text=") + 7, text.indexOf(", topic_special_icon="));
                                 } catch (StringIndexOutOfBoundsException e) {
                                     continue;
                                 }
@@ -146,7 +146,7 @@ public class HookDispatcher extends Hook {
                             for (int i = 0; i < list.size(); i++) {
                                 String text = list.get(i).toString();
                                 try {
-                                    text = text.substring(text.indexOf("text=") + 5, text.indexOf(", topic_special_icon="));
+                                    text = text.substring(text.indexOf(", text=") + 7, text.indexOf(", topic_special_icon="));
                                 } catch (StringIndexOutOfBoundsException e) {
                                     continue;
                                 }

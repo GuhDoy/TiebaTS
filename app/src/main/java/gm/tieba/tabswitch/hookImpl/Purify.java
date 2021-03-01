@@ -125,7 +125,7 @@ public class Purify extends Hook {
                 List<?> list = (List<?>) field.get(param.thisObject);
                 if (list == null) return;
                 for (int i = 0; i < list.size(); i++)
-                    if (list.get(i).toString().contains("fname=,")) {
+                    if (list.get(i).toString().contains(", fname=, forum_info=")) {
                         list.remove(i);
                         i--;
                     }
