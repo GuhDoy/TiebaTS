@@ -13,7 +13,6 @@ import android.provider.MediaStore;
 import android.widget.Toast;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -35,8 +34,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Response;
 
 public class StorageRedirect extends Hook {
-    private static ByteArrayOutputStream baos;
-
     public static void hook(ClassLoader classLoader, Context context) throws Throwable {
         XposedHelpers.findAndHookMethod(Environment.class, "getExternalStorageDirectory", new XC_MethodHook() {
             protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
@@ -59,9 +56,7 @@ public class StorageRedirect extends Hook {
                         case "[class java.lang.String, class java.lang.String, class android.content.Context]":
                             XposedBridge.hookMethod(method, new XC_MethodReplacement() {
                                 protected Object replaceHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-                                    // 贴吧原本保存的图片，感觉比联网下载的糊
-                                    // new FileInputStream((String) param.args[0])
-                                    return saveImage((String) param.args[1], null, (Context) param.args[2]);
+                                    return saveImage((String) param.args[1], new FileInputStream((String) param.args[0]), (Context) param.args[2]);
                                 }
                             });
                             break;
@@ -81,8 +76,7 @@ public class StorageRedirect extends Hook {
             Response response = call.execute();
             InputStream respContent = response.body().byteStream();
             String extension = getExtension(respContent);
-            if (inputStream == null) respContent = new ByteArrayInputStream(baos.toByteArray());
-            else respContent = inputStream;
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 ContentValues newImageDetails = new ContentValues();
                 newImageDetails.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + File.separator + "tieba");
@@ -91,17 +85,16 @@ public class StorageRedirect extends Hook {
                 ContentResolver resolver = applicationContext.getContentResolver();
                 Uri imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, newImageDetails);
                 ParcelFileDescriptor descriptor = resolver.openFileDescriptor(imageUri, "w");
-                IO.copyFile(respContent, new FileOutputStream(descriptor.getFileDescriptor()));
+                IO.copyFile(inputStream, new FileOutputStream(descriptor.getFileDescriptor()));
             } else {
                 File imageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "tieba");
                 imageDir.mkdirs();
-                IO.copyFileFromStream(respContent, imageDir.getPath() + File.separator + fileName + "." + extension);
+                IO.copyFileFromStream(inputStream, imageDir.getPath() + File.separator + fileName + "." + extension);
 
                 Intent scanIntent = new Intent("android.intent.action.MEDIA_SCANNER_SCAN_DIR");
                 scanIntent.setData(Uri.fromFile(imageDir));
                 applicationContext.sendBroadcast(scanIntent);
             }
-            baos = null;
             Looper.prepare();
             Toast.makeText(applicationContext, fileName + "." + extension, Toast.LENGTH_SHORT).show();
             Looper.loop();
@@ -113,8 +106,6 @@ public class StorageRedirect extends Hook {
     }
 
     private static String getExtension(InputStream inputStream) throws IOException {
-        baos = IO.cloneInputStream(inputStream);
-        inputStream = new ByteArrayInputStream(baos.toByteArray());
         byte[] buffer = new byte[10];
         if (inputStream.read(buffer) == -1) throw new IOException();
         if (Arrays.equals(buffer, new byte[]{-1, -40, -1, -32, 0, 16, 74, 70, 73, 70}))

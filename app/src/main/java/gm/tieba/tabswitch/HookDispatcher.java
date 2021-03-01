@@ -30,6 +30,7 @@ import gm.tieba.tabswitch.hookImpl.Purify;
 import gm.tieba.tabswitch.hookImpl.PurifyEnter;
 import gm.tieba.tabswitch.hookImpl.PurifyMy;
 import gm.tieba.tabswitch.hookImpl.RedTip;
+import gm.tieba.tabswitch.hookImpl.SaveImages;
 import gm.tieba.tabswitch.hookImpl.StorageRedirect;
 
 public class HookDispatcher extends Hook {
@@ -159,6 +160,9 @@ public class HookDispatcher extends Hook {
                     break;
                 case "create_view":
                     if ((Boolean) entry.getValue()) CreateView.hook(classLoader);
+                    break;
+                case "save_images":
+                    if ((Boolean) entry.getValue()) SaveImages.hook(classLoader);
                     break;
                 case "auto_sign":
                     if (!(Boolean) entry.getValue()) return;

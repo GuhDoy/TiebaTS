@@ -13,7 +13,6 @@ import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
@@ -28,9 +27,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import gm.tieba.tabswitch.BuildConfig;
 import gm.tieba.tabswitch.Hook;
 import gm.tieba.tabswitch.R;
@@ -138,7 +135,9 @@ public class TSPreference extends Hook {
             linearLayout.addView(TSPreferenceHelper.generateTextView(activity, "别出新意"));
         else linearLayout.addView(TSPreferenceHelper.generateTextView(activity, "增加功能"));
         TSPreferenceHelper.SwitchViewHolder createView = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "进吧增加收藏、历史", tsPreference.getBoolean("create_view", false));
+        TSPreferenceHelper.SwitchViewHolder saveImages = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "长按下载保存全部图片", tsPreference.getBoolean("save_images", false));
         linearLayout.addView(createView.newSwitch);
+        linearLayout.addView(saveImages.newSwitch);
         if (tsConfig.getBoolean("ze", false))
             linearLayout.addView(TSPreferenceHelper.generateTextView(activity, "垂手可得"));
         else linearLayout.addView(TSPreferenceHelper.generateTextView(activity, "自动化"));
@@ -242,6 +241,7 @@ public class TSPreference extends Hook {
             editor.putBoolean("red_tip", redTip.isOn());
             editor.putBoolean("follow_filter", followFilter.isOn());
             editor.putBoolean("create_view", createView.isOn());
+            editor.putBoolean("save_images", saveImages.isOn());
             editor.putBoolean("auto_sign", autoSign.isOn());
             editor.putBoolean("open_sign", openSign.isOn());
             editor.putBoolean("clean_dir", cleanDir.isOn());

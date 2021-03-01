@@ -98,7 +98,7 @@
                         android:layout_centerVertical="true"
                         android:contentDescription="模块激活状态"
                         app:srcCompat="@drawable/ic_error"
-                        app:tint="@color/colorPrimary" />
+                        app:tint="@color/colorPrimaryDark" />
 
                     <TextView
                         android:id="@+id/status_title"
@@ -108,7 +108,7 @@
                         android:layout_toEndOf="@id/status_icon"
                         android:text="未激活"
                         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                        android:textColor="@color/colorPrimary" />
+                        android:textColor="@color/colorPrimaryDark" />
 
                     <TextView
                         android:id="@+id/status_summary"
@@ -118,7 +118,7 @@
                         android:layout_alignStart="@id/status_title"
                         android:layout_marginTop="5dp"
                         android:textAppearance="@style/TextAppearance.AppCompat.Small"
-                        android:textColor="@color/colorPrimary" />
+                        android:textColor="@color/colorPrimaryDark" />
                 </RelativeLayout>
             </androidx.cardview.widget.CardView>
 
