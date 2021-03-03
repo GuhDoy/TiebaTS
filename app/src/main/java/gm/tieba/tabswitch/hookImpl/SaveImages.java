@@ -67,7 +67,7 @@ public class SaveImages extends Hook {
                                     url = url.substring(0, url.lastIndexOf("*"));
                                 } catch (StringIndexOutOfBoundsException ignored) {
                                 }
-                                saveImage(url, context);
+                                saveImage(url, i, context);
                             }
                             Toast.makeText(context, String.format(Locale.CHINA, "已保存%d张图片至手机相册", arrayList.size()), Toast.LENGTH_SHORT).show();
                             return true;
@@ -79,8 +79,7 @@ public class SaveImages extends Hook {
         });
     }
 
-    private static void saveImage(String url, Context context) {
-        String fileName = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("."));
+    private static void saveImage(String url, int i, Context context) {
         OkHttpClient okHttpClient = new OkHttpClient();
         okhttp3.Request request = new okhttp3.Request.Builder()
                 .url(url).get().build();
@@ -102,7 +101,7 @@ public class SaveImages extends Hook {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     ContentValues newImageDetails = new ContentValues();
                     newImageDetails.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + File.separator + "tieba" + File.separator + title);
-                    newImageDetails.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+                    newImageDetails.put(MediaStore.MediaColumns.DISPLAY_NAME, String.valueOf(i));
                     newImageDetails.put(MediaStore.MediaColumns.MIME_TYPE, "image/" + extension);
                     ContentResolver resolver = context.getContentResolver();
                     Uri imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, newImageDetails);
@@ -111,7 +110,7 @@ public class SaveImages extends Hook {
                 } else {
                     File imageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + File.separator + "tieba" + File.separator + title);
                     imageDir.mkdirs();
-                    IO.copyFileFromStream(respContent, imageDir.getPath() + File.separator + fileName + "." + extension);
+                    IO.copyFileFromStream(respContent, imageDir.getPath() + File.separator + i + "." + extension);
 
                     Intent scanIntent = new Intent("android.intent.action.MEDIA_SCANNER_SCAN_DIR");
                     scanIntent.setData(Uri.fromFile(imageDir));

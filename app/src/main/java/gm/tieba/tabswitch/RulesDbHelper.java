@@ -12,8 +12,8 @@ public class RulesDbHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("create table rules(id integer primary key autoincrement, rule varchar(255), class varchar(255), method varchar(255))");
-        //旧启动广告
-        db.execSQL("insert into rules(rule,class,method) values(?,?,?)", new Object[]{"\"c/s/splashSchedule\"", "", ""});
+        //启动广告
+        db.execSQL("insert into rules(rule,class,method) values(?,?,?)", new Object[]{"\"custom_ext_data\"", "", ""});
         //图片广告
         //必须："recom_ala_info", "app", 可选："goods_info"
         db.execSQL("insert into rules(rule,class,method) values(?,?,?)", new Object[]{"\"pic_amount\"", "", ""});

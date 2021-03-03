@@ -11,6 +11,7 @@ import org.json.JSONObject;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +28,13 @@ public class Purify extends Hook {
         for (int i = 0; i < ruleMapList.size(); i++) {
             Map<String, String> map = ruleMapList.get(i);
             switch (Objects.requireNonNull(map.get("rule"))) {
+                /*
                 case "\"c/s/splashSchedule\""://旧启动广告
+                    XposedBridge.hookAllMethods(XposedHelpers.findClass(map.get("class"), classLoader), map.get("method"), XC_MethodReplacement.returnConstant(null));
+                    break;
+                 */
+                case "\"custom_ext_data\""://启动广告
+                    //搜索"bes_ad_id"，查找所在方法调用
                     XposedBridge.hookAllMethods(XposedHelpers.findClass(map.get("class"), classLoader), map.get("method"), XC_MethodReplacement.returnConstant(null));
                     break;
                 case "\"pic_amount\""://图片广告
@@ -55,29 +62,18 @@ public class Purify extends Hook {
             }
         }
         //新启动广告
-        XposedHelpers.findAndHookConstructor("com.baidu.mobads.vo.XAdInstanceInfo", classLoader, JSONObject.class, XC_MethodReplacement.returnConstant(null));
-        //欢迎页
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.launcherGuide.tblauncher.GuideActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                Activity activity = ((Activity) param.thisObject);
-                SharedPreferences tsConfig = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
-                SharedPreferences sharedPreferences = activity.getSharedPreferences("settings", Context.MODE_PRIVATE);
-                //如果需要执行反混淆则不跳过欢迎页
-                if (tsConfig.getString("anti-confusion_version", "unknown").equals(sharedPreferences.getString("key_rate_version", "unknown"))
-                        && !sharedPreferences.getString("key_rate_version", "unknown").equals("unknown")) {
-                    Field[] fields = param.thisObject.getClass().getDeclaredFields();
-                    for (Field field : fields) {
-                        field.setAccessible(true);
-                        if (field.get(param.thisObject) instanceof int[]) {
-                            int[] ints = (int[]) field.get(param.thisObject);
-                            for (int i = 0; i < ints.length; i++)
-                                ints[i] = 0;
-                            return;
-                        }
-                    }
-                }
-            }
-        });
+        // XposedHelpers.findAndHookConstructor("com.baidu.mobads.vo.XAdInstanceInfo", classLoader, JSONObject.class, XC_MethodReplacement.returnConstant(null));
+        //广告sdk
+        // "gdt_plugin.jar", "/api/ad/union/sdk/get_ads/"
+        try {
+            Method[] funs = classLoader.loadClass("com.fun.ad.sdk.FunAdSdk").getDeclaredMethods();
+            for (Method fun : funs)
+                if (fun.getName().equals("init"))
+                    if (fun.getReturnType().toString().equals("void"))
+                        XposedBridge.hookMethod(fun, XC_MethodReplacement.returnConstant(null));
+                    else XposedBridge.hookMethod(fun, XC_MethodReplacement.returnConstant(true));
+        } catch (XposedHelpers.ClassNotFoundError ignored) {
+        }
         //卡片广告
         XposedHelpers.findAndHookConstructor("com.baidu.tieba.recapp.lego.model.AdCard", classLoader, JSONObject.class, new XC_MethodHook() {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
@@ -102,11 +98,6 @@ public class Purify extends Hook {
                 param.args[0] = null;
             }
         });
-        //新帖子广告
-        try {
-            XposedBridge.hookAllMethods(XposedHelpers.findClass("com.fun.ad.sdk.FunAdSdk", classLoader), "init", XC_MethodReplacement.returnConstant(null));
-        } catch (XposedHelpers.ClassNotFoundError ignored) {
-        }
         //首页直播推荐卡片
         //搜索card_home_page_ala_live_item_new，会有两个结果，查找后一个结果所在类构造函数调用
         try {
@@ -129,6 +120,28 @@ public class Purify extends Hook {
                         list.remove(i);
                         i--;
                     }
+            }
+        });
+        //欢迎页
+        XposedHelpers.findAndHookMethod("com.baidu.tieba.launcherGuide.tblauncher.GuideActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                Activity activity = ((Activity) param.thisObject);
+                SharedPreferences tsConfig = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
+                SharedPreferences sharedPreferences = activity.getSharedPreferences("settings", Context.MODE_PRIVATE);
+                //如果需要执行反混淆则不跳过欢迎页
+                if (tsConfig.getString("anti-confusion_version", "unknown").equals(sharedPreferences.getString("key_rate_version", "unknown"))
+                        && !sharedPreferences.getString("key_rate_version", "unknown").equals("unknown")) {
+                    Field[] fields = param.thisObject.getClass().getDeclaredFields();
+                    for (Field field : fields) {
+                        field.setAccessible(true);
+                        if (field.get(param.thisObject) instanceof int[]) {
+                            int[] ints = (int[]) field.get(param.thisObject);
+                            for (int i = 0; i < ints.length; i++)
+                                ints[i] = 0;
+                            return;
+                        }
+                    }
+                }
             }
         });
         //吧小程序

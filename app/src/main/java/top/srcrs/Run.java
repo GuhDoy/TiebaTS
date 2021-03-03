@@ -118,12 +118,14 @@ public class Run extends Hook {
                         XposedBridge.log(s + ": " + "签到成功");
                     } else XposedBridge.log(s + ": " + "签到失败");
                 }
+                /*
                 if (success.size() != followNum) {
                     // 为防止短时间内多次请求接口，触发风控，设置每一轮签到完等待 5 分钟
-                    Thread.sleep(1000);
+                    Thread.sleep(0);
                     // 重新获取 tbs，尝试解决以前第 1 次签到失败，剩余 4 次循环都会失败的错误。
                     getTbs();
                 }
+                */
                 flag--;
             }
         } catch (Exception e) {
