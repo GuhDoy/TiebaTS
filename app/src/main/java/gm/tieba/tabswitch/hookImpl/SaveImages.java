@@ -126,6 +126,8 @@ public class SaveImages extends Hook {
                 if (inputStream.read(buffer) == -1) throw new IOException();
                 if (Arrays.equals(buffer, new byte[]{-1, -40, -1, -32, 0, 16, 74, 70, 73, 70}))
                     return "jpg";
+                else if (Arrays.equals(buffer, new byte[]{-119, 80, 78, 71, 13, 10, 26, 10, 0, 0}))
+                    return "png";
                 else return "gif";
             }
         });
