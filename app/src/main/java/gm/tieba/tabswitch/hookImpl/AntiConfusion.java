@@ -17,6 +17,7 @@ import org.jf.dexlib.ClassDefItem;
 import org.jf.dexlib.DexFile;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
@@ -25,7 +26,6 @@ import bin.zip.ZipEntry;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import gm.tieba.tabswitch.Hook;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.RulesDbHelper;
@@ -77,40 +77,24 @@ public class AntiConfusion extends Hook {
                         activity.deleteDatabase("Rules.db");
                         new RulesDbHelper(activity.getApplicationContext()).getReadableDatabase();
                         SQLiteDatabase db = activity.openOrCreateDatabase("Rules.db", Context.MODE_PRIVATE, null);
-                        ruleMapList = AntiConfusionHelper.convertDbToMapList(db);
 
                         File[] fs = dexDir.listFiles();
-                        int searched = 0;
-                        String searchProgress = "";
-                        String mainProgress = "总进度：" + searched + "/" + ruleMapList.size();
+                        Arrays.sort(fs);
                         for (int i = 0; i < fs.length; i++) {
                             DexFile dex = new DexFile(fs[i]);
                             List<ClassDefItem> classes = dex.ClassDefsSection.getItems();
                             for (int j = 0; j < classes.size(); j++) {
                                 int clsProgress = 100 * j / classes.size() / fs.length + 100 * i / fs.length;
-                                searchProgress = "搜索进度：" + clsProgress + "%";
-                                String finalSearchProgress = searchProgress;
-                                String finalMainProgress = mainProgress;
-                                activity.runOnUiThread(() -> textView.setText(String.format("%s\n%s", finalSearchProgress, finalMainProgress)));
+                                activity.runOnUiThread(() -> textView.setText(String.format(Locale.CHINA, "搜索进度：%d%%", clsProgress)));
 
                                 String signature = classes.get(j).getClassType().getTypeDescriptor();//类签名
-                                if (!signature.startsWith("Le/b/") && !signature.startsWith("Lcom/baidu/tieba/") && !signature.startsWith("Lcom/baidu/tbadk/core/util/"))
+                                if (!signature.startsWith("Le/b/") && !signature.startsWith("Lcom/baidu/"))
                                     continue;
-                                if (AntiConfusionHelper.searchAndUpdate(classes.get(j), 0) || AntiConfusionHelper.searchAndUpdate(classes.get(j), 1)) {
-                                    searched++;
-                                    mainProgress = "总进度：" + searched + "/" + ruleMapList.size();
-                                    if (searched == ruleMapList.size()) break;
-                                    String finalSearchProgress1 = searchProgress;
-                                    String finalMainProgress1 = mainProgress;
-                                    activity.runOnUiThread(() -> textView.setText(String.format("%s\n%s", finalSearchProgress1, finalMainProgress1)));
-                                }
+                                AntiConfusionHelper.searchAndSave(classes.get(j), 0, db);
+                                AntiConfusionHelper.searchAndSave(classes.get(j), 1, db);
                             }
-                            if (searched == ruleMapList.size()) break;
                         }
-                        String finalSearchProgress2 = searchProgress;
-                        String finalMainProgress2 = mainProgress;
-                        activity.runOnUiThread(() -> textView.setText(String.format("%s\n%s\n反混淆完成，即将重启", finalSearchProgress2, finalMainProgress2)));
-                        AntiConfusionHelper.putMapListToDb(db);
+                        activity.runOnUiThread(() -> textView.setText("反混淆完成，即将重启"));
                         SharedPreferences tsPreference = activity.getSharedPreferences("TS_preference", Context.MODE_PRIVATE);
                         if (tsPreference.getBoolean("clean_dir", false)) {
                             IO.deleteFiles(activity.getFilesDir());

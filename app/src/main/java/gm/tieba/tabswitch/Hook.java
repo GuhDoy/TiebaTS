@@ -9,9 +9,13 @@ import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,7 +33,7 @@ import gm.tieba.tabswitch.hookImpl.TSPreference;
 
 public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
     public static Resources modRes;
-    public static List<Map<String, String>> ruleMapList;
+    public static List<Map<String, String>> ruleMapList = Collections.emptyList();
     public static String BDUSS;
     public static Set<String> follow;
     public static Map<String, ?> preferenceMap;
@@ -47,25 +51,25 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
                         Context context = ((Application) param.args[0]).getApplicationContext();
 
                         AntiConfusion.hook(classLoader);
-                        SQLiteDatabase db = context.openOrCreateDatabase("Rules.db", Context.MODE_PRIVATE, null);
-                        ruleMapList = AntiConfusionHelper.convertDbToMapList(db);
-                        db.close();
-                        int totalRuleSize = ruleMapList.size();
-                        for (int i = 0; i < ruleMapList.size(); i++) {
-                            Map<String, String> map = ruleMapList.get(i);
-                            if ("".equals(map.get("class")) || "".equals(map.get("method"))) {
-                                ruleMapList.remove(i);
-                                i--;
+                        try {
+                            SQLiteDatabase db = context.openOrCreateDatabase("Rules.db", Context.MODE_PRIVATE, null);
+                            ruleMapList = AntiConfusionHelper.convertDbToMapList(db);
+                            db.close();
+                            List<String> ruleList = new ArrayList<>();
+                            for (int i = 0; i < ruleMapList.size(); i++) {
+                                Map<String, String> map = ruleMapList.get(i);
+                                ruleList.add(map.get("rule"));
                             }
-                        }
-                        if (ruleMapList.size() != totalRuleSize) {
-                            SharedPreferences sharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE);
-                            String tsWarning = "TS warning: rules incomplete (" + ruleMapList.size() + "/" + totalRuleSize + "), current version: " + sharedPreferences.getString("key_rate_version", "unknown");
-                            XposedBridge.log(tsWarning);
+                            if (!ruleList.containsAll(AntiConfusionHelper.getMatcherList())) {
+                                SharedPreferences sharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE);
+                                throw new SQLiteException("rules incomplete, current version: " + sharedPreferences.getString("key_rate_version", "unknown"));
+                            }
+                        } catch (SQLiteException e) {
+                            XposedBridge.log(e);
                             XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
                                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                                     Activity activity = (Activity) param.thisObject;
-                                    Toast.makeText(activity.getApplicationContext(), tsWarning, Toast.LENGTH_LONG).show();
+                                    Toast.makeText(activity.getApplicationContext(), Log.getStackTraceString(e), Toast.LENGTH_LONG).show();
                                 }
                             });
                         }
