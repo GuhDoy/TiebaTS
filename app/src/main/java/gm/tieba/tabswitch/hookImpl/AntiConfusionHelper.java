@@ -26,8 +26,10 @@ public class AntiConfusionHelper extends Hook {
     }
 
     public static void addMatcher(List<String> list) {
-        //启动广告
-        list.add("0x3fea");
+        //旧启动广告
+        list.add("\"c/s/splashSchedule\"");
+        //sdk启动广告
+        list.add("custom_ext_data");
         //图片广告
         list.add("\"pic_amount\"");
         //吧推广弹窗

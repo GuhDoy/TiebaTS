@@ -65,6 +65,8 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
                                 Map<String, String> map = ruleMapList.get(i);
                                 ruleList.add(map.get("rule"));
                             }
+                            if (context.getPackageManager().getPackageInfo(context.getPackageName(), 0).getLongVersionCode() < 201523200)
+                                AntiConfusionHelper.matcherList.remove("custom_ext_data");
                             if (!ruleList.containsAll(AntiConfusionHelper.matcherList)) {
                                 SharedPreferences sharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE);
                                 List<String> lostList = new ArrayList<>();

@@ -25,8 +25,7 @@ public class RedTip extends Hook {
             method = classLoader.loadClass("com.baidu.tbadk.core.view.MessageRedDotView").getDeclaredMethod("e");
         }
         XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(null));
-        //我的ArrayList红点
-        //搜索"https://tieba.baidu.com/mo/q/duxiaoman/index?noshare=1"，参数为[boolean]的方法查找调用
+        //我的ArrayList红点：搜索"https://tieba.baidu.com/mo/q/duxiaoman/index?noshare=1"，参数为[boolean]的方法查找调用
         Class<?> clazz = null;
         try {
             clazz = classLoader.loadClass("com.baidu.tieba.personCenter.b.b$2");

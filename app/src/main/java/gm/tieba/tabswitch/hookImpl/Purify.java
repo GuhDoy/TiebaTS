@@ -25,17 +25,11 @@ public class Purify extends Hook {
         for (int i = 0; i < ruleMapList.size(); i++) {
             Map<String, String> map = ruleMapList.get(i);
             switch (Objects.requireNonNull(map.get("rule"))) {
-                /*
-                case "\"custom_ext_data\""://启动广告
-                    //搜索"bes_ad_id"，查找所在方法调用
+                case "\"c/s/splashSchedule\""://旧启动广告
+                case "\"custom_ext_data\""://sdk启动广告：搜索"bes_ad_id"，查找所在方法调用
                     XposedBridge.hookAllMethods(XposedHelpers.findClass(map.get("class"), classLoader), map.get("method"), XC_MethodReplacement.returnConstant(null));
-                 */
-                case "0x3fea"://启动广告
-                    if (!map.get("class").equals("com.baidu.tieba.LogoActivity"))
-                        XposedBridge.hookAllMethods(XposedHelpers.findClass(map.get("class"), classLoader), map.get("method"), XC_MethodReplacement.returnConstant(null));
                     break;
-                case "\"pic_amount\""://图片广告
-                    //必须："recom_ala_info", "app", 可选："goods_info"
+                case "\"pic_amount\""://图片广告：必须"recom_ala_info", "app", 可选"goods_info"
                     Method[] alas = classLoader.loadClass(map.get("class")).getDeclaredMethods();
                     for (Method ala : alas)
                         if (Arrays.toString(ala.getParameterTypes()).contains("JSONObject") && !ala.getName().equals(map.get("method")))
@@ -59,16 +53,15 @@ public class Purify extends Hook {
                     break;
             }
         }
-        //新启动广告
-        // XposedHelpers.findAndHookConstructor("com.baidu.mobads.vo.XAdInstanceInfo", classLoader, JSONObject.class, XC_MethodReplacement.returnConstant(null));
+        //启动广告
+        XposedHelpers.findAndHookConstructor("com.baidu.mobads.vo.XAdInstanceInfo", classLoader, JSONObject.class, XC_MethodReplacement.returnConstant(null));
         //卡片广告
         XposedHelpers.findAndHookConstructor("com.baidu.tieba.recapp.lego.model.AdCard", classLoader, JSONObject.class, new XC_MethodHook() {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 param.args[0] = null;
             }
         });
-        //广告sdk
-        // "gdt_plugin.jar", "/api/ad/union/sdk/get_ads/"
+        //广告sdk："gdt_plugin.jar", "/api/ad/union/sdk/get_ads/"
         try {
             Method[] funs = classLoader.loadClass("com.fun.ad.sdk.FunAdSdk").getDeclaredMethods();
             for (Method fun : funs)
@@ -138,14 +131,12 @@ public class Purify extends Hook {
         });
         //吧小程序
         XposedBridge.hookAllMethods(XposedHelpers.findClass("com.baidu.tieba.frs.servicearea.ServiceAreaView", classLoader), "setData", XC_MethodReplacement.returnConstant(null));
-        //你可能感兴趣的人
-        //initUI
+        //你可能感兴趣的人：initUI
         Method[] concerns = classLoader.loadClass("com.baidu.tieba.homepage.concern.view.ConcernRecommendLayout").getDeclaredMethods();
         for (Method concern : concerns)
             if (Arrays.toString(concern.getParameterTypes()).equals("[]"))
                 XposedBridge.hookMethod(concern, XC_MethodReplacement.returnConstant(null));
-        //首页任务中心
-        //R.id.task
+        //首页任务中心：R.id.task
         XposedHelpers.findAndHookMethod("com.baidu.tieba.homepage.framework.indicator.NestedScrollHeader", classLoader, "onAttachedToWindow", new XC_MethodHook() {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 Field[] fields = param.thisObject.getClass().getDeclaredFields();
