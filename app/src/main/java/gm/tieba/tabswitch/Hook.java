@@ -66,20 +66,16 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
                                 ruleList.add(map.get("rule"));
                             }
                             if (!ruleList.containsAll(AntiConfusionHelper.matcherList)) {
-                                SharedPreferences tsConfig = context.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
-                                if (tsConfig.getBoolean("EULA", false)) {
-                                    SharedPreferences sharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE);
-                                    List<String> lostList = new ArrayList<>();
-                                    AntiConfusionHelper.addMatcher(lostList);
-                                    lostList.removeAll(ruleList);
-                                    throw new SQLiteException("rules incomplete, current version: " + sharedPreferences.getString("key_rate_version", "unknown") + ", lost " + lostList.size() + " rules: " + lostList.toString());
-                                }
-                            } else if (!AntiConfusionHelper.isNeedAntiConfusion(context))
-                                AntiConfusionHelper.matcherList.clear();
+                                SharedPreferences sharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE);
+                                List<String> lostList = new ArrayList<>();
+                                AntiConfusionHelper.addMatcher(lostList);
+                                lostList.removeAll(ruleList);
+                                throw new SQLiteException("rules incomplete, current version: " + sharedPreferences.getString("key_rate_version", "unknown") + ", lost " + lostList.size() + " rules: " + lostList.toString());
+                            }
                         } catch (SQLiteException e) {
-                            XposedBridge.log(e.toString());
                             XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
                                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                                    XposedBridge.log(e.toString());
                                     Activity activity = (Activity) param.thisObject;
                                     @SuppressLint("ApplySharedPref") AlertDialog alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
                                             .setTitle("警告").setMessage("规则不完整，建议您执行反混淆。若执行完后仍出现此对话框则应该更新模块，若模块已是最新版本则应该向作者反馈。\n" + Log.getStackTraceString(e)).setCancelable(true)
@@ -93,7 +89,8 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
                                                 intent.setClassName(activity, "com.baidu.tieba.launcherGuide.tblauncher.GuideActivity");
                                                 activity.startActivity(intent);
                                             }).create();
-                                    alertDialog.show();
+                                    SharedPreferences tsConfig = context.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
+                                    if (tsConfig.getBoolean("EULA", false)) alertDialog.show();
                                     IO.copyFile(new FileInputStream(activity.openOrCreateDatabase("Rules.db", Context.MODE_PRIVATE, null).getPath()),
                                             new FileOutputStream(new File(activity.getExternalFilesDir(null), "Rules.db")));
                                 }
