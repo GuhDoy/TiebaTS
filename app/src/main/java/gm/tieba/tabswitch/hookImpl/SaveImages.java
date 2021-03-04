@@ -40,11 +40,19 @@ public class SaveImages extends Hook {
     private static String title;
 
     public static void hook(ClassLoader classLoader) throws Throwable {
-        XposedHelpers.findAndHookMethod("com.baidu.tbadk.coreExtra.view.ImagePagerAdapter", classLoader, "setData", ArrayList.class, new XC_MethodHook() {
-            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                arrayList = (ArrayList<String>) param.args[0];
-            }
-        });
+        try {
+            XposedHelpers.findAndHookMethod("com.baidu.tbadk.coreExtra.view.ImagePagerAdapter", classLoader, "setData", ArrayList.class, new XC_MethodHook() {
+                protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                    arrayList = (ArrayList<String>) param.args[0];
+                }
+            });
+        } catch (NoSuchMethodError e) {
+            XposedHelpers.findAndHookMethod("com.baidu.tbadk.coreExtra.view.ImagePagerAdapter", classLoader, "l", ArrayList.class, new XC_MethodHook() {
+                protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                    arrayList = (ArrayList<String>) param.args[0];
+                }
+            });
+        }
         XposedHelpers.findAndHookMethod("com.baidu.tbadk.widget.richText.TbRichText", classLoader, "toString", new XC_MethodHook() {
             protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
                 if (param.getResult() != null) title = (String) param.getResult();

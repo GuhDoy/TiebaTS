@@ -37,11 +37,7 @@ public class AntiConfusion extends Hook {
             @SuppressLint({"ApplySharedPref"})
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 Activity activity = ((Activity) param.thisObject);
-                SharedPreferences tsConfig = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
-                SharedPreferences sharedPreferences = activity.getSharedPreferences("settings", Context.MODE_PRIVATE);
-                if (tsConfig.getString("anti-confusion_version", "unknown").equals(sharedPreferences.getString("key_rate_version", "unknown"))
-                        && !sharedPreferences.getString("key_rate_version", "unknown").equals("unknown"))
-                    return;
+                if (!AntiConfusionHelper.isNeedAntiConfusion(activity)) return;
                 TextView textView = new TextView(activity);
                 textView.setGravity(Gravity.CENTER_HORIZONTAL);
                 textView.setText(String.format("读取%s", "ZipEntry"));
@@ -84,8 +80,8 @@ public class AntiConfusion extends Hook {
                             DexFile dex = new DexFile(fs[i]);
                             List<ClassDefItem> classes = dex.ClassDefsSection.getItems();
                             for (int j = 0; j < classes.size(); j++) {
-                                int clsProgress = 100 * j / classes.size() / fs.length + 100 * i / fs.length;
-                                activity.runOnUiThread(() -> textView.setText(String.format(Locale.CHINA, "搜索进度：%d%%", clsProgress)));
+                                float clsProgress = 100 * (float) j / fs.length / classes.size() + 100 * (float) i / fs.length;
+                                activity.runOnUiThread(() -> textView.setText(String.format(Locale.CHINA, "搜索进度：%.1f%%", clsProgress)));
 
                                 String signature = classes.get(j).getClassType().getTypeDescriptor();//类签名
                                 if (!signature.startsWith("Le/b/") && !signature.startsWith("Lcom/baidu/"))
@@ -102,6 +98,9 @@ public class AntiConfusion extends Hook {
                             IO.deleteFiles(new File(activity.getCacheDir().getAbsolutePath() + "image"));
                             IO.deleteFiles(activity.getExternalCacheDir());
                         } else IO.deleteFiles(dexDir);
+                        new File(activity.getExternalFilesDir(null), "Rules.db").delete();
+                        SharedPreferences tsConfig = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
+                        SharedPreferences sharedPreferences = activity.getSharedPreferences("settings", Context.MODE_PRIVATE);
                         XposedBridge.log("anti-confusion accomplished, last version: " + tsConfig.getString("anti-confusion_version", "unknown")
                                 + ", current version: " + sharedPreferences.getString("key_rate_version", "unknown"));
                         SharedPreferences.Editor editor = tsConfig.edit();

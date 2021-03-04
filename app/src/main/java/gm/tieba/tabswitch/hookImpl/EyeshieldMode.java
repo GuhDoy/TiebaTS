@@ -8,12 +8,8 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.View;
 
-import java.lang.reflect.Field;
-
 import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedHelpers;
-import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import gm.tieba.tabswitch.Hook;
 
 public class EyeshieldMode extends Hook {

@@ -123,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
         } else
             try {
                 if (resultCode != Activity.RESULT_OK) return;
-                File tmpFile = new File(getExternalCacheDir().getAbsolutePath(), "tmp.apk");
+                File tmpFile = new File(getExternalCacheDir().getAbsolutePath(), "temp.apk");
                 IO.copyFileFromStream(getContentResolver().openInputStream(Objects.requireNonNull(data).getData()), tmpFile.getPath());
                 String apkName = getPackageManager().getApplicationLabel(getPackageManager().getPackageArchiveInfo(tmpFile.getPath(), PackageManager.GET_ACTIVITIES).applicationInfo).toString();
                 File newFile = new File(getExternalCacheDir().getAbsolutePath(), apkName + ".apk");
@@ -139,8 +139,8 @@ public class MainActivity extends AppCompatActivity {
                         RepackageProcessor.xpatchStartDialog.setMessage(RepackageProcessor.inApk.getName());
                         RepackageProcessor.xpatchStartDialog.show();
 
-                        RecyclerView recyclerView = RepackageProcessor.xpatchStartDialog.findViewById(RepackageProcessor.recyclerViewId);
                         RepackageProcessor.moduleList = XpatchAssetHelper.loadAllInstalledModule(this);
+                        RecyclerView recyclerView = RepackageProcessor.xpatchStartDialog.findViewById(RepackageProcessor.recyclerViewId);
                         ModuleListAdapter adapter = new ModuleListAdapter(this);
                         recyclerView.setAdapter(adapter);
                         adapter.setOnItemClickListener((view, layoutPosition) -> {

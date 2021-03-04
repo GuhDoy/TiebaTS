@@ -161,7 +161,7 @@ public class HookDispatcher extends Hook {
                 case "create_view":
                     if ((Boolean) entry.getValue()) CreateView.hook(classLoader);
                     break;
-                case "save_images":
+                case "save_images"://写死了被混淆的方法
                     if ((Boolean) entry.getValue()) SaveImages.hook(classLoader);
                     break;
                 case "auto_sign":

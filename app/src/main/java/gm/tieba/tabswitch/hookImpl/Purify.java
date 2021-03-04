@@ -1,8 +1,6 @@
 package gm.tieba.tabswitch.hookImpl;
 
 import android.app.Activity;
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -28,15 +26,16 @@ public class Purify extends Hook {
             Map<String, String> map = ruleMapList.get(i);
             switch (Objects.requireNonNull(map.get("rule"))) {
                 /*
-                case "\"c/s/splashSchedule\""://旧启动广告
-                    XposedBridge.hookAllMethods(XposedHelpers.findClass(map.get("class"), classLoader), map.get("method"), XC_MethodReplacement.returnConstant(null));
-                    break;
-                 */
                 case "\"custom_ext_data\""://启动广告
                     //搜索"bes_ad_id"，查找所在方法调用
                     XposedBridge.hookAllMethods(XposedHelpers.findClass(map.get("class"), classLoader), map.get("method"), XC_MethodReplacement.returnConstant(null));
+                 */
+                case "0x3fea"://启动广告
+                    if (!map.get("class").equals("com.baidu.tieba.LogoActivity"))
+                        XposedBridge.hookAllMethods(XposedHelpers.findClass(map.get("class"), classLoader), map.get("method"), XC_MethodReplacement.returnConstant(null));
                     break;
                 case "\"pic_amount\""://图片广告
+                    //必须："recom_ala_info", "app", 可选："goods_info"
                     Method[] alas = classLoader.loadClass(map.get("class")).getDeclaredMethods();
                     for (Method ala : alas)
                         if (Arrays.toString(ala.getParameterTypes()).contains("JSONObject") && !ala.getName().equals(map.get("method")))
@@ -62,6 +61,12 @@ public class Purify extends Hook {
         }
         //新启动广告
         // XposedHelpers.findAndHookConstructor("com.baidu.mobads.vo.XAdInstanceInfo", classLoader, JSONObject.class, XC_MethodReplacement.returnConstant(null));
+        //卡片广告
+        XposedHelpers.findAndHookConstructor("com.baidu.tieba.recapp.lego.model.AdCard", classLoader, JSONObject.class, new XC_MethodHook() {
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                param.args[0] = null;
+            }
+        });
         //广告sdk
         // "gdt_plugin.jar", "/api/ad/union/sdk/get_ads/"
         try {
@@ -91,12 +96,6 @@ public class Purify extends Hook {
         //帖子直播推荐
         //TODO: Someone fix this
         //XposedBridge.hookAllConstructors(XposedHelpers.findClass("tbclient.AlaLiveInfo", classLoader), XC_MethodReplacement.returnConstant(null));
-        XposedHelpers.findAndHookConstructor("tbclient.AlaLiveInfo$Builder", classLoader, XposedHelpers.findClass("tbclient.AlaLiveInfo", classLoader), new XC_MethodHook() {
-            public void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                XposedBridge.log(String.valueOf(param.args[0]));
-                param.args[0] = null;
-            }
-        });
         //首页直播推荐卡片
         //搜索card_home_page_ala_live_item_new，会有两个结果，查找后一个结果所在类构造函数调用
         try {
@@ -125,20 +124,14 @@ public class Purify extends Hook {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.launcherGuide.tblauncher.GuideActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 Activity activity = ((Activity) param.thisObject);
-                SharedPreferences tsConfig = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
-                SharedPreferences sharedPreferences = activity.getSharedPreferences("settings", Context.MODE_PRIVATE);
-                //如果需要执行反混淆则不跳过欢迎页
-                if (tsConfig.getString("anti-confusion_version", "unknown").equals(sharedPreferences.getString("key_rate_version", "unknown"))
-                        && !sharedPreferences.getString("key_rate_version", "unknown").equals("unknown")) {
-                    Field[] fields = param.thisObject.getClass().getDeclaredFields();
-                    for (Field field : fields) {
-                        field.setAccessible(true);
-                        if (field.get(param.thisObject) instanceof int[]) {
-                            int[] ints = (int[]) field.get(param.thisObject);
-                            for (int i = 0; i < ints.length; i++)
-                                ints[i] = 0;
-                            return;
-                        }
+                if (AntiConfusionHelper.isNeedAntiConfusion(activity)) return;
+                Field[] fields = param.thisObject.getClass().getDeclaredFields();
+                for (Field field : fields) {
+                    field.setAccessible(true);
+                    if (field.get(param.thisObject) instanceof int[]) {
+                        int[] ints = (int[]) field.get(param.thisObject);
+                        for (int i = 0; i < ints.length; i++)
+                            ints[i] = 0;
                     }
                 }
             }

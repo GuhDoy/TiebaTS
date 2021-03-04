@@ -250,17 +250,15 @@ public class TSPreference extends Hook {
             editor.putBoolean("eyeshield_mode", eyeshieldMode.isOn());
             editor.putBoolean("personalized_filter_log", personalizedFilterLog.isOn());
             editor.commit();
-            SharedPreferences sharedPreferences = activity.getSharedPreferences("settings", Context.MODE_PRIVATE);
-            if (tsConfig.getString("anti-confusion_version", "unknown").equals(sharedPreferences.getString("key_rate_version", "unknown"))
-                    && !sharedPreferences.getString("key_rate_version", "unknown").equals("unknown")) {
+            if (AntiConfusionHelper.isNeedAntiConfusion(activity)) {
+                Intent intent = new Intent();
+                intent.setClassName(activity, "com.baidu.tieba.launcherGuide.tblauncher.GuideActivity");
+                activity.startActivity(intent);
+            } else {
                 Intent intent = activity.getPackageManager().getLaunchIntentForPackage(activity.getPackageName());
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 activity.startActivity(intent);
                 System.exit(0);
-            } else {
-                Intent intent = new Intent();
-                intent.setClassName(activity, "com.baidu.tieba.launcherGuide.tblauncher.GuideActivity");
-                activity.startActivity(intent);
             }
         });
     }
