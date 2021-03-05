@@ -6,7 +6,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
@@ -29,6 +28,7 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.Hook;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.RulesDbHelper;
+import gm.tieba.tabswitch.util.DisplayHelper;
 import gm.tieba.tabswitch.util.IO;
 
 public class AntiConfusion extends Hook {
@@ -42,13 +42,13 @@ public class AntiConfusion extends Hook {
                 textView.setGravity(Gravity.CENTER_HORIZONTAL);
                 textView.setText(String.format("读取%s", "ZipEntry"));
                 AlertDialog alertDialog;
-                if ((activity.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES) {
-                    textView.setTextColor(Hook.modRes.getColor(R.color.colorPrimary, null));
-                    alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_DARK)
-                            .setTitle("贴吧TS反混淆").setMessage("正在定位被混淆的类和方法，请耐心等待").setView(textView).setCancelable(false).create();
-                } else {
+                if (DisplayHelper.isLightMode(activity)) {
                     textView.setTextColor(Hook.modRes.getColor(R.color.colorPrimaryDark, null));
                     alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
+                            .setTitle("贴吧TS反混淆").setMessage("正在定位被混淆的类和方法，请耐心等待").setView(textView).setCancelable(false).create();
+                } else {
+                    textView.setTextColor(Hook.modRes.getColor(R.color.colorPrimary, null));
+                    alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_DARK)
                             .setTitle("贴吧TS反混淆").setMessage("正在定位被混淆的类和方法，请耐心等待").setView(textView).setCancelable(false).create();
                 }
                 alertDialog.show();
@@ -106,10 +106,10 @@ public class AntiConfusion extends Hook {
                         SharedPreferences.Editor editor = tsConfig.edit();
                         editor.putString("anti-confusion_version", sharedPreferences.getString("key_rate_version", "unknown"));
                         editor.commit();
-                        //重启
                         Intent intent = activity.getPackageManager().getLaunchIntentForPackage(activity.getPackageName());
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         activity.startActivity(intent);
+                        activity.finishAffinity();
                         System.exit(0);
                     } catch (Throwable throwable) {
                         activity.runOnUiThread(() -> textView.setText(String.format("处理失败\n%s", Log.getStackTraceString(throwable))));

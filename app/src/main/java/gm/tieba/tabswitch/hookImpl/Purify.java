@@ -88,9 +88,27 @@ public class Purify extends Hook {
         }
         //帖子直播推荐
         //TODO: Someone fix this
-        //XposedBridge.hookAllConstructors(XposedHelpers.findClass("tbclient.AlaLiveInfo", classLoader), XC_MethodReplacement.returnConstant(null));
-        //首页直播推荐卡片
-        //搜索card_home_page_ala_live_item_new，会有两个结果，查找后一个结果所在类构造函数调用
+        // XposedBridge.hookAllConstructors(XposedHelpers.findClass("tbclient.AlaLiveInfo", classLoader), XC_MethodReplacement.returnConstant(null));
+        XposedHelpers.findAndHookMethod("tbclient.AlaLiveInfo$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
+            public void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                Field[] fields = param.thisObject.getClass().getDeclaredFields();
+                for (Field field : fields) {
+                    field.setAccessible(true);
+                    field.set(param.thisObject, null);
+                }
+            }
+        });
+        /*
+        XposedHelpers.findAndHookMethod("tbclient.ForumRuleStatus$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
+            public void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                Field field = param.thisObject.getClass().getDeclaredField("has_forum_rule");
+                field.setAccessible(true);
+                XposedBridge.log(field.getName());
+                XposedBridge.log(String.valueOf(field.get(param.thisObject)));
+            }
+        });
+         */
+        //首页直播推荐卡片：搜索card_home_page_ala_live_item_new，会有两个结果，查找后一个结果所在类构造函数调用
         try {
             Method[] alas = classLoader.loadClass("com.baidu.tieba.homepage.personalize.adapter.HomePageAlaLiveThreadAdapter").getDeclaredMethods();
             for (Method ala : alas)

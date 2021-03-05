@@ -9,7 +9,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ResolveInfo;
-import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -31,6 +30,7 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BuildConfig;
 import gm.tieba.tabswitch.Hook;
 import gm.tieba.tabswitch.R;
+import gm.tieba.tabswitch.util.DisplayHelper;
 
 public class TSPreference extends Hook {
     private static boolean isShowDialog = false;
@@ -218,14 +218,14 @@ public class TSPreference extends Hook {
         ScrollView scrollView = new ScrollView(activity);
         scrollView.addView(linearLayout);
         AlertDialog alertDialog;
-        if ((activity.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES) {
-            alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_DARK)
+        if (DisplayHelper.isLightMode(activity)) {
+            alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
                     .setTitle("贴吧TS设置").setView(scrollView).setCancelable(true)
                     .setNegativeButton("取消", (dialogInterface, i) -> {
                     }).setPositiveButton("保存并重启", (dialogInterface, i) -> {
                     }).create();
         } else {
-            alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
+            alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_DARK)
                     .setTitle("贴吧TS设置").setView(scrollView).setCancelable(true)
                     .setNegativeButton("取消", (dialogInterface, i) -> {
                     }).setPositiveButton("保存并重启", (dialogInterface, i) -> {
@@ -258,6 +258,7 @@ public class TSPreference extends Hook {
                 Intent intent = activity.getPackageManager().getLaunchIntentForPackage(activity.getPackageName());
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 activity.startActivity(intent);
+                activity.finishAffinity();
                 System.exit(0);
             }
         });
@@ -282,14 +283,14 @@ public class TSPreference extends Hook {
         ScrollView scrollView = new ScrollView(activity);
         scrollView.addView(linearLayout);
         AlertDialog alertDialog;
-        if ((activity.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES) {
-            alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_DARK)
+        if (DisplayHelper.isLightMode(activity)) {
+            alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
                     .setTitle("修改底栏").setView(scrollView).setCancelable(true)
                     .setNegativeButton("取消", (dialogInterface, i) -> {
                     }).setPositiveButton("保存", (dialogInterface, i) -> {
                     }).create();
         } else {
-            alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
+            alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_DARK)
                     .setTitle("修改底栏").setView(scrollView).setCancelable(true)
                     .setNegativeButton("取消", (dialogInterface, i) -> {
                     }).setPositiveButton("保存", (dialogInterface, i) -> {
@@ -325,22 +326,22 @@ public class TSPreference extends Hook {
         editText.setTextSize(18);
         editText.requestFocus();
         AlertDialog alertDialog;
-        if ((activity.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES) {
+        if (DisplayHelper.isLightMode(activity)) {
+            alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
+                    .setTitle(title).setView(editText).setCancelable(false)
+                    .setNeutralButton("|", (dialogInterface, i) -> {
+                    }).setNegativeButton("取消", (dialogInterface, i) -> {
+                    }).setPositiveButton("保存", (dialogInterface, i) -> {
+                    }).create();
+        } else {
             alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_DARK)
-                    .setTitle(title).setView(editText).setCancelable(true)
+                    .setTitle(title).setView(editText).setCancelable(false)
                     .setNeutralButton("|", (dialogInterface, i) -> {
                     }).setNegativeButton("取消", (dialogInterface, i) -> {
                     }).setPositiveButton("保存", (dialogInterface, i) -> {
                     }).create();
             editText.setTextColor(Hook.modRes.getColor(R.color.colorPrimary, null));
             editText.setHintTextColor(Hook.modRes.getColor(R.color.colorPrimary, null));
-        } else {
-            alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
-                    .setTitle(title).setView(editText).setCancelable(true)
-                    .setNeutralButton("|", (dialogInterface, i) -> {
-                    }).setNegativeButton("取消", (dialogInterface, i) -> {
-                    }).setPositiveButton("保存", (dialogInterface, i) -> {
-                    }).create();
         }
         alertDialog.show();
         alertDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);

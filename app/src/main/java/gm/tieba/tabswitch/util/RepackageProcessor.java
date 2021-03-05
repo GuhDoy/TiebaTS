@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
@@ -66,14 +65,14 @@ public class RepackageProcessor {
         SwitchCompat moduleListSwitch = new SwitchCompat(activity);
         TextView tipTextView = new TextView(activity);
         RecyclerView recyclerView = new RecyclerView(activity);
-        if ((activity.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES) {
-            signSwitch.setTextColor(activity.getResources().getColor(R.color.colorPrimary, null));
-            appSwitch.setTextColor(activity.getResources().getColor(R.color.colorPrimary, null));
-            moduleListSwitch.setTextColor(activity.getResources().getColor(R.color.colorPrimary, null));
-        } else {
+        if (DisplayHelper.isLightMode(activity)) {
             signSwitch.setTextColor(activity.getResources().getColor(R.color.colorPrimaryDark, null));
             appSwitch.setTextColor(activity.getResources().getColor(R.color.colorPrimaryDark, null));
             moduleListSwitch.setTextColor(activity.getResources().getColor(R.color.colorPrimaryDark, null));
+        } else {
+            signSwitch.setTextColor(activity.getResources().getColor(R.color.colorPrimary, null));
+            appSwitch.setTextColor(activity.getResources().getColor(R.color.colorPrimary, null));
+            moduleListSwitch.setTextColor(activity.getResources().getColor(R.color.colorPrimary, null));
         }
         signSwitch.setTextSize(16);
         signSwitch.setText("跳过读取签名");

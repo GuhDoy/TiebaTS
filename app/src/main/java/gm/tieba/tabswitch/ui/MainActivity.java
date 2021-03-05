@@ -43,7 +43,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        SharedPreferences sharedPreferences = getSharedPreferences("config", Context.MODE_PRIVATE);
         if (isModuleActive()) {
             binding.status.setCardBackgroundColor(getResources().getColor(R.color.colorNormal, null));
             binding.statusIcon.setImageResource(R.drawable.ic_check_circle);
@@ -67,7 +66,9 @@ public class MainActivity extends AppCompatActivity {
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("application/vnd.android.package-archive");
             startActivityForResult(intent, 1);
+            RepackageProcessor.initDialog(this);
         });
+        SharedPreferences sharedPreferences = getSharedPreferences("config", Context.MODE_PRIVATE);
         if (sharedPreferences.getBoolean("icon", false)) binding.iconTitle.setText("隐藏图标");
         else binding.iconTitle.setText("显示图标");
         binding.icon.setOnClickListener(v -> {
@@ -102,7 +103,8 @@ public class MainActivity extends AppCompatActivity {
         });
         binding.license.setOnClickListener(v -> startActivity(new Intent(this, LicenseActivity.class)));
         binding.donation.setOnClickListener(v -> startActivity(new Intent(this, DonationActivity.class)));
-        RepackageProcessor.initDialog(this);
+        if (RepackageProcessor.manifestData != null && savedInstanceState.getBoolean("isShowing"))
+            RepackageProcessor.xpatchStartDialog.show();
     }
 
     @Override
@@ -211,20 +213,19 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putString("tag", "");
+        outState.putBoolean("isShowing", RepackageProcessor.xpatchStartDialog.isShowing());
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        RepackageProcessor.xpatchStartDialog.dismiss();
     }
 
     @Override
     public void onBackPressed() {
         super.onBackPressed();
         finishAffinity();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (RepackageProcessor.getSignThread != null) RepackageProcessor.getSignThread.interrupt();
-        RepackageProcessor.manifestData = null;
     }
 
     public static boolean isModuleActive() {

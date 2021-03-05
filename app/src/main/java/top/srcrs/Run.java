@@ -84,7 +84,7 @@ public class Run extends Hook {
             // 获取用户所有关注的贴吧
             for (Object array : jsonArray) {
                 if ("0".equals(((JSONObject) array).getString("is_sign")))
-                    // 将为签到的贴吧加入到 follow 中，待签到
+                    // 将未签到的贴吧加入到 follow 中，待签到
                     follow.add(((JSONObject) array).getString("forum_name"));
                 else
                     // 将已经成功签到的贴吧，加入到 success
@@ -118,14 +118,12 @@ public class Run extends Hook {
                         XposedBridge.log(s + ": " + "签到成功");
                     } else XposedBridge.log(s + ": " + "签到失败");
                 }
-                /*
                 if (success.size() != followNum) {
                     // 为防止短时间内多次请求接口，触发风控，设置每一轮签到完等待 5 分钟
-                    Thread.sleep(0);
+                    Thread.sleep(1000);
                     // 重新获取 tbs，尝试解决以前第 1 次签到失败，剩余 4 次循环都会失败的错误。
                     getTbs();
                 }
-                */
                 flag--;
             }
         } catch (Exception e) {

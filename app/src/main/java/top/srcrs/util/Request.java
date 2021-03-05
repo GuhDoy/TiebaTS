@@ -52,7 +52,7 @@ public class Request extends Hook {
         try {
             Response response = call.execute();
             if (response.code() < 400) respContent = response.body().string();
-            else throw new IOException("response code ≥ 400");
+            else throw new IOException("response code: " + response.code());
         } catch (IOException e) {
             XposedBridge.log("get请求错误 -- " + e);
         }
@@ -69,10 +69,11 @@ public class Request extends Hook {
      * @Time 2020-10-31
      */
     public static JSONObject post(String url, String body) {
-        MediaType mediaType = MediaType.parse("text/x-markdown; charset=utf-8");
+        MediaType mediaType = MediaType.Companion.parse("text/x-markdown; charset=utf-8");
+        RequestBody stringBody = RequestBody.Companion.create(body, mediaType);
         OkHttpClient okHttpClient = new OkHttpClient();
         okhttp3.Request request = new okhttp3.Request.Builder()
-                .url(url).post(RequestBody.create(mediaType, body))
+                .url(url).post(stringBody)
                 .addHeader("connection", "keep-alive")
                 .addHeader("Host", "tieba.baidu.com")
                 .addHeader("Content-Type", "application/x-www-form-urlencoded")
@@ -85,7 +86,7 @@ public class Request extends Hook {
         try {
             Response response = call.execute();
             if (response.code() < 400) respContent = response.body().string();
-            else throw new IOException("response code ≥ 400");
+            else throw new IOException("response code: " + response.code());
         } catch (IOException e) {
             XposedBridge.log("post请求错误 -- " + e);
         }

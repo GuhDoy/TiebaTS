@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ResolveInfo;
-import android.content.res.Configuration;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -20,6 +19,7 @@ import java.util.Random;
 import de.robv.android.xposed.XposedBridge;
 import gm.tieba.tabswitch.Hook;
 import gm.tieba.tabswitch.R;
+import gm.tieba.tabswitch.util.DisplayHelper;
 
 class TSPreferenceHelper extends Hook {
     static TextView generateTextView(Activity activity, String text) {
@@ -45,7 +45,7 @@ class TSPreferenceHelper extends Hook {
                 if (linearLayout.get(instance) instanceof LinearLayout) {
                     LinearLayout newButton = (LinearLayout) linearLayout.get(instance);
                     ((ViewGroup) Objects.requireNonNull(newButton).getParent()).removeView(newButton);
-                    if ((activity.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES) {
+                    if (!DisplayHelper.isLightMode(activity)) {
                         ((TextView) newButton.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("text").getInt(null))).setTextColor(Hook.modRes.getColor(R.color.colorPrimary, null));
                         ((TextView) newButton.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("tip").getInt(null))).setTextColor(Hook.modRes.getColor(R.color.colorPrimary, null));
                     }
