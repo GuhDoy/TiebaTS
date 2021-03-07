@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.zip.Deflater;
 
@@ -133,21 +132,21 @@ public class RepackageProcessor {
     }
 
     public static void executeXpatch(Activity activity, Map<String, Boolean> xpatchPreference) {
-        RelativeLayout progress_container = activity.findViewById(R.id.progress_container);
-        progress_container.setVisibility(View.VISIBLE);
-        TextView progress_background = activity.findViewById(R.id.progress_background);
-        progress_background.setVisibility(View.GONE);
-        TextView apk_name = activity.findViewById(R.id.apk_name);
+        RelativeLayout progressContainer = activity.findViewById(R.id.progress_container);
+        progressContainer.setVisibility(View.VISIBLE);
+        TextView progressBackground = activity.findViewById(R.id.progress_background);
+        progressBackground.setVisibility(View.GONE);
+        TextView apkName = activity.findViewById(R.id.apk_name);
         outApk = new File(activity.getExternalCacheDir().getAbsolutePath(), inApk.getName().replace(".apk", "_xpatch.apk"));
         new Thread(() -> {
             try {
-                activity.runOnUiThread(() -> apk_name.setText(String.format("%s：读取签名", inApk.getName())));
+                activity.runOnUiThread(() -> apkName.setText(String.format("%s：读取签名", inApk.getName())));
                 if (xpatchPreference.get("signSwitch")) getSignThread.interrupt();
                 else {
                     getSignThread.join();
                     if (apkSignInfo == null) throw new NullPointerException("无v1签名");
                 }
-                activity.runOnUiThread(() -> apk_name.setText(String.format("%s：读取ZipEntry", inApk.getName())));
+                activity.runOnUiThread(() -> apkName.setText(String.format("%s：读取ZipEntry", inApk.getName())));
                 try (ZipOutputStream zos = new ZipOutputStream(outApk)) {
                     int dexCount = 1;
                     boolean haveWrittenV8a = false;
@@ -163,8 +162,8 @@ public class RepackageProcessor {
                     while (enumeration.hasMoreElements()) {
                         ZipEntry ze = enumeration.nextElement();
                         if (ze.getName().equals("AndroidManifest.xml")) continue;
-                        if (ze.getName().matches("classes[0-9]*?\\.dex")) dexCount++;
-                        if (ze.getName().startsWith("lib/arm64-v8a/") && !haveWrittenV8a) {
+                        else if (ze.getName().matches("classes[0-9]*?\\.dex")) dexCount++;
+                        else if (ze.getName().startsWith("lib/arm64-v8a/") && !haveWrittenV8a) {
                             InputStream v8a = activity.getAssets().open("arm64-v8a/libsandhook.so");
                             extraSize += v8a.available();
                             zos.putNextEntry("lib/arm64-v8a/libsandhook.so");
@@ -183,8 +182,7 @@ public class RepackageProcessor {
                                 zos.closeEntry();
                             }
                             haveWrittenV8a = true;
-                        }
-                        if (ze.getName().startsWith("lib/armeabi-v7a/") && !haveWrittenV7a) {
+                        } else if (ze.getName().startsWith("lib/armeabi-v7a/") && !haveWrittenV7a) {
                             InputStream v7a = activity.getAssets().open("armeabi-v7a/libsandhook.so");
                             extraSize += v7a.available();
                             zos.putNextEntry("lib/armeabi-v7a/libsandhook.so");
@@ -203,8 +201,7 @@ public class RepackageProcessor {
                                 zos.closeEntry();
                             }
                             haveWrittenV7a = true;
-                        }
-                        if (ze.getName().startsWith("lib/armeabi/") && !haveWrittenArmeabi) {
+                        } else if (ze.getName().startsWith("lib/armeabi/") && !haveWrittenArmeabi) {
                             InputStream v7a = activity.getAssets().open("armeabi-v7a/libsandhook.so");
                             extraSize += v7a.available();
                             zos.putNextEntry("lib/armeabi/libsandhook.so");
@@ -227,14 +224,13 @@ public class RepackageProcessor {
                         zos.copyZipEntry(ze, zipFile);
                         long finalExtraSize = extraSize;
                         activity.runOnUiThread(() -> {
-                            int progress = (int) (100 * writtenSize / (inApkSize + finalExtraSize));
-                            if (progress > 100) progress = 100;
-                            apk_name.setText(String.format(Locale.CHINA, "%s：写出安装包%d%%", inApk.getName(), progress));
-                            ViewGroup.LayoutParams lp = progress_background.getLayoutParams();
-                            lp.height = apk_name.getHeight();
-                            lp.width = progress_container.getWidth() * progress / 100;
-                            progress_background.setLayoutParams(lp);
-                            progress_background.setVisibility(View.VISIBLE);
+                            apkName.setText(String.format("%s：写出安装包", inApk.getName()));
+                            float progress = (float) writtenSize / (inApkSize + finalExtraSize);
+                            ViewGroup.LayoutParams lp = progressBackground.getLayoutParams();
+                            lp.height = apkName.getHeight();
+                            lp.width = (int) (progressContainer.getWidth() * progress);
+                            progressBackground.setLayoutParams(lp);
+                            progressBackground.setVisibility(View.VISIBLE);
                         });
                     }
                     zos.putNextEntry("AndroidManifest.xml");
@@ -285,13 +281,13 @@ public class RepackageProcessor {
                     }
                 }
                 activity.runOnUiThread(() -> {
-                    apk_name.setText(String.format("%s：签名", inApk.getName()));
-                    ViewGroup.LayoutParams lp = progress_background.getLayoutParams();
-                    lp.width = progress_container.getWidth();
-                    progress_background.setLayoutParams(lp);
+                    apkName.setText(String.format("%s：签名", inApk.getName()));
+                    ViewGroup.LayoutParams lp = progressBackground.getLayoutParams();
+                    lp.width = progressContainer.getWidth();
+                    progressBackground.setLayoutParams(lp);
                 });
                 String keystorePath = activity.getExternalCacheDir().getAbsolutePath() + File.separator + "key";
-                IO.copyFileFromAssets(activity, "android.keystore", keystorePath);
+                IO.copyFile(activity.getAssets().open("android.keystore"), keystorePath);
                 String[] signParams = {"sign",
                         "--ks", keystorePath,
                         "--ks-key-alias", "key0",

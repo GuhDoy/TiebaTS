@@ -21,7 +21,7 @@ public class EyeshieldMode extends Hook {
         savedUiMode = DisplayHelper.isLightMode(context);
         XposedHelpers.findAndHookMethod("com.baidu.tbadk.core.TbadkCoreApplication", classLoader, "setSkinTypeValue", int.class, new XC_MethodHook() {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                if (!DisplayHelper.isLightMode(context) && savedUiMode != DisplayHelper.isLightMode(context)) {
+                if (!DisplayHelper.isLightMode(context)) {
                     savedUiMode = DisplayHelper.isLightMode(context);
                     param.args[0] = 1;
                 }

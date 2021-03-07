@@ -9,7 +9,8 @@ import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
+import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.jf.dexlib.ClassDefItem;
@@ -19,7 +20,6 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.Locale;
 
 import bin.zip.ZipEntry;
 import de.robv.android.xposed.XC_MethodHook;
@@ -39,17 +39,28 @@ public class AntiConfusion extends Hook {
                 Activity activity = ((Activity) param.thisObject);
                 if (!AntiConfusionHelper.isNeedAntiConfusion(activity)) return;
                 TextView textView = new TextView(activity);
-                textView.setGravity(Gravity.CENTER_HORIZONTAL);
+                textView.setTextSize(14);
+                textView.setPadding(0, 5, 0, 5);
                 textView.setText(String.format("读取%s", "ZipEntry"));
+                TextView progressBackground = new TextView(activity);
+                progressBackground.setBackgroundColor(Hook.modRes.getColor(R.color.colorProgress, null));
+                RelativeLayout progressContainer = new RelativeLayout(activity);
+                progressContainer.addView(progressBackground);
+                progressContainer.addView(textView);
+                RelativeLayout.LayoutParams tvLp = (RelativeLayout.LayoutParams) textView.getLayoutParams();
+                tvLp.addRule(RelativeLayout.CENTER_IN_PARENT);
+                textView.setLayoutParams(tvLp);
+                RelativeLayout.LayoutParams rlLp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+                progressContainer.setLayoutParams(rlLp);
                 AlertDialog alertDialog;
                 if (DisplayHelper.isLightMode(activity)) {
                     textView.setTextColor(Hook.modRes.getColor(R.color.colorPrimaryDark, null));
                     alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
-                            .setTitle("贴吧TS反混淆").setMessage("正在定位被混淆的类和方法，请耐心等待").setView(textView).setCancelable(false).create();
+                            .setTitle("贴吧TS反混淆").setMessage("正在定位被混淆的类和方法，请耐心等待").setView(progressContainer).setCancelable(false).create();
                 } else {
                     textView.setTextColor(Hook.modRes.getColor(R.color.colorPrimary, null));
                     alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_DARK)
-                            .setTitle("贴吧TS反混淆").setMessage("正在定位被混淆的类和方法，请耐心等待").setView(textView).setCancelable(false).create();
+                            .setTitle("贴吧TS反混淆").setMessage("正在定位被混淆的类和方法，请耐心等待").setView(progressContainer).setCancelable(false).create();
                 }
                 alertDialog.show();
                 new Thread(() -> {
@@ -59,15 +70,22 @@ public class AntiConfusion extends Hook {
                         dexDir.mkdirs();
                         bin.zip.ZipFile zipFile = new bin.zip.ZipFile(new File(activity.getPackageResourcePath()));
                         Enumeration<ZipEntry> enumeration = zipFile.getEntries();
-                        int dexCount = 0;
+                        int unzippedCount = 0;
+                        int entrySize = zipFile.getEntrySize();
                         while (enumeration.hasMoreElements()) {
+                            unzippedCount++;
+                            float progress = (float) unzippedCount / entrySize;
+                            activity.runOnUiThread(() -> {
+                                textView.setText("解压");
+                                ViewGroup.LayoutParams lp = progressBackground.getLayoutParams();
+                                lp.height = textView.getHeight();
+                                lp.width = (int) (progressContainer.getWidth() * progress);
+                                progressBackground.setLayoutParams(lp);
+                            });
+
                             ZipEntry ze = enumeration.nextElement();
-                            if (ze.getName().matches("classes[0-9]*?\\.dex")) {
-                                dexCount++;
-                                int finalDexCount = dexCount;
-                                activity.runOnUiThread(() -> textView.setText(String.format(Locale.CHINA, "解压第%d个dex", finalDexCount)));
-                                IO.copyFileFromStream(zipFile.getInputStream(ze), dexDir + File.separator + ze.getName());
-                            }
+                            if (ze.getName().matches("classes[0-9]*?\\.dex"))
+                                IO.copyFile(zipFile.getInputStream(ze), new File(dexDir, ze.getName()));
                         }
                         //新建数据库
                         activity.deleteDatabase("Rules.db");
@@ -80,8 +98,14 @@ public class AntiConfusion extends Hook {
                             DexFile dex = new DexFile(fs[i]);
                             List<ClassDefItem> classes = dex.ClassDefsSection.getItems();
                             for (int j = 0; j < classes.size(); j++) {
-                                float clsProgress = 100 * (float) j / fs.length / classes.size() + 100 * (float) i / fs.length;
-                                activity.runOnUiThread(() -> textView.setText(String.format(Locale.CHINA, "搜索进度：%.1f%%", clsProgress)));
+                                float clsProgress = (float) j / fs.length / classes.size() + (float) i / fs.length;
+                                activity.runOnUiThread(() -> {
+                                    textView.setText("搜索");
+                                    ViewGroup.LayoutParams lp = progressBackground.getLayoutParams();
+                                    lp.height = textView.getHeight();
+                                    lp.width = (int) (progressContainer.getWidth() * clsProgress);
+                                    progressBackground.setLayoutParams(lp);
+                                });
 
                                 String signature = classes.get(j).getClassType().getTypeDescriptor();//类签名
                                 if (!signature.startsWith("Le/b/") && !signature.startsWith("Lcom/baidu/"))
@@ -90,7 +114,6 @@ public class AntiConfusion extends Hook {
                                 AntiConfusionHelper.searchAndSave(classes.get(j), 1, db);
                             }
                         }
-                        activity.runOnUiThread(() -> textView.setText("反混淆完成，即将重启"));
                         SharedPreferences tsPreference = activity.getSharedPreferences("TS_preference", Context.MODE_PRIVATE);
                         if (tsPreference.getBoolean("clean_dir", false)) {
                             IO.deleteFiles(activity.getFilesDir());

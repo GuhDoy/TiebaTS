@@ -14,7 +14,6 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,22 +45,18 @@ public class LicenseActivity extends AppCompatActivity {
         map2.put("abstract", "利用github actions实现百度贴吧自动签到脚本，每日自动签到，获得8点经验。");
         map2.put("license", " MIT ");
         Map<String, String> map3 = new HashMap<>();
-        map3.put("source", "xposed_module_loader");
-        map3.put("abstract", "这是App加载已安装的Xposed Modules的一个库。");
+        map3.put("source", "OkHttp");
+        map3.put("abstract", "Square's meticulous HTTP client for the JVM, Android, and GraalVM.");
+        map3.put("license", " Apache-2.0 ");
         Map<String, String> map4 = new HashMap<>();
-        map4.put("source", "OkHttp");
-        map4.put("abstract", "Square's meticulous HTTP client for the JVM, Android, and GraalVM.");
-        map4.put("license", " Apache-2.0 ");
-        Map<String, String> map5 = new HashMap<>();
-        map5.put("source", "smali");
-        map5.put("abstract", "smali/baksmali is an assembler/disassembler for the dex format used by dalvik, Android's Java VM implementation.");
+        map4.put("source", "smali");
+        map4.put("abstract", "smali/baksmali is an assembler/disassembler for the dex format used by dalvik, Android's Java VM implementation.");
         List<Map<String, String>> licenseList = new ArrayList<>();
         licenseList.add(map);
         licenseList.add(map1);
         licenseList.add(map2);
         licenseList.add(map3);
         licenseList.add(map4);
-        licenseList.add(map5);
         String[] from = new String[]{"source", "abstract", "license"};
         int[] to = new int[]{R.id.tv_source, R.id.tv_abstract, R.id.tv_license};
         SimpleAdapter licenseAdapter = new SimpleAdapter(getApplicationContext(), licenseList, R.layout.adapter_item_license, from, to);
@@ -80,9 +75,6 @@ public class LicenseActivity extends AppCompatActivity {
                     break;
                 case "TiebaSignIn":
                     intent.setData(Uri.parse("https://github.com/srcrs/TiebaSignIn"));
-                    break;
-                case "xposed_module_loader":
-                    intent.setData(Uri.parse("https://github.com/GuhDoy/xposed_module_loader"));
                     break;
                 case "OkHttp":
                     intent.setData(Uri.parse("https://github.com/square/okhttp"));

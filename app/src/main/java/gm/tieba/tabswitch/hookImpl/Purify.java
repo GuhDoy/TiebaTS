@@ -105,7 +105,6 @@ public class Purify extends Hook {
         //首页不属于任何吧的视频
         XposedHelpers.findAndHookMethod(XposedHelpers.findClass("tbclient.Personalized.DataRes$Builder", classLoader), "build", boolean.class, new XC_MethodHook() {
             public void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                if (Hook.follow == null) return;
                 Field field = param.thisObject.getClass().getDeclaredField("thread_list");
                 field.setAccessible(true);
                 List<?> list = (List<?>) field.get(param.thisObject);

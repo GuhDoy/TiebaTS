@@ -13,7 +13,6 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.io.FileOutputStream;
 import java.util.Objects;
 
 import gm.tieba.tabswitch.R;
@@ -48,7 +47,7 @@ public class DonationActivity extends AppCompatActivity {
                 ContentResolver resolver = getApplicationContext().getContentResolver();
                 Uri qrCodeUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, newQrCodeDetails);
                 ParcelFileDescriptor descriptor = resolver.openFileDescriptor(qrCodeUri, "w");
-                IO.copyFile(getResources().openRawResource(R.drawable.mm_reward_qrcode), new FileOutputStream(descriptor.getFileDescriptor()));
+                IO.copyFile(getResources().openRawResource(R.drawable.mm_reward_qrcode), descriptor.getFileDescriptor());
                 Toast.makeText(this, "已将微信赞赏码保存至Pictures文件夹", Toast.LENGTH_SHORT).show();
 
                 Intent intent = getPackageManager().getLaunchIntentForPackage("com.tencent.mm");

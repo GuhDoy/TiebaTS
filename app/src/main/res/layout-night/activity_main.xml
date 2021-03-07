@@ -31,7 +31,6 @@
                 android:id="@+id/progress_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:animateLayoutChanges="true"
                 android:orientation="vertical"
                 android:visibility="gone">
 
@@ -39,7 +38,7 @@
                     android:id="@+id/progress_background"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
-                    android:background="#ffbebebe" />
+                    android:background="@color/colorProgress" />
 
                 <ProgressBar
                     android:id="@+id/progress_bar"

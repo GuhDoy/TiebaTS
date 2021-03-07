@@ -25,7 +25,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 
 import gm.tieba.tabswitch.BuildConfig;
 import gm.tieba.tabswitch.R;
@@ -126,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 if (resultCode != Activity.RESULT_OK) return;
                 File tmpFile = new File(getExternalCacheDir().getAbsolutePath(), "temp.apk");
-                IO.copyFileFromStream(getContentResolver().openInputStream(Objects.requireNonNull(data).getData()), tmpFile.getPath());
+                IO.copyFile(getContentResolver().openInputStream(data.getData()), tmpFile);
                 String apkName = getPackageManager().getApplicationLabel(getPackageManager().getPackageArchiveInfo(tmpFile.getPath(), PackageManager.GET_ACTIVITIES).applicationInfo).toString();
                 File newFile = new File(getExternalCacheDir().getAbsolutePath(), apkName + ".apk");
                 tmpFile.renameTo(newFile);
@@ -213,13 +212,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putBoolean("isShowing", RepackageProcessor.xpatchStartDialog.isShowing());
+        if (RepackageProcessor.xpatchStartDialog != null)
+            outState.putBoolean("isShowing", RepackageProcessor.xpatchStartDialog.isShowing());
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        RepackageProcessor.xpatchStartDialog.dismiss();
+        if (RepackageProcessor.xpatchStartDialog != null)
+            RepackageProcessor.xpatchStartDialog.dismiss();
     }
 
     @Override

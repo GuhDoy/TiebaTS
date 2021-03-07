@@ -17,12 +17,10 @@ import org.jetbrains.annotations.NotNull;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Locale;
 
 import de.robv.android.xposed.XC_MethodHook;
@@ -72,6 +70,7 @@ public class SaveImages extends Hook {
                             for (int i = 0; i < arrayList.size(); i++) {
                                 String url = arrayList.get(i);
                                 try {
+                                    url = "http://tiebapic.baidu.com/forum/pic/item/" + url.substring(url.lastIndexOf("/") + 1);
                                     url = url.substring(0, url.lastIndexOf("*"));
                                 } catch (StringIndexOutOfBoundsException ignored) {
                                 }
@@ -89,8 +88,7 @@ public class SaveImages extends Hook {
 
     private static void saveImage(String url, int i, Context context) {
         OkHttpClient okHttpClient = new OkHttpClient();
-        okhttp3.Request request = new okhttp3.Request.Builder()
-                .url(url).get().build();
+        okhttp3.Request request = new okhttp3.Request.Builder().url(url).get().build();
         Call call = okHttpClient.newCall(request);
         call.enqueue(new Callback() {
             private ByteArrayOutputStream baos;
@@ -103,9 +101,10 @@ public class SaveImages extends Hook {
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 InputStream respContent = response.body().byteStream();
-                String extension = getExtension(respContent);
-
+                baos = IO.cloneInputStream(respContent);
                 respContent = new ByteArrayInputStream(baos.toByteArray());
+                String extension = IO.getExtension(respContent);
+                InputStream inputStream = new ByteArrayInputStream(baos.toByteArray());
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     ContentValues newImageDetails = new ContentValues();
                     newImageDetails.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + File.separator + "tieba" + File.separator + title);
@@ -114,29 +113,17 @@ public class SaveImages extends Hook {
                     ContentResolver resolver = context.getContentResolver();
                     Uri imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, newImageDetails);
                     ParcelFileDescriptor descriptor = resolver.openFileDescriptor(imageUri, "w");
-                    IO.copyFile(respContent, new FileOutputStream(descriptor.getFileDescriptor()));
+                    IO.copyFile(inputStream, descriptor.getFileDescriptor());
                 } else {
                     File imageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + File.separator + "tieba" + File.separator + title);
                     imageDir.mkdirs();
-                    IO.copyFileFromStream(respContent, imageDir.getPath() + File.separator + i + "." + extension);
+                    IO.copyFile(inputStream, new File(imageDir.getPath(), i + "." + extension));
 
                     Intent scanIntent = new Intent("android.intent.action.MEDIA_SCANNER_SCAN_DIR");
                     scanIntent.setData(Uri.fromFile(imageDir));
                     context.sendBroadcast(scanIntent);
                 }
                 baos = null;
-            }
-
-            private String getExtension(InputStream inputStream) throws IOException {
-                baos = IO.cloneInputStream(inputStream);
-                inputStream = new ByteArrayInputStream(baos.toByteArray());
-                byte[] buffer = new byte[10];
-                if (inputStream.read(buffer) == -1) throw new IOException();
-                if (Arrays.equals(buffer, new byte[]{-1, -40, -1, -32, 0, 16, 74, 70, 73, 70}))
-                    return "jpg";
-                else if (Arrays.equals(buffer, new byte[]{-119, 80, 78, 71, 13, 10, 26, 10, 0, 0}))
-                    return "png";
-                else return "gif";
             }
         });
     }

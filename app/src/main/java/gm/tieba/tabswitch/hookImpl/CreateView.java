@@ -13,7 +13,6 @@ import java.util.Objects;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
-import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import gm.tieba.tabswitch.Hook;
 
 public class CreateView extends Hook {
@@ -38,9 +37,9 @@ public class CreateView extends Hook {
                                         //historyButton
                                         final ImageView historyDrawable = new ImageView(activity);
                                         historyDrawable.setImageResource(classLoader.loadClass("com.baidu.tieba.R$drawable").getField("icon_mask_wo_list_history24_svg").getInt(null));
+                                        final RelativeLayout historyButton = new RelativeLayout(activity);
                                         RelativeLayout.LayoutParams historyLayoutParams = new RelativeLayout.LayoutParams(signButtonLayoutParams.height, RelativeLayout.LayoutParams.MATCH_PARENT);
                                         historyLayoutParams.addRule(RelativeLayout.LEFT_OF, signButton.getId());
-                                        final RelativeLayout historyButton = new RelativeLayout(activity);
                                         historyButton.setLayoutParams(historyLayoutParams);
                                         historyButton.setId(View.generateViewId());
                                         historyButton.addView(historyDrawable);
@@ -55,9 +54,9 @@ public class CreateView extends Hook {
                                         //collectButton
                                         final ImageView collectDrawable = new ImageView(activity);
                                         collectDrawable.setImageResource(classLoader.loadClass("com.baidu.tieba.R$drawable").getField("icon_mask_wo_list_collect24_svg").getInt(null));
+                                        final RelativeLayout collectButton = new RelativeLayout(activity);
                                         RelativeLayout.LayoutParams collectButtonLayoutParams = new RelativeLayout.LayoutParams(signButtonLayoutParams.height, RelativeLayout.LayoutParams.MATCH_PARENT);
                                         collectButtonLayoutParams.addRule(RelativeLayout.LEFT_OF, historyButton.getId());
-                                        final RelativeLayout collectButton = new RelativeLayout(activity);
                                         collectButton.setLayoutParams(collectButtonLayoutParams);
                                         collectButton.addView(collectDrawable);
                                         collectDrawable.setLayoutParams(drawableLayoutParams);
