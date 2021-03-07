@@ -17,6 +17,7 @@ import org.jf.dexlib.ClassDefItem;
 import org.jf.dexlib.DexFile;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
@@ -82,7 +83,6 @@ public class AntiConfusion extends Hook {
                                 lp.width = (int) (progressContainer.getWidth() * progress);
                                 progressBackground.setLayoutParams(lp);
                             });
-
                             ZipEntry ze = enumeration.nextElement();
                             if (ze.getName().matches("classes[0-9]*?\\.dex"))
                                 IO.copyFile(zipFile.getInputStream(ze), new File(dexDir, ze.getName()));
@@ -94,11 +94,37 @@ public class AntiConfusion extends Hook {
 
                         File[] fs = dexDir.listFiles();
                         Arrays.sort(fs);
+                        List<List<Integer>> itemList = new ArrayList<>();
+                        int totalItemCount = 0;
                         for (int i = 0; i < fs.length; i++) {
                             DexFile dex = new DexFile(fs[i]);
                             List<ClassDefItem> classes = dex.ClassDefsSection.getItems();
+                            List<Integer> arrayList = new ArrayList<>();
                             for (int j = 0; j < classes.size(); j++) {
                                 float clsProgress = (float) j / fs.length / classes.size() + (float) i / fs.length;
+                                activity.runOnUiThread(() -> {
+                                    textView.setText("读取类签名");
+                                    ViewGroup.LayoutParams lp = progressBackground.getLayoutParams();
+                                    lp.height = textView.getHeight();
+                                    lp.width = (int) (progressContainer.getWidth() * clsProgress);
+                                    progressBackground.setLayoutParams(lp);
+                                });
+                                String signature = classes.get(j).getClassType().getTypeDescriptor();
+                                //TODO: if we can find signature starts with "Le/b/", skip "Lcom/baidu/"
+                                if (!signature.startsWith("Le/b/") && !signature.startsWith("Lcom/baidu/"))
+                                    continue;
+                                arrayList.add(classes.get(j).getIndex());
+                            }
+                            totalItemCount += arrayList.size();
+                            itemList.add(arrayList);
+                        }
+                        int itemCount = 0;
+                        for (int i = 0; i < fs.length; i++) {
+                            DexFile dex = new DexFile(fs[i]);
+                            List<Integer> arrayList = itemList.get(i);
+                            for (int j = 0; j < arrayList.size(); j++) {
+                                itemCount++;
+                                float clsProgress = (float) itemCount / totalItemCount;
                                 activity.runOnUiThread(() -> {
                                     textView.setText("搜索");
                                     ViewGroup.LayoutParams lp = progressBackground.getLayoutParams();
@@ -106,12 +132,9 @@ public class AntiConfusion extends Hook {
                                     lp.width = (int) (progressContainer.getWidth() * clsProgress);
                                     progressBackground.setLayoutParams(lp);
                                 });
-
-                                String signature = classes.get(j).getClassType().getTypeDescriptor();//类签名
-                                if (!signature.startsWith("Le/b/") && !signature.startsWith("Lcom/baidu/"))
-                                    continue;
-                                AntiConfusionHelper.searchAndSave(classes.get(j), 0, db);
-                                AntiConfusionHelper.searchAndSave(classes.get(j), 1, db);
+                                ClassDefItem classItem = dex.ClassDefsSection.getItemByIndex(arrayList.get(j));
+                                AntiConfusionHelper.searchAndSave(classItem, 0, db);
+                                AntiConfusionHelper.searchAndSave(classItem, 1, db);
                             }
                         }
                         SharedPreferences tsPreference = activity.getSharedPreferences("TS_preference", Context.MODE_PRIVATE);
