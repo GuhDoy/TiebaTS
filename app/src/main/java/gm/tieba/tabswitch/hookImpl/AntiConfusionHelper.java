@@ -7,15 +7,19 @@ import android.database.sqlite.SQLiteDatabase;
 
 import org.jf.dexlib.ClassDataItem;
 import org.jf.dexlib.ClassDefItem;
+import org.jf.dexlib.DexFile;
 import org.jf.util.IndentingWriter2;
 import org.jf.util.Parser;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import de.robv.android.xposed.XposedBridge;
 import gm.tieba.tabswitch.Hook;
 
 public class AntiConfusionHelper extends Hook {
@@ -89,9 +93,16 @@ public class AntiConfusionHelper extends Hook {
     }
 
     public static boolean isNeedAntiConfusion(Context context) {
-        SharedPreferences tsConfig = context.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
-        SharedPreferences sharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE);
-        return !tsConfig.getString("anti-confusion_version", "unknown").equals(sharedPreferences.getString("key_rate_version", "unknown"))
-                || sharedPreferences.getString("key_rate_version", "unknown").equals("unknown");
+        try {
+            SharedPreferences tsConfig = context.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
+            bin.zip.ZipFile zipFile = new bin.zip.ZipFile(new File(context.getPackageResourcePath()));
+            byte[] bytes = new byte[32];
+            zipFile.getInputStream(zipFile.getEntry("classes.dex")).read(bytes);
+            DexFile.calcSignature(bytes);
+            return Arrays.hashCode(bytes) != tsConfig.getInt("signature", 0);
+        } catch (IOException e) {
+            XposedBridge.log(e);
+        }
+        return false;
     }
 }

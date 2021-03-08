@@ -17,6 +17,7 @@ import org.jf.dexlib.ClassDefItem;
 import org.jf.dexlib.DexFile;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -114,7 +115,7 @@ public class AntiConfusion extends Hook {
                                 if (signature.startsWith("Le/b/")) {
                                     arrayList.add(classes.get(j).getIndex());
                                     isSkip = true;
-                                } else if (!isSkip && (signature.startsWith("Lcom/baidu/tieba")||signature.startsWith("Lcom/baidu/tbadk"))) {
+                                } else if (!isSkip && (signature.startsWith("Lcom/baidu/tieba") || signature.startsWith("Lcom/baidu/tbadk"))) {
                                     arrayList.add(classes.get(j).getIndex());
                                 }
                             }
@@ -140,6 +141,13 @@ public class AntiConfusion extends Hook {
                                 AntiConfusionHelper.searchAndSave(classItem, 1, db);
                             }
                         }
+                        SharedPreferences tsConfig = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editor = tsConfig.edit();
+                        byte[] bytes = new byte[32];
+                        new FileInputStream(fs[0]).read(bytes);
+                        DexFile.calcSignature(bytes);
+                        editor.putInt("signature", Arrays.hashCode(bytes));
+                        editor.commit();
                         SharedPreferences tsPreference = activity.getSharedPreferences("TS_preference", Context.MODE_PRIVATE);
                         if (tsPreference.getBoolean("clean_dir", false)) {
                             IO.deleteFiles(activity.getFilesDir());
@@ -148,13 +156,8 @@ public class AntiConfusion extends Hook {
                             IO.deleteFiles(activity.getExternalCacheDir());
                         } else IO.deleteFiles(dexDir);
                         new File(activity.getExternalFilesDir(null), "Rules.db").delete();
-                        SharedPreferences tsConfig = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
                         SharedPreferences sharedPreferences = activity.getSharedPreferences("settings", Context.MODE_PRIVATE);
-                        XposedBridge.log("anti-confusion accomplished, last version: " + tsConfig.getString("anti-confusion_version", "unknown")
-                                + ", current version: " + sharedPreferences.getString("key_rate_version", "unknown"));
-                        SharedPreferences.Editor editor = tsConfig.edit();
-                        editor.putString("anti-confusion_version", sharedPreferences.getString("key_rate_version", "unknown"));
-                        editor.commit();
+                        XposedBridge.log("anti-confusion accomplished, current version: " + sharedPreferences.getString("key_rate_version", "unknown"));
                         Intent intent = activity.getPackageManager().getLaunchIntentForPackage(activity.getPackageName());
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         activity.startActivity(intent);

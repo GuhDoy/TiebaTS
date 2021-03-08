@@ -83,10 +83,9 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
                                             }).setPositiveButton("确定", (dialogInterface, i) -> {
                                                 SharedPreferences tsConfig = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
                                                 SharedPreferences.Editor editor = tsConfig.edit();
-                                                editor.putString("anti-confusion_version", "unknown");
+                                                editor.putInt("signature", 0);
                                                 editor.commit();
-                                                Intent intent = new Intent();
-                                                intent.setClassName(activity, "com.baidu.tieba.launcherGuide.tblauncher.GuideActivity");
+                                                Intent intent = new Intent().setClassName(activity, "com.baidu.tieba.launcherGuide.tblauncher.GuideActivity");
                                                 activity.startActivity(intent);
                                             }).create();
                                     SharedPreferences tsConfig = context.getSharedPreferences("TS_config", Context.MODE_PRIVATE);

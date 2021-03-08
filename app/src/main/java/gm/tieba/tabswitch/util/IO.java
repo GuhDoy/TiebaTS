@@ -25,8 +25,8 @@ public class IO {
         else throw new IOException("unknown input type");
 
         FileOutputStream fileOutputStream;
-        if (input instanceof FileOutputStream)
-            fileOutputStream = (FileOutputStream) input;
+        if (output instanceof FileOutputStream)
+            fileOutputStream = (FileOutputStream) output;
         else if (output instanceof File)
             fileOutputStream = new FileOutputStream((File) output);
         else if (output instanceof FileDescriptor)
