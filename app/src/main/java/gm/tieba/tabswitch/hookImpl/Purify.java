@@ -51,6 +51,14 @@ public class Purify extends Hook {
                                 }
                             });
                     break;
+                case "Lcom/baidu/tieba/R$string;->mark_like:I"://关注作者追帖更简单
+                    XposedBridge.hookAllMethods(XposedHelpers.findClass(map.get("class"), classLoader), map.get("method"), new XC_MethodHook() {
+                        protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                            if (param.args[0].getClass().getName().equals("com.baidu.tbadk.core.data.MetaData"))
+                                param.args[0] = null;
+                        }
+                    });
+                    break;
             }
         }
         //启动广告

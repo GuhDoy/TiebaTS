@@ -32,16 +32,17 @@ import gm.tieba.tabswitch.hookImpl.PurifyMy;
 import gm.tieba.tabswitch.hookImpl.RedTip;
 import gm.tieba.tabswitch.hookImpl.SaveImages;
 import gm.tieba.tabswitch.hookImpl.StorageRedirect;
+import gm.tieba.tabswitch.hookImpl.ThreadStore;
 
 public class HookDispatcher extends Hook {
     public static void hook(ClassLoader classLoader, Map.Entry<String, ?> entry, Context context) throws Throwable {
         try {
             switch (entry.getKey()) {
-                case "home_recommend"://写死了被混淆的方法
+                case "home_recommend":
                     if ((Boolean) entry.getValue()) HomeRecommend.hook(classLoader);
                     break;
                 case "enter_forum":
-                    if (!(Boolean) entry.getValue()) return;
+                    if (!(Boolean) entry.getValue()) break;
                     try {
                         XposedHelpers.findAndHookMethod("com.baidu.tieba.flutter.view.FlutterEnterForumDelegateStatic", classLoader, "createFragmentTabStructure", XC_MethodReplacement.returnConstant(null));
                     } catch (XposedHelpers.ClassNotFoundError ignored) {
@@ -63,17 +64,17 @@ public class HookDispatcher extends Hook {
                 case "purify":
                     if ((Boolean) entry.getValue()) Purify.hook(classLoader);
                     break;
-                case "purify_enter"://写死了被混淆的方法
+                case "purify_enter":
                     if ((Boolean) entry.getValue()) PurifyEnter.hook(classLoader);
                     break;
                 case "purify_my":
                     if ((Boolean) entry.getValue()) PurifyMy.hook(classLoader);
                     break;
-                case "red_tip"://写死了被混淆的方法
+                case "red_tip":
                     if ((Boolean) entry.getValue()) RedTip.hook(classLoader);
                     break;
                 case "follow_filter":
-                    if (!(Boolean) entry.getValue()) return;
+                    if (!(Boolean) entry.getValue()) break;
                     XposedHelpers.findAndHookMethod(XposedHelpers.findClass("tbclient.Personalized.DataRes$Builder", classLoader), "build", boolean.class, new XC_MethodHook() {
                         public void beforeHookedMethod(MethodHookParam param) throws Throwable {
                             if (Hook.follow == null) return;
@@ -96,26 +97,43 @@ public class HookDispatcher extends Hook {
                     break;
                 case "personalized_filter":
                     String personalizedFilter = (String) entry.getValue();
-                    if (personalizedFilter == null) return;
+                    if (personalizedFilter == null) break;
+                    //TODO: handle thread info more precisely
                     XposedHelpers.findAndHookMethod(XposedHelpers.findClass("tbclient.Personalized.DataRes$Builder", classLoader), "build", boolean.class, new XC_MethodHook() {
                         public void beforeHookedMethod(MethodHookParam param) throws Throwable {
                             Field field = param.thisObject.getClass().getDeclaredField("thread_list");
                             field.setAccessible(true);
                             List<?> list = (List<?>) field.get(param.thisObject);
                             if (list == null) return;
-                            for (int i = 0; i < list.size(); i++)
-                                if (Pattern.compile(personalizedFilter).matcher(list.get(i).toString()).find()) {
+                            for (int i = 0; i < list.size(); i++) {
+                                String threadInfo = list.get(i).toString();
+                                if (Pattern.compile(personalizedFilter).matcher(threadInfo).find()) {
                                     if ((Boolean) Hook.preferenceMap.get("personalized_filter_log"))
                                         XposedBridge.log(list.get(i).toString());
                                     list.remove(i);
                                     i--;
                                 }
+                                /*
+                                try {
+                                    String text = threadInfo.substring(threadInfo.indexOf(", text=") + 7, threadInfo.indexOf(", type="));
+                                    String title = threadInfo.substring(threadInfo.indexOf(", title=") + 8, threadInfo.indexOf(", topic_h5_url="));
+                                    String fname = threadInfo.substring(threadInfo.indexOf(", fname=" + 8 , threadInfo.indexOf( ", forum_info="));
+                                    if (Pattern.compile(personalizedFilter).matcher(text).find()||
+                                            Pattern.compile(personalizedFilter).matcher(title).find()||
+                                            Pattern.compile(personalizedFilter).matcher(fname).find()) {
+                                        list.remove(i);
+                                        i--;
+                                    }
+                                } catch (StringIndexOutOfBoundsException ignored) {
+                                }
+                                */
+                            }
                         }
                     });
                     break;
                 case "content_filter":
                     String contentFilter = (String) entry.getValue();
-                    if (contentFilter == null) return;
+                    if (contentFilter == null) break;
                     XposedHelpers.findAndHookMethod(XposedHelpers.findClass("tbclient.PbPage.DataRes$Builder", classLoader), "build", boolean.class, new XC_MethodHook() {
                         public void beforeHookedMethod(MethodHookParam param) throws Throwable {
                             Field field = param.thisObject.getClass().getDeclaredField("post_list");
@@ -123,20 +141,20 @@ public class HookDispatcher extends Hook {
                             List<?> list = (List<?>) field.get(param.thisObject);
                             if (list == null) return;
                             for (int i = 0; i < list.size(); i++) {
-                                String text = list.get(i).toString();
                                 try {
+                                    String text = list.get(i).toString();
                                     text = text.substring(text.indexOf(", text=") + 7, text.indexOf(", topic_special_icon="));
-                                } catch (StringIndexOutOfBoundsException e) {
-                                    continue;
-                                }
-                                if (Pattern.compile(contentFilter).matcher(text).find()) {
-                                    list.remove(i);
-                                    i--;
+                                    if (Pattern.compile(contentFilter).matcher(text).find()) {
+                                        list.remove(i);
+                                        i--;
+                                    }
+                                } catch (StringIndexOutOfBoundsException ignored) {
                                 }
                             }
                         }
                     });
                     //楼中楼
+                    //TODO: sometimes it can't fully remove sub post
                     XposedHelpers.findAndHookMethod(XposedHelpers.findClass("tbclient.SubPostList$Builder", classLoader), "build", boolean.class, new XC_MethodHook() {
                         public void beforeHookedMethod(MethodHookParam param) throws Throwable {
                             Field field = param.thisObject.getClass().getDeclaredField("content");
@@ -144,15 +162,14 @@ public class HookDispatcher extends Hook {
                             List<?> list = (List<?>) field.get(param.thisObject);
                             if (list == null) return;
                             for (int i = 0; i < list.size(); i++) {
-                                String text = list.get(i).toString();
                                 try {
+                                    String text = list.get(i).toString();
                                     text = text.substring(text.indexOf(", text=") + 7, text.indexOf(", topic_special_icon="));
-                                } catch (StringIndexOutOfBoundsException e) {
-                                    continue;
-                                }
-                                if (Pattern.compile(contentFilter).matcher(text).find()) {
-                                    list.remove(i);
-                                    i--;
+                                    if (Pattern.compile(contentFilter).matcher(text).find()) {
+                                        list.remove(i);
+                                        i--;
+                                    }
+                                } catch (StringIndexOutOfBoundsException ignored) {
                                 }
                             }
                         }
@@ -161,11 +178,14 @@ public class HookDispatcher extends Hook {
                 case "create_view":
                     if ((Boolean) entry.getValue()) CreateView.hook(classLoader);
                     break;
-                case "save_images"://写死了被混淆的方法
+                case "save_images":
                     if ((Boolean) entry.getValue()) SaveImages.hook(classLoader);
                     break;
+                case "thread_store":
+                    if ((Boolean) entry.getValue()) ThreadStore.hook(classLoader);
+                    break;
                 case "auto_sign":
-                    if (!(Boolean) entry.getValue()) return;
+                    if (!(Boolean) entry.getValue()) break;
                     XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
                         protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                             Activity activity = (Activity) param.thisObject;
@@ -195,7 +215,7 @@ public class HookDispatcher extends Hook {
                     });
                     break;
                 case "open_sign":
-                    if (!(Boolean) entry.getValue()) return;
+                    if (!(Boolean) entry.getValue()) break;
                     XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
                         protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                             Activity activity = (Activity) param.thisObject;
@@ -223,7 +243,7 @@ public class HookDispatcher extends Hook {
                     if ((Boolean) entry.getValue()) StorageRedirect.hook(classLoader, context);
                     break;
                 case "font_size":
-                    if (!(Boolean) entry.getValue()) return;
+                    if (!(Boolean) entry.getValue()) break;
                     for (int i = 0; i < ruleMapList.size(); i++) {
                         Map<String, String> map = ruleMapList.get(i);
                         if (Objects.equals(map.get("rule"), "Lcom/baidu/tieba/R$id;->new_pb_list:I"))

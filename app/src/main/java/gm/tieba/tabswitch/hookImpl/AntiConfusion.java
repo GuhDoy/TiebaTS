@@ -96,6 +96,7 @@ public class AntiConfusion extends Hook {
                         Arrays.sort(fs);
                         List<List<Integer>> itemList = new ArrayList<>();
                         int totalItemCount = 0;
+                        boolean isSkip = false;
                         for (int i = 0; i < fs.length; i++) {
                             DexFile dex = new DexFile(fs[i]);
                             List<ClassDefItem> classes = dex.ClassDefsSection.getItems();
@@ -110,10 +111,13 @@ public class AntiConfusion extends Hook {
                                     progressBackground.setLayoutParams(lp);
                                 });
                                 String signature = classes.get(j).getClassType().getTypeDescriptor();
-                                //TODO: if we can find signature starts with "Le/b/", skip "Lcom/baidu/"
-                                if (!signature.startsWith("Le/b/") && !signature.startsWith("Lcom/baidu/"))
-                                    continue;
-                                arrayList.add(classes.get(j).getIndex());
+                                if (signature.startsWith("Le/b/")) {
+                                    arrayList.add(classes.get(j).getIndex());
+                                    isSkip = true;
+                                }
+                                if (!isSkip && signature.startsWith("Lcom/baidu/")) {
+                                    arrayList.add(classes.get(j).getIndex());
+                                }
                             }
                             totalItemCount += arrayList.size();
                             itemList.add(arrayList);

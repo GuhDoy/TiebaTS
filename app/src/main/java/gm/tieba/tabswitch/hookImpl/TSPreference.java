@@ -136,8 +136,10 @@ public class TSPreference extends Hook {
         else linearLayout.addView(TSPreferenceHelper.generateTextView(activity, "增加功能"));
         TSPreferenceHelper.SwitchViewHolder createView = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "进吧增加收藏、历史", tsPreference.getBoolean("create_view", false));
         TSPreferenceHelper.SwitchViewHolder saveImages = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "长按下载保存全部图片", tsPreference.getBoolean("save_images", false));
+        TSPreferenceHelper.SwitchViewHolder threadStore = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "我的收藏增加搜索", tsPreference.getBoolean("thread_store", false));
         linearLayout.addView(createView.newSwitch);
         linearLayout.addView(saveImages.newSwitch);
+        linearLayout.addView(threadStore.newSwitch);
         if (tsConfig.getBoolean("ze", false))
             linearLayout.addView(TSPreferenceHelper.generateTextView(activity, "垂手可得"));
         else linearLayout.addView(TSPreferenceHelper.generateTextView(activity, "自动化"));
@@ -242,6 +244,7 @@ public class TSPreference extends Hook {
             editor.putBoolean("follow_filter", followFilter.isOn());
             editor.putBoolean("create_view", createView.isOn());
             editor.putBoolean("save_images", saveImages.isOn());
+            editor.putBoolean("thread_store", threadStore.isOn());
             editor.putBoolean("auto_sign", autoSign.isOn());
             editor.putBoolean("open_sign", openSign.isOn());
             editor.putBoolean("clean_dir", cleanDir.isOn());

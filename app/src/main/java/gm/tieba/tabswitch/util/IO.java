@@ -7,7 +7,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
+import java.nio.charset.StandardCharsets;
 
 public class IO {
     private static final int BUFFER_SIZE = 10240;
@@ -59,13 +59,12 @@ public class IO {
     }
 
     public static String getExtension(InputStream inputStream) throws IOException {
-        byte[] buffer = new byte[10];
-        if (inputStream.read(buffer) == -1) throw new IOException();
-        if (Arrays.equals(buffer, new byte[]{-1, -40, -1, -32, 0, 16, 74, 70, 73, 70}))
-            return "jpg";
-        else if (Arrays.equals(buffer, new byte[]{-119, 80, 78, 71, 13, 10, 26, 10, 0, 0}))
-            return "png";
-        else return "gif";
+        byte[] bytes = new byte[6];
+        if (inputStream.read(bytes) == -1) throw new IOException();
+        String extension = new String(bytes, StandardCharsets.UTF_8);
+        if (extension.contains("GIF")) return "gif";
+        if (extension.contains("PNG")) return "png";
+        return "jpg";
     }
 
     public static void deleteFiles(File file) {

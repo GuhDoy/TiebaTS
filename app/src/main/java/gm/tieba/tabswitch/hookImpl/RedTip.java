@@ -43,6 +43,7 @@ public class RedTip extends Hook {
                 }
             }
         }
+        if (clazz == null) throw new ClassNotFoundException("red tip class not found");
         XposedBridge.hookAllMethods(clazz, "onMessage", XC_MethodReplacement.returnConstant(null));
     }
 }

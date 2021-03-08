@@ -26,32 +26,28 @@ public class AntiConfusionHelper extends Hook {
     }
 
     public static void addMatcher(List<String> list) {
-        //旧启动广告
-        list.add("\"c/s/splashSchedule\"");
-        //sdk启动广告
-        list.add("custom_ext_data");
-        //图片广告
-        list.add("\"pic_amount\"");
-        //吧推广弹窗
-        list.add("\"key_frs_dialog_ad_last_show_time\"");
-        //吧推广横幅
-        list.add("Lcom/baidu/tieba/R$id;->frs_ad_banner:I");
-        //吧广场
-        list.add("Lcom/baidu/tieba/R$id;->square_background:I");
-        //创建自己的吧
-        list.add("Lcom/baidu/tieba/R$id;->create_bar_container:I");
-        //商店
-        list.add("Lcom/baidu/tieba/R$drawable;->icon_pure_topbar_store44_svg:I");
-        //分割线
-        list.add("Lcom/baidu/tieba/R$id;->function_item_bottom_divider:I");
-        //我的ArrayList
-        list.add("\"https://tieba.baidu.com/mo/q/duxiaoman/index?noshare=1\"");
-        //签到按钮
-        list.add("Lcom/baidu/tieba/R$id;->navigationBarGoSignall:I");
-        //存储重定向
+        //Purify
+        list.add("\"c/s/splashSchedule\"");//旧启动广告
+        list.add("custom_ext_data");//sdk启动广告
+        list.add("\"pic_amount\"");//图片广告
+        list.add("\"key_frs_dialog_ad_last_show_time\"");//吧推广弹窗
+        list.add("Lcom/baidu/tieba/R$id;->frs_ad_banner:I");//吧推广横幅
+        list.add("Lcom/baidu/tieba/R$string;->mark_like:I");//关注作者追帖更简单
+        //PurifyEnter
+        list.add("Lcom/baidu/tieba/R$id;->square_background:I");//吧广场
+        list.add("Lcom/baidu/tieba/R$id;->create_bar_container:I");//创建自己的吧
+        //PurifyMy
+        list.add("Lcom/baidu/tieba/R$drawable;->icon_pure_topbar_store44_svg:I");//商店
+        list.add("Lcom/baidu/tieba/R$id;->function_item_bottom_divider:I");//分割线
+        list.add("\"https://tieba.baidu.com/mo/q/duxiaoman/index?noshare=1\"");//我的ArrayList
+        //CreateView
+        list.add("Lcom/baidu/tieba/R$id;->navigationBarGoSignall:I");//签到按钮
+        //ThreadStore
+        list.add("\"c/f/post/threadstore\"");
+        //StorageRedirect
         list.add("0x4197d783fc000000L");
-        //调整字号手势
-        list.add("Lcom/baidu/tieba/R$id;->new_pb_list:I");
+        //HookDispatcher
+        list.add("Lcom/baidu/tieba/R$id;->new_pb_list:I");//调整字号手势
     }
 
     static void searchAndSave(ClassDefItem cls, int type, SQLiteDatabase db) throws IOException {

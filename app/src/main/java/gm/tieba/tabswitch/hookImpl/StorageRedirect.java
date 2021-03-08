@@ -71,6 +71,7 @@ public class StorageRedirect extends Hook {
     private static int saveImage(String url, Context context) {
         Context applicationContext = context.getApplicationContext();
         String fileName = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("."));
+        // "http://imgsrc.baidu.com/forum/pic/item/"
         url = "http://tiebapic.baidu.com/forum/pic/item/" + url.substring(url.lastIndexOf("/") + 1);
         try {
             OkHttpClient okHttpClient = new OkHttpClient();

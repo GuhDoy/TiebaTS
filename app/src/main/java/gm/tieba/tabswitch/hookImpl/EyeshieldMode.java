@@ -43,7 +43,11 @@ public class EyeshieldMode extends Hook {
                     savedUiMode = DisplayHelper.isLightMode(activity);
                     View itemSwitch = activity.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("item_switch").getInt(null));
                     Class<?> BdSwitchView = classLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView");
-                    BdSwitchView.getDeclaredMethod("turnOff").invoke(itemSwitch);
+                    try {
+                        BdSwitchView.getDeclaredMethod("turnOff").invoke(itemSwitch);
+                    } catch (NoSuchMethodException e) {
+                        BdSwitchView.getDeclaredMethod("f").invoke(itemSwitch);
+                    }
                     activity.finish();
                 }
             }
