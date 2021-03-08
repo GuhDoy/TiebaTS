@@ -114,8 +114,7 @@ public class AntiConfusion extends Hook {
                                 if (signature.startsWith("Le/b/")) {
                                     arrayList.add(classes.get(j).getIndex());
                                     isSkip = true;
-                                }
-                                if (!isSkip && signature.startsWith("Lcom/baidu/")) {
+                                } else if (!isSkip && (signature.startsWith("Lcom/baidu/tieba")||signature.startsWith("Lcom/baidu/tbadk"))) {
                                     arrayList.add(classes.get(j).getIndex());
                                 }
                             }
