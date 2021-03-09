@@ -128,7 +128,8 @@ public class Purify extends Hook {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.launcherGuide.tblauncher.GuideActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 Activity activity = ((Activity) param.thisObject);
-                if (AntiConfusionHelper.isNeedAntiConfusion(activity)) return;
+                if (AntiConfusionHelper.getLostList().size() != 0 || AntiConfusionHelper.isDexChanged(activity))
+                    return;
                 Field[] fields = param.thisObject.getClass().getDeclaredFields();
                 for (Field field : fields) {
                     field.setAccessible(true);

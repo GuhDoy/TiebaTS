@@ -33,21 +33,21 @@ import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.util.DisplayHelper;
 
 public class TSPreference extends Hook {
-    private static boolean isShowDialog = false;
+    private static boolean isShowTSPreference = false;
     private static int count = 0;
 
     public static void hook(ClassLoader classLoader) throws Throwable {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.LogoActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 Activity activity = (Activity) param.thisObject;
-                if (activity.getIntent().getBooleanExtra("openTSPreference", false))
-                    isShowDialog = true;
+                if (activity.getIntent().getBooleanExtra("showTSPreference", false))
+                    isShowTSPreference = true;
             }
         });
         XposedHelpers.findAndHookMethod(Activity.class, "onResume", new XC_MethodHook() {
-            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 Activity activity = (Activity) param.thisObject;
-                if (isShowDialog && !activity.getClass().getName().equals("com.baidu.tieba.LogoActivity")
+                if (isShowTSPreference && !activity.getClass().getName().equals("com.baidu.tieba.LogoActivity")
                         && !activity.getClass().getName().equals("com.baidu.tieba.launcherGuide.tblauncher.GuideActivity"))
                     showTSPreferenceDialog(classLoader, activity);
             }
@@ -234,7 +234,7 @@ public class TSPreference extends Hook {
                     }).create();
         }
         alertDialog.show();
-        isShowDialog = false;
+        isShowTSPreference = false;
         alertDialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
             SharedPreferences.Editor editor = tsPreference.edit();
             editor.putBoolean("purify", purify.isOn());
@@ -253,17 +253,18 @@ public class TSPreference extends Hook {
             editor.putBoolean("eyeshield_mode", eyeshieldMode.isOn());
             editor.putBoolean("personalized_filter_log", personalizedFilterLog.isOn());
             editor.commit();
-            if (AntiConfusionHelper.isNeedAntiConfusion(activity)) {
+            if (AntiConfusionHelper.getLostList().size() != 0 || AntiConfusionHelper.isDexChanged(activity)) {
                 Intent intent = new Intent();
                 intent.setClassName(activity, "com.baidu.tieba.launcherGuide.tblauncher.GuideActivity");
                 activity.startActivity(intent);
             } else {
                 Intent intent = activity.getPackageManager().getLaunchIntentForPackage(activity.getPackageName());
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 activity.startActivity(intent);
                 activity.finishAffinity();
                 System.exit(0);
             }
+            alertDialog.dismiss();
         });
     }
 

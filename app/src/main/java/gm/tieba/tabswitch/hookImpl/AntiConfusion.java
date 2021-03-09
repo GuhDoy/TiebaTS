@@ -39,7 +39,11 @@ public class AntiConfusion extends Hook {
             @SuppressLint({"ApplySharedPref"})
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 Activity activity = ((Activity) param.thisObject);
-                if (!AntiConfusionHelper.isNeedAntiConfusion(activity)) return;
+                if (AntiConfusionHelper.isDexChanged(activity)) activity.deleteDatabase("Rules.db");
+                else if (AntiConfusionHelper.getLostList().size() != 0)
+                    AntiConfusionHelper.matcherList = AntiConfusionHelper.getLostList();
+                new RulesDbHelper(activity.getApplicationContext()).getReadableDatabase();
+
                 TextView textView = new TextView(activity);
                 textView.setTextSize(14);
                 textView.setPadding(0, 5, 0, 5);
@@ -72,11 +76,11 @@ public class AntiConfusion extends Hook {
                         dexDir.mkdirs();
                         bin.zip.ZipFile zipFile = new bin.zip.ZipFile(new File(activity.getPackageResourcePath()));
                         Enumeration<ZipEntry> enumeration = zipFile.getEntries();
-                        int unzippedCount = 0;
+                        int entryCount = 0;
                         int entrySize = zipFile.getEntrySize();
                         while (enumeration.hasMoreElements()) {
-                            unzippedCount++;
-                            float progress = (float) unzippedCount / entrySize;
+                            entryCount++;
+                            float progress = (float) entryCount / entrySize;
                             activity.runOnUiThread(() -> {
                                 textView.setText("解压");
                                 ViewGroup.LayoutParams lp = progressBackground.getLayoutParams();
@@ -88,11 +92,6 @@ public class AntiConfusion extends Hook {
                             if (ze.getName().matches("classes[0-9]*?\\.dex"))
                                 IO.copyFile(zipFile.getInputStream(ze), new File(dexDir, ze.getName()));
                         }
-                        //新建数据库
-                        activity.deleteDatabase("Rules.db");
-                        new RulesDbHelper(activity.getApplicationContext()).getReadableDatabase();
-                        SQLiteDatabase db = activity.openOrCreateDatabase("Rules.db", Context.MODE_PRIVATE, null);
-
                         File[] fs = dexDir.listFiles();
                         Arrays.sort(fs);
                         List<List<Integer>> itemList = new ArrayList<>();
@@ -123,6 +122,7 @@ public class AntiConfusion extends Hook {
                             itemList.add(arrayList);
                         }
                         int itemCount = 0;
+                        SQLiteDatabase db = activity.openOrCreateDatabase("Rules.db", Context.MODE_PRIVATE, null);
                         for (int i = 0; i < fs.length; i++) {
                             DexFile dex = new DexFile(fs[i]);
                             List<Integer> arrayList = itemList.get(i);
@@ -148,16 +148,13 @@ public class AntiConfusion extends Hook {
                         DexFile.calcSignature(bytes);
                         editor.putInt("signature", Arrays.hashCode(bytes));
                         editor.commit();
-                        SharedPreferences tsPreference = activity.getSharedPreferences("TS_preference", Context.MODE_PRIVATE);
-                        if (tsPreference.getBoolean("clean_dir", false)) {
-                            IO.deleteFiles(activity.getFilesDir());
+                        if ((Boolean) Hook.preferenceMap.get("clean_dir")) {
                             IO.deleteFiles(activity.getCacheDir());
                             IO.deleteFiles(new File(activity.getCacheDir().getAbsolutePath() + "image"));
                             IO.deleteFiles(activity.getExternalCacheDir());
                         } else IO.deleteFiles(dexDir);
                         new File(activity.getExternalFilesDir(null), "Rules.db").delete();
-                        SharedPreferences sharedPreferences = activity.getSharedPreferences("settings", Context.MODE_PRIVATE);
-                        XposedBridge.log("anti-confusion accomplished, current version: " + sharedPreferences.getString("key_rate_version", "unknown"));
+                        XposedBridge.log("anti-confusion accomplished, current version: " + AntiConfusionHelper.getTbVersion(activity));
                         Intent intent = activity.getPackageManager().getLaunchIntentForPackage(activity.getPackageName());
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         activity.startActivity(intent);

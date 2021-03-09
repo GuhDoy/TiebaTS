@@ -31,8 +31,8 @@ public class ThreadStore extends Hook {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.myCollection.CollectTabActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 Activity activity = (Activity) param.thisObject;
-                TextView edit = activity.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("right_textview").getInt(null));
                 TextView textView = new TextView(activity);
+                TextView edit = activity.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("right_textview").getInt(null));
                 textView.setTextSize(DisplayHelper.px2Dip(activity, edit.getTextSize()));
                 textView.setTextColor(edit.getTextColors());
                 textView.setText("搜索");

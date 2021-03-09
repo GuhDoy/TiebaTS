@@ -16,7 +16,6 @@ import android.os.Bundle;
 import android.util.Log;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -57,34 +56,20 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
                         try {
                             SQLiteDatabase db = context.openOrCreateDatabase("Rules.db", Context.MODE_PRIVATE, null);
                             ruleMapList = AntiConfusionHelper.convertDbToMapList(db);
-                            db.close();
-                            List<String> ruleList = new ArrayList<>();
-                            for (int i = 0; i < ruleMapList.size(); i++) {
-                                Map<String, String> map = ruleMapList.get(i);
-                                ruleList.add(map.get("rule"));
-                            }
                             if (context.getPackageManager().getPackageInfo(context.getPackageName(), 0).getLongVersionCode() < 201523200)
                                 AntiConfusionHelper.matcherList.remove("custom_ext_data");
-                            if (!ruleList.containsAll(AntiConfusionHelper.matcherList)) {
-                                SharedPreferences sharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE);
-                                List<String> lostList = new ArrayList<>();
-                                AntiConfusionHelper.addMatcher(lostList);
-                                lostList.removeAll(ruleList);
-                                throw new SQLiteException("rules incomplete, current version: " + sharedPreferences.getString("key_rate_version", "unknown") + ", lost " + lostList.size() + " rules: " + lostList.toString());
-                            }
+                            List<String> lostList = AntiConfusionHelper.getLostList();
+                            if (lostList.size() != 0)
+                                throw new SQLiteException("rules incomplete, current version: " + AntiConfusionHelper.getTbVersion(context) + ", lost " + lostList.size() + " rule(s): " + lostList.toString());
                         } catch (SQLiteException e) {
                             XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
-                                protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                                protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                                     XposedBridge.log(e.toString());
                                     Activity activity = (Activity) param.thisObject;
                                     @SuppressLint("ApplySharedPref") AlertDialog alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
-                                            .setTitle("警告").setMessage("规则不完整，建议您执行反混淆。若执行完后仍出现此对话框则应该更新模块，若模块已是最新版本则应该向作者反馈。\n" + Log.getStackTraceString(e)).setCancelable(true)
+                                            .setTitle("警告").setMessage("规则异常，建议您执行反混淆。若执行完后仍出现此对话框则应更新模块，若模块已是最新版本则应向作者反馈。\n" + Log.getStackTraceString(e)).setCancelable(true)
                                             .setNegativeButton("取消", (dialogInterface, i) -> {
                                             }).setPositiveButton("确定", (dialogInterface, i) -> {
-                                                SharedPreferences tsConfig = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
-                                                SharedPreferences.Editor editor = tsConfig.edit();
-                                                editor.putInt("signature", 0);
-                                                editor.commit();
                                                 Intent intent = new Intent().setClassName(activity, "com.baidu.tieba.launcherGuide.tblauncher.GuideActivity");
                                                 activity.startActivity(intent);
                                             }).create();

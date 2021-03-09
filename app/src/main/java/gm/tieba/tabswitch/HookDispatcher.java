@@ -85,8 +85,10 @@ public class HookDispatcher extends Hook {
                             for (int i = 0; i < list.size(); i++) {
                                 boolean isRemove = true;
                                 for (String pb : Hook.follow)
-                                    if (list.get(i).toString().contains(", fname=" + pb + ", forum_info="))
+                                    if (list.get(i).toString().contains(", fname=" + pb + ", forum_info=")) {
                                         isRemove = false;
+                                        break;
+                                    }
                                 if (isRemove) {
                                     list.remove(i);
                                     i--;
@@ -113,6 +115,9 @@ public class HookDispatcher extends Hook {
                                     list.remove(i);
                                     i--;
                                 }
+                                //  com.alibaba.fastjson.JSON jsonObject =threadInfo;
+
+
                                 /*
                                 try {
                                     String text = threadInfo.substring(threadInfo.indexOf(", text=") + 7, threadInfo.indexOf(", type="));
@@ -190,7 +195,6 @@ public class HookDispatcher extends Hook {
                         protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                             Activity activity = (Activity) param.thisObject;
                             SharedPreferences tsConfig = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
-                            SharedPreferences tsCache = activity.getSharedPreferences("TS_cache", Context.MODE_PRIVATE);
                             if (Calendar.getInstance().get(Calendar.DAY_OF_YEAR) != tsConfig.getInt("sign_date", 0))
                                 new Thread(() -> {
                                     Looper.prepare();
@@ -204,6 +208,7 @@ public class HookDispatcher extends Hook {
                                             editConfig.putInt("sign_date", Calendar.getInstance().get(Calendar.DAY_OF_YEAR));
                                             editConfig.apply();
                                             Hook.follow = new HashSet<>(top.srcrs.Run.success);
+                                            SharedPreferences tsCache = activity.getSharedPreferences("TS_cache", Context.MODE_PRIVATE);
                                             SharedPreferences.Editor editCache = tsCache.edit();
                                             editCache.putStringSet("follow", Hook.follow);
                                             editCache.apply();

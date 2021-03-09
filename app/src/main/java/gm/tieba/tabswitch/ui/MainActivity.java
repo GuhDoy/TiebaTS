@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = getPackageManager().getLaunchIntentForPackage("com.baidu.tieba");
             if (intent == null) return;
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            intent.putExtra("openTSPreference", true);
+            intent.putExtra("showTSPreference", true);
             startActivity(intent);
         });
         binding.xpatch.setOnClickListener(v -> {
@@ -177,10 +177,7 @@ public class MainActivity extends AppCompatActivity {
                                 modules.append(new File(RepackageProcessor.insertModulesPath.get(i)).getName());
                             }
                             AlertDialog alertDialog = new AlertDialog.Builder(this)
-                                    .setIcon(R.mipmap.ic_launcher)
-                                    .setTitle("已添加模块")
-                                    .setMessage(modules.toString())
-                                    .setCancelable(true)
+                                    .setIcon(R.mipmap.ic_launcher).setTitle("已添加模块").setMessage(modules.toString()).setCancelable(true)
                                     .setNeutralButton("清空", (dialogInterface, i) -> {
                                         RepackageProcessor.insertModulesPath = new ArrayList<>();
                                         RepackageProcessor.xpatchStartDialog.getButton(AlertDialog.BUTTON_NEUTRAL).setText("内置模块");
