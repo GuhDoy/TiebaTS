@@ -1,7 +1,7 @@
 package top.srcrs.util;
 
-
-import com.alibaba.fastjson.JSONObject;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 
@@ -37,7 +37,7 @@ public class Request extends Hook {
      * @author srcrs
      * @Time 2020-10-31
      */
-    public static JSONObject get(String url) {
+    public static JSONObject get(String url) throws JSONException {
         OkHttpClient okHttpClient = new OkHttpClient();
         okhttp3.Request request = new okhttp3.Request.Builder()
                 .url(url).get()
@@ -56,7 +56,7 @@ public class Request extends Hook {
         } catch (IOException e) {
             XposedBridge.log("get请求错误 -- " + e);
         }
-        return JSONObject.parseObject(respContent);
+        return new JSONObject(respContent);
     }
 
     /**
@@ -68,7 +68,7 @@ public class Request extends Hook {
      * @author srcrs
      * @Time 2020-10-31
      */
-    public static JSONObject post(String url, String body) {
+    public static JSONObject post(String url, String body) throws JSONException {
         MediaType mediaType = MediaType.Companion.parse("text/x-markdown; charset=utf-8");
         RequestBody stringBody = RequestBody.Companion.create(body, mediaType);
         OkHttpClient okHttpClient = new OkHttpClient();
@@ -90,6 +90,6 @@ public class Request extends Hook {
         } catch (IOException e) {
             XposedBridge.log("post请求错误 -- " + e);
         }
-        return JSONObject.parseObject(respContent);
+        return new JSONObject(respContent);
     }
 }

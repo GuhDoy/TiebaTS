@@ -9,6 +9,7 @@ import android.content.pm.ResolveInfo;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import java.lang.reflect.Field;
@@ -61,11 +62,11 @@ class TSPreferenceHelper extends Hook {
         return null;
     }
 
-    static class PreferenceLinearLayout {
-        public LinearLayout linearLayout;
+    static class PreferenceLayout {
+        private LinearLayout linearLayout;
         public List<SwitchViewHolder> switches;
 
-        PreferenceLinearLayout(Activity activity) {
+        PreferenceLayout(Activity activity) {
             linearLayout = new LinearLayout(activity);
             linearLayout.setOrientation(LinearLayout.VERTICAL);
             linearLayout.setPadding(30, 0, 30, 0);
@@ -78,6 +79,12 @@ class TSPreferenceHelper extends Hook {
                 linearLayout.addView(((SwitchViewHolder) view).newSwitch);
                 switches.add((SwitchViewHolder) view);
             }
+        }
+
+        ScrollView getScrollView(Activity activity) {
+            ScrollView scrollView = new ScrollView(activity);
+            scrollView.addView(linearLayout);
+            return scrollView;
         }
     }
 
@@ -98,9 +105,10 @@ class TSPreferenceHelper extends Hook {
                 newSwitch.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("arrow2").getInt(null)).setVisibility(View.GONE);
                 newSwitch.addView(bdSwitchView);
                 SharedPreferences tsPreference = activity.getSharedPreferences("TS_preference", Context.MODE_PRIVATE);
-                if (!text.contains("过滤")) newSwitch.setTag("boolean");
-                if (!text.contains("过滤") && tsPreference.getBoolean(key, false) ||
-                        text.contains("过滤") && tsPreference.getString(key, null) != null) turnOn();
+                if (!text.startsWith("过滤")) newSwitch.setTag("boolean");
+                if (!text.startsWith("过滤") && tsPreference.getBoolean(key, false) ||
+                        text.startsWith("过滤") && tsPreference.getString(key, null) != null)
+                    turnOn();
                 else turnOff();
                 newSwitch.setOnClickListener(v -> {
                     try {

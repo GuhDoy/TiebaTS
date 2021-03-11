@@ -1,5 +1,6 @@
 package gm.tieba.tabswitch.util;
 
+import de.robv.android.xposed.XposedBridge;
 import gm.tieba.tabswitch.Hook;
 
 public class TbProtoParser extends Hook {
@@ -25,7 +26,22 @@ public class TbProtoParser extends Hook {
         }
     }
 
-    public static String postContentParser(String postContent) throws StringIndexOutOfBoundsException {
+    public static class SubPostParser {
+        public String pbContent;
+        public String name;
+        public String nameShow;
+
+        public SubPostParser(String subPost) throws StringIndexOutOfBoundsException {
+            String content = subPost.substring(subPost.indexOf(", content=[") + 11, subPost.indexOf("], floor="));
+            pbContent = postContentParser(content);
+
+            String author = subPost.substring(subPost.indexOf(", author=") + 9, subPost.indexOf(", author_id="));
+            name = author.substring(author.indexOf(", name=") + 7, author.indexOf(", name_show="));
+            nameShow = author.substring(author.indexOf(", name_show=") + 12, author.indexOf(", new_god_data="));
+        }
+    }
+
+    private static String postContentParser(String postContent) throws StringIndexOutOfBoundsException {
         StringBuilder pbContentBuilder = new StringBuilder();
         for (String content : postContent.split(", PbContent"))
             pbContentBuilder.append(content.substring(content.indexOf(", text=") + 7, content.indexOf(", topic_special_icon=")));

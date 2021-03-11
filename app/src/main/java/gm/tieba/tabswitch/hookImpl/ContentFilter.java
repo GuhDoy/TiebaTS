@@ -18,7 +18,7 @@ public class ContentFilter extends Hook {
                 field.setAccessible(true);
                 List<?> list = (List<?>) field.get(param.thisObject);
                 if (list == null) return;
-                for (int i = 0; i < list.size(); i++) {
+                for (int i = 0; i < list.size(); i++)
                     try {
                         String post = list.get(i).toString();
                         post = post.substring(post.indexOf(", text=") + 7, post.indexOf(", topic_special_icon="));
@@ -28,7 +28,6 @@ public class ContentFilter extends Hook {
                         }
                     } catch (StringIndexOutOfBoundsException ignored) {
                     }
-                }
             }
         });
         //楼中楼：[\u202e|\ud83c\udd10-\ud83c\udd89]
@@ -38,15 +37,15 @@ public class ContentFilter extends Hook {
                 field.setAccessible(true);
                 List<?> list = (List<?>) field.get(param.thisObject);
                 if (list == null) return;
-                for (int i = 0; i < list.size(); i++) {
+                for (int i = 1; i < list.size(); i++)
                     try {
-                        if (Pattern.compile(contentFilter).matcher(TbProtoParser.postContentParser(list.get(i).toString())).find()) {
+                        TbProtoParser.SubPostParser subPost = new TbProtoParser.SubPostParser(list.get(i).toString());
+                        if (Pattern.compile(contentFilter).matcher(subPost.pbContent).find()) {
                             list.remove(i);
                             i--;
                         }
                     } catch (StringIndexOutOfBoundsException ignored) {
                     }
-                }
             }
         });
         //楼层回复
@@ -56,15 +55,18 @@ public class ContentFilter extends Hook {
                 field.setAccessible(true);
                 List<?> list = (List<?>) field.get(param.thisObject);
                 if (list == null) return;
-                for (int i = 0; i < list.size(); i++) {
+                for (int i = 0; i < list.size(); i++)
                     try {
-                        if (Pattern.compile(contentFilter).matcher(TbProtoParser.postContentParser(list.get(i).toString())).find()) {
-                            list.remove(i);
-                            i--;
-                        }
+                        TbProtoParser.SubPostParser subPost = new TbProtoParser.SubPostParser(list.get(i).toString());
+                        Field[] fields = subPost.getClass().getDeclaredFields();
+                        for (Field mField : fields)
+                            if (Pattern.compile(contentFilter).matcher((String) mField.get(subPost)).find()) {
+                                list.remove(i);
+                                i--;
+                                break;
+                            }
                     } catch (StringIndexOutOfBoundsException ignored) {
                     }
-                }
             }
         });
     }

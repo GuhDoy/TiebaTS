@@ -10,7 +10,6 @@
         tools:ignore="QueryAllPackagesPermission" />
 
     <queries>
-        <package android:name="io.github.lsposed.manager" />
         <package android:name="com.baidu.tieba" />
         <package android:name="com.eg.android.AlipayGphone" />
         <package android:name="com.tencent.mm" />

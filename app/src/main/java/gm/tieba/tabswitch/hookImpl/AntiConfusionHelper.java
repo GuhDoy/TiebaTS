@@ -49,8 +49,6 @@ public class AntiConfusionHelper extends Hook {
         list.add("\"https://tieba.baidu.com/mo/q/duxiaoman/index?noshare=1\"");//我的ArrayList
         //CreateView
         list.add("Lcom/baidu/tieba/R$id;->navigationBarGoSignall:I");
-        //OriginSrc
-        list.add("\"original_src\"");
         //ThreadStore
         list.add("\"c/f/post/threadstore\"");
         //StorageRedirect

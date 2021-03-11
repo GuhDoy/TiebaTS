@@ -57,7 +57,7 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
                             SQLiteDatabase db = context.openOrCreateDatabase("Rules.db", Context.MODE_PRIVATE, null);
                             ruleMapList = AntiConfusionHelper.convertDbToMapList(db);
                             if (context.getPackageManager().getPackageInfo(context.getPackageName(), 0).getLongVersionCode() < 201523200)
-                                AntiConfusionHelper.matcherList.remove("custom_ext_data");
+                                AntiConfusionHelper.matcherList.remove("\"custom_ext_data\"");
                             List<String> lostList = AntiConfusionHelper.getLostList();
                             if (lostList.size() != 0)
                                 throw new SQLiteException("rules incomplete, current version: " + AntiConfusionHelper.getTbVersion(context) + ", lost " + lostList.size() + " rule(s): " + lostList.toString());

@@ -20,7 +20,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.Toast;
 
 import java.util.HashMap;
@@ -108,10 +107,10 @@ public class TSPreference extends Hook {
             alertDialog.show();
             return;
         }
-        TSPreferenceHelper.PreferenceLinearLayout preferenceLinearLayout = new TSPreferenceHelper.PreferenceLinearLayout(activity);
+        TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
         if (tsConfig.getBoolean("ze", false))
-            preferenceLinearLayout.addView(TSPreferenceHelper.generateTextView(activity, "轻车简从"));
-        else preferenceLinearLayout.addView(TSPreferenceHelper.generateTextView(activity, "净化界面"));
+            preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "轻车简从"));
+        else preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "净化界面"));
         LinearLayout modifyTab = TSPreferenceHelper.generateButton(classLoader, activity, "修改底栏", null);
         modifyTab.setOnClickListener(v -> showModifyTabDialog(classLoader, activity));
         TSPreferenceHelper.SwitchViewHolder purify = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "真正的净化界面", "purify");
@@ -125,26 +124,26 @@ public class TSPreference extends Hook {
         TSPreferenceHelper.SwitchViewHolder contentFilter = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "过滤帖子回复", "content_filter");
         contentFilter.newSwitch.setOnClickListener(v -> showRegexDialog(activity, contentFilter, "过滤帖子回复", "content_filter"));
         contentFilter.bdSwitchView.setOnTouchListener((v, event) -> false);
-        preferenceLinearLayout.addView(modifyTab);
-        if (tsConfig.getBoolean("ze", false)) preferenceLinearLayout.addView(purify);
-        preferenceLinearLayout.addView(purifyEnter);
-        preferenceLinearLayout.addView(purifyMy);
-        preferenceLinearLayout.addView(redTip);
-        preferenceLinearLayout.addView(followFilter);
-        preferenceLinearLayout.addView(personalizedFilter);
-        preferenceLinearLayout.addView(contentFilter);
+        preferenceLayout.addView(modifyTab);
+        if (tsConfig.getBoolean("ze", false)) preferenceLayout.addView(purify);
+        preferenceLayout.addView(purifyEnter);
+        preferenceLayout.addView(purifyMy);
+        preferenceLayout.addView(redTip);
+        preferenceLayout.addView(followFilter);
+        preferenceLayout.addView(personalizedFilter);
+        preferenceLayout.addView(contentFilter);
         if (tsConfig.getBoolean("ze", false))
-            preferenceLinearLayout.addView(TSPreferenceHelper.generateTextView(activity, "别出新意"));
-        else preferenceLinearLayout.addView(TSPreferenceHelper.generateTextView(activity, "增加功能"));
+            preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "别出新意"));
+        else preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "增加功能"));
         TSPreferenceHelper.SwitchViewHolder createView = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "进吧增加收藏、历史", "create_view");
         TSPreferenceHelper.SwitchViewHolder saveImages = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "长按下载保存全部图片", "save_images");
         TSPreferenceHelper.SwitchViewHolder threadStore = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "我的收藏增加搜索", "thread_store");
-        preferenceLinearLayout.addView(createView);
-        preferenceLinearLayout.addView(saveImages);
-        preferenceLinearLayout.addView(threadStore);
+        preferenceLayout.addView(createView);
+        preferenceLayout.addView(saveImages);
+        preferenceLayout.addView(threadStore);
         if (tsConfig.getBoolean("ze", false))
-            preferenceLinearLayout.addView(TSPreferenceHelper.generateTextView(activity, "垂手可得"));
-        else preferenceLinearLayout.addView(TSPreferenceHelper.generateTextView(activity, "自动化"));
+            preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "垂手可得"));
+        else preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "自动化"));
         TSPreferenceHelper.SwitchViewHolder autoSign = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "自动签到", "auto_sign");
         if (!tsConfig.getBoolean("auto_sign", false)) {
             autoSign.newSwitch.setOnClickListener(v -> {
@@ -164,22 +163,24 @@ public class TSPreference extends Hook {
         TSPreferenceHelper.SwitchViewHolder openSign = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "自动打开一键签到", "open_sign");
         TSPreferenceHelper.SwitchViewHolder cleanDir = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "更新时清理缓存", "clean_dir");
         TSPreferenceHelper.SwitchViewHolder originSrc = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "自动查看原图", "origin_src");
-        preferenceLinearLayout.addView(autoSign);
-        preferenceLinearLayout.addView(openSign);
-        preferenceLinearLayout.addView(cleanDir);
-        preferenceLinearLayout.addView(originSrc);
+        preferenceLayout.addView(autoSign);
+        preferenceLayout.addView(openSign);
+        preferenceLayout.addView(cleanDir);
+        preferenceLayout.addView(originSrc);
         if (tsConfig.getBoolean("ze", false))
-            preferenceLinearLayout.addView(TSPreferenceHelper.generateTextView(activity, "奇怪怪"));
-        else preferenceLinearLayout.addView(TSPreferenceHelper.generateTextView(activity, "其它"));
+            preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "奇怪怪"));
+        else preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "其它"));
         TSPreferenceHelper.SwitchViewHolder storageRedirect = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "存储重定向", "storage_redirect");
         TSPreferenceHelper.SwitchViewHolder fontSize = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "禁用帖子缩放手势", "font_size");
         TSPreferenceHelper.SwitchViewHolder eyeshieldMode = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "用夜间模式代替深色模式", "eyeshield_mode");
-        preferenceLinearLayout.addView(storageRedirect);
-        preferenceLinearLayout.addView(fontSize);
-        preferenceLinearLayout.addView(eyeshieldMode);
+        TSPreferenceHelper.SwitchViewHolder agreeNum = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "用赞踩差数代替赞数", "agree_num");
+        preferenceLayout.addView(storageRedirect);
+        preferenceLayout.addView(fontSize);
+        preferenceLayout.addView(eyeshieldMode);
+        preferenceLayout.addView(agreeNum);
         if (tsConfig.getBoolean("ze", false))
-            preferenceLinearLayout.addView(TSPreferenceHelper.generateTextView(activity, "关于就是关于"));
-        else preferenceLinearLayout.addView(TSPreferenceHelper.generateTextView(activity, "关于"));
+            preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "关于就是关于"));
+        else preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "关于"));
         LinearLayout version = TSPreferenceHelper.generateButton(classLoader, activity, "版本", BuildConfig.VERSION_NAME);
         version.setOnClickListener(v -> {
             Intent intentToResolve = TSPreferenceHelper.launchModuleIntent(activity);
@@ -215,22 +216,20 @@ public class TSPreference extends Hook {
                 editor.apply();
             }
         });
-        preferenceLinearLayout.addView(version);
-        preferenceLinearLayout.addView(github);
-        preferenceLinearLayout.addView(telegram);
-        preferenceLinearLayout.addView(author);
-        ScrollView scrollView = new ScrollView(activity);
-        scrollView.addView(preferenceLinearLayout.linearLayout);
+        preferenceLayout.addView(version);
+        preferenceLayout.addView(github);
+        preferenceLayout.addView(telegram);
+        preferenceLayout.addView(author);
         AlertDialog alertDialog;
         if (DisplayHelper.isLightMode(activity)) {
             alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
-                    .setTitle("贴吧TS设置").setView(scrollView).setCancelable(true)
+                    .setTitle("贴吧TS设置").setView(preferenceLayout.getScrollView(activity)).setCancelable(true)
                     .setNegativeButton("取消", (dialogInterface, i) -> {
                     }).setPositiveButton("保存并重启", (dialogInterface, i) -> {
                     }).create();
         } else {
             alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_DARK)
-                    .setTitle("贴吧TS设置").setView(scrollView).setCancelable(true)
+                    .setTitle("贴吧TS设置").setView(preferenceLayout.getScrollView(activity)).setCancelable(true)
                     .setNegativeButton("取消", (dialogInterface, i) -> {
                     }).setPositiveButton("保存并重启", (dialogInterface, i) -> {
                     }).create();
@@ -240,13 +239,13 @@ public class TSPreference extends Hook {
         alertDialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
             SharedPreferences tsPreference = activity.getSharedPreferences("TS_preference", Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = tsPreference.edit();
-            for (int i = 0; i < preferenceLinearLayout.switches.size(); i++) {
-                TSPreferenceHelper.SwitchViewHolder switchViewHolder = preferenceLinearLayout.switches.get(i);
+            for (int i = 0; i < preferenceLayout.switches.size(); i++) {
+                TSPreferenceHelper.SwitchViewHolder switchViewHolder = preferenceLayout.switches.get(i);
                 if (Objects.equals("boolean", switchViewHolder.newSwitch.getTag()))
                     editor.putBoolean(switchViewHolder.key, switchViewHolder.isOn());
             }
             editor.commit();
-            if (AntiConfusionHelper.getLostList().size() != 0 || AntiConfusionHelper.isDexChanged(activity)) {
+            if (AntiConfusionHelper.getLostList().size() != 0) {
                 Intent intent = new Intent();
                 intent.setClassName(activity, "com.baidu.tieba.launcherGuide.tblauncher.GuideActivity");
                 activity.startActivity(intent);
@@ -269,24 +268,22 @@ public class TSPreference extends Hook {
         TSPreferenceHelper.SwitchViewHolder newCategory = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "隐藏频道", "new_category");
         TSPreferenceHelper.SwitchViewHolder myMessage = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "隐藏消息", "my_message");
         TSPreferenceHelper.SwitchViewHolder mine = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "隐藏我的", "mine");
-        TSPreferenceHelper.PreferenceLinearLayout preferenceLinearLayout = new TSPreferenceHelper.PreferenceLinearLayout(activity);
-        preferenceLinearLayout.addView(homeRecommend);
-        preferenceLinearLayout.addView(enterForum);
-        preferenceLinearLayout.addView(newCategory);
-        preferenceLinearLayout.addView(myMessage);
-        preferenceLinearLayout.addView(mine);
-        ScrollView scrollView = new ScrollView(activity);
-        scrollView.addView(preferenceLinearLayout.linearLayout);
+        TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
+        preferenceLayout.addView(homeRecommend);
+        preferenceLayout.addView(enterForum);
+        preferenceLayout.addView(newCategory);
+        preferenceLayout.addView(myMessage);
+        preferenceLayout.addView(mine);
         AlertDialog alertDialog;
         if (DisplayHelper.isLightMode(activity)) {
             alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
-                    .setTitle("修改底栏").setView(scrollView).setCancelable(true)
+                    .setTitle("修改底栏").setView(preferenceLayout.getScrollView(activity)).setCancelable(true)
                     .setNegativeButton("取消", (dialogInterface, i) -> {
                     }).setPositiveButton("保存", (dialogInterface, i) -> {
                     }).create();
         } else {
             alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_DARK)
-                    .setTitle("修改底栏").setView(scrollView).setCancelable(true)
+                    .setTitle("修改底栏").setView(preferenceLayout.getScrollView(activity)).setCancelable(true)
                     .setNegativeButton("取消", (dialogInterface, i) -> {
                     }).setPositiveButton("保存", (dialogInterface, i) -> {
                     }).create();
@@ -300,8 +297,8 @@ public class TSPreference extends Hook {
             if (mine.isOn())
                 Toast.makeText(activity, "隐藏我的后就只能从模块中打开设置了哦", Toast.LENGTH_LONG).show();
             SharedPreferences.Editor editor = tsPreference.edit();
-            for (int i = 0; i < preferenceLinearLayout.switches.size(); i++) {
-                TSPreferenceHelper.SwitchViewHolder switchViewHolder = preferenceLinearLayout.switches.get(i);
+            for (int i = 0; i < preferenceLayout.switches.size(); i++) {
+                TSPreferenceHelper.SwitchViewHolder switchViewHolder = preferenceLayout.switches.get(i);
                 if (Objects.equals("boolean", switchViewHolder.newSwitch.getTag()))
                     editor.putBoolean(switchViewHolder.key, switchViewHolder.isOn());
             }

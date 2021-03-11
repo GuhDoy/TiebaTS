@@ -114,8 +114,8 @@ public class HookDispatcher extends Hook {
                                 try {
                                     TbProtoParser.ThreadInfoParser threadInfo = new TbProtoParser.ThreadInfoParser(list.get(i).toString());
                                     Field[] fields = threadInfo.getClass().getDeclaredFields();
-                                    for (Field threadInfoField : fields)
-                                        if (Pattern.compile(personalizedFilter).matcher((String) threadInfoField.get(threadInfo)).find() && !threadInfoField.getName().equals("tid")) {
+                                    for (Field mField : fields)
+                                        if (Pattern.compile(personalizedFilter).matcher((String) mField.get(threadInfo)).find() && !mField.getName().equals("tid")) {
                                             list.remove(i);
                                             i--;
                                             break;
@@ -224,6 +224,18 @@ public class HookDispatcher extends Hook {
                     break;
                 case "eyeshield_mode":
                     if ((Boolean) entry.getValue()) EyeshieldMode.hook(classLoader, context);
+                    break;
+                case "agree_num":
+                    if (!(Boolean) entry.getValue()) break;
+                    XposedHelpers.findAndHookMethod("tbclient.Agree$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
+                        public void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                            Field diffAgreeNum = param.thisObject.getClass().getDeclaredField("diff_agree_num");
+                            diffAgreeNum.setAccessible(true);
+                            Field agreeNum = param.thisObject.getClass().getDeclaredField("agree_num");
+                            agreeNum.setAccessible(true);
+                            agreeNum.set(param.thisObject, diffAgreeNum.get(param.thisObject));
+                        }
+                    });
                     break;
             }
         } catch (XposedHelpers.ClassNotFoundError e) {

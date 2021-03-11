@@ -1,6 +1,7 @@
 package top.srcrs;
 
-import com.alibaba.fastjson.JSONObject;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -59,7 +60,7 @@ public class Run extends Hook {
      */
     public void getTbs() {
         try {
-            com.alibaba.fastjson.JSONObject jsonObject = Request.get(TBS_URL);
+            JSONObject jsonObject = Request.get(TBS_URL);
             if ("1".equals(jsonObject.getString("is_login"))) {
                 XposedBridge.log("获取tbs成功");
                 tbs = jsonObject.getString("tbs");
@@ -77,19 +78,18 @@ public class Run extends Hook {
      */
     public void getFollow() {
         try {
-            com.alibaba.fastjson.JSONObject jsonObject = Request.get(LIKE_URL);
+            JSONObject jsonObject = Request.get(LIKE_URL);
             XposedBridge.log("获取贴吧列表成功");
-            com.alibaba.fastjson.JSONArray jsonArray = jsonObject.getJSONObject("data").getJSONArray("like_forum");
-            followNum = jsonArray.size();
+            JSONArray jsonArray = jsonObject.getJSONObject("data").getJSONArray("like_forum");
+            followNum = jsonArray.length();
             // 获取用户所有关注的贴吧
-            for (Object array : jsonArray) {
-                if ("0".equals(((JSONObject) array).getString("is_sign")))
+            for (int i = 0; i < jsonArray.length(); i++)
+                if ("0".equals(jsonArray.optJSONObject(i).getString("is_sign")))
                     // 将未签到的贴吧加入到 follow 中，待签到
-                    follow.add(((JSONObject) array).getString("forum_name"));
+                    follow.add(jsonArray.optJSONObject(i).getString("forum_name"));
                 else
                     // 将已经成功签到的贴吧，加入到 success
-                    success.add(((JSONObject) array).getString("forum_name"));
-            }
+                    success.add(jsonArray.optJSONObject(i).getString("forum_name"));
         } catch (Exception e) {
             XposedBridge.log("获取贴吧列表部分出现错误 -- " + e);
         }
@@ -111,7 +111,7 @@ public class Run extends Hook {
                 while (iterator.hasNext()) {
                     String s = iterator.next();
                     String body = "kw=" + s + "&tbs=" + tbs + "&sign=" + Encryption.enCodeMd5("kw=" + s + "tbs=" + tbs + "tiebaclient!!!");
-                    com.alibaba.fastjson.JSONObject post = Request.post(SIGN_URL, body);
+                    JSONObject post = Request.post(SIGN_URL, body);
                     if ("0".equals(post.getString("error_code"))) {
                         iterator.remove();
                         success.add(s);

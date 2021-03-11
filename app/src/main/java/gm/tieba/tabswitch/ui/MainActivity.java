@@ -46,12 +46,7 @@ public class MainActivity extends AppCompatActivity {
             binding.status.setCardBackgroundColor(getResources().getColor(R.color.colorNormal, null));
             binding.statusIcon.setImageResource(R.drawable.ic_check_circle);
             binding.statusTitle.setText("已激活");
-        } else binding.status.setOnClickListener(v -> {
-            Intent intent = getPackageManager().getLaunchIntentForPackage("io.github.lsposed.manager");
-            if (intent == null) return;
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            startActivity(intent);
-        });
+        }
         binding.statusSummary.setText(BuildConfig.VERSION_NAME);
         binding.settings.setOnClickListener(v -> {
             Intent intent = getPackageManager().getLaunchIntentForPackage("com.baidu.tieba");
