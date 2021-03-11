@@ -28,7 +28,7 @@ public class OriginSrc extends Hook {
                     }
                 });
         }
-        XposedHelpers.findAndHookMethod(XposedHelpers.findClass("tbclient.PbContent$Builder", classLoader), "build", boolean.class, new XC_MethodHook() {
+        XposedHelpers.findAndHookMethod("tbclient.PbContent$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
             public void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 Field[] fields = new Field[]{param.thisObject.getClass().getDeclaredField("big_cdn_src"),
                         param.thisObject.getClass().getDeclaredField("cdn_src"),

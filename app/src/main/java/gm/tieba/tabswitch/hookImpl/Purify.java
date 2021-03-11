@@ -35,6 +35,11 @@ public class Purify extends Hook {
                         if (Arrays.toString(ala.getParameterTypes()).contains("JSONObject") && !ala.getName().equals(map.get("method")))
                             XposedBridge.hookMethod(ala, XC_MethodReplacement.returnConstant(null));
                     break;
+                    /*
+                case "Lcom/baidu/tieba/recapp/lego/model/AdCard;-><init>(Lorg/json/JSONObject;)V"://卡片广告
+                    XposedHelpers.findAndHookMethod(map.get("class"), classLoader, map.get("method"), JSONObject.class,int.class, XC_MethodReplacement.returnConstant(null));
+                    break;
+                     */
                 case "\"key_frs_dialog_ad_last_show_time\""://吧推广弹窗
                     Method[] dialogs = classLoader.loadClass(map.get("class")).getDeclaredMethods();
                     for (Method dialog : dialogs)
@@ -111,7 +116,7 @@ public class Purify extends Hook {
         } catch (XposedHelpers.ClassNotFoundError ignored) {
         }
         //首页不属于任何吧的视频
-        XposedHelpers.findAndHookMethod(XposedHelpers.findClass("tbclient.Personalized.DataRes$Builder", classLoader), "build", boolean.class, new XC_MethodHook() {
+        XposedHelpers.findAndHookMethod("tbclient.Personalized.DataRes$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
             public void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 Field field = param.thisObject.getClass().getDeclaredField("thread_list");
                 field.setAccessible(true);

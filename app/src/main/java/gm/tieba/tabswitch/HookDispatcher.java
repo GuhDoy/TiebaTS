@@ -24,6 +24,7 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
+import gm.tieba.tabswitch.hookImpl.ContentFilter;
 import gm.tieba.tabswitch.hookImpl.CreateView;
 import gm.tieba.tabswitch.hookImpl.EyeshieldMode;
 import gm.tieba.tabswitch.hookImpl.HomeRecommend;
@@ -78,7 +79,7 @@ public class HookDispatcher extends Hook {
                     break;
                 case "follow_filter":
                     if (!(Boolean) entry.getValue()) break;
-                    XposedHelpers.findAndHookMethod(XposedHelpers.findClass("tbclient.Personalized.DataRes$Builder", classLoader), "build", boolean.class, new XC_MethodHook() {
+                    XposedHelpers.findAndHookMethod("tbclient.Personalized.DataRes$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
                         public void beforeHookedMethod(MethodHookParam param) throws Throwable {
                             if (Hook.follow == null) return;
                             Field field = param.thisObject.getClass().getDeclaredField("thread_list");
@@ -103,7 +104,7 @@ public class HookDispatcher extends Hook {
                 case "personalized_filter":
                     String personalizedFilter = (String) entry.getValue();
                     if (personalizedFilter == null) break;
-                    XposedHelpers.findAndHookMethod(XposedHelpers.findClass("tbclient.Personalized.DataRes$Builder", classLoader), "build", boolean.class, new XC_MethodHook() {
+                    XposedHelpers.findAndHookMethod("tbclient.Personalized.DataRes$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
                         public void beforeHookedMethod(MethodHookParam param) throws Throwable {
                             Field field = param.thisObject.getClass().getDeclaredField("thread_list");
                             field.setAccessible(true);
@@ -126,47 +127,7 @@ public class HookDispatcher extends Hook {
                     break;
                 case "content_filter":
                     String contentFilter = (String) entry.getValue();
-                    if (contentFilter == null) break;
-                    XposedHelpers.findAndHookMethod(XposedHelpers.findClass("tbclient.PbPage.DataRes$Builder", classLoader), "build", boolean.class, new XC_MethodHook() {
-                        public void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                            Field field = param.thisObject.getClass().getDeclaredField("post_list");
-                            field.setAccessible(true);
-                            List<?> list = (List<?>) field.get(param.thisObject);
-                            if (list == null) return;
-                            for (int i = 0; i < list.size(); i++) {
-                                try {
-                                    String text = list.get(i).toString();
-                                    text = text.substring(text.indexOf(", text=") + 7, text.indexOf(", topic_special_icon="));
-                                    if (Pattern.compile(contentFilter).matcher(text).find()) {
-                                        list.remove(i);
-                                        i--;
-                                    }
-                                } catch (StringIndexOutOfBoundsException ignored) {
-                                }
-                            }
-                        }
-                    });
-                    //楼中楼
-                    //TODO: it can't fully remove sub post
-                    XposedHelpers.findAndHookMethod(XposedHelpers.findClass("tbclient.SubPostList$Builder", classLoader), "build", boolean.class, new XC_MethodHook() {
-                        public void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                            Field field = param.thisObject.getClass().getDeclaredField("content");
-                            field.setAccessible(true);
-                            List<?> list = (List<?>) field.get(param.thisObject);
-                            if (list == null) return;
-                            for (int i = 0; i < list.size(); i++) {
-                                try {
-                                    String text = list.get(i).toString();
-                                    text = text.substring(text.indexOf(", text=") + 7, text.indexOf(", topic_special_icon="));
-                                    if (Pattern.compile(contentFilter).matcher(text).find()) {
-                                        list.remove(i);
-                                        i--;
-                                    }
-                                } catch (StringIndexOutOfBoundsException ignored) {
-                                }
-                            }
-                        }
-                    });
+                    if (contentFilter != null) ContentFilter.hook(classLoader, contentFilter);
                     break;
                 case "create_view":
                     if ((Boolean) entry.getValue()) CreateView.hook(classLoader);
