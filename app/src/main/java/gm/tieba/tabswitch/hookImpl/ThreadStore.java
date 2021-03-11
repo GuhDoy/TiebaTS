@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.WindowManager;
 import android.widget.EditText;
@@ -25,7 +27,7 @@ import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.util.DisplayHelper;
 
 public class ThreadStore extends Hook {
-    private static volatile String regex = "";
+    private static String regex = "";
 
     public static void hook(ClassLoader classLoader) throws Throwable {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.myCollection.CollectTabActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
@@ -54,18 +56,18 @@ public class ThreadStore extends Hook {
                                 if (arrayList == null) return;
                                 for (int j = 0; j < arrayList.size(); j++) {
                                     // com.baidu.tbadk.baseEditMark.MarkData
-                                    Field mTitle = arrayList.get(j).getClass().getDeclaredField("mTitle");
-                                    Field mForumName = arrayList.get(j).getClass().getDeclaredField("mForumName");
-                                    Field mAuthorName = arrayList.get(j).getClass().getDeclaredField("mAuthorName");
-                                    mTitle.setAccessible(true);
-                                    mForumName.setAccessible(true);
-                                    mAuthorName.setAccessible(true);
-                                    String title = (String) mTitle.get(arrayList.get(j));
-                                    String forumName = (String) mForumName.get(arrayList.get(j));
-                                    String authorName = (String) mAuthorName.get(arrayList.get(j));
-                                    if (!Pattern.compile(regex).matcher(title).find() &&
-                                            !Pattern.compile(regex).matcher(forumName).find() &&
-                                            !Pattern.compile(regex).matcher(authorName).find()) {
+                                    Field[] mFields = new Field[]{arrayList.get(j).getClass().getDeclaredField("mTitle"),
+                                            arrayList.get(j).getClass().getDeclaredField("mForumName"),
+                                            arrayList.get(j).getClass().getDeclaredField("mAuthorName")};
+                                    boolean isRemove = true;
+                                    for (Field mField : mFields) {
+                                        mField.setAccessible(true);
+                                        if (Pattern.compile(regex).matcher((String) mField.get(arrayList.get(j))).find()) {
+                                            isRemove = false;
+                                            break;
+                                        }
+                                    }
+                                    if (isRemove) {
                                         arrayList.remove(j);
                                         j--;
                                     }
@@ -87,17 +89,33 @@ public class ThreadStore extends Hook {
         editText.setFocusableInTouchMode(true);
         editText.setTextSize(18);
         editText.requestFocus();
+        editText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                regex = s.toString();
+            }
+        });
         AlertDialog alertDialog;
         if (DisplayHelper.isLightMode(activity)) {
             alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
-                    .setTitle("搜索").setView(editText).setCancelable(false)
+                    .setTitle("搜索").setView(editText).setCancelable(true)
                     .setNeutralButton("|", (dialogInterface, i) -> {
                     }).setNegativeButton("取消", (dialogInterface, i) -> {
                     }).setPositiveButton("确定", (dialogInterface, i) -> {
                     }).create();
         } else {
             alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_DARK)
-                    .setTitle("搜索").setView(editText).setCancelable(false)
+                    .setTitle("搜索").setView(editText).setCancelable(true)
                     .setNeutralButton("|", (dialogInterface, i) -> {
                     }).setNegativeButton("取消", (dialogInterface, i) -> {
                     }).setPositiveButton("确定", (dialogInterface, i) -> {

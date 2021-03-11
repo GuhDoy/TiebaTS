@@ -186,7 +186,7 @@ public class MainActivity extends AppCompatActivity {
                             alertDialog.show();
                             return true;
                         });
-                        RepackageProcessor.getSignThread = new Thread(new RepackageProcessor.getSignTask());
+                        RepackageProcessor.getSignThread = new Thread(new RepackageProcessor.GetSignTask());
                         RepackageProcessor.getSignThread.start();
                         break;
                     case 2:

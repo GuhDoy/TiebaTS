@@ -124,7 +124,7 @@ public class RepackageProcessor {
                 }).create();
     }
 
-    public static class getSignTask implements Runnable {
+    public static class GetSignTask implements Runnable {
         @Override
         public void run() {
             apkSignInfo = XpatchAssetHelper.getApkSignInfo(inApk.getPath());

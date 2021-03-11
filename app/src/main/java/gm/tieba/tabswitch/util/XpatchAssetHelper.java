@@ -93,11 +93,10 @@ public class XpatchAssetHelper {
                 Map<String, Object> map = new HashMap<>();
                 try {
                     int scopeListResourceId = app.metaData.getInt("xposedscope");
-                    if (scopeListResourceId != 0) {
-                        scopeList = Arrays.asList(pm.getResourcesForApplication(app).getStringArray(scopeListResourceId));
-                        map.put("isChecked", scopeList.contains(ManifestParser.packageName));
-                    } else map.put("isChecked", false);
-                } catch (Exception e) {
+                    if (scopeListResourceId == 0) throw new PackageManager.NameNotFoundException();
+                    scopeList = Arrays.asList(pm.getResourcesForApplication(app).getStringArray(scopeListResourceId));
+                    map.put("isChecked", scopeList.contains(ManifestParser.packageName));
+                } catch (PackageManager.NameNotFoundException e) {
                     map.put("isChecked", false);
                 }
                 map.put("apkName", apkName);

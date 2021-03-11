@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ResolveInfo;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +13,7 @@ import android.widget.TextView;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
@@ -59,21 +61,46 @@ class TSPreferenceHelper extends Hook {
         return null;
     }
 
+    static class PreferenceLinearLayout {
+        public LinearLayout linearLayout;
+        public List<SwitchViewHolder> switches;
+
+        PreferenceLinearLayout(Activity activity) {
+            linearLayout = new LinearLayout(activity);
+            linearLayout.setOrientation(LinearLayout.VERTICAL);
+            linearLayout.setPadding(30, 0, 30, 0);
+            switches = new ArrayList<>();
+        }
+
+        void addView(Object view) {
+            if (view instanceof View) linearLayout.addView((View) view);
+            else {
+                linearLayout.addView(((SwitchViewHolder) view).newSwitch);
+                switches.add((SwitchViewHolder) view);
+            }
+        }
+    }
+
     static class SwitchViewHolder {
+        public String key;
         public LinearLayout newSwitch;
-        public View switchInstance;
+        public View bdSwitchView;
         private ClassLoader classLoader;
 
-        SwitchViewHolder(ClassLoader classLoader, Activity activity, String text, boolean isTurnOn) {
+        SwitchViewHolder(ClassLoader classLoader, Activity activity, String text, String key) {
             this.classLoader = classLoader;
+            this.key = key;
             try {
                 Class<?> BdSwitchView = classLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView");
-                switchInstance = (View) BdSwitchView.getConstructor(Context.class).newInstance(activity);
-                switchInstance.setLayoutParams(new LinearLayout.LayoutParams(switchInstance.getWidth(), switchInstance.getHeight(), 0.25f));
+                bdSwitchView = (View) BdSwitchView.getConstructor(Context.class).newInstance(activity);
+                bdSwitchView.setLayoutParams(new LinearLayout.LayoutParams(bdSwitchView.getWidth(), bdSwitchView.getHeight(), 0.25f));
                 LinearLayout newSwitch = generateButton(classLoader, activity, text, null);
                 newSwitch.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("arrow2").getInt(null)).setVisibility(View.GONE);
-                newSwitch.addView(switchInstance);
-                if (isTurnOn) turnOn();
+                newSwitch.addView(bdSwitchView);
+                SharedPreferences tsPreference = activity.getSharedPreferences("TS_preference", Context.MODE_PRIVATE);
+                if (!text.contains("过滤")) newSwitch.setTag("boolean");
+                if (!text.contains("过滤") && tsPreference.getBoolean(key, false) ||
+                        text.contains("过滤") && tsPreference.getString(key, null) != null) turnOn();
                 else turnOff();
                 newSwitch.setOnClickListener(v -> {
                     try {
@@ -84,7 +111,7 @@ class TSPreferenceHelper extends Hook {
                             changeState = BdSwitchView.getDeclaredMethod("b");
                         }
                         changeState.setAccessible(true);
-                        changeState.invoke(switchInstance);
+                        changeState.invoke(bdSwitchView);
                     } catch (Throwable throwable) {
                         XposedBridge.log(throwable);
                     }
@@ -100,9 +127,9 @@ class TSPreferenceHelper extends Hook {
                 Class<?> BdSwitchView = classLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView");
                 boolean isOn;
                 try {
-                    isOn = (Boolean) BdSwitchView.getDeclaredMethod("isOn").invoke(switchInstance);
+                    isOn = (Boolean) BdSwitchView.getDeclaredMethod("isOn").invoke(bdSwitchView);
                 } catch (NoSuchMethodException e) {
-                    isOn = (Boolean) BdSwitchView.getDeclaredMethod("d").invoke(switchInstance);
+                    isOn = (Boolean) BdSwitchView.getDeclaredMethod("d").invoke(bdSwitchView);
                 }
                 return isOn;
             } catch (Throwable throwable) {
@@ -115,9 +142,9 @@ class TSPreferenceHelper extends Hook {
             try {
                 Class<?> BdSwitchView = classLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView");
                 try {
-                    BdSwitchView.getDeclaredMethod("turnOn").invoke(switchInstance);
+                    BdSwitchView.getDeclaredMethod("turnOn").invoke(bdSwitchView);
                 } catch (NoSuchMethodException e) {
-                    BdSwitchView.getDeclaredMethod("i").invoke(switchInstance);
+                    BdSwitchView.getDeclaredMethod("i").invoke(bdSwitchView);
                 }
             } catch (Throwable throwable) {
                 XposedBridge.log(throwable);
@@ -128,9 +155,9 @@ class TSPreferenceHelper extends Hook {
             try {
                 Class<?> BdSwitchView = classLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView");
                 try {
-                    BdSwitchView.getDeclaredMethod("turnOff").invoke(switchInstance);
+                    BdSwitchView.getDeclaredMethod("turnOff").invoke(bdSwitchView);
                 } catch (NoSuchMethodException e) {
-                    BdSwitchView.getDeclaredMethod("f").invoke(switchInstance);
+                    BdSwitchView.getDeclaredMethod("f").invoke(bdSwitchView);
                 }
             } catch (Throwable throwable) {
                 XposedBridge.log(throwable);

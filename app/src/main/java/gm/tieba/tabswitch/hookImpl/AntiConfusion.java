@@ -42,6 +42,7 @@ public class AntiConfusion extends Hook {
                 if (AntiConfusionHelper.isDexChanged(activity)) activity.deleteDatabase("Rules.db");
                 else if (AntiConfusionHelper.getLostList().size() != 0)
                     AntiConfusionHelper.matcherList = AntiConfusionHelper.getLostList();
+                else return;
                 new RulesDbHelper(activity.getApplicationContext()).getReadableDatabase();
 
                 TextView textView = new TextView(activity);

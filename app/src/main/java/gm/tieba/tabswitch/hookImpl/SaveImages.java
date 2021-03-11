@@ -91,8 +91,6 @@ public class SaveImages extends Hook {
         okhttp3.Request request = new okhttp3.Request.Builder().url(url).get().build();
         Call call = okHttpClient.newCall(request);
         call.enqueue(new Callback() {
-            private ByteArrayOutputStream baos;
-
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 XposedBridge.log(e);
@@ -101,7 +99,7 @@ public class SaveImages extends Hook {
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 InputStream respContent = response.body().byteStream();
-                baos = IO.cloneInputStream(respContent);
+                ByteArrayOutputStream baos = IO.cloneInputStream(respContent);
                 respContent = new ByteArrayInputStream(baos.toByteArray());
                 String extension = IO.getExtension(respContent);
                 InputStream inputStream = new ByteArrayInputStream(baos.toByteArray());
@@ -123,7 +121,6 @@ public class SaveImages extends Hook {
                     scanIntent.setData(Uri.fromFile(imageDir));
                     context.sendBroadcast(scanIntent);
                 }
-                baos = null;
             }
         });
     }

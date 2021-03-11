@@ -1,5 +1,6 @@
 package gm.tieba.tabswitch;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -26,6 +27,7 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.hookImpl.CreateView;
 import gm.tieba.tabswitch.hookImpl.EyeshieldMode;
 import gm.tieba.tabswitch.hookImpl.HomeRecommend;
+import gm.tieba.tabswitch.hookImpl.OriginSrc;
 import gm.tieba.tabswitch.hookImpl.Purify;
 import gm.tieba.tabswitch.hookImpl.PurifyEnter;
 import gm.tieba.tabswitch.hookImpl.PurifyMy;
@@ -33,6 +35,7 @@ import gm.tieba.tabswitch.hookImpl.RedTip;
 import gm.tieba.tabswitch.hookImpl.SaveImages;
 import gm.tieba.tabswitch.hookImpl.StorageRedirect;
 import gm.tieba.tabswitch.hookImpl.ThreadStore;
+import gm.tieba.tabswitch.util.TbProtoParser;
 
 public class HookDispatcher extends Hook {
     public static void hook(ClassLoader classLoader, Map.Entry<String, ?> entry, Context context) throws Throwable {
@@ -100,39 +103,24 @@ public class HookDispatcher extends Hook {
                 case "personalized_filter":
                     String personalizedFilter = (String) entry.getValue();
                     if (personalizedFilter == null) break;
-                    //TODO: handle thread info more precisely
                     XposedHelpers.findAndHookMethod(XposedHelpers.findClass("tbclient.Personalized.DataRes$Builder", classLoader), "build", boolean.class, new XC_MethodHook() {
                         public void beforeHookedMethod(MethodHookParam param) throws Throwable {
                             Field field = param.thisObject.getClass().getDeclaredField("thread_list");
                             field.setAccessible(true);
                             List<?> list = (List<?>) field.get(param.thisObject);
                             if (list == null) return;
-                            for (int i = 0; i < list.size(); i++) {
-                                String threadInfo = list.get(i).toString();
-                                if (Pattern.compile(personalizedFilter).matcher(threadInfo).find()) {
-                                    if ((Boolean) Hook.preferenceMap.get("personalized_filter_log"))
-                                        XposedBridge.log(list.get(i).toString());
-                                    list.remove(i);
-                                    i--;
-                                }
-                                //  com.alibaba.fastjson.JSON jsonObject =threadInfo;
-
-
-                                /*
+                            for (int i = 0; i < list.size(); i++)
                                 try {
-                                    String text = threadInfo.substring(threadInfo.indexOf(", text=") + 7, threadInfo.indexOf(", type="));
-                                    String title = threadInfo.substring(threadInfo.indexOf(", title=") + 8, threadInfo.indexOf(", topic_h5_url="));
-                                    String fname = threadInfo.substring(threadInfo.indexOf(", fname=" + 8 , threadInfo.indexOf( ", forum_info="));
-                                    if (Pattern.compile(personalizedFilter).matcher(text).find()||
-                                            Pattern.compile(personalizedFilter).matcher(title).find()||
-                                            Pattern.compile(personalizedFilter).matcher(fname).find()) {
-                                        list.remove(i);
-                                        i--;
-                                    }
+                                    TbProtoParser.ThreadInfoParser threadInfo = new TbProtoParser.ThreadInfoParser(list.get(i).toString());
+                                    Field[] fields = threadInfo.getClass().getDeclaredFields();
+                                    for (Field threadInfoField : fields)
+                                        if (Pattern.compile(personalizedFilter).matcher((String) threadInfoField.get(threadInfo)).find() && !threadInfoField.getName().equals("tid")) {
+                                            list.remove(i);
+                                            i--;
+                                            break;
+                                        }
                                 } catch (StringIndexOutOfBoundsException ignored) {
                                 }
-                                */
-                            }
                         }
                     });
                     break;
@@ -159,7 +147,7 @@ public class HookDispatcher extends Hook {
                         }
                     });
                     //楼中楼
-                    //TODO: sometimes it can't fully remove sub post
+                    //TODO: it can't fully remove sub post
                     XposedHelpers.findAndHookMethod(XposedHelpers.findClass("tbclient.SubPostList$Builder", classLoader), "build", boolean.class, new XC_MethodHook() {
                         public void beforeHookedMethod(MethodHookParam param) throws Throwable {
                             Field field = param.thisObject.getClass().getDeclaredField("content");
@@ -244,6 +232,9 @@ public class HookDispatcher extends Hook {
                         }
                     });
                     break;
+                case "origin_src":
+                    if ((Boolean) entry.getValue()) OriginSrc.hook(classLoader);
+                    break;
                 case "storage_redirect":
                     if ((Boolean) entry.getValue()) StorageRedirect.hook(classLoader, context);
                     break;
@@ -253,6 +244,7 @@ public class HookDispatcher extends Hook {
                         Map<String, String> map = ruleMapList.get(i);
                         if (Objects.equals(map.get("rule"), "Lcom/baidu/tieba/R$id;->new_pb_list:I"))
                             XposedBridge.hookAllConstructors(XposedHelpers.findClass(map.get("class"), classLoader), new XC_MethodHook() {
+                                @SuppressLint("ClickableViewAccessibility")
                                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                                     Field[] fields = param.thisObject.getClass().getDeclaredFields();
                                     for (Field field : fields) {

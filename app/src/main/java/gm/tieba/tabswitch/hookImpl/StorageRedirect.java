@@ -66,20 +66,18 @@ public class StorageRedirect extends Hook {
         }
     }
 
-    private static ByteArrayOutputStream baos;
-
     private static int saveImage(String url, Context context) {
         Context applicationContext = context.getApplicationContext();
         String fileName = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("."));
-        // "http://imgsrc.baidu.com/forum/pic/item/"
         url = "http://tiebapic.baidu.com/forum/pic/item/" + url.substring(url.lastIndexOf("/") + 1);
         try {
             OkHttpClient okHttpClient = new OkHttpClient();
             okhttp3.Request request = new okhttp3.Request.Builder().url(url).get().build();
             Call call = okHttpClient.newCall(request);
             Response response = call.execute();
+
             InputStream respContent = response.body().byteStream();
-            baos = IO.cloneInputStream(respContent);
+            ByteArrayOutputStream baos = IO.cloneInputStream(respContent);
             respContent = new ByteArrayInputStream(baos.toByteArray());
             String extension = IO.getExtension(respContent);
             InputStream inputStream = new ByteArrayInputStream(baos.toByteArray());
@@ -101,7 +99,6 @@ public class StorageRedirect extends Hook {
                 scanIntent.setData(Uri.fromFile(imageDir));
                 applicationContext.sendBroadcast(scanIntent);
             }
-            baos = null;
             Looper.prepare();
             Toast.makeText(applicationContext, fileName + "." + extension, Toast.LENGTH_SHORT).show();
             Looper.loop();
