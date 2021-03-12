@@ -54,5 +54,12 @@ public class OriginSrc extends Hook {
                 }
             }
         });
+        XposedHelpers.findAndHookMethod("tbclient.Media$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
+            public void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                Field showOriginalBtn = param.thisObject.getClass().getDeclaredField("show_original_btn");
+                showOriginalBtn.setAccessible(true);
+                showOriginalBtn.set(param.thisObject, 0);
+            }
+        });
     }
 }
