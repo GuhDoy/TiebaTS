@@ -98,11 +98,10 @@ public class SaveImages extends Hook {
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                InputStream respContent = response.body().byteStream();
-                ByteArrayOutputStream baos = IO.cloneInputStream(respContent);
-                respContent = new ByteArrayInputStream(baos.toByteArray());
-                String extension = IO.getExtension(respContent);
-                InputStream inputStream = new ByteArrayInputStream(baos.toByteArray());
+                InputStream inputStream = response.body().byteStream();
+                ByteArrayOutputStream baos = IO.cloneInputStream(inputStream);
+                String extension = IO.getExtension(baos);
+                inputStream = new ByteArrayInputStream(baos.toByteArray());
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     ContentValues newImageDetails = new ContentValues();
                     newImageDetails.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + File.separator + "tieba" + File.separator + title);

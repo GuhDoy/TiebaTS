@@ -3,84 +3,89 @@ package gm.tieba.tabswitch.hookImpl;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.ViewGroup;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import de.robv.android.xposed.XC_MethodHook;
+import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.Hook;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.util.DisplayHelper;
 
-public class ThreadStore extends Hook {
+public class HistoryCache extends Hook {
     private static String regex = "";
 
     public static void hook(ClassLoader classLoader) throws Throwable {
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.myCollection.CollectTabActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
+        XposedHelpers.findAndHookMethod("com.baidu.tieba.myCollection.history.PbHistoryActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 Activity activity = (Activity) param.thisObject;
-                TextView edit = activity.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("right_textview").getInt(null));
-                TextView textView = new TextView(activity);
-                LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                layoutParams.setMargins(60, 0, 20, 0);
-                textView.setLayoutParams(layoutParams);
-                textView.setTextSize(DisplayHelper.px2Dip(activity, edit.getTextSize()));
-                textView.setTextColor(edit.getTextColors());
-                textView.setText("搜索");
-                LinearLayout naviRightButton = activity.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("navi_right_button").getInt(null));
-                naviRightButton.addView(textView);
-                textView.setOnClickListener(v -> showRegexDialog(activity));
+                Field field = param.thisObject.getClass().getDeclaredField("mNavigationBar");
+                field.setAccessible(true);
+                Object mNavigationBar = field.get(param.thisObject);
+                Class<?> ControlAlign = classLoader.loadClass("com.baidu.tbadk.core.view.NavigationBar$ControlAlign");
+                Object[] enums = ControlAlign.getEnumConstants();
+                for (Object HORIZONTAL_RIGHT : enums)
+                    if (HORIZONTAL_RIGHT.toString().equals("HORIZONTAL_RIGHT")) {
+                        Class<?> NavigationBar = classLoader.loadClass("com.baidu.tbadk.core.view.NavigationBar");
+                        TextView textView = (TextView) NavigationBar.getDeclaredMethod("addTextButton", ControlAlign, String.class, View.OnClickListener.class)
+                                .invoke(mNavigationBar, HORIZONTAL_RIGHT, "搜索", (View.OnClickListener) v -> showRegexDialog(activity));
+                        if (DisplayHelper.isLightMode(activity))
+                            textView.setTextColor(Color.parseColor("#FF626163"));
+                        else textView.setTextColor(Color.parseColor("#FFCBCBCC"));
+                        return;
+                    }
             }
         });
         for (int i = 0; i < ruleMapList.size(); i++) {
             Map<String, String> map = ruleMapList.get(i);
-            if (Objects.equals(map.get("rule"), "\"c/f/post/threadstore\""))
-                XposedHelpers.findAndHookMethod(map.get("class"), classLoader, map.get("method"), Boolean[].class, new XC_MethodHook() {
-                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        Field[] fields = param.getResult().getClass().getDeclaredFields();
-                        for (Field field : fields) {
-                            field.setAccessible(true);
-                            if (field.get(param.getResult()) instanceof ArrayList) {
-                                ArrayList<?> arrayList = (ArrayList<?>) field.get(param.getResult());
-                                if (arrayList == null) return;
-                                for (int j = 0; j < arrayList.size(); j++) {
-                                    // com.baidu.tbadk.baseEditMark.MarkData
-                                    Field[] mFields = new Field[]{arrayList.get(j).getClass().getDeclaredField("mTitle"),
-                                            arrayList.get(j).getClass().getDeclaredField("mForumName"),
-                                            arrayList.get(j).getClass().getDeclaredField("mAuthorName")};
+            if (Objects.equals(map.get("rule"), "Lcom/baidu/tbadk/core/view/NoDataView;->setButtonOption(Lcom/baidu/tbadk/core/view/NoDataViewFactory$")
+                    && !Objects.equals(map.get("class"), "com.baidu.tbadk.core.view.NoDataView")) {
+                Method[] methods = classLoader.loadClass(map.get("class")).getDeclaredMethods();
+                for (Method method : methods)
+                    if (Modifier.toString(method.getModifiers()).equals("protected") && Arrays.toString(method.getParameterTypes()).equals("[interface java.util.List]"))
+                        XposedBridge.hookMethod(method, new XC_MethodHook() {
+                            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                                List<?> list = (List<?>) param.args[0];
+                                if (list == null) return;
+                                for (int i = 0; i < list.size(); i++) {
+                                    // com.baidu.tieba.myCollection.baseHistory.a
+                                    Field[] mFields = new Field[]{list.get(i).getClass().getDeclaredField("forumName"),
+                                            list.get(i).getClass().getDeclaredField("threadName")};
                                     boolean isRemove = true;
                                     for (Field mField : mFields) {
                                         mField.setAccessible(true);
-                                        if (Pattern.compile(regex).matcher((String) mField.get(arrayList.get(j))).find()) {
+                                        if (Pattern.compile(regex).matcher((String) mField.get(list.get(i))).find()) {
                                             isRemove = false;
                                             break;
                                         }
                                     }
                                     if (isRemove) {
-                                        arrayList.remove(j);
-                                        j--;
+                                        list.remove(i);
+                                        i--;
                                     }
                                 }
-                                return;
                             }
-                        }
-                    }
-                });
+                        });
+            }
         }
     }
 
@@ -141,7 +146,7 @@ public class ThreadStore extends Hook {
                 Pattern.compile(editText.getText().toString());
                 regex = editText.getText().toString();
                 activity.finish();
-                Intent intent = new Intent().setClassName(activity, "com.baidu.tieba.myCollection.CollectTabActivity");
+                Intent intent = new Intent().setClassName(activity, "com.baidu.tieba.myCollection.history.PbHistoryActivity");
                 activity.startActivity(intent);
                 alertDialog.dismiss();
             } catch (PatternSyntaxException e) {

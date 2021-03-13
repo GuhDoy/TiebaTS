@@ -1,5 +1,6 @@
 package gm.tieba.tabswitch.util;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileDescriptor;
@@ -58,7 +59,8 @@ public class IO {
         return baos;
     }
 
-    public static String getExtension(InputStream inputStream) throws IOException {
+    public static String getExtension(ByteArrayOutputStream baos) throws IOException {
+        InputStream inputStream = new ByteArrayInputStream(baos.toByteArray());
         byte[] bytes = new byte[6];
         if (inputStream.read(bytes) == -1) throw new IOException();
         String extension = new String(bytes, StandardCharsets.UTF_8);

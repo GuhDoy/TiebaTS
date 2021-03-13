@@ -36,7 +36,6 @@ public class AntiConfusionHelper extends Hook {
         list.add("\"c/s/splashSchedule\"");//旧启动广告
         list.add("\"custom_ext_data\"");//sdk启动广告
         list.add("\"pic_amount\"");//图片广告
-        // list.add("Lcom/baidu/tieba/recapp/lego/model/AdCard;-><init>(Lorg/json/JSONObject;)V");//卡片广告
         list.add("\"key_frs_dialog_ad_last_show_time\"");//吧推广弹窗
         list.add("Lcom/baidu/tieba/R$id;->frs_ad_banner:I");//吧推广横幅
         list.add("Lcom/baidu/tieba/R$string;->mark_like:I");//关注作者追帖更简单
@@ -51,6 +50,8 @@ public class AntiConfusionHelper extends Hook {
         list.add("Lcom/baidu/tieba/R$id;->navigationBarGoSignall:I");
         //ThreadStore
         list.add("\"c/f/post/threadstore\"");
+        //HistoryCache
+        list.add("Lcom/baidu/tbadk/core/view/NoDataView;->setButtonOption(Lcom/baidu/tbadk/core/view/NoDataViewFactory$");
         //StorageRedirect
         list.add("0x4197d783fc000000L");
         //HookDispatcher

@@ -138,9 +138,11 @@ public class TSPreference extends Hook {
         TSPreferenceHelper.SwitchViewHolder createView = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "进吧增加收藏、历史", "create_view");
         TSPreferenceHelper.SwitchViewHolder saveImages = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "长按下载保存全部图片", "save_images");
         TSPreferenceHelper.SwitchViewHolder threadStore = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "我的收藏增加搜索", "thread_store");
+        TSPreferenceHelper.SwitchViewHolder historyCache = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "浏览历史增加搜索", "history_cache");
         preferenceLayout.addView(createView);
         preferenceLayout.addView(saveImages);
         preferenceLayout.addView(threadStore);
+        preferenceLayout.addView(historyCache);
         if (tsConfig.getBoolean("ze", false))
             preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "垂手可得"));
         else preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "自动化"));
@@ -221,19 +223,17 @@ public class TSPreference extends Hook {
         preferenceLayout.addView(telegram);
         preferenceLayout.addView(author);
         AlertDialog alertDialog;
-        if (DisplayHelper.isLightMode(activity)) {
+        if (DisplayHelper.isLightMode(activity))
             alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
                     .setTitle("贴吧TS设置").setView(preferenceLayout.getScrollView(activity)).setCancelable(true)
                     .setNegativeButton("取消", (dialogInterface, i) -> {
                     }).setPositiveButton("保存并重启", (dialogInterface, i) -> {
                     }).create();
-        } else {
-            alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_DARK)
-                    .setTitle("贴吧TS设置").setView(preferenceLayout.getScrollView(activity)).setCancelable(true)
-                    .setNegativeButton("取消", (dialogInterface, i) -> {
-                    }).setPositiveButton("保存并重启", (dialogInterface, i) -> {
-                    }).create();
-        }
+        else alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_DARK)
+                .setTitle("贴吧TS设置").setView(preferenceLayout.getScrollView(activity)).setCancelable(true)
+                .setNegativeButton("取消", (dialogInterface, i) -> {
+                }).setPositiveButton("保存并重启", (dialogInterface, i) -> {
+                }).create();
         alertDialog.show();
         isShowTSPreference = false;
         alertDialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
@@ -251,7 +251,7 @@ public class TSPreference extends Hook {
                 activity.startActivity(intent);
             } else {
                 Intent intent = activity.getPackageManager().getLaunchIntentForPackage(activity.getPackageName());
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 activity.startActivity(intent);
                 activity.finishAffinity();
                 System.exit(0);
@@ -275,19 +275,17 @@ public class TSPreference extends Hook {
         preferenceLayout.addView(myMessage);
         preferenceLayout.addView(mine);
         AlertDialog alertDialog;
-        if (DisplayHelper.isLightMode(activity)) {
+        if (DisplayHelper.isLightMode(activity))
             alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
                     .setTitle("修改底栏").setView(preferenceLayout.getScrollView(activity)).setCancelable(true)
                     .setNegativeButton("取消", (dialogInterface, i) -> {
                     }).setPositiveButton("保存", (dialogInterface, i) -> {
                     }).create();
-        } else {
-            alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_DARK)
-                    .setTitle("修改底栏").setView(preferenceLayout.getScrollView(activity)).setCancelable(true)
-                    .setNegativeButton("取消", (dialogInterface, i) -> {
-                    }).setPositiveButton("保存", (dialogInterface, i) -> {
-                    }).create();
-        }
+        else alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_DARK)
+                .setTitle("修改底栏").setView(preferenceLayout.getScrollView(activity)).setCancelable(true)
+                .setNegativeButton("取消", (dialogInterface, i) -> {
+                }).setPositiveButton("保存", (dialogInterface, i) -> {
+                }).create();
         alertDialog.show();
         alertDialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
             if (homeRecommend.isOn() && enterForum.isOn()) {
@@ -323,12 +321,10 @@ public class TSPreference extends Hook {
         editText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
             }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-
             }
 
             @Override
@@ -337,14 +333,14 @@ public class TSPreference extends Hook {
             }
         });
         AlertDialog alertDialog;
-        if (DisplayHelper.isLightMode(activity)) {
+        if (DisplayHelper.isLightMode(activity))
             alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
                     .setTitle(title).setView(editText).setCancelable(true)
                     .setNeutralButton("|", (dialogInterface, i) -> {
                     }).setNegativeButton("取消", (dialogInterface, i) -> {
                     }).setPositiveButton("保存", (dialogInterface, i) -> {
                     }).create();
-        } else {
+        else {
             alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_DARK)
                     .setTitle(title).setView(editText).setCancelable(true)
                     .setNeutralButton("|", (dialogInterface, i) -> {

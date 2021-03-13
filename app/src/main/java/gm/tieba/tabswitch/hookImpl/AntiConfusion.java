@@ -149,9 +149,10 @@ public class AntiConfusion extends Hook {
                         editor.putInt("signature", Arrays.hashCode(bytes));
                         editor.commit();
                         if ((Boolean) Hook.preferenceMap.get("clean_dir")) {
+                            IO.deleteFiles(activity.getExternalCacheDir());
                             IO.deleteFiles(activity.getCacheDir());
                             IO.deleteFiles(new File(activity.getCacheDir().getAbsolutePath() + "image"));
-                            IO.deleteFiles(activity.getExternalCacheDir());
+                            IO.deleteFiles(new File(activity.getFilesDir().getAbsolutePath() + File.separator + "newStat" + File.separator + "notUpload"));
                         } else IO.deleteFiles(dexDir);
                         new File(activity.getExternalFilesDir(null), "Rules.db").delete();
                         XposedBridge.log("anti-confusion accomplished, current version: " + AntiConfusionHelper.getTbVersion(activity));

@@ -35,11 +35,6 @@ public class Purify extends Hook {
                         if (Arrays.toString(ala.getParameterTypes()).contains("JSONObject") && !ala.getName().equals(map.get("method")))
                             XposedBridge.hookMethod(ala, XC_MethodReplacement.returnConstant(null));
                     break;
-                    /*
-                case "Lcom/baidu/tieba/recapp/lego/model/AdCard;-><init>(Lorg/json/JSONObject;)V"://卡片广告
-                    XposedHelpers.findAndHookMethod(map.get("class"), classLoader, map.get("method"), JSONObject.class,int.class, XC_MethodReplacement.returnConstant(null));
-                    break;
-                     */
                 case "\"key_frs_dialog_ad_last_show_time\""://吧推广弹窗
                     Method[] dialogs = classLoader.loadClass(map.get("class")).getDeclaredMethods();
                     for (Method dialog : dialogs)

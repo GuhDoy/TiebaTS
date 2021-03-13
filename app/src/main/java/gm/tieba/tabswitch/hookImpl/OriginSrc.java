@@ -40,17 +40,14 @@ public class OriginSrc extends Hook {
                 Field showOriginalBtn = param.thisObject.getClass().getDeclaredField("show_original_btn");
                 showOriginalBtn.setAccessible(true);
                 showOriginalBtn.set(param.thisObject, 0);
-
                 Field originSrc = param.thisObject.getClass().getDeclaredField("origin_src");
                 originSrc.setAccessible(true);
-                String url = (String) originSrc.get(param.thisObject);
-
                 Field[] fields = new Field[]{param.thisObject.getClass().getDeclaredField("big_cdn_src"),
                         param.thisObject.getClass().getDeclaredField("cdn_src"),
                         param.thisObject.getClass().getDeclaredField("cdn_src_active")};
                 for (Field mField : fields) {
                     mField.setAccessible(true);
-                    mField.set(param.thisObject, url);
+                    mField.set(param.thisObject, originSrc.get(param.thisObject));
                 }
             }
         });

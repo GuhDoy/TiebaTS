@@ -27,6 +27,7 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.hookImpl.ContentFilter;
 import gm.tieba.tabswitch.hookImpl.CreateView;
 import gm.tieba.tabswitch.hookImpl.EyeshieldMode;
+import gm.tieba.tabswitch.hookImpl.HistoryCache;
 import gm.tieba.tabswitch.hookImpl.HomeRecommend;
 import gm.tieba.tabswitch.hookImpl.OriginSrc;
 import gm.tieba.tabswitch.hookImpl.Purify;
@@ -137,6 +138,9 @@ public class HookDispatcher extends Hook {
                     break;
                 case "thread_store":
                     if ((Boolean) entry.getValue()) ThreadStore.hook(classLoader);
+                    break;
+                case "history_cache":
+                    if ((Boolean) entry.getValue()) HistoryCache.hook(classLoader);
                     break;
                 case "auto_sign":
                     if (!(Boolean) entry.getValue()) break;
