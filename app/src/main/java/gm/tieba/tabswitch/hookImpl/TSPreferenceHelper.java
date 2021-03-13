@@ -63,8 +63,8 @@ class TSPreferenceHelper extends Hook {
     }
 
     static class PreferenceLayout {
-        private LinearLayout linearLayout;
         public List<SwitchViewHolder> switches;
+        private LinearLayout linearLayout;
 
         PreferenceLayout(Activity activity) {
             linearLayout = new LinearLayout(activity);

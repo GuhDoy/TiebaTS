@@ -1,9 +1,12 @@
-package top.srcrs.util;
+package gm.tieba.tabswitch.hookImpl;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 
 import de.robv.android.xposed.XposedBridge;
 import gm.tieba.tabswitch.Hook;
@@ -12,32 +15,15 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import top.srcrs.domain.Cookie;
 
-/**
- * 封装的网络请求请求工具类
- *
- * @author srcrs
- * @Time 2020-10-31
- */
-public class Request extends Hook {
-    /**
-     * 获取Cookie对象
-     */
-    private static Cookie cookie = Cookie.getInstance();
+public class AutoSignHelper extends Hook {
+    private static String cookie;
 
-    private Request() {
+    static void setCookie(String BDUSS) {
+        cookie = "BDUSS=" + BDUSS;
     }
 
-    /**
-     * 发送get请求
-     *
-     * @param url 请求的地址，包括参数
-     * @return JSONObject
-     * @author srcrs
-     * @Time 2020-10-31
-     */
-    public static JSONObject get(String url) throws JSONException {
+    static JSONObject get(String url) throws JSONException {
         OkHttpClient okHttpClient = new OkHttpClient();
         okhttp3.Request request = new okhttp3.Request.Builder()
                 .url(url).get()
@@ -45,7 +31,7 @@ public class Request extends Hook {
                 .addHeader("Content-Type", "application/x-www-form-urlencoded")
                 .addHeader("charset", "UTF-8")
                 .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36")
-                .addHeader("Cookie", cookie.getCookie())
+                .addHeader("Cookie", cookie)
                 .build();
         Call call = okHttpClient.newCall(request);
         String respContent = null;
@@ -59,16 +45,7 @@ public class Request extends Hook {
         return new JSONObject(respContent);
     }
 
-    /**
-     * 发送post请求
-     *
-     * @param url  请求的地址
-     * @param body 携带的参数
-     * @return JSONObject
-     * @author srcrs
-     * @Time 2020-10-31
-     */
-    public static JSONObject post(String url, String body) throws JSONException {
+    static JSONObject post(String url, String body) throws JSONException {
         MediaType mediaType = MediaType.Companion.parse("text/x-markdown; charset=utf-8");
         RequestBody stringBody = RequestBody.Companion.create(body, mediaType);
         OkHttpClient okHttpClient = new OkHttpClient();
@@ -79,7 +56,7 @@ public class Request extends Hook {
                 .addHeader("Content-Type", "application/x-www-form-urlencoded")
                 .addHeader("charset", "UTF-8")
                 .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36")
-                .addHeader("Cookie", cookie.getCookie())
+                .addHeader("Cookie", cookie)
                 .build();
         Call call = okHttpClient.newCall(request);
         String respContent = null;
@@ -91,5 +68,21 @@ public class Request extends Hook {
             XposedBridge.log("post请求错误 -- " + e);
         }
         return new JSONObject(respContent);
+    }
+
+    static String enCodeMd5(String str) {
+        try {
+            // 生成一个MD5加密计算摘要
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            // 计算md5函数
+            md.update(str.getBytes(StandardCharsets.UTF_8));
+            // digest()最后确定返回md5 hash值，返回值为8位字符串。因为md5 hash值是16位的hex值，实际上就是8位的字符
+            // BigInteger函数则将8位的字符串转换成16位hex值，用字符串来表示；得到字符串形式的hash值
+            //一个byte是八位二进制，也就是2位十六进制字符（2的8次方等于16的2次方）
+            return new BigInteger(1, md.digest()).toString(16);
+        } catch (Exception e) {
+            XposedBridge.log("字符串进行MD5加密错误 -- " + e);
+            return "";
+        }
     }
 }

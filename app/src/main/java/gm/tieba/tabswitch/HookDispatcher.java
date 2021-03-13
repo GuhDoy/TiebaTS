@@ -6,15 +6,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Looper;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 import java.lang.reflect.Field;
 import java.util.Calendar;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -24,6 +21,7 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
+import gm.tieba.tabswitch.hookImpl.AutoSign;
 import gm.tieba.tabswitch.hookImpl.ContentFilter;
 import gm.tieba.tabswitch.hookImpl.CreateView;
 import gm.tieba.tabswitch.hookImpl.EyeshieldMode;
@@ -143,34 +141,7 @@ public class HookDispatcher extends Hook {
                     if ((Boolean) entry.getValue()) HistoryCache.hook(classLoader);
                     break;
                 case "auto_sign":
-                    if (!(Boolean) entry.getValue()) break;
-                    XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
-                        protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                            Activity activity = (Activity) param.thisObject;
-                            SharedPreferences tsConfig = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
-                            if (Calendar.getInstance().get(Calendar.DAY_OF_YEAR) != tsConfig.getInt("sign_date", 0))
-                                new Thread(() -> {
-                                    Looper.prepare();
-                                    if (Hook.BDUSS == null)
-                                        Toast.makeText(activity.getApplicationContext(), "暂未获取到 BDUSS", Toast.LENGTH_LONG).show();
-                                    else {
-                                        String result = top.srcrs.Run.main(Hook.BDUSS);
-                                        Toast.makeText(activity.getApplicationContext(), result, Toast.LENGTH_LONG).show();
-                                        if (result.endsWith("全部签到成功")) {
-                                            SharedPreferences.Editor editConfig = tsConfig.edit();
-                                            editConfig.putInt("sign_date", Calendar.getInstance().get(Calendar.DAY_OF_YEAR));
-                                            editConfig.apply();
-                                            Hook.follow = new HashSet<>(top.srcrs.Run.success);
-                                            SharedPreferences tsCache = activity.getSharedPreferences("TS_cache", Context.MODE_PRIVATE);
-                                            SharedPreferences.Editor editCache = tsCache.edit();
-                                            editCache.putStringSet("follow", Hook.follow);
-                                            editCache.apply();
-                                        }
-                                    }
-                                    Looper.loop();
-                                }).start();
-                        }
-                    });
+                    if ((Boolean) entry.getValue()) AutoSign.hook(classLoader);
                     break;
                 case "open_sign":
                     if (!(Boolean) entry.getValue()) break;

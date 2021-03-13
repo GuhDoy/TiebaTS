@@ -40,7 +40,7 @@ public class ContentFilter extends Hook {
                 for (int i = 1; i < list.size(); i++)
                     try {
                         TbProtoParser.SubPostParser subPost = new TbProtoParser.SubPostParser(list.get(i).toString());
-                        if (Pattern.compile(contentFilter).matcher(subPost.pbContent).find()) {
+                        if (Pattern.compile(contentFilter).matcher(subPost.content).find()) {
                             list.remove(i);
                             i--;
                         }
