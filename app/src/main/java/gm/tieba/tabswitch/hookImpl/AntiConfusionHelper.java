@@ -64,8 +64,7 @@ public class AntiConfusionHelper extends Hook {
             Map<String, String> map = ruleMapList.get(i);
             ruleList.add(map.get("rule"));
         }
-        List<String> lostList = new ArrayList<>();
-        addMatcher(lostList);
+        List<String> lostList = new ArrayList<>(matcherList);
         lostList.removeAll(ruleList);
         return lostList;
     }

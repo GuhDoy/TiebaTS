@@ -85,7 +85,7 @@ public class Purify extends Hook {
                 param.args[0] = null;
             }
         });
-        //新卡片广告(deprecated in 12.0.8.0)
+        //新卡片广告(deprecated on 12.0.8.0)
         try {
             XposedHelpers.findAndHookConstructor("com.baidu.tieba.recapp.lego.model.CriusAdCard", classLoader, JSONObject.class, new XC_MethodHook() {
                 protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
