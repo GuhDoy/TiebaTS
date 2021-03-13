@@ -39,6 +39,7 @@ public class AntiConfusionHelper extends Hook {
         list.add("\"key_frs_dialog_ad_last_show_time\"");//吧推广弹窗
         list.add("Lcom/baidu/tieba/R$id;->frs_ad_banner:I");//吧推广横幅
         list.add("Lcom/baidu/tieba/R$string;->mark_like:I");//关注作者追帖更简单
+        list.add("Lcom/baidu/tieba/R$layout;->pb_child_title:I");//视频相关推荐
         //PurifyEnter
         list.add("Lcom/baidu/tieba/R$id;->square_background:I");//吧广场
         list.add("Lcom/baidu/tieba/R$id;->create_bar_container:I");//创建自己的吧

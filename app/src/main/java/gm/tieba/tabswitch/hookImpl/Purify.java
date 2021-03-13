@@ -59,6 +59,20 @@ public class Purify extends Hook {
                         }
                     });
                     break;
+                case "Lcom/baidu/tieba/R$layout;->pb_child_title:I"://视频相关推荐
+                    if (!Objects.equals(map.get("class"), "com.baidu.tieba.pb.videopb.fragment.DetailInfoAndReplyFragment"))
+                        XposedHelpers.findAndHookMethod("com.baidu.adp.widget.ListView.BdTypeRecyclerView", classLoader, "addAdapters", List.class, new XC_MethodHook() {
+                            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                                List<?> list = (List<?>) param.args[0];
+                                for (int i = 0; i < list.size(); i++)
+                                    if (Objects.equals(map.get("class"), list.get(i).getClass().getName())) {
+                                        list.remove(i);
+                                        list.remove(i);
+                                        return;
+                                    }
+                            }
+                        });
+                    break;
             }
         }
         //启动广告

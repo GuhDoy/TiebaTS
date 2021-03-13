@@ -56,6 +56,14 @@ public class OriginSrc extends Hook {
                 Field showOriginalBtn = param.thisObject.getClass().getDeclaredField("show_original_btn");
                 showOriginalBtn.setAccessible(true);
                 showOriginalBtn.set(param.thisObject, 0);
+                Field bigPic = param.thisObject.getClass().getDeclaredField("big_pic");
+                bigPic.setAccessible(true);
+                Field[] fields = new Field[]{param.thisObject.getClass().getDeclaredField("small_pic"),
+                        param.thisObject.getClass().getDeclaredField("water_pic")};
+                for (Field mField : fields) {
+                    mField.setAccessible(true);
+                    mField.set(param.thisObject, bigPic.get(param.thisObject));
+                }
             }
         });
     }

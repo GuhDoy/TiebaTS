@@ -49,7 +49,7 @@ public class HistoryCache extends Hook {
                         TextView textView = (TextView) NavigationBar.getDeclaredMethod("addTextButton", ControlAlign, String.class, View.OnClickListener.class)
                                 .invoke(mNavigationBar, HORIZONTAL_RIGHT, "搜索", (View.OnClickListener) v -> showRegexDialog(activity));
                         if (DisplayHelper.isLightMode(activity))
-                            textView.setTextColor(Color.parseColor("#FF626163"));
+                            textView.setTextColor(Color.parseColor("#FF3E3D40"));
                         else textView.setTextColor(Color.parseColor("#FFCBCBCC"));
                         return;
                     }
