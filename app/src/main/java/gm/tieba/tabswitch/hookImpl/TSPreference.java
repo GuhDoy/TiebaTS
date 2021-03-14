@@ -176,10 +176,12 @@ public class TSPreference extends Hook {
         TSPreferenceHelper.SwitchViewHolder fontSize = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "禁用帖子缩放手势", "font_size");
         TSPreferenceHelper.SwitchViewHolder eyeshieldMode = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "用夜间模式代替深色模式", "eyeshield_mode");
         TSPreferenceHelper.SwitchViewHolder agreeNum = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "用赞踩差数代替赞数", "agree_num");
+        TSPreferenceHelper.SwitchViewHolder frsTab = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "交换吧热门与最新", "frs_tab");
         preferenceLayout.addView(storageRedirect);
         preferenceLayout.addView(fontSize);
         preferenceLayout.addView(eyeshieldMode);
         preferenceLayout.addView(agreeNum);
+        preferenceLayout.addView(frsTab);
         if (tsConfig.getBoolean("ze", false))
             preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "关于就是关于"));
         else preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "关于"));

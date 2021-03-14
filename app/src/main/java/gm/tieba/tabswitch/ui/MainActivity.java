@@ -70,10 +70,7 @@ public class MainActivity extends AppCompatActivity {
             PackageManager packageManager = getPackageManager();
             if (sharedPreferences.getBoolean("icon", false)) {
                 AlertDialog alertDialog = new AlertDialog.Builder(this)
-                        .setIcon(R.mipmap.ic_launcher)
-                        .setTitle("提示")
-                        .setMessage("隐藏图标后就只能从Xposed Manager中打开模块了哦")
-                        .setCancelable(true)
+                        .setIcon(R.mipmap.ic_launcher).setTitle("提示").setMessage("隐藏图标后就只能从Xposed Manager中打开模块了哦").setCancelable(true)
                         .setNegativeButton("取消", (dialogInterface, i) -> {
                         }).setPositiveButton("确定", (dialogInterface, i) -> {
                             packageManager.setComponentEnabledSetting(new ComponentName(getPackageName(), "gm.tieba.tabswitch.ui.MainActivity"), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);

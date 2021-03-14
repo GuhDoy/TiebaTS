@@ -15,7 +15,6 @@ import android.database.sqlite.SQLiteException;
 import android.os.Bundle;
 import android.util.Log;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +30,6 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import gm.tieba.tabswitch.hookImpl.AntiConfusion;
 import gm.tieba.tabswitch.hookImpl.AntiConfusionHelper;
 import gm.tieba.tabswitch.hookImpl.TSPreference;
-import gm.tieba.tabswitch.util.IO;
 
 public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
     public static Resources modRes;
@@ -75,9 +73,6 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
                                             }).create();
                                     SharedPreferences tsConfig = context.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
                                     if (tsConfig.getBoolean("EULA", false)) alertDialog.show();
-                                    File dbFile = new File(activity.openOrCreateDatabase("Rules.db", Context.MODE_PRIVATE, null).getPath());
-                                    if (dbFile.exists())
-                                        IO.copyFile(dbFile, new File(activity.getExternalFilesDir(null), "Rules.db"));
                                 }
                             });
                         }

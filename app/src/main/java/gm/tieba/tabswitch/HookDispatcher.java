@@ -6,12 +6,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 
 import java.lang.reflect.Field;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -196,6 +199,20 @@ public class HookDispatcher extends Hook {
                                 }
                             });
                     }
+                    XposedHelpers.findAndHookMethod("com.baidu.tieba.pb.videopb.fragment.DetailInfoAndReplyFragment", classLoader, "onCreateView", LayoutInflater.class, ViewGroup.class, Bundle.class, new XC_MethodHook() {
+                        @SuppressLint("ClickableViewAccessibility")
+                        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                            Field[] fields = param.thisObject.getClass().getDeclaredFields();
+                            for (Field field : fields) {
+                                field.setAccessible(true);
+                                if (field.get(param.thisObject).getClass().getName().equals("com.baidu.adp.widget.ListView.BdTypeRecyclerView")) {
+                                    ViewGroup recyclerView = (ViewGroup) field.get(param.thisObject);
+                                    recyclerView.setOnTouchListener((v, event) -> false);
+                                    return;
+                                }
+                            }
+                        }
+                    });
                     break;
                 case "eyeshield_mode":
                     if ((Boolean) entry.getValue()) EyeshieldMode.hook(classLoader, context);
@@ -209,6 +226,25 @@ public class HookDispatcher extends Hook {
                             Field agreeNum = param.thisObject.getClass().getDeclaredField("agree_num");
                             agreeNum.setAccessible(true);
                             agreeNum.set(param.thisObject, diffAgreeNum.get(param.thisObject));
+                        }
+                    });
+                    break;
+                case "frs_tab":
+                    if (!(Boolean) entry.getValue()) break;
+                    XposedHelpers.findAndHookMethod("tbclient.FrsPage.NavTabInfo$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
+                        public void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                            Field field = param.thisObject.getClass().getDeclaredField("tab");
+                            field.setAccessible(true);
+                            List<?> list = (List<?>) field.get(param.thisObject);
+                            if (list == null) return;
+                            for (int i = 0; i < list.size(); i++) {
+                                Field tabType = list.get(i).getClass().getDeclaredField("tab_type");
+                                tabType.setAccessible(true);
+                                if ((int) tabType.get(list.get(i)) == 13) {
+                                    Collections.swap(list, i, i + 1);
+                                    return;
+                                }
+                            }
                         }
                     });
                     break;

@@ -154,7 +154,6 @@ public class AntiConfusion extends Hook {
                             IO.deleteFiles(new File(activity.getCacheDir().getAbsolutePath() + "image"));
                             IO.deleteFiles(new File(activity.getFilesDir().getAbsolutePath() + File.separator + "newStat" + File.separator + "notUpload"));
                         } else IO.deleteFiles(dexDir);
-                        new File(activity.getExternalFilesDir(null), "Rules.db").delete();
                         XposedBridge.log("anti-confusion accomplished, current version: " + AntiConfusionHelper.getTbVersion(activity));
                         Intent intent = activity.getPackageManager().getLaunchIntentForPackage(activity.getPackageName());
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

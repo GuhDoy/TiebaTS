@@ -27,6 +27,7 @@ public class Purify extends Hook {
             switch (Objects.requireNonNull(map.get("rule"))) {
                 case "\"c/s/splashSchedule\""://旧启动广告
                 case "\"custom_ext_data\""://sdk启动广告：搜索"bes_ad_id"，查找所在方法调用
+                case "Lcom/baidu/tieba/recapp/lego/model/AdCard;-><init>(Lorg/json/JSONObject;)V"://卡片广告
                     XposedBridge.hookAllMethods(XposedHelpers.findClass(map.get("class"), classLoader), map.get("method"), XC_MethodReplacement.returnConstant(null));
                     break;
                 case "\"pic_amount\""://图片广告：必须"recom_ala_info", "app", 可选"goods_info"
@@ -65,7 +66,7 @@ public class Purify extends Hook {
                             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                                 List<?> list = (List<?>) param.args[0];
                                 for (int i = 0; i < list.size(); i++)
-                                    if (Objects.equals(map.get("class"), list.get(i).getClass().getName())) {
+                                    if (list.get(i) != null && Objects.equals(map.get("class"), list.get(i).getClass().getName())) {
                                         list.remove(i);
                                         list.remove(i);
                                         return;
@@ -77,12 +78,6 @@ public class Purify extends Hook {
         }
         //启动广告
         XposedHelpers.findAndHookConstructor("com.baidu.mobads.vo.XAdInstanceInfo", classLoader, JSONObject.class, XC_MethodReplacement.returnConstant(null));
-        //卡片广告
-        XposedHelpers.findAndHookConstructor("com.baidu.tieba.recapp.lego.model.AdCard", classLoader, JSONObject.class, new XC_MethodHook() {
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                param.args[0] = null;
-            }
-        });
         //广告sdk："gdt_plugin.jar", "/api/ad/union/sdk/get_ads/"
         try {
             Method[] funs = classLoader.loadClass("com.fun.ad.sdk.FunAdSdk").getDeclaredMethods();
@@ -91,21 +86,6 @@ public class Purify extends Hook {
                     if (fun.getReturnType().toString().equals("void"))
                         XposedBridge.hookMethod(fun, XC_MethodReplacement.returnConstant(null));
                     else XposedBridge.hookMethod(fun, XC_MethodReplacement.returnConstant(true));
-        } catch (XposedHelpers.ClassNotFoundError ignored) {
-        }
-        //卡片广告
-        XposedHelpers.findAndHookConstructor("com.baidu.tieba.recapp.lego.model.AdCard", classLoader, JSONObject.class, new XC_MethodHook() {
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                param.args[0] = null;
-            }
-        });
-        //新卡片广告(deprecated on 12.0.8.0)
-        try {
-            XposedHelpers.findAndHookConstructor("com.baidu.tieba.recapp.lego.model.CriusAdCard", classLoader, JSONObject.class, new XC_MethodHook() {
-                protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                    param.args[0] = null;
-                }
-            });
         } catch (XposedHelpers.ClassNotFoundError ignored) {
         }
         //帖子直播推荐：在com/baidu/tieba/pb/pb/main/包搜索tbclient/AlaLiveInfo
@@ -157,6 +137,23 @@ public class Purify extends Hook {
         });
         //吧小程序
         XposedBridge.hookAllMethods(XposedHelpers.findClass("com.baidu.tieba.frs.servicearea.ServiceAreaView", classLoader), "setData", XC_MethodReplacement.returnConstant(null));
+        //吧Tab
+        XposedHelpers.findAndHookMethod("tbclient.FrsPage.NavTabInfo$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
+            public void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                Field field = param.thisObject.getClass().getDeclaredField("tab");
+                field.setAccessible(true);
+                List<?> list = (List<?>) field.get(param.thisObject);
+                if (list == null) return;
+                for (int i = 0; i < list.size(); i++) {
+                    Field tabType = list.get(i).getClass().getDeclaredField("tab_type");
+                    tabType.setAccessible(true);
+                    if ((int) tabType.get(list.get(i)) == 92) {
+                        list.remove(i);
+                        return;
+                    }
+                }
+            }
+        });
         //你可能感兴趣的人：initUI
         Method[] concerns = classLoader.loadClass("com.baidu.tieba.homepage.concern.view.ConcernRecommendLayout").getDeclaredMethods();
         for (Method concern : concerns)
