@@ -72,6 +72,13 @@ public class ThreadStore extends Hook {
                                     arrayList.remove(j);
                                     j--;
                                 }
+                                for (int j = 0; j < arrayList.size(); j++) {
+                                    Field mForumName = arrayList.get(j).getClass().getDeclaredField("mForumName");
+                                    mForumName.setAccessible(true);
+                                    Field mAuthorName = arrayList.get(j).getClass().getDeclaredField("mAuthorName");
+                                    mAuthorName.setAccessible(true);
+                                    mAuthorName.set(arrayList.get(j), String.format("%s-%s", mForumName.get(arrayList.get(j)), mAuthorName.get(arrayList.get(j))));
+                                }
                                 return;
                             }
                         }

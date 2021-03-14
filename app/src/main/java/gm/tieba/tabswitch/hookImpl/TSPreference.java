@@ -137,7 +137,7 @@ public class TSPreference extends Hook {
         else preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "增加功能"));
         TSPreferenceHelper.SwitchViewHolder createView = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "进吧增加收藏、历史", "create_view");
         TSPreferenceHelper.SwitchViewHolder saveImages = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "长按下载保存全部图片", "save_images");
-        TSPreferenceHelper.SwitchViewHolder threadStore = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "我的收藏增加搜索", "thread_store");
+        TSPreferenceHelper.SwitchViewHolder threadStore = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "我的收藏增加搜索、吧名", "thread_store");
         TSPreferenceHelper.SwitchViewHolder historyCache = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "浏览历史增加搜索", "history_cache");
         preferenceLayout.addView(createView);
         preferenceLayout.addView(saveImages);
