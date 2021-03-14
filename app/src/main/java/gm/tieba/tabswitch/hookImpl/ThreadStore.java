@@ -58,23 +58,19 @@ public class ThreadStore extends Hook {
                             if (field.get(param.getResult()) instanceof ArrayList) {
                                 ArrayList<?> arrayList = (ArrayList<?>) field.get(param.getResult());
                                 if (arrayList == null) return;
+                                label:
                                 for (int j = 0; j < arrayList.size(); j++) {
                                     // com.baidu.tbadk.baseEditMark.MarkData
                                     Field[] mFields = new Field[]{arrayList.get(j).getClass().getDeclaredField("mTitle"),
                                             arrayList.get(j).getClass().getDeclaredField("mForumName"),
                                             arrayList.get(j).getClass().getDeclaredField("mAuthorName")};
-                                    boolean isRemove = true;
                                     for (Field mField : mFields) {
                                         mField.setAccessible(true);
-                                        if (Pattern.compile(regex).matcher((String) mField.get(arrayList.get(j))).find()) {
-                                            isRemove = false;
-                                            break;
-                                        }
+                                        if (Pattern.compile(regex).matcher((String) mField.get(arrayList.get(j))).find())
+                                            continue label;
                                     }
-                                    if (isRemove) {
-                                        arrayList.remove(j);
-                                        j--;
-                                    }
+                                    arrayList.remove(j);
+                                    j--;
                                 }
                                 return;
                             }

@@ -107,15 +107,18 @@ public class Purify extends Hook {
         //首页不属于任何吧的视频
         XposedHelpers.findAndHookMethod("tbclient.Personalized.DataRes$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
             public void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                Field field = param.thisObject.getClass().getDeclaredField("thread_list");
-                field.setAccessible(true);
-                List<?> list = (List<?>) field.get(param.thisObject);
+                Field threadList = param.thisObject.getClass().getDeclaredField("thread_list");
+                threadList.setAccessible(true);
+                List<?> list = (List<?>) threadList.get(param.thisObject);
                 if (list == null) return;
-                for (int i = 0; i < list.size(); i++)
-                    if (!list.get(i).toString().contains(", forum_info=")) {
+                for (int i = 0; i < list.size(); i++) {
+                    Field forumInfo = list.get(i).getClass().getDeclaredField("forum_info");
+                    forumInfo.setAccessible(true);
+                    if (forumInfo.get(list.get(i)) == null) {
                         list.remove(i);
                         i--;
                     }
+                }
             }
         });
         //欢迎页
@@ -140,9 +143,9 @@ public class Purify extends Hook {
         //吧Tab
         XposedHelpers.findAndHookMethod("tbclient.FrsPage.NavTabInfo$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
             public void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                Field field = param.thisObject.getClass().getDeclaredField("tab");
-                field.setAccessible(true);
-                List<?> list = (List<?>) field.get(param.thisObject);
+                Field tab = param.thisObject.getClass().getDeclaredField("tab");
+                tab.setAccessible(true);
+                List<?> list = (List<?>) tab.get(param.thisObject);
                 if (list == null) return;
                 for (int i = 0; i < list.size(); i++) {
                     Field tabType = list.get(i).getClass().getDeclaredField("tab_type");

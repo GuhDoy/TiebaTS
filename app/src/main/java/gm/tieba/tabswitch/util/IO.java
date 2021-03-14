@@ -63,9 +63,9 @@ public class IO {
         InputStream inputStream = new ByteArrayInputStream(baos.toByteArray());
         byte[] bytes = new byte[6];
         if (inputStream.read(bytes) == -1) throw new IOException();
-        String extension = new String(bytes, StandardCharsets.UTF_8);
-        if (extension.contains("GIF")) return "gif";
-        if (extension.contains("PNG")) return "png";
+        String chunk = new String(bytes, StandardCharsets.UTF_8);
+        if (chunk.contains("GIF")) return "gif";
+        if (chunk.contains("PNG")) return "png";
         return "jpg";
     }
 

@@ -66,22 +66,18 @@ public class HistoryCache extends Hook {
                             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                                 List<?> list = (List<?>) param.args[0];
                                 if (list == null) return;
-                                for (int i = 0; i < list.size(); i++) {
+                                label:
+                                for (int j = 0; j < list.size(); j++) {
                                     // com.baidu.tieba.myCollection.baseHistory.a
-                                    Field[] mFields = new Field[]{list.get(i).getClass().getDeclaredField("forumName"),
-                                            list.get(i).getClass().getDeclaredField("threadName")};
-                                    boolean isRemove = true;
+                                    Field[] mFields = new Field[]{list.get(j).getClass().getDeclaredField("forumName"),
+                                            list.get(j).getClass().getDeclaredField("threadName")};
                                     for (Field mField : mFields) {
                                         mField.setAccessible(true);
-                                        if (Pattern.compile(regex).matcher((String) mField.get(list.get(i))).find()) {
-                                            isRemove = false;
-                                            break;
-                                        }
+                                        if (Pattern.compile(regex).matcher((String) mField.get(list.get(j))).find())
+                                            continue label;
                                     }
-                                    if (isRemove) {
-                                        list.remove(i);
-                                        i--;
-                                    }
+                                    list.remove(j);
+                                    j--;
                                 }
                             }
                         });
