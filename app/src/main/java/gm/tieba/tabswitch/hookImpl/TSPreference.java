@@ -139,10 +139,12 @@ public class TSPreference extends Hook {
         TSPreferenceHelper.SwitchViewHolder saveImages = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "长按下载保存全部图片", "save_images");
         TSPreferenceHelper.SwitchViewHolder threadStore = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "我的收藏增加搜索、吧名", "thread_store");
         TSPreferenceHelper.SwitchViewHolder historyCache = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "浏览历史增加搜索", "history_cache");
+        TSPreferenceHelper.SwitchViewHolder newSub = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "楼层回复增加查看主题贴", "new_sub");
         preferenceLayout.addView(createView);
         preferenceLayout.addView(saveImages);
         preferenceLayout.addView(threadStore);
         preferenceLayout.addView(historyCache);
+        preferenceLayout.addView(newSub);
         if (tsConfig.getBoolean("ze", false))
             preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "垂手可得"));
         else preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "自动化"));

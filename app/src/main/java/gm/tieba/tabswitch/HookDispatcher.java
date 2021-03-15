@@ -24,6 +24,7 @@ import gm.tieba.tabswitch.hookImpl.EyeshieldMode;
 import gm.tieba.tabswitch.hookImpl.FontSize;
 import gm.tieba.tabswitch.hookImpl.HistoryCache;
 import gm.tieba.tabswitch.hookImpl.HomeRecommend;
+import gm.tieba.tabswitch.hookImpl.NewSub;
 import gm.tieba.tabswitch.hookImpl.OriginSrc;
 import gm.tieba.tabswitch.hookImpl.PersonalizedFilter;
 import gm.tieba.tabswitch.hookImpl.Purify;
@@ -115,6 +116,9 @@ public class HookDispatcher extends Hook {
                     break;
                 case "history_cache":
                     if ((Boolean) entry.getValue()) HistoryCache.hook(classLoader);
+                    break;
+                case "new_sub":
+                    if ((Boolean) entry.getValue()) NewSub.hook(classLoader);
                     break;
                 case "auto_sign":
                     if ((Boolean) entry.getValue()) AutoSign.hook(classLoader);
