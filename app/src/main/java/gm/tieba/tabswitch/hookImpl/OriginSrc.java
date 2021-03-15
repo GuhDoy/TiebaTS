@@ -1,6 +1,7 @@
 package gm.tieba.tabswitch.hookImpl;
 
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.Network;
@@ -19,6 +20,7 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.Hook;
 
 public class OriginSrc extends Hook {
+    @SuppressLint("MissingPermission")
     public static void hook(ClassLoader classLoader, Context context) throws Throwable {
         NetworkCallbackImpl networkCallback = new NetworkCallbackImpl(classLoader);
         NetworkRequest.Builder builder = new NetworkRequest.Builder();

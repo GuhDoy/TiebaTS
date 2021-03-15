@@ -94,6 +94,7 @@ public class HistoryCache extends Hook {
         editText.setFocusableInTouchMode(true);
         editText.setTextSize(18);
         editText.requestFocus();
+        editText.setHintTextColor(Hook.modRes.getColor(R.color.colorProgress, null));
         editText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -116,16 +117,12 @@ public class HistoryCache extends Hook {
                     }).setNegativeButton("取消", (dialogInterface, i) -> {
                     }).setPositiveButton("确定", (dialogInterface, i) -> {
                     }).create();
-        else {
-            alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_DARK)
-                    .setTitle("搜索").setView(editText).setCancelable(true)
-                    .setNeutralButton("|", (dialogInterface, i) -> {
-                    }).setNegativeButton("取消", (dialogInterface, i) -> {
-                    }).setPositiveButton("确定", (dialogInterface, i) -> {
-                    }).create();
-            editText.setTextColor(Hook.modRes.getColor(R.color.colorPrimary, null));
-            editText.setHintTextColor(Hook.modRes.getColor(R.color.colorPrimary, null));
-        }
+        else alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_DARK)
+                .setTitle("搜索").setView(editText).setCancelable(true)
+                .setNeutralButton("|", (dialogInterface, i) -> {
+                }).setNegativeButton("取消", (dialogInterface, i) -> {
+                }).setPositiveButton("确定", (dialogInterface, i) -> {
+                }).create();
         alertDialog.show();
         alertDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         alertDialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> {
@@ -140,7 +137,6 @@ public class HistoryCache extends Hook {
         alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             try {
                 Pattern.compile(editText.getText().toString());
-                regex = editText.getText().toString();
                 activity.finish();
                 Intent intent = new Intent().setClassName(activity, "com.baidu.tieba.myCollection.history.PbHistoryActivity");
                 activity.startActivity(intent);

@@ -83,8 +83,8 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
                                 BDUSS = String.valueOf(param.getResult());
                             }
                         });
-                        SharedPreferences tsCache = context.getSharedPreferences("TS_cache", Context.MODE_PRIVATE);
-                        follow = tsCache.getStringSet("follow", null);
+                        SharedPreferences tsConfig = context.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
+                        follow = tsConfig.getStringSet("follow", null);
                         SharedPreferences tsPreference = context.getSharedPreferences("TS_preference", Context.MODE_PRIVATE);
                         preferenceMap = tsPreference.getAll();
                         for (Map.Entry<String, ?> entry : preferenceMap.entrySet())

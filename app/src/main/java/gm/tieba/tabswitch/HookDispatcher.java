@@ -24,6 +24,7 @@ import gm.tieba.tabswitch.hookImpl.EyeshieldMode;
 import gm.tieba.tabswitch.hookImpl.FontSize;
 import gm.tieba.tabswitch.hookImpl.HistoryCache;
 import gm.tieba.tabswitch.hookImpl.HomeRecommend;
+import gm.tieba.tabswitch.hookImpl.MyAttention;
 import gm.tieba.tabswitch.hookImpl.NewSub;
 import gm.tieba.tabswitch.hookImpl.OriginSrc;
 import gm.tieba.tabswitch.hookImpl.PersonalizedFilter;
@@ -108,9 +109,6 @@ public class HookDispatcher extends Hook {
                 case "create_view":
                     if ((Boolean) entry.getValue()) CreateView.hook(classLoader);
                     break;
-                case "save_images":
-                    if ((Boolean) entry.getValue()) SaveImages.hook(classLoader);
-                    break;
                 case "thread_store":
                     if ((Boolean) entry.getValue()) ThreadStore.hook(classLoader);
                     break;
@@ -119,6 +117,12 @@ public class HookDispatcher extends Hook {
                     break;
                 case "new_sub":
                     if ((Boolean) entry.getValue()) NewSub.hook(classLoader);
+                    break;
+                case "save_images":
+                    if ((Boolean) entry.getValue()) SaveImages.hook(classLoader);
+                    break;
+                case "my_attention":
+                    if ((Boolean) entry.getValue()) MyAttention.hook(classLoader, context);
                     break;
                 case "auto_sign":
                     if ((Boolean) entry.getValue()) AutoSign.hook(classLoader);

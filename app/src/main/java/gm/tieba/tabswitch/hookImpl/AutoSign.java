@@ -36,14 +36,11 @@ public class AutoSign extends Hook {
                             String result = main(Hook.BDUSS);
                             Toast.makeText(activity.getApplicationContext(), result, Toast.LENGTH_LONG).show();
                             if (result.endsWith("全部签到成功")) {
-                                SharedPreferences.Editor editConfig = tsConfig.edit();
-                                editConfig.putInt("sign_date", Calendar.getInstance().get(Calendar.DAY_OF_YEAR));
-                                editConfig.apply();
+                                SharedPreferences.Editor editor = tsConfig.edit();
+                                editor.putInt("sign_date", Calendar.getInstance().get(Calendar.DAY_OF_YEAR));
                                 Hook.follow = new HashSet<>(success);
-                                SharedPreferences tsCache = activity.getSharedPreferences("TS_cache", Context.MODE_PRIVATE);
-                                SharedPreferences.Editor editCache = tsCache.edit();
-                                editCache.putStringSet("follow", Hook.follow);
-                                editCache.apply();
+                                editor.putStringSet("follow", Hook.follow);
+                                editor.apply();
                             }
                         }
                         Looper.loop();

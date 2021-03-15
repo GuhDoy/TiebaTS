@@ -136,15 +136,17 @@ public class TSPreference extends Hook {
             preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "别出新意"));
         else preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "增加功能"));
         TSPreferenceHelper.SwitchViewHolder createView = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "进吧增加收藏、历史", "create_view");
-        TSPreferenceHelper.SwitchViewHolder saveImages = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "长按下载保存全部图片", "save_images");
         TSPreferenceHelper.SwitchViewHolder threadStore = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "我的收藏增加搜索、吧名", "thread_store");
         TSPreferenceHelper.SwitchViewHolder historyCache = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "浏览历史增加搜索", "history_cache");
         TSPreferenceHelper.SwitchViewHolder newSub = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "楼层回复增加查看主题贴", "new_sub");
+        TSPreferenceHelper.SwitchViewHolder saveImages = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "长按下载保存全部图片", "save_images");
+        TSPreferenceHelper.SwitchViewHolder myAttention = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "长按关注的人设置备注名", "my_attention");
         preferenceLayout.addView(createView);
-        preferenceLayout.addView(saveImages);
         preferenceLayout.addView(threadStore);
         preferenceLayout.addView(historyCache);
         preferenceLayout.addView(newSub);
+        preferenceLayout.addView(saveImages);
+        preferenceLayout.addView(myAttention);
         if (tsConfig.getBoolean("ze", false))
             preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "垂手可得"));
         else preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "自动化"));
@@ -322,6 +324,7 @@ public class TSPreference extends Hook {
         editText.setFocusableInTouchMode(true);
         editText.setTextSize(18);
         editText.requestFocus();
+        editText.setHintTextColor(Hook.modRes.getColor(R.color.colorProgress, null));
         editText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -344,16 +347,12 @@ public class TSPreference extends Hook {
                     }).setNegativeButton("取消", (dialogInterface, i) -> {
                     }).setPositiveButton("保存", (dialogInterface, i) -> {
                     }).create();
-        else {
-            alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_DARK)
-                    .setTitle(title).setView(editText).setCancelable(true)
-                    .setNeutralButton("|", (dialogInterface, i) -> {
-                    }).setNegativeButton("取消", (dialogInterface, i) -> {
-                    }).setPositiveButton("保存", (dialogInterface, i) -> {
-                    }).create();
-            editText.setTextColor(Hook.modRes.getColor(R.color.colorPrimary, null));
-            editText.setHintTextColor(Hook.modRes.getColor(R.color.colorPrimary, null));
-        }
+        else alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_DARK)
+                .setTitle(title).setView(editText).setCancelable(true)
+                .setNeutralButton("|", (dialogInterface, i) -> {
+                }).setNegativeButton("取消", (dialogInterface, i) -> {
+                }).setPositiveButton("保存", (dialogInterface, i) -> {
+                }).create();
         alertDialog.show();
         alertDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         alertDialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> {

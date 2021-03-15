@@ -156,8 +156,10 @@ public class AntiConfusion extends Hook {
                         } else IO.deleteFiles(dexDir);
                         XposedBridge.log("anti-confusion accomplished, current version: " + AntiConfusionHelper.getTbVersion(activity));
                         Intent intent = activity.getPackageManager().getLaunchIntentForPackage(activity.getPackageName());
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        activity.startActivity(intent);
+                        if (intent != null) {
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            activity.startActivity(intent);
+                        }
                         activity.finishAffinity();
                         System.exit(0);
                     } catch (Throwable throwable) {

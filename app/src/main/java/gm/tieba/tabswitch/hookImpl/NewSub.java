@@ -39,9 +39,8 @@ public class NewSub extends Hook {
                                         Class<?> NavigationBar = classLoader.loadClass("com.baidu.tbadk.core.view.NavigationBar");
                                         TextView textView = (TextView) NavigationBar.getDeclaredMethod("addTextButton", ControlAlign, String.class, View.OnClickListener.class)
                                                 .invoke(mNavigationBar, HORIZONTAL_RIGHT, "查看主题贴", (View.OnClickListener) v -> startPbActivity(activity));
-                                        if (DisplayHelper.isLightMode(activity))
-                                            textView.setTextColor(Color.parseColor("#FF3E3D40"));
-                                        else textView.setTextColor(Color.parseColor("#FFCBCBCC"));
+                                        if (!DisplayHelper.isLightMode(activity))
+                                            textView.setTextColor(Color.parseColor("#FFCBCBCC"));
                                         return;
                                     }
                             }
