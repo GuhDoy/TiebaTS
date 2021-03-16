@@ -12,7 +12,6 @@ import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Objects;
 
@@ -21,6 +20,7 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.Hook;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.util.DisplayHelper;
+import gm.tieba.tabswitch.util.Reflect;
 
 public class MyAttention extends Hook {
     public static void hook(ClassLoader classLoader, Context context) throws Throwable {
@@ -29,35 +29,29 @@ public class MyAttention extends Hook {
             if (Objects.equals(map.get("rule"), "Lcom/baidu/tieba/R$layout;->person_list_item:I"))
                 XposedHelpers.findAndHookMethod(map.get("class"), classLoader, map.get("method"), int.class, View.class, ViewGroup.class, new XC_MethodHook() {
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        Field[] fields = param.thisObject.getClass().getDeclaredFields();
-                        for (Field mField : fields) {
-                            mField.setAccessible(true);
-                            if (mField.get(param.thisObject) != null && mField.get(param.thisObject).getClass().getName().equals("com.baidu.tieba.myAttentionAndFans.PersonListActivity")) {
-                                Activity activity = (Activity) mField.get(param.thisObject);
-                                View root = (View) param.getResult();
-                                View itemView = root.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("item_view").getInt(null));
-                                TextView textView = root.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("name").getInt(null));
-                                View tailContainer = root.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("tail_container").getInt(null));
-                                tailContainer.setTag(textView.getText());
-                                itemView.setOnLongClickListener(v -> {
-                                    showNoteDialog(activity, (String) tailContainer.getTag());
-                                    return false;
-                                });
-                                SharedPreferences tsNotes = activity.getSharedPreferences("TS_notes", Context.MODE_PRIVATE);
-                                if (tsNotes.getString((String) textView.getText(), null) != null)
-                                    textView.setText(String.format("%s(%s)", tsNotes.getString((String) textView.getText(), null), textView.getText()));
-                            }
-                        }
+                        Activity activity = (Activity) Reflect.getObjectField(param.thisObject, "com.baidu.tieba.myAttentionAndFans.PersonListActivity");
+                        View root = (View) param.getResult();
+                        View itemView = root.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("item_view").getInt(null));
+                        TextView textView = root.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("name").getInt(null));
+                        View tailContainer = root.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("tail_container").getInt(null));
+                        tailContainer.setTag(textView.getText());
+                        itemView.setOnLongClickListener(v -> {
+                            showNoteDialog(activity, (String) tailContainer.getTag());
+                            return false;
+                        });
+                        SharedPreferences tsNotes = activity.getSharedPreferences("TS_notes", Context.MODE_PRIVATE);
+                        if (tsNotes.getString((String) textView.getText(), null) != null)
+                            textView.setText(String.format("%s(%s)", tsNotes.getString((String) textView.getText(), null), textView.getText()));
                     }
                 });
         }
         XposedHelpers.findAndHookMethod("tbclient.User$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
-            public void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                Field nameShow = param.thisObject.getClass().getDeclaredField("name_show");
-                nameShow.setAccessible(true);
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 SharedPreferences tsNotes = context.getSharedPreferences("TS_notes", Context.MODE_PRIVATE);
-                if (tsNotes.getString((String) nameShow.get(param.thisObject), null) != null)
-                    nameShow.set(param.thisObject, String.format("%s(%s)", tsNotes.getString((String) nameShow.get(param.thisObject), null), (String) nameShow.get(param.thisObject)));
+                String nameShow = (String) XposedHelpers.getObjectField(param.thisObject, "name_show");
+                if (tsNotes.getString(nameShow, null) != null)
+                    XposedHelpers.setObjectField(param.thisObject, "name_show", String.format("%s(%s)",
+                            tsNotes.getString(nameShow, null), nameShow));
             }
         });
     }
@@ -95,9 +89,7 @@ public class MyAttention extends Hook {
             else editor.putString(key, editText.getText().toString());
             editor.commit();
             activity.finish();
-            Intent intent = new Intent().setClassName(activity, "com.baidu.tieba.myAttentionAndFans.PersonListActivity");
-            intent.putExtra("follow", true);
-            activity.startActivity(intent);
+            activity.startActivity(activity.getIntent());
             alertDialog.dismiss();
         });
     }

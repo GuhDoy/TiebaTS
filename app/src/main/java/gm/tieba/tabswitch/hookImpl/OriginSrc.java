@@ -11,7 +11,6 @@ import android.net.NetworkRequest;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Objects;
 
@@ -62,34 +61,19 @@ public class OriginSrc extends Hook {
                         });
                 }
                 XposedHelpers.findAndHookMethod("tbclient.PbContent$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
-                    public void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                        Field showOriginalBtn = param.thisObject.getClass().getDeclaredField("show_original_btn");
-                        showOriginalBtn.setAccessible(true);
-                        showOriginalBtn.set(param.thisObject, 0);
-                        Field originSrc = param.thisObject.getClass().getDeclaredField("origin_src");
-                        originSrc.setAccessible(true);
-                        Field[] fields = new Field[]{param.thisObject.getClass().getDeclaredField("big_cdn_src"),
-                                param.thisObject.getClass().getDeclaredField("cdn_src"),
-                                param.thisObject.getClass().getDeclaredField("cdn_src_active")};
-                        for (Field mField : fields) {
-                            mField.setAccessible(true);
-                            mField.set(param.thisObject, originSrc.get(param.thisObject));
-                        }
+                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                        XposedHelpers.setIntField(param.thisObject, "show_original_btn", 0);
+                        String[] strings = new String[]{"big_cdn_src", "cdn_src", "cdn_src_active"};
+                        for (String string : strings)
+                            XposedHelpers.setObjectField(param.thisObject, string, XposedHelpers.getObjectField(param.thisObject, "origin_src"));
                     }
                 });
                 XposedHelpers.findAndHookMethod("tbclient.Media$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
-                    public void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                        Field showOriginalBtn = param.thisObject.getClass().getDeclaredField("show_original_btn");
-                        showOriginalBtn.setAccessible(true);
-                        showOriginalBtn.set(param.thisObject, 0);
-                        Field bigPic = param.thisObject.getClass().getDeclaredField("big_pic");
-                        bigPic.setAccessible(true);
-                        Field[] fields = new Field[]{param.thisObject.getClass().getDeclaredField("small_pic"),
-                                param.thisObject.getClass().getDeclaredField("water_pic")};
-                        for (Field mField : fields) {
-                            mField.setAccessible(true);
-                            mField.set(param.thisObject, bigPic.get(param.thisObject));
-                        }
+                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                        XposedHelpers.setIntField(param.thisObject, "show_original_btn", 0);
+                        String[] strings = new String[]{"small_pic", "water_pic"};
+                        for (String string : strings)
+                            XposedHelpers.setObjectField(param.thisObject, string, XposedHelpers.getObjectField(param.thisObject, "big_pic"));
                     }
                 });
             }

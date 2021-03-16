@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Objects;
 
 import bin.zip.ZipEntry;
 import de.robv.android.xposed.XC_MethodHook;
@@ -148,7 +149,7 @@ public class AntiConfusion extends Hook {
                         DexFile.calcSignature(bytes);
                         editor.putInt("signature", Arrays.hashCode(bytes));
                         editor.commit();
-                        if ((Boolean) Hook.preferenceMap.get("clean_dir")) {
+                        if (Objects.equals(Hook.preferenceMap.get("clean_dir"), true)) {
                             IO.deleteFiles(activity.getExternalCacheDir());
                             IO.deleteFiles(activity.getCacheDir());
                             IO.deleteFiles(new File(activity.getCacheDir().getAbsolutePath() + "image"));

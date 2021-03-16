@@ -2,7 +2,6 @@ package gm.tieba.tabswitch.hookImpl;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -61,24 +60,18 @@ public class ThreadStore extends Hook {
                                 label:
                                 for (int j = 0; j < arrayList.size(); j++) {
                                     // com.baidu.tbadk.baseEditMark.MarkData
-                                    Field[] mFields = new Field[]{arrayList.get(j).getClass().getDeclaredField("mTitle"),
-                                            arrayList.get(j).getClass().getDeclaredField("mForumName"),
-                                            arrayList.get(j).getClass().getDeclaredField("mAuthorName")};
-                                    for (Field mField : mFields) {
-                                        mField.setAccessible(true);
-                                        if (Pattern.compile(regex).matcher((String) mField.get(arrayList.get(j))).find())
+                                    String[] strings = new String[]{(String) XposedHelpers.getObjectField(arrayList.get(j), "mTitle"),
+                                            (String) XposedHelpers.getObjectField(arrayList.get(j), "mForumName"),
+                                            (String) XposedHelpers.getObjectField(arrayList.get(j), "mAuthorName")};
+                                    for (String string : strings)
+                                        if (Pattern.compile(regex).matcher(string).find())
                                             continue label;
-                                    }
                                     arrayList.remove(j);
                                     j--;
                                 }
-                                for (int j = 0; j < arrayList.size(); j++) {
-                                    Field mForumName = arrayList.get(j).getClass().getDeclaredField("mForumName");
-                                    mForumName.setAccessible(true);
-                                    Field mAuthorName = arrayList.get(j).getClass().getDeclaredField("mAuthorName");
-                                    mAuthorName.setAccessible(true);
-                                    mAuthorName.set(arrayList.get(j), String.format("%s-%s", mForumName.get(arrayList.get(j)), mAuthorName.get(arrayList.get(j))));
-                                }
+                                for (int j = 0; j < arrayList.size(); j++)
+                                    XposedHelpers.setObjectField(arrayList.get(j), "mAuthorName", String.format("%s-%s",
+                                            XposedHelpers.getObjectField(arrayList.get(j), "mForumName"), XposedHelpers.getObjectField(arrayList.get(j), "mAuthorName")));
                                 return;
                             }
                         }
@@ -140,8 +133,7 @@ public class ThreadStore extends Hook {
             try {
                 Pattern.compile(editText.getText().toString());
                 activity.finish();
-                Intent intent = new Intent().setClassName(activity, "com.baidu.tieba.myCollection.CollectTabActivity");
-                activity.startActivity(intent);
+                activity.startActivity(activity.getIntent());
                 alertDialog.dismiss();
             } catch (PatternSyntaxException e) {
                 Toast.makeText(activity, Log.getStackTraceString(e), Toast.LENGTH_SHORT).show();

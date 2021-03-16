@@ -25,6 +25,32 @@ import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.util.DisplayHelper;
 
 class TSPreferenceHelper extends Hook {
+    static class PreferenceLayout {
+        public List<SwitchViewHolder> switches;
+        private LinearLayout linearLayout;
+
+        PreferenceLayout(Activity activity) {
+            linearLayout = new LinearLayout(activity);
+            linearLayout.setOrientation(LinearLayout.VERTICAL);
+            linearLayout.setPadding(30, 0, 30, 0);
+            switches = new ArrayList<>();
+        }
+
+        void addView(Object view) {
+            if (view instanceof View) linearLayout.addView((View) view);
+            else {
+                linearLayout.addView(((SwitchViewHolder) view).newSwitch);
+                switches.add((SwitchViewHolder) view);
+            }
+        }
+
+        ScrollView getPreferenceLayout() {
+            ScrollView scrollView = new ScrollView(linearLayout.getContext());
+            scrollView.addView(linearLayout);
+            return scrollView;
+        }
+    }
+
     static TextView generateTextView(Activity activity, String text) {
         TextView textView = new TextView(activity);
         textView.setText(text);
@@ -62,41 +88,17 @@ class TSPreferenceHelper extends Hook {
         return null;
     }
 
-    static class PreferenceLayout {
-        public List<SwitchViewHolder> switches;
-        private LinearLayout linearLayout;
-
-        PreferenceLayout(Activity activity) {
-            linearLayout = new LinearLayout(activity);
-            linearLayout.setOrientation(LinearLayout.VERTICAL);
-            linearLayout.setPadding(30, 0, 30, 0);
-            switches = new ArrayList<>();
-        }
-
-        void addView(Object view) {
-            if (view instanceof View) linearLayout.addView((View) view);
-            else {
-                linearLayout.addView(((SwitchViewHolder) view).newSwitch);
-                switches.add((SwitchViewHolder) view);
-            }
-        }
-
-        ScrollView getScrollView(Activity activity) {
-            ScrollView scrollView = new ScrollView(activity);
-            scrollView.addView(linearLayout);
-            return scrollView;
-        }
-    }
-
     static class SwitchViewHolder {
+        public String text;
         public String key;
         public LinearLayout newSwitch;
         public View bdSwitchView;
         private ClassLoader classLoader;
 
         SwitchViewHolder(ClassLoader classLoader, Activity activity, String text, String key) {
-            this.classLoader = classLoader;
+            this.text = text;
             this.key = key;
+            this.classLoader = classLoader;
             try {
                 Class<?> BdSwitchView = classLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView");
                 bdSwitchView = (View) BdSwitchView.getConstructor(Context.class).newInstance(activity);
@@ -105,7 +107,6 @@ class TSPreferenceHelper extends Hook {
                 newSwitch.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("arrow2").getInt(null)).setVisibility(View.GONE);
                 newSwitch.addView(bdSwitchView);
                 SharedPreferences tsPreference = activity.getSharedPreferences("TS_preference", Context.MODE_PRIVATE);
-                if (!text.startsWith("过滤")) newSwitch.setTag("boolean");
                 if (!text.startsWith("过滤") && tsPreference.getBoolean(key, false) ||
                         text.startsWith("过滤") && tsPreference.getString(key, null) != null)
                     turnOn();

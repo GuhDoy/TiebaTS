@@ -1,30 +1,43 @@
 package gm.tieba.tabswitch.hookImpl;
 
 
-import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.Hook;
-import gm.tieba.tabswitch.util.TbProtoParser;
+import gm.tieba.tabswitch.util.Reflect;
 
 public class ContentFilter extends Hook {
+    private static final List<Object> idList = new ArrayList<>();
+
     public static void hook(ClassLoader classLoader, String contentFilter) throws Throwable {
         XposedHelpers.findAndHookMethod("tbclient.PbPage.DataRes$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
-            public void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                Field postList = param.thisObject.getClass().getDeclaredField("post_list");
-                postList.setAccessible(true);
-                List<?> posts = (List<?>) postList.get(param.thisObject);
-                if (posts == null) return;
-                for (int i = 0; i < posts.size(); i++) {
-                    Field floor = posts.get(i).getClass().getDeclaredField("floor");
-                    floor.setAccessible(true);
-                    if ((int) floor.get(posts.get(i)) == 1) continue;
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                List<?> postList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "post_list");
+                if (postList == null) return;
+                List<?> userList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "user_list");
+                for (int i = 0; i < userList.size(); i++) {
+                    String[] authors = new String[]{(String) XposedHelpers.getObjectField(userList.get(i), "name"),
+                            (String) XposedHelpers.getObjectField(userList.get(i), "name_show")};
+                    for (String string : authors)
+                        if (Pattern.compile(contentFilter).matcher(string).find()) {
+                            idList.add(XposedHelpers.getObjectField(userList.get(i), "id"));
+                            break;
+                        }
+                }
 
-                    if (Pattern.compile(contentFilter).matcher(TbProtoParser.pbContentParser(posts.get(i), "content")).find()) {
-                        posts.remove(i);
+                for (int i = 0; i < postList.size(); i++) {
+                    if ((int) XposedHelpers.getObjectField(postList.get(i), "floor") == 1) continue;
+                    if (Pattern.compile(contentFilter).matcher(Reflect.pbContentParser(postList.get(i), "content")).find()) {
+                        postList.remove(i);
+                        i--;
+                        continue;
+                    }
+                    if (idList.contains(XposedHelpers.getObjectField(postList.get(i), "author_id"))) {
+                        postList.remove(i);
                         i--;
                     }
                 }
@@ -32,43 +45,43 @@ public class ContentFilter extends Hook {
         });
         //楼中楼：[\u202e|\ud83c\udd10-\ud83c\udd89]
         XposedHelpers.findAndHookMethod("tbclient.SubPost$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
-            public void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                Field subPostList = param.thisObject.getClass().getDeclaredField("sub_post_list");
-                subPostList.setAccessible(true);
-                List<?> subPostLists = (List<?>) subPostList.get(param.thisObject);
-                if (subPostLists == null) return;
-                for (int i = 0; i < subPostLists.size(); i++)
-                    if (Pattern.compile(contentFilter).matcher(TbProtoParser.pbContentParser(subPostLists.get(i), "content")).find()) {
-                        subPostLists.remove(i);
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                List<?> subPostList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "sub_post_list");
+                if (subPostList == null) return;
+                for (int i = 0; i < subPostList.size(); i++) {
+                    if (Pattern.compile(contentFilter).matcher(Reflect.pbContentParser(subPostList.get(i), "content")).find()) {
+                        subPostList.remove(i);
+                        i--;
+                        continue;
+                    }
+                    if (idList.contains(XposedHelpers.getObjectField(subPostList.get(i), "author_id"))) {
+                        subPostList.remove(i);
                         i--;
                     }
+                }
             }
         });
         //楼层回复
         XposedHelpers.findAndHookMethod("tbclient.PbFloor.DataRes$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
-            public void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                Field subpostList = param.thisObject.getClass().getDeclaredField("subpost_list");
-                subpostList.setAccessible(true);
-                List<?> subPostLists = (List<?>) subpostList.get(param.thisObject);
-                if (subPostLists == null) return;
-                for (int i = 0; i < subPostLists.size(); i++) {
-                    if (Pattern.compile(contentFilter).matcher(TbProtoParser.pbContentParser(subPostLists.get(i), "content")).find()) {
-                        subPostLists.remove(i);
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                List<?> subpostList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "subpost_list");
+                if (subpostList == null) return;
+                for (int i = 0; i < subpostList.size(); i++) {
+                    if (Pattern.compile(contentFilter).matcher(Reflect.pbContentParser(subpostList.get(i), "content")).find()) {
+                        subpostList.remove(i);
                         i--;
                         continue;
                     }
 
-                    Field author = subPostLists.get(i).getClass().getDeclaredField("author");
-                    author.setAccessible(true);
-                    Field[] mFields = new Field[]{author.get(subPostLists.get(i)).getClass().getDeclaredField("name"),
-                            author.get(subPostLists.get(i)).getClass().getDeclaredField("name_show")};
-                    for (Field mField : mFields) {
-                        mField.setAccessible(true);
-                        if (Pattern.compile(contentFilter).matcher((String) mField.get(author.get(subPostLists.get(i)))).find()) {
-                            subPostLists.remove(i);
+                    Object author = XposedHelpers.getObjectField(subpostList.get(i), "author");
+                    String[] authors = new String[]{(String) XposedHelpers.getObjectField(author, "name"),
+                            (String) XposedHelpers.getObjectField(author, "name_show")};
+                    for (String string : authors)
+                        if (Pattern.compile(contentFilter).matcher(string).find()) {
+                            subpostList.remove(i);
                             i--;
+                            break;
                         }
-                    }
                 }
             }
         });

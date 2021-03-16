@@ -61,8 +61,14 @@ public class Purify extends Hook {
                     });
                     break;
                 case "Lcom/baidu/tieba/R$layout;->pb_child_title:I"://视频相关推荐
-                    if (!Objects.equals(map.get("class"), "com.baidu.tieba.pb.videopb.fragment.DetailInfoAndReplyFragment"))
-                        XposedHelpers.findAndHookMethod("com.baidu.adp.widget.ListView.BdTypeRecyclerView", classLoader, "addAdapters", List.class, new XC_MethodHook() {
+                    if (!Objects.equals(map.get("class"), "com.baidu.tieba.pb.videopb.fragment.DetailInfoAndReplyFragment")) {
+                        Method method;
+                        try {
+                            method = classLoader.loadClass("com.baidu.adp.widget.ListView.BdTypeRecyclerView").getDeclaredMethod("addAdapters", List.class);
+                        } catch (NoSuchMethodException e) {
+                            method = classLoader.loadClass("com.baidu.adp.widget.ListView.BdTypeRecyclerView").getDeclaredMethod("a", List.class);
+                        }
+                        XposedBridge.hookMethod(method, new XC_MethodHook() {
                             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                                 List<?> list = (List<?>) param.args[0];
                                 for (int i = 0; i < list.size(); i++)
@@ -73,6 +79,7 @@ public class Purify extends Hook {
                                     }
                             }
                         });
+                    }
                     break;
             }
         }
@@ -90,10 +97,8 @@ public class Purify extends Hook {
         }
         //帖子直播推荐：在com/baidu/tieba/pb/pb/main/包搜索tbclient/AlaLiveInfo
         XposedHelpers.findAndHookMethod("tbclient.AlaLiveInfo$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
-            public void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                Field field = param.thisObject.getClass().getDeclaredField("user_info");
-                field.setAccessible(true);
-                field.set(param.thisObject, null);
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                XposedHelpers.setObjectField(param.thisObject, "user_info", null);
             }
         });
         //首页直播推荐卡片：搜索card_home_page_ala_live_item_new，会有两个结果，查找后一个结果所在类构造函数调用
@@ -106,19 +111,14 @@ public class Purify extends Hook {
         }
         //首页不属于任何吧的视频
         XposedHelpers.findAndHookMethod("tbclient.Personalized.DataRes$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
-            public void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                Field threadList = param.thisObject.getClass().getDeclaredField("thread_list");
-                threadList.setAccessible(true);
-                List<?> list = (List<?>) threadList.get(param.thisObject);
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                List<?> list = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");
                 if (list == null) return;
-                for (int i = 0; i < list.size(); i++) {
-                    Field forumInfo = list.get(i).getClass().getDeclaredField("forum_info");
-                    forumInfo.setAccessible(true);
-                    if (forumInfo.get(list.get(i)) == null) {
+                for (int i = 0; i < list.size(); i++)
+                    if (XposedHelpers.getObjectField(list.get(i), "forum_info") == null) {
                         list.remove(i);
                         i--;
                     }
-                }
             }
         });
         //欢迎页
@@ -142,19 +142,14 @@ public class Purify extends Hook {
         XposedBridge.hookAllMethods(XposedHelpers.findClass("com.baidu.tieba.frs.servicearea.ServiceAreaView", classLoader), "setData", XC_MethodReplacement.returnConstant(null));
         //吧Tab
         XposedHelpers.findAndHookMethod("tbclient.FrsPage.NavTabInfo$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
-            public void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                Field tab = param.thisObject.getClass().getDeclaredField("tab");
-                tab.setAccessible(true);
-                List<?> list = (List<?>) tab.get(param.thisObject);
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                List<?> list = (List<?>) XposedHelpers.getObjectField(param.thisObject, "tab");
                 if (list == null) return;
-                for (int i = 0; i < list.size(); i++) {
-                    Field tabType = list.get(i).getClass().getDeclaredField("tab_type");
-                    tabType.setAccessible(true);
-                    if ((int) tabType.get(list.get(i)) == 92) {
+                for (int i = 0; i < list.size(); i++)
+                    if (XposedHelpers.getIntField(list.get(i), "tab_type") == 92) {
                         list.remove(i);
                         return;
                     }
-                }
             }
         });
         //你可能感兴趣的人：initUI

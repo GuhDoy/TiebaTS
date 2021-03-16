@@ -52,8 +52,6 @@ public class AntiConfusionHelper extends Hook {
         list.add("Lcom/baidu/tieba/R$id;->navigationBarGoSignall:I");
         //ThreadStore
         list.add("\"c/f/post/threadstore\"");
-        //HistoryCache
-        list.add("Lcom/baidu/tbadk/core/view/NoDataView;->setButtonOption(Lcom/baidu/tbadk/core/view/NoDataViewFactory$");
         //NewSub
         list.add("Lcom/baidu/tieba/R$id;->subpb_head_user_info_root:I");
         //MyAttention

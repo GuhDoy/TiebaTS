@@ -48,14 +48,11 @@ public class PurifyEnter extends Hook {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 Activity activity = (Activity) param.thisObject;
-                Method method = null;
+                Method method;
                 try {
                     method = classLoader.loadClass("com.baidu.card.view.RecommendForumLayout").getDeclaredMethod("initUI");
                 } catch (NoSuchMethodException e) {
-                    Method[] methods = classLoader.loadClass("com.baidu.card.view.RecommendForumLayout").getDeclaredMethods();
-                    for (Method md : methods)
-                        if (md.getName().equals("a"))
-                            method = md;
+                    method = classLoader.loadClass("com.baidu.card.view.RecommendForumLayout").getDeclaredMethod("b");
                 }
                 XposedBridge.hookMethod(method, new XC_MethodHook() {
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {

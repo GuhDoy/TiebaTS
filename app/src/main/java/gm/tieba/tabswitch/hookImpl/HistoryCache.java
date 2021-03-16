@@ -2,7 +2,6 @@ package gm.tieba.tabswitch.hookImpl;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
@@ -14,13 +13,9 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -30,6 +25,7 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.Hook;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.util.DisplayHelper;
+import gm.tieba.tabswitch.util.Reflect;
 
 public class HistoryCache extends Hook {
     private static String regex = "";
@@ -38,9 +34,7 @@ public class HistoryCache extends Hook {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.myCollection.history.PbHistoryActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 Activity activity = (Activity) param.thisObject;
-                Field field = param.thisObject.getClass().getDeclaredField("mNavigationBar");
-                field.setAccessible(true);
-                Object mNavigationBar = field.get(param.thisObject);
+                Object mNavigationBar = Reflect.getObjectField(param.thisObject, "com.baidu.tbadk.core.view.NavigationBar");
                 Class<?> ControlAlign = classLoader.loadClass("com.baidu.tbadk.core.view.NavigationBar$ControlAlign");
                 Object[] enums = ControlAlign.getEnumConstants();
                 for (Object HORIZONTAL_RIGHT : enums)
@@ -55,34 +49,32 @@ public class HistoryCache extends Hook {
                     }
             }
         });
-        for (int i = 0; i < ruleMapList.size(); i++) {
-            Map<String, String> map = ruleMapList.get(i);
-            if (Objects.equals(map.get("rule"), "Lcom/baidu/tbadk/core/view/NoDataView;->setButtonOption(Lcom/baidu/tbadk/core/view/NoDataViewFactory$")
-                    && !Objects.equals(map.get("class"), "com.baidu.tbadk.core.view.NoDataView")) {
-                Method[] methods = classLoader.loadClass(map.get("class")).getDeclaredMethods();
-                for (Method method : methods)
-                    if (Modifier.toString(method.getModifiers()).equals("protected") && Arrays.toString(method.getParameterTypes()).equals("[interface java.util.List]"))
-                        XposedBridge.hookMethod(method, new XC_MethodHook() {
-                            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                                List<?> list = (List<?>) param.args[0];
-                                if (list == null) return;
-                                label:
-                                for (int j = 0; j < list.size(); j++) {
-                                    // com.baidu.tieba.myCollection.baseHistory.a
-                                    Field[] mFields = new Field[]{list.get(j).getClass().getDeclaredField("forumName"),
-                                            list.get(j).getClass().getDeclaredField("threadName")};
-                                    for (Field mField : mFields) {
-                                        mField.setAccessible(true);
-                                        if (Pattern.compile(regex).matcher((String) mField.get(list.get(j))).find())
-                                            continue label;
-                                    }
-                                    list.remove(j);
-                                    j--;
-                                }
+        Method[] methods = classLoader.loadClass("com.baidu.tieba.myCollection.history.PbHistoryActivity").getDeclaredMethods();
+        for (Method method : methods)
+            if (Arrays.toString(method.getParameterTypes()).equals("[interface java.util.List]"))
+                XposedBridge.hookMethod(method, new XC_MethodHook() {
+                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                        List<?> list = (List<?>) param.args[0];
+                        if (list == null) return;
+                        label:
+                        for (int j = 0; j < list.size(); j++) {
+                            String[] strings;
+                            try {
+                                // com.baidu.tieba.myCollection.baseHistory.a
+                                strings = new String[]{(String) XposedHelpers.getObjectField(list.get(j), "forumName"),
+                                        (String) XposedHelpers.getObjectField(list.get(j), "threadName")};
+                            } catch (NoSuchFieldError e) {
+                                strings = new String[]{(String) XposedHelpers.getObjectField(list.get(j), "g"),
+                                        (String) XposedHelpers.getObjectField(list.get(j), "f")};
                             }
-                        });
-            }
-        }
+                            for (String string : strings)
+                                if (Pattern.compile(regex).matcher(string).find())
+                                    continue label;
+                            list.remove(j);
+                            j--;
+                        }
+                    }
+                });
     }
 
     private static void showRegexDialog(Activity activity) {
@@ -138,8 +130,7 @@ public class HistoryCache extends Hook {
             try {
                 Pattern.compile(editText.getText().toString());
                 activity.finish();
-                Intent intent = new Intent().setClassName(activity, "com.baidu.tieba.myCollection.history.PbHistoryActivity");
-                activity.startActivity(intent);
+                activity.startActivity(activity.getIntent());
                 alertDialog.dismiss();
             } catch (PatternSyntaxException e) {
                 Toast.makeText(activity, Log.getStackTraceString(e), Toast.LENGTH_SHORT).show();
