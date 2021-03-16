@@ -5,13 +5,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Looper;
 import android.view.View;
+import android.widget.Toast;
 
-import java.lang.reflect.Field;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
@@ -79,17 +81,17 @@ public class HookDispatcher extends Hook {
                     if (!(Boolean) entry.getValue()) break;
                     XposedHelpers.findAndHookMethod("tbclient.Personalized.DataRes$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
                         public void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                            if (Hook.follow == null) return;
-                            Field threadList = param.thisObject.getClass().getDeclaredField("thread_list");
-                            threadList.setAccessible(true);
-                            List<?> list = (List<?>) threadList.get(param.thisObject);
+                            if (Hook.follow == null) {
+                                Looper.prepare();
+                                Toast.makeText(context, "暂未获取到关注列表", Toast.LENGTH_LONG).show();
+                                Looper.loop();
+                            }
+                            List<?> list = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");
                             if (list == null) return;
                             label:
                             for (int i = 0; i < list.size(); i++) {
-                                Field fname = list.get(i).getClass().getDeclaredField("fname");
-                                fname.setAccessible(true);
                                 for (String pb : Hook.follow)
-                                    if (fname.get(list.get(i)).equals(pb))
+                                    if (Objects.equals(XposedHelpers.getObjectField(list.get(i), "fname"), pb))
                                         continue label;
                                 list.remove(i);
                                 i--;
@@ -168,11 +170,7 @@ public class HookDispatcher extends Hook {
                     if (!(Boolean) entry.getValue()) break;
                     XposedHelpers.findAndHookMethod("tbclient.Agree$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
                         public void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                            Field diffAgreeNum = param.thisObject.getClass().getDeclaredField("diff_agree_num");
-                            diffAgreeNum.setAccessible(true);
-                            Field agreeNum = param.thisObject.getClass().getDeclaredField("agree_num");
-                            agreeNum.setAccessible(true);
-                            agreeNum.set(param.thisObject, diffAgreeNum.get(param.thisObject));
+                            XposedHelpers.setObjectField(param.thisObject, "agree_num", XposedHelpers.getObjectField(param.thisObject, "diff_agree_num"));
                         }
                     });
                     break;
@@ -180,18 +178,13 @@ public class HookDispatcher extends Hook {
                     if (!(Boolean) entry.getValue()) break;
                     XposedHelpers.findAndHookMethod("tbclient.FrsPage.NavTabInfo$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
                         public void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                            Field tab = param.thisObject.getClass().getDeclaredField("tab");
-                            tab.setAccessible(true);
-                            List<?> list = (List<?>) tab.get(param.thisObject);
+                            List<?> list = (List<?>) XposedHelpers.getObjectField(param.thisObject, "tab");
                             if (list == null) return;
-                            for (int i = 0; i < list.size(); i++) {
-                                Field tabType = list.get(i).getClass().getDeclaredField("tab_type");
-                                tabType.setAccessible(true);
-                                if ((int) tabType.get(list.get(i)) == 13) {
+                            for (int i = 0; i < list.size(); i++)
+                                if ((int) XposedHelpers.getObjectField(list.get(i), "tab_type") == 13) {
                                     Collections.swap(list, i, i + 1);
                                     return;
                                 }
-                            }
                         }
                     });
                     break;

@@ -140,13 +140,13 @@ public class Purify extends Hook {
         });
         //吧小程序
         XposedBridge.hookAllMethods(XposedHelpers.findClass("com.baidu.tieba.frs.servicearea.ServiceAreaView", classLoader), "setData", XC_MethodReplacement.returnConstant(null));
-        //吧Tab
+        //吧友直播
         XposedHelpers.findAndHookMethod("tbclient.FrsPage.NavTabInfo$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 List<?> list = (List<?>) XposedHelpers.getObjectField(param.thisObject, "tab");
                 if (list == null) return;
                 for (int i = 0; i < list.size(); i++)
-                    if (XposedHelpers.getIntField(list.get(i), "tab_type") == 92) {
+                    if ((int) XposedHelpers.getObjectField(list.get(i), "tab_type") == 92) {
                         list.remove(i);
                         return;
                     }
