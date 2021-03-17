@@ -16,7 +16,8 @@ import gm.tieba.tabswitch.util.DisplayHelper;
 import gm.tieba.tabswitch.util.Reflect;
 
 public class NewSub extends Hook {
-    private static Object currentId;
+    private static Object threadId;
+    private static Object postId;
 
     public static void hook(ClassLoader classLoader) throws Throwable {
         for (int i = 0; i < ruleMapList.size(); i++) {
@@ -43,7 +44,9 @@ public class NewSub extends Hook {
         XposedHelpers.findAndHookMethod("tbclient.PbFloor.DataRes$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 Object thread = XposedHelpers.getObjectField(param.thisObject, "thread");
-                currentId = XposedHelpers.getObjectField(thread, "id");
+                threadId = XposedHelpers.getObjectField(thread, "id");
+                Object post = XposedHelpers.getObjectField(param.thisObject, "post");
+                postId = XposedHelpers.getObjectField(post, "id");
             }
         });
     }
@@ -51,7 +54,8 @@ public class NewSub extends Hook {
     //"com.baidu.tieba.pb.pb.main.PbModel", "initWithIntent"
     private static void startPbActivity(Activity activity) {
         Intent intent = new Intent().setClassName(activity, "com.baidu.tieba.pb.pb.main.PbActivity");
-        intent.putExtra("thread_id", String.valueOf(currentId));
+        intent.putExtra("thread_id", String.valueOf(threadId));
+        intent.putExtra("post_id", String.valueOf(postId));
         activity.startActivity(intent);
     }
 }

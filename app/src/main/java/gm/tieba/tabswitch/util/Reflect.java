@@ -14,10 +14,10 @@ public class Reflect {
             if (field.get(instance) != null && Objects.equals(field.get(instance).getClass().getName(), className))
                 return field.get(instance);
         }
-        return null;
+        throw new NullPointerException(className + " field not found");
     }
 
-    public static String pbContentParser(Object instance, String fieldName) throws Throwable {
+    public static String pbContentParser(Object instance, String fieldName) {
         List<?> contents = (List<?>) XposedHelpers.getObjectField(instance, fieldName);
         StringBuilder pbContent = new StringBuilder();
         for (int i = 0; i < contents.size(); i++)

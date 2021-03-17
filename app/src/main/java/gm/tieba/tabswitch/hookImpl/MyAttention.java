@@ -2,20 +2,21 @@ package gm.tieba.tabswitch.hookImpl;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.Map;
 import java.util.Objects;
 
 import de.robv.android.xposed.XC_MethodHook;
+import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.Hook;
 import gm.tieba.tabswitch.R;
@@ -36,7 +37,7 @@ public class MyAttention extends Hook {
                         View tailContainer = root.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("tail_container").getInt(null));
                         tailContainer.setTag(textView.getText());
                         itemView.setOnLongClickListener(v -> {
-                            showNoteDialog(activity, (String) tailContainer.getTag());
+                            showNoteDialog(classLoader, activity, (String) tailContainer.getTag());
                             return false;
                         });
                         SharedPreferences tsNotes = activity.getSharedPreferences("TS_notes", Context.MODE_PRIVATE);
@@ -57,7 +58,7 @@ public class MyAttention extends Hook {
     }
 
     @SuppressLint("ApplySharedPref")
-    private static void showNoteDialog(Activity activity, String key) {
+    private static void showNoteDialog(ClassLoader classLoader, Activity activity, String key) {
         SharedPreferences tsNotes = activity.getSharedPreferences("TS_notes", Context.MODE_PRIVATE);
         EditText editText = new EditText(activity);
         editText.setHint(key);
@@ -69,28 +70,27 @@ public class MyAttention extends Hook {
         editText.setTextSize(18);
         editText.requestFocus();
         editText.setHintTextColor(Hook.modRes.getColor(R.color.colorProgress, null));
-        AlertDialog alertDialog;
-        if (DisplayHelper.isLightMode(activity))
-            alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
-                    .setTitle("备注").setView(editText).setCancelable(true)
-                    .setNegativeButton("取消", (dialogInterface, i) -> {
-                    }).setPositiveButton("确定", (dialogInterface, i) -> {
-                    }).create();
-        else alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_DARK)
-                .setTitle("备注").setView(editText).setCancelable(true)
-                .setNegativeButton("取消", (dialogInterface, i) -> {
-                }).setPositiveButton("确定", (dialogInterface, i) -> {
-                }).create();
-        alertDialog.show();
-        alertDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
-        alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+        if (!DisplayHelper.isLightMode(activity))
+            editText.setTextColor(modRes.getColor(R.color.colorPrimary, null));
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        editText.setLayoutParams(layoutParams);
+        try {
+            editText.setBackgroundResource(classLoader.loadClass("com.baidu.tieba.R$drawable").getField("blue_rectangle_input_bg").getInt(null));
+        } catch (Throwable throwable) {
+            XposedBridge.log(throwable);
+        }
+        TSPreferenceHelper.TbDialogBuilder bdalert = new TSPreferenceHelper.TbDialogBuilder(classLoader, activity, null, null, editText);
+        bdalert.setOnNoButtonClickListener(v -> bdalert.dismiss());
+        bdalert.setOnYesButtonClickListener(v -> {
             SharedPreferences.Editor editor = tsNotes.edit();
-            if ("".equals(editText.getText().toString())) editor.putString(key, null);
+            if (TextUtils.isEmpty(editText.getText())) editor.putString(key, null);
             else editor.putString(key, editText.getText().toString());
             editor.commit();
             activity.finish();
             activity.startActivity(activity.getIntent());
-            alertDialog.dismiss();
+            bdalert.dismiss();
         });
+        bdalert.show();
+        bdalert.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
     }
 }

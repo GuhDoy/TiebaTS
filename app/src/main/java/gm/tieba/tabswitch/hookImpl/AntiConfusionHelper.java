@@ -60,6 +60,8 @@ public class AntiConfusionHelper extends Hook {
         list.add("0x4197d783fc000000L");
         //FontSize
         list.add("Lcom/baidu/tieba/R$id;->new_pb_list:I");
+        //TSPreferenceHelper
+        list.add("Lcom/baidu/tieba/R$layout;->dialog_bdalert:I");
     }
 
     public static List<String> getLostList() {

@@ -12,6 +12,7 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
@@ -60,9 +61,7 @@ public class TSPreference extends Hook {
                 Activity activity = (Activity) param.thisObject;
                 FrameLayout browseSetting = activity.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("browseSetting").getInt(null));
                 LinearLayout parent = (LinearLayout) browseSetting.getParent();
-                LinearLayout TSPreferenceButton = TSPreferenceHelper.generateButton(classLoader, activity, "贴吧TS设置", null);
-                parent.addView(TSPreferenceButton, 11);
-                TSPreferenceButton.setOnClickListener(v -> showTSPreferenceDialog(classLoader, activity));
+                parent.addView(TSPreferenceHelper.generateButton(classLoader, activity, "贴吧TS设置", null, v -> showTSPreferenceDialog(classLoader, activity)), 11);
             }
         });
         XposedHelpers.findAndHookMethod(Dialog.class, "dismissDialog", new XC_MethodHook() {
@@ -110,9 +109,7 @@ public class TSPreference extends Hook {
         if (tsConfig.getBoolean("ze", false))
             preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "轻车简从"));
         else preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "净化界面"));
-        LinearLayout modifyTab = TSPreferenceHelper.generateButton(classLoader, activity, "修改底栏", null);
-        modifyTab.setOnClickListener(v -> showModifyTabDialog(classLoader, activity));
-        preferenceLayout.addView(modifyTab);
+        preferenceLayout.addView(TSPreferenceHelper.generateButton(classLoader, activity, "修改底栏", null, v -> showModifyTabDialog(classLoader, activity)));
         if (tsConfig.getBoolean("ze", false))
             preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "真正的净化界面", "purify"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "净化进吧", "purify_enter"));
@@ -121,11 +118,11 @@ public class TSPreference extends Hook {
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "只推荐已关注的吧", "follow_filter"));
         TSPreferenceHelper.SwitchViewHolder personalizedFilter = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "过滤首页推荐", "personalized_filter");
         personalizedFilter.newSwitch.setOnClickListener(v -> showRegexDialog(personalizedFilter));
-        personalizedFilter.bdSwitchView.setOnTouchListener((v, event) -> false);
+        personalizedFilter.bdSwitch.setOnTouchListener((v, event) -> false);
         preferenceLayout.addView(personalizedFilter);
         TSPreferenceHelper.SwitchViewHolder contentFilter = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "过滤帖子回复", "content_filter");
         contentFilter.newSwitch.setOnClickListener(v -> showRegexDialog(contentFilter));
-        contentFilter.bdSwitchView.setOnTouchListener((v, event) -> false);
+        contentFilter.bdSwitch.setOnTouchListener((v, event) -> false);
         preferenceLayout.addView(contentFilter);
         if (tsConfig.getBoolean("ze", false))
             preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "别出新意"));
@@ -153,7 +150,7 @@ public class TSPreference extends Hook {
                         }).create();
                 alertDialog.show();
             });
-            autoSign.bdSwitchView.setOnTouchListener((v, event) -> false);
+            autoSign.bdSwitch.setOnTouchListener((v, event) -> false);
         }
         preferenceLayout.addView(autoSign);
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "自动打开一键签到", "open_sign"));
@@ -170,8 +167,7 @@ public class TSPreference extends Hook {
         if (tsConfig.getBoolean("ze", false))
             preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "关于就是关于"));
         else preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "关于"));
-        LinearLayout version = TSPreferenceHelper.generateButton(classLoader, activity, "版本", BuildConfig.VERSION_NAME);
-        version.setOnClickListener(v -> {
+        preferenceLayout.addView(TSPreferenceHelper.generateButton(classLoader, activity, "版本", BuildConfig.VERSION_NAME, v -> {
             Intent intentToResolve = TSPreferenceHelper.launchModuleIntent(activity);
             if (intentToResolve == null) return;
             Intent intent = new Intent(intentToResolve);
@@ -179,26 +175,20 @@ public class TSPreference extends Hook {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION);
             intent.setClassName(ris.get(0).activityInfo.packageName, ris.get(0).activityInfo.name);
             activity.startActivity(intent);
-        });
-        preferenceLayout.addView(version);
-        LinearLayout github = TSPreferenceHelper.generateButton(classLoader, activity, "源代码", "想要小星星");
-        github.setOnClickListener(v -> {
+        }));
+        preferenceLayout.addView(TSPreferenceHelper.generateButton(classLoader, activity, "源代码", "想要小星星", v -> {
             Intent intent = new Intent();
             intent.setAction("android.intent.action.VIEW");
             intent.setData(Uri.parse("https://github.com/GuhDoy/TiebaTS"));
             activity.startActivity(intent);
-        });
-        preferenceLayout.addView(github);
-        LinearLayout telegram = TSPreferenceHelper.generateButton(classLoader, activity, "TG群", "及时获取更新");
-        telegram.setOnClickListener(v -> {
+        }));
+        preferenceLayout.addView(TSPreferenceHelper.generateButton(classLoader, activity, "TG群", "及时获取更新", v -> {
             Intent intent = new Intent();
             intent.setAction("android.intent.action.VIEW");
             intent.setData(Uri.parse("https://t.me/TabSwitch"));
             activity.startActivity(intent);
-        });
-        preferenceLayout.addView(telegram);
-        LinearLayout author = TSPreferenceHelper.generateButton(classLoader, activity, "作者", "developed by GM");
-        author.setOnClickListener(v -> {
+        }));
+        preferenceLayout.addView(TSPreferenceHelper.generateButton(classLoader, activity, "作者", "developed by GM", v -> {
             count++;
             if (count % 3 == 0)
                 Toast.makeText(activity, TSPreferenceHelper.randomToast(), Toast.LENGTH_SHORT).show();
@@ -207,8 +197,7 @@ public class TSPreference extends Hook {
                 editor.putBoolean("ze", true);
                 editor.apply();
             }
-        });
-        preferenceLayout.addView(author);
+        }));
         AlertDialog alertDialog;
         if (DisplayHelper.isLightMode(activity))
             alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
@@ -326,13 +315,15 @@ public class TSPreference extends Hook {
                     }).setNegativeButton("取消", (dialogInterface, i) -> {
                     }).setPositiveButton("保存", (dialogInterface, i) -> {
                     }).create();
-        else
+        else {
+            editText.setTextColor(modRes.getColor(R.color.colorPrimary, null));
             alertDialog = new AlertDialog.Builder(holder.newSwitch.getContext(), AlertDialog.THEME_HOLO_DARK)
                     .setTitle(holder.text).setView(editText).setCancelable(true)
                     .setNeutralButton("|", (dialogInterface, i) -> {
                     }).setNegativeButton("取消", (dialogInterface, i) -> {
                     }).setPositiveButton("保存", (dialogInterface, i) -> {
                     }).create();
+        }
         alertDialog.show();
         alertDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         alertDialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> {
@@ -347,7 +338,7 @@ public class TSPreference extends Hook {
         alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             SharedPreferences.Editor editor = tsPreference.edit();
             try {
-                if ("".equals(editText.getText().toString())) {
+                if (TextUtils.isEmpty(editText.getText())) {
                     editor.putString(holder.key, null);
                     holder.turnOff();
                 } else {

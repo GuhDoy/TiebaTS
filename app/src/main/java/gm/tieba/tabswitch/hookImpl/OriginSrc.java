@@ -62,7 +62,7 @@ public class OriginSrc extends Hook {
                 }
                 XposedHelpers.findAndHookMethod("tbclient.PbContent$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                        XposedHelpers.setIntField(param.thisObject, "show_original_btn", 0);
+                        XposedHelpers.setObjectField(param.thisObject, "show_original_btn", 0);
                         String[] strings = new String[]{"big_cdn_src", "cdn_src", "cdn_src_active"};
                         for (String string : strings)
                             XposedHelpers.setObjectField(param.thisObject, string, XposedHelpers.getObjectField(param.thisObject, "origin_src"));
@@ -70,7 +70,7 @@ public class OriginSrc extends Hook {
                 });
                 XposedHelpers.findAndHookMethod("tbclient.Media$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                        XposedHelpers.setIntField(param.thisObject, "show_original_btn", 0);
+                        XposedHelpers.setObjectField(param.thisObject, "show_original_btn", 0);
                         String[] strings = new String[]{"small_pic", "water_pic"};
                         for (String string : strings)
                             XposedHelpers.setObjectField(param.thisObject, string, XposedHelpers.getObjectField(param.thisObject, "big_pic"));

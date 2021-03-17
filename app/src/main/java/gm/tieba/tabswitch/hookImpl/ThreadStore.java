@@ -1,7 +1,6 @@
 package gm.tieba.tabswitch.hookImpl;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -21,6 +20,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import de.robv.android.xposed.XC_MethodHook;
+import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.Hook;
 import gm.tieba.tabswitch.R;
@@ -43,7 +43,7 @@ public class ThreadStore extends Hook {
                 textView.setText("搜索");
                 LinearLayout naviRightButton = activity.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("navi_right_button").getInt(null));
                 naviRightButton.addView(textView);
-                textView.setOnClickListener(v -> showRegexDialog(activity));
+                textView.setOnClickListener(v -> showRegexDialog(classLoader, activity));
             }
         });
         for (int i = 0; i < ruleMapList.size(); i++) {
@@ -80,7 +80,7 @@ public class ThreadStore extends Hook {
         }
     }
 
-    private static void showRegexDialog(Activity activity) {
+    private static void showRegexDialog(ClassLoader classLoader, Activity activity) {
         EditText editText = new EditText(activity);
         editText.setHint("请输入正则表达式，如.*");
         editText.setText(regex);
@@ -90,6 +90,15 @@ public class ThreadStore extends Hook {
         editText.setTextSize(18);
         editText.requestFocus();
         editText.setHintTextColor(Hook.modRes.getColor(R.color.colorProgress, null));
+        if (!DisplayHelper.isLightMode(activity))
+            editText.setTextColor(modRes.getColor(R.color.colorPrimary, null));
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        editText.setLayoutParams(layoutParams);
+        try {
+            editText.setBackgroundResource(classLoader.loadClass("com.baidu.tieba.R$drawable").getField("blue_rectangle_input_bg").getInt(null));
+        } catch (Throwable throwable) {
+            XposedBridge.log(throwable);
+        }
         editText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -104,40 +113,19 @@ public class ThreadStore extends Hook {
                 regex = s.toString();
             }
         });
-        AlertDialog alertDialog;
-        if (DisplayHelper.isLightMode(activity))
-            alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
-                    .setTitle("搜索").setView(editText).setCancelable(true)
-                    .setNeutralButton("|", (dialogInterface, i) -> {
-                    }).setNegativeButton("取消", (dialogInterface, i) -> {
-                    }).setPositiveButton("确定", (dialogInterface, i) -> {
-                    }).create();
-        else alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_DARK)
-                .setTitle("搜索").setView(editText).setCancelable(true)
-                .setNeutralButton("|", (dialogInterface, i) -> {
-                }).setNegativeButton("取消", (dialogInterface, i) -> {
-                }).setPositiveButton("确定", (dialogInterface, i) -> {
-                }).create();
-        alertDialog.show();
-        alertDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
-        alertDialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> {
-            int selectionStart = editText.getSelectionStart();
-            int selectionEnd = editText.getSelectionEnd();
-            String sub1 = editText.getText().toString().substring(0, selectionEnd);
-            String sub2 = editText.getText().toString().substring(selectionEnd);
-            editText.setText(String.format("%s|%s", sub1, sub2));
-            if (selectionStart == selectionEnd) editText.setSelection(selectionEnd + 1);
-            else editText.setSelection(selectionStart, selectionEnd + 1);
-        });
-        alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+        TSPreferenceHelper.TbDialogBuilder bdalert = new TSPreferenceHelper.TbDialogBuilder(classLoader, activity, null, null, editText);
+        bdalert.setOnNoButtonClickListener(v -> bdalert.dismiss());
+        bdalert.setOnYesButtonClickListener(v -> {
             try {
                 Pattern.compile(editText.getText().toString());
                 activity.finish();
                 activity.startActivity(activity.getIntent());
-                alertDialog.dismiss();
+                bdalert.dismiss();
             } catch (PatternSyntaxException e) {
                 Toast.makeText(activity, Log.getStackTraceString(e), Toast.LENGTH_SHORT).show();
             }
         });
+        bdalert.show();
+        bdalert.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
     }
 }
