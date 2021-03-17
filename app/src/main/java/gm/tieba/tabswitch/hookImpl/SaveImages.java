@@ -20,7 +20,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Locale;
 
 import de.robv.android.xposed.XC_MethodHook;
@@ -38,19 +40,14 @@ public class SaveImages extends Hook {
     private static String title;
 
     public static void hook(ClassLoader classLoader) throws Throwable {
-        try {
-            XposedHelpers.findAndHookMethod("com.baidu.tbadk.coreExtra.view.ImagePagerAdapter", classLoader, "setData", ArrayList.class, new XC_MethodHook() {
-                protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                    arrayList = (ArrayList<String>) param.args[0];
-                }
-            });
-        } catch (NoSuchMethodError e) {
-            XposedHelpers.findAndHookMethod("com.baidu.tbadk.coreExtra.view.ImagePagerAdapter", classLoader, "l", ArrayList.class, new XC_MethodHook() {
-                protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                    arrayList = (ArrayList<String>) param.args[0];
-                }
-            });
-        }
+        Method[] methods = classLoader.loadClass("com.baidu.tbadk.coreExtra.view.ImagePagerAdapter").getDeclaredMethods();
+        for (Method method : methods)
+            if (Arrays.toString(method.getParameterTypes()).equals("[class java.util.ArrayList]"))
+                XposedBridge.hookMethod(method, new XC_MethodHook() {
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        arrayList = (ArrayList<String>) param.args[0];
+                    }
+                });
         XposedHelpers.findAndHookMethod("com.baidu.tbadk.widget.richText.TbRichText", classLoader, "toString", new XC_MethodHook() {
             protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
                 if (param.getResult() != null) title = (String) param.getResult();
