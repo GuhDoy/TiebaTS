@@ -7,10 +7,8 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,7 +22,6 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.Hook;
-import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.util.DisplayHelper;
 import gm.tieba.tabswitch.util.Reflect;
 
@@ -79,24 +76,10 @@ public class HistoryCache extends Hook {
     }
 
     private static void showRegexDialog(ClassLoader classLoader, Activity activity) {
-        EditText editText = new EditText(activity);
+        EditText editText = new TSPreferenceHelper.TbEditTextBuilder(classLoader, activity).editText;
         editText.setHint("请输入正则表达式，如.*");
         editText.setText(regex);
         editText.selectAll();
-        editText.setFocusable(true);
-        editText.setFocusableInTouchMode(true);
-        editText.setTextSize(18);
-        editText.requestFocus();
-        editText.setHintTextColor(Hook.modRes.getColor(R.color.colorProgress, null));
-        if (!DisplayHelper.isLightMode(activity))
-            editText.setTextColor(modRes.getColor(R.color.colorPrimary, null));
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        editText.setLayoutParams(layoutParams);
-        try {
-            editText.setBackgroundResource(classLoader.loadClass("com.baidu.tieba.R$drawable").getField("blue_rectangle_input_bg").getInt(null));
-        } catch (Throwable throwable) {
-            XposedBridge.log(throwable);
-        }
         editText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {

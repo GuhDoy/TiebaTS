@@ -14,7 +14,7 @@ public class Reflect {
             if (field.get(instance) != null && Objects.equals(field.get(instance).getClass().getName(), className))
                 return field.get(instance);
         }
-        throw new NullPointerException(className + " field not found");
+        throw new NoSuchFieldException(className + " field not found");
     }
 
     public static String pbContentParser(Object instance, String fieldName) {

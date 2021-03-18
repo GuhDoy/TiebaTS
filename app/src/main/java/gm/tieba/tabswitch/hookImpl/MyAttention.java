@@ -9,18 +9,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.Map;
 import java.util.Objects;
 
 import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.Hook;
-import gm.tieba.tabswitch.R;
-import gm.tieba.tabswitch.util.DisplayHelper;
 import gm.tieba.tabswitch.util.Reflect;
 
 public class MyAttention extends Hook {
@@ -35,7 +31,7 @@ public class MyAttention extends Hook {
                         View itemView = root.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("item_view").getInt(null));
                         TextView textView = root.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("name").getInt(null));
                         View tailContainer = root.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("tail_container").getInt(null));
-                        tailContainer.setTag(textView.getText());
+                        tailContainer.setTag(textView.getText());// NullPointerException occurred
                         itemView.setOnLongClickListener(v -> {
                             showNoteDialog(classLoader, activity, (String) tailContainer.getTag());
                             return false;
@@ -60,25 +56,10 @@ public class MyAttention extends Hook {
     @SuppressLint("ApplySharedPref")
     private static void showNoteDialog(ClassLoader classLoader, Activity activity, String key) {
         SharedPreferences tsNotes = activity.getSharedPreferences("TS_notes", Context.MODE_PRIVATE);
-        EditText editText = new EditText(activity);
+        EditText editText = new TSPreferenceHelper.TbEditTextBuilder(classLoader, activity).editText;
         editText.setHint(key);
-        if (tsNotes.getString(key, null) != null)
-            editText.setText(tsNotes.getString(key, null));
+        editText.setText(tsNotes.getString(key, null));
         editText.selectAll();
-        editText.setFocusable(true);
-        editText.setFocusableInTouchMode(true);
-        editText.setTextSize(18);
-        editText.requestFocus();
-        editText.setHintTextColor(Hook.modRes.getColor(R.color.colorProgress, null));
-        if (!DisplayHelper.isLightMode(activity))
-            editText.setTextColor(modRes.getColor(R.color.colorPrimary, null));
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        editText.setLayoutParams(layoutParams);
-        try {
-            editText.setBackgroundResource(classLoader.loadClass("com.baidu.tieba.R$drawable").getField("blue_rectangle_input_bg").getInt(null));
-        } catch (Throwable throwable) {
-            XposedBridge.log(throwable);
-        }
         TSPreferenceHelper.TbDialogBuilder bdalert = new TSPreferenceHelper.TbDialogBuilder(classLoader, activity, null, null, editText);
         bdalert.setOnNoButtonClickListener(v -> bdalert.dismiss());
         bdalert.setOnYesButtonClickListener(v -> {

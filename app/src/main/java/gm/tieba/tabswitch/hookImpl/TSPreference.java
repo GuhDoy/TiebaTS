@@ -283,16 +283,14 @@ public class TSPreference extends Hook {
     @SuppressLint("ApplySharedPref")
     private static void showRegexDialog(TSPreferenceHelper.SwitchViewHolder holder) {
         SharedPreferences tsPreference = holder.newSwitch.getContext().getSharedPreferences("TS_preference", Context.MODE_PRIVATE);
-        EditText editText = new EditText(holder.newSwitch.getContext());
+        EditText editText = new TSPreferenceHelper.TbEditTextBuilder(holder.classLoader, holder.newSwitch.getContext()).editText;
         editText.setHint("请输入正则表达式，如.*");
+        String text;
         if (regex.get(holder.key) == null)
-            editText.setText(tsPreference.getString(holder.key, null));
-        else editText.setText(regex.get(holder.key));
-        editText.setFocusable(true);
-        editText.setFocusableInTouchMode(true);
-        editText.setTextSize(18);
-        editText.requestFocus();
-        editText.setHintTextColor(Hook.modRes.getColor(R.color.colorProgress, null));
+            text = tsPreference.getString(holder.key, null);
+        else text = regex.get(holder.key);
+        editText.setText(text);
+        editText.setSelection(text == null ? 0 : text.length());
         editText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -307,50 +305,74 @@ public class TSPreference extends Hook {
                 regex.put(holder.key, s.toString());
             }
         });
-        AlertDialog alertDialog;
-        if (DisplayHelper.isLightMode(holder.newSwitch.getContext()))
-            alertDialog = new AlertDialog.Builder(holder.newSwitch.getContext(), AlertDialog.THEME_HOLO_LIGHT)
-                    .setTitle(holder.text).setView(editText).setCancelable(true)
-                    .setNeutralButton("|", (dialogInterface, i) -> {
-                    }).setNegativeButton("取消", (dialogInterface, i) -> {
-                    }).setPositiveButton("保存", (dialogInterface, i) -> {
-                    }).create();
-        else {
-            editText.setTextColor(modRes.getColor(R.color.colorPrimary, null));
-            alertDialog = new AlertDialog.Builder(holder.newSwitch.getContext(), AlertDialog.THEME_HOLO_DARK)
-                    .setTitle(holder.text).setView(editText).setCancelable(true)
-                    .setNeutralButton("|", (dialogInterface, i) -> {
-                    }).setNegativeButton("取消", (dialogInterface, i) -> {
-                    }).setPositiveButton("保存", (dialogInterface, i) -> {
-                    }).create();
-        }
-        alertDialog.show();
-        alertDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
-        alertDialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> {
-            int selectionStart = editText.getSelectionStart();
-            int selectionEnd = editText.getSelectionEnd();
-            String sub1 = editText.getText().toString().substring(0, selectionEnd);
-            String sub2 = editText.getText().toString().substring(selectionEnd);
-            editText.setText(String.format("%s|%s", sub1, sub2));
-            if (selectionStart == selectionEnd) editText.setSelection(selectionEnd + 1);
-            else editText.setSelection(selectionStart, selectionEnd + 1);
-        });
-        alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-            SharedPreferences.Editor editor = tsPreference.edit();
-            try {
-                if (TextUtils.isEmpty(editText.getText())) {
-                    editor.putString(holder.key, null);
-                    holder.turnOff();
-                } else {
-                    Pattern.compile(editText.getText().toString());
-                    editor.putString(holder.key, editText.getText().toString());
-                    holder.turnOn();
+        try {
+            TSPreferenceHelper.TbDialogBuilder bdalert = new TSPreferenceHelper.TbDialogBuilder(holder.classLoader, holder.newSwitch.getContext(), null, null, editText);
+            bdalert.setOnNoButtonClickListener(v -> bdalert.dismiss());
+            bdalert.setOnYesButtonClickListener(v -> {
+                SharedPreferences.Editor editor = tsPreference.edit();
+                try {
+                    if (TextUtils.isEmpty(editText.getText())) {
+                        editor.putString(holder.key, null);
+                        holder.turnOff();
+                    } else {
+                        Pattern.compile(editText.getText().toString());
+                        editor.putString(holder.key, editText.getText().toString());
+                        holder.turnOn();
+                    }
+                    editor.commit();
+                    bdalert.dismiss();
+                } catch (PatternSyntaxException e) {
+                    Toast.makeText(holder.newSwitch.getContext(), Log.getStackTraceString(e), Toast.LENGTH_SHORT).show();
                 }
-                editor.commit();
-                alertDialog.dismiss();
-            } catch (PatternSyntaxException e) {
-                Toast.makeText(holder.newSwitch.getContext(), Log.getStackTraceString(e), Toast.LENGTH_SHORT).show();
+            });
+            bdalert.show();
+            bdalert.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        } catch (NullPointerException e) {
+            AlertDialog alertDialog;
+            if (DisplayHelper.isLightMode(holder.newSwitch.getContext()))
+                alertDialog = new AlertDialog.Builder(holder.newSwitch.getContext(), AlertDialog.THEME_HOLO_LIGHT)
+                        .setTitle(holder.text).setView(editText).setCancelable(true)
+                        .setNeutralButton("|", (dialogInterface, i) -> {
+                        }).setNegativeButton("取消", (dialogInterface, i) -> {
+                        }).setPositiveButton("保存", (dialogInterface, i) -> {
+                        }).create();
+            else {
+                editText.setTextColor(modRes.getColor(R.color.colorPrimary, null));
+                alertDialog = new AlertDialog.Builder(holder.newSwitch.getContext(), AlertDialog.THEME_HOLO_DARK)
+                        .setTitle(holder.text).setView(editText).setCancelable(true)
+                        .setNeutralButton("|", (dialogInterface, i) -> {
+                        }).setNegativeButton("取消", (dialogInterface, i) -> {
+                        }).setPositiveButton("保存", (dialogInterface, i) -> {
+                        }).create();
             }
-        });
+            alertDialog.show();
+            alertDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+            alertDialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> {
+                int selectionStart = editText.getSelectionStart();
+                int selectionEnd = editText.getSelectionEnd();
+                String sub1 = editText.getText().toString().substring(0, selectionEnd);
+                String sub2 = editText.getText().toString().substring(selectionEnd);
+                editText.setText(String.format("%s|%s", sub1, sub2));
+                if (selectionStart == selectionEnd) editText.setSelection(selectionEnd + 1);
+                else editText.setSelection(selectionStart, selectionEnd + 1);
+            });
+            alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+                SharedPreferences.Editor editor = tsPreference.edit();
+                try {
+                    if (TextUtils.isEmpty(editText.getText())) {
+                        editor.putString(holder.key, null);
+                        holder.turnOff();
+                    } else {
+                        Pattern.compile(editText.getText().toString());
+                        editor.putString(holder.key, editText.getText().toString());
+                        holder.turnOn();
+                    }
+                    editor.commit();
+                    alertDialog.dismiss();
+                } catch (PatternSyntaxException e2) {
+                    Toast.makeText(holder.newSwitch.getContext(), Log.getStackTraceString(e), Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
     }
 }

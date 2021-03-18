@@ -10,6 +10,7 @@ import android.content.pm.ResolveInfo;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -91,7 +92,7 @@ class TSPreferenceHelper extends Hook {
         } catch (Throwable throwable) {
             XposedBridge.log(throwable);
         }
-        return null;
+        throw new NullPointerException("generate button failed");
     }
 
     static class SwitchViewHolder {
@@ -99,11 +100,13 @@ class TSPreferenceHelper extends Hook {
         public String text;
         public String key;
         public View bdSwitch;
+        public ClassLoader classLoader;
         private Class<?> BdSwitchView;
 
         SwitchViewHolder(ClassLoader classLoader, Activity activity, String text, String key) {
             this.text = text;
             this.key = key;
+            this.classLoader = classLoader;
             try {
                 BdSwitchView = classLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView");
                 bdSwitch = (View) BdSwitchView.getConstructor(Context.class).newInstance(activity);
@@ -199,6 +202,28 @@ class TSPreferenceHelper extends Hook {
         }
     }
 
+    static class TbEditTextBuilder {
+        public EditText editText;
+
+        TbEditTextBuilder(ClassLoader classLoader, Context context) {
+            editText = new EditText(context);
+            editText.setFocusable(true);
+            editText.setFocusableInTouchMode(true);
+            editText.setTextSize(17);
+            editText.requestFocus();
+            editText.setHintTextColor(Hook.modRes.getColor(R.color.colorProgress, null));
+            if (!DisplayHelper.isLightMode(context))
+                editText.setTextColor(modRes.getColor(R.color.colorPrimary, null));
+            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            editText.setLayoutParams(layoutParams);
+            try {
+                editText.setBackgroundResource(classLoader.loadClass("com.baidu.tieba.R$drawable").getField("blue_rectangle_input_bg").getInt(null));
+            } catch (Throwable throwable) {
+                XposedBridge.log(throwable);
+            }
+        }
+    }
+
     static class TbDialogBuilder {
         private Object bdalert;
         private Class<?> TbDialog;
@@ -207,19 +232,19 @@ class TSPreferenceHelper extends Hook {
         private Object pageContext;
         private AlertDialog mDialog;
 
-        TbDialogBuilder(ClassLoader classLoader, Activity activity, String title, String message, View contentView) {
+        TbDialogBuilder(ClassLoader classLoader, Context context, String title, String message, View contentView) {
             XposedHelpers.findAndHookMethod("com.baidu.tbadk.core.BaseFragment", classLoader, "getPageContext", new XC_MethodHook() {
                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                     pageContext = param.getResult();
                 }
             });
             this.classLoader = classLoader;
-            try {
-                for (int i = 0; i < ruleMapList.size(); i++) {
-                    Map<String, String> map = ruleMapList.get(i);
-                    if (Objects.equals(map.get("rule"), "Lcom/baidu/tieba/R$layout;->dialog_bdalert:I")) {
+            for (int i = 0; i < ruleMapList.size(); i++) {
+                Map<String, String> map = ruleMapList.get(i);
+                if (Objects.equals(map.get("rule"), "Lcom/baidu/tieba/R$layout;->dialog_bdalert:I")) {
+                    try {
                         TbDialog = classLoader.loadClass(map.get("class"));
-                        bdalert = TbDialog.getConstructor(Activity.class).newInstance(activity);
+                        bdalert = TbDialog.getConstructor(Activity.class).newInstance(context);
                         try {
                             mRootView = (ViewGroup) XposedHelpers.getObjectField(bdalert, "mRootView");
                             XposedHelpers.setObjectField(bdalert, "mTitle", title);
@@ -235,12 +260,13 @@ class TSPreferenceHelper extends Hook {
                             XposedHelpers.setObjectField(bdalert, "l", "确定");
                             XposedHelpers.setObjectField(bdalert, "m", "取消");
                         }
-                        break;
+                    } catch (Throwable throwable) {
+                        XposedBridge.log(throwable);
                     }
+                    return;
                 }
-            } catch (Throwable throwable) {
-                XposedBridge.log(throwable);
             }
+            throw new NullPointerException("create tb dialog failed");
         }
 
         void setOnYesButtonClickListener(View.OnClickListener onClickListener) {

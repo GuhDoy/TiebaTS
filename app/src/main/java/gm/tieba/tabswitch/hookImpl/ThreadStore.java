@@ -20,10 +20,8 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.Hook;
-import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.util.DisplayHelper;
 
 public class ThreadStore extends Hook {
@@ -81,24 +79,10 @@ public class ThreadStore extends Hook {
     }
 
     private static void showRegexDialog(ClassLoader classLoader, Activity activity) {
-        EditText editText = new EditText(activity);
+        EditText editText = new TSPreferenceHelper.TbEditTextBuilder(classLoader, activity).editText;
         editText.setHint("请输入正则表达式，如.*");
         editText.setText(regex);
         editText.selectAll();
-        editText.setFocusable(true);
-        editText.setFocusableInTouchMode(true);
-        editText.setTextSize(18);
-        editText.requestFocus();
-        editText.setHintTextColor(Hook.modRes.getColor(R.color.colorProgress, null));
-        if (!DisplayHelper.isLightMode(activity))
-            editText.setTextColor(modRes.getColor(R.color.colorPrimary, null));
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        editText.setLayoutParams(layoutParams);
-        try {
-            editText.setBackgroundResource(classLoader.loadClass("com.baidu.tieba.R$drawable").getField("blue_rectangle_input_bg").getInt(null));
-        } catch (Throwable throwable) {
-            XposedBridge.log(throwable);
-        }
         editText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {

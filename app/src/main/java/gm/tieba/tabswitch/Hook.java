@@ -12,6 +12,7 @@ import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -54,7 +55,9 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
                         try {
                             SQLiteDatabase db = context.openOrCreateDatabase("Rules.db", Context.MODE_PRIVATE, null);
                             ruleMapList = AntiConfusionHelper.convertDbToMapList(db);
-                            if (context.getPackageManager().getPackageInfo(context.getPackageName(), 0).getLongVersionCode() < 201523200)
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && context.getPackageManager().getPackageInfo(context.getPackageName(), 0).getLongVersionCode() < 201523200)
+                                AntiConfusionHelper.matcherList.remove("\"custom_ext_data\"");
+                            else if (context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionCode < 201523200)
                                 AntiConfusionHelper.matcherList.remove("\"custom_ext_data\"");
                             List<String> lostList = AntiConfusionHelper.getLostList();
                             if (lostList.size() != 0)
