@@ -93,7 +93,7 @@ public class Purify extends Hook {
                     if (fun.getReturnType().toString().equals("void"))
                         XposedBridge.hookMethod(fun, XC_MethodReplacement.returnConstant(null));
                     else XposedBridge.hookMethod(fun, XC_MethodReplacement.returnConstant(true));
-        } catch (XposedHelpers.ClassNotFoundError ignored) {
+        } catch (ClassNotFoundException ignored) {
         }
         //帖子直播推荐：在com/baidu/tieba/pb/pb/main/包搜索tbclient/AlaLiveInfo
         XposedHelpers.findAndHookMethod("tbclient.AlaLiveInfo$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
@@ -107,7 +107,7 @@ public class Purify extends Hook {
             for (Method ala : alas)
                 if (ala.getReturnType().toString().endsWith("HomePageAlaLiveThreadViewHolder"))
                     XposedBridge.hookMethod(ala, XC_MethodReplacement.returnConstant(null));
-        } catch (XposedHelpers.ClassNotFoundError ignored) {
+        } catch (ClassNotFoundException ignored) {
         }
         //首页不属于任何吧的视频
         XposedHelpers.findAndHookMethod("tbclient.Personalized.DataRes$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
@@ -124,9 +124,6 @@ public class Purify extends Hook {
         //欢迎页
         XposedHelpers.findAndHookMethod("com.baidu.tieba.launcherGuide.tblauncher.GuideActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                Activity activity = ((Activity) param.thisObject);
-                if (AntiConfusionHelper.getLostList().size() != 0 || AntiConfusionHelper.isDexChanged(activity))
-                    return;
                 Field[] fields = param.thisObject.getClass().getDeclaredFields();
                 for (Field field : fields) {
                     field.setAccessible(true);
@@ -150,6 +147,13 @@ public class Purify extends Hook {
                         list.remove(i);
                         return;
                     }
+            }
+        });
+        //吧公告
+        XposedHelpers.findAndHookMethod("tbclient.FrsPage.DataRes$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                List<?> list = (List<?>) XposedHelpers.getObjectField(param.thisObject, "star_enter");
+                if (list != null) list.removeAll(list);
             }
         });
         //你可能感兴趣的人：initUI

@@ -94,7 +94,7 @@ public class HistoryCache extends Hook {
                 regex = s.toString();
             }
         });
-        TSPreferenceHelper.TbDialogBuilder bdalert = new TSPreferenceHelper.TbDialogBuilder(classLoader, activity, null, null, editText);
+        TSPreferenceHelper.TbDialogBuilder bdalert = new TSPreferenceHelper.TbDialogBuilder(classLoader, activity, null, null, true, editText);
         bdalert.setOnNoButtonClickListener(v -> bdalert.dismiss());
         bdalert.setOnYesButtonClickListener(v -> {
             try {

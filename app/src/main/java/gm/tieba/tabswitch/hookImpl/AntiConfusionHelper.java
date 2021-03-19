@@ -1,11 +1,15 @@
 package gm.tieba.tabswitch.hookImpl;
 
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Bundle;
 
 import org.jf.dexlib.ClassDataItem;
 import org.jf.dexlib.ClassDefItem;
@@ -21,7 +25,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
+import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.Hook;
 
 public class AntiConfusionHelper extends Hook {
@@ -75,6 +81,11 @@ public class AntiConfusionHelper extends Hook {
         return lostList;
     }
 
+    public static boolean isVersionChanged(Context context) {
+        SharedPreferences tsConfig = context.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
+        return !tsConfig.getString("anti-confusion_version", "unknown").equals(getTbVersion(context));
+    }
+
     public static boolean isDexChanged(Context context) {
         try {
             SharedPreferences tsConfig = context.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
@@ -87,6 +98,36 @@ public class AntiConfusionHelper extends Hook {
             XposedBridge.log(e);
         }
         return false;
+    }
+
+    @SuppressLint("ApplySharedPref")
+    public static void saveAndRestart(Activity activity, String value, Class<?> springboardActivity) {
+        SharedPreferences.Editor editor = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE).edit();
+        editor.putString("anti-confusion_version", value);
+        editor.commit();
+        if (springboardActivity != null) {
+            XposedHelpers.findAndHookMethod(springboardActivity, "onCreate", Bundle.class, new XC_MethodHook() {
+                protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                    Activity activity = (Activity) param.thisObject;
+                    Intent intent = activity.getPackageManager().getLaunchIntentForPackage(activity.getPackageName());
+                    if (intent != null) {
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        activity.startActivity(intent);
+                    }
+                    System.exit(0);
+                }
+            });
+            Intent intent = new Intent(activity, springboardActivity);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            activity.startActivity(intent);
+        } else {
+            Intent intent = activity.getPackageManager().getLaunchIntentForPackage(activity.getPackageName());
+            if (intent != null) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                activity.startActivity(intent);
+            }
+            System.exit(0);
+        }
     }
 
     static void searchAndSave(ClassDefItem classItem, int type, SQLiteDatabase db) throws IOException {

@@ -6,7 +6,6 @@ import android.app.AlertDialog;
 import android.app.Application;
 import android.app.Instrumentation;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
@@ -14,7 +13,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 
 import java.util.Collections;
 import java.util.List;
@@ -31,6 +29,7 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import gm.tieba.tabswitch.hookImpl.AntiConfusion;
 import gm.tieba.tabswitch.hookImpl.AntiConfusionHelper;
 import gm.tieba.tabswitch.hookImpl.TSPreference;
+import gm.tieba.tabswitch.hookImpl.TSPreferenceHelper;
 
 public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
     public static Resources modRes;
@@ -51,13 +50,11 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
                         ClassLoader classLoader = lpparam.classLoader;
                         Context context = ((Application) param.args[0]).getApplicationContext();
 
-                        AntiConfusion.hook(classLoader);
                         try {
                             SQLiteDatabase db = context.openOrCreateDatabase("Rules.db", Context.MODE_PRIVATE, null);
                             ruleMapList = AntiConfusionHelper.convertDbToMapList(db);
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && context.getPackageManager().getPackageInfo(context.getPackageName(), 0).getLongVersionCode() < 201523200)
-                                AntiConfusionHelper.matcherList.remove("\"custom_ext_data\"");
-                            else if (context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionCode < 201523200)
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && context.getPackageManager().getPackageInfo(context.getPackageName(), 0).getLongVersionCode() < 201523200 ||
+                                    Build.VERSION.SDK_INT < Build.VERSION_CODES.P && context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionCode < 201523200)
                                 AntiConfusionHelper.matcherList.remove("\"custom_ext_data\"");
                             List<String> lostList = AntiConfusionHelper.getLostList();
                             if (lostList.size() != 0)
@@ -67,18 +64,29 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
                                 protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                                     XposedBridge.log(e.toString());
                                     Activity activity = (Activity) param.thisObject;
-                                    @SuppressLint("ApplySharedPref") AlertDialog alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
-                                            .setTitle("警告").setMessage("规则异常，建议您执行反混淆。若执行完后仍出现此对话框则应更新模块，若模块已是最新版本则应向作者反馈。\n" + Log.getStackTraceString(e)).setCancelable(true)
-                                            .setNegativeButton("取消", (dialogInterface, i) -> {
-                                            }).setPositiveButton("确定", (dialogInterface, i) -> {
-                                                Intent intent = new Intent().setClassName(activity, "com.baidu.tieba.launcherGuide.tblauncher.GuideActivity");
-                                                activity.startActivity(intent);
-                                            }).create();
                                     SharedPreferences tsConfig = context.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
-                                    if (tsConfig.getBoolean("EULA", false)) alertDialog.show();
+                                    if (tsConfig.getBoolean("EULA", false))
+                                        try {
+                                            TSPreferenceHelper.TbDialogBuilder bdalert = new TSPreferenceHelper.TbDialogBuilder(classLoader, activity, "警告",
+                                                    "规则异常，建议您执行反混淆。若执行完后仍出现此对话框则应更新模块，若模块已是最新版本则应向作者反馈。\n" + e.toString(), false, null);
+                                            bdalert.setOnNoButtonClickListener(v -> bdalert.dismiss());
+                                            bdalert.setOnYesButtonClickListener(v -> AntiConfusionHelper.saveAndRestart(activity, "unknown", null));
+                                            bdalert.show();
+                                        } catch (NullPointerException e2) {
+                                            AlertDialog alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
+                                                    .setTitle("警告").setMessage("规则异常，建议您执行反混淆。若执行完后仍出现此对话框则应更新模块，若模块已是最新版本则应向作者反馈。\n" + e.toString()).setCancelable(false)
+                                                    .setNegativeButton("取消", (dialogInterface, i) -> {
+                                                    }).setPositiveButton("确定", (dialogInterface, i) -> AntiConfusionHelper.saveAndRestart(activity, "unknown", null)).create();
+                                            alertDialog.show();
+                                        }
                                 }
                             });
                         }
+                        if (AntiConfusionHelper.isVersionChanged(context)) {
+                            AntiConfusion.hook(classLoader);
+                            return;
+                        }
+
 
                         TSPreference.hook(classLoader);
                         XposedHelpers.findAndHookMethod("com.baidu.tbadk.core.data.AccountData", classLoader, "getBDUSS", new XC_MethodHook() {
@@ -102,7 +110,6 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
     @Override
     public void initZygote(IXposedHookZygoteInit.StartupParam startupParam) throws Throwable {
         AssetManager assetManager = AssetManager.class.newInstance();
-        //将来可能需要freeReflection
         AssetManager.class.getDeclaredMethod("addAssetPath", String.class).invoke(assetManager, startupParam.modulePath);
         modRes = new Resources(assetManager, null, null);
     }

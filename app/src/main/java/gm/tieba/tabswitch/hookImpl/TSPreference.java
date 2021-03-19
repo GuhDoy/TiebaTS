@@ -30,10 +30,10 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import de.robv.android.xposed.XC_MethodHook;
+import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BuildConfig;
 import gm.tieba.tabswitch.Hook;
-import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.util.DisplayHelper;
 
 public class TSPreference extends Hook {
@@ -51,8 +51,7 @@ public class TSPreference extends Hook {
         XposedHelpers.findAndHookMethod(Activity.class, "onResume", new XC_MethodHook() {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 Activity activity = (Activity) param.thisObject;
-                if (isShowTSPreference && !activity.getClass().getName().equals("com.baidu.tieba.LogoActivity")
-                        && !activity.getClass().getName().equals("com.baidu.tieba.launcherGuide.tblauncher.GuideActivity"))
+                if (isShowTSPreference && !activity.getClass().getName().equals("com.baidu.tieba.LogoActivity"))
                     showTSPreferenceDialog(classLoader, activity);
             }
         });
@@ -86,23 +85,24 @@ public class TSPreference extends Hook {
             StringBuilder stringBuilder = new StringBuilder().append("本模块开源免费，不会主动发起网络请求，不会上传任何用户数据，旨在技术交流。请勿将本模块用于商业或非法用途，由此产生的后果与开发者无关。\n若您不同意此协议，请立即卸载本模块！无论您以何种形式或方式使用本模块，皆视为您已同意此协议！");
             if (BuildConfig.VERSION_NAME.contains("alpha") || BuildConfig.VERSION_NAME.contains("beta"))
                 stringBuilder.append("\n\n提示：您当前安装的是非正式版本，可能含有较多错误，如果您希望得到更稳定的使用体验，建议您安装正式版本。");
-            AlertDialog alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
-                    .setTitle("使用协议").setMessage(stringBuilder.toString()).setCancelable(true)
-                    .setNegativeButton("拒绝", (dialogInterface, i) -> {
-                        Intent intent = new Intent();
-                        intent.setAction(Intent.ACTION_DELETE);
-                        Intent intentToResolve = TSPreferenceHelper.launchModuleIntent(activity);
-                        if (intentToResolve != null)
-                            intent.setData(Uri.parse("package:" + "gm.tieba.tabswitch"));
-                        else intent.setData(Uri.parse("package:" + activity.getPackageName()));
-                        activity.startActivity(intent);
-                    }).setPositiveButton("同意", (dialogInterface, i) -> {
-                        SharedPreferences.Editor editor = tsConfig.edit();
-                        editor.putBoolean("EULA", true);
-                        editor.apply();
-                        showTSPreferenceDialog(classLoader, activity);
-                    }).create();
-            alertDialog.show();
+            TSPreferenceHelper.TbDialogBuilder bdalert = new TSPreferenceHelper.TbDialogBuilder(classLoader, activity, "使用协议", stringBuilder.toString(), true, null);
+            bdalert.setOnNoButtonClickListener(v -> {
+                Intent intent = new Intent();
+                intent.setAction(Intent.ACTION_DELETE);
+                Intent intentToResolve = TSPreferenceHelper.launchModuleIntent(activity);
+                if (intentToResolve != null)
+                    intent.setData(Uri.parse("package:" + "gm.tieba.tabswitch"));
+                else intent.setData(Uri.parse("package:" + activity.getPackageName()));
+                activity.startActivity(intent);
+            });
+            bdalert.setOnYesButtonClickListener(v -> {
+                SharedPreferences.Editor editor = tsConfig.edit();
+                editor.putBoolean("EULA", true);
+                editor.apply();
+                showTSPreferenceDialog(classLoader, activity);
+                bdalert.dismiss();
+            });
+            bdalert.show();
             return;
         }
         TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
@@ -139,16 +139,17 @@ public class TSPreference extends Hook {
         TSPreferenceHelper.SwitchViewHolder autoSign = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "自动签到", "auto_sign");
         if (!tsConfig.getBoolean("auto_sign", false)) {
             autoSign.newSwitch.setOnClickListener(v -> {
-                AlertDialog alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
-                        .setTitle("提示").setMessage("这是一个需要网络请求并且有封号风险的功能，您需要自行承担使用此功能的风险，请谨慎使用！").setCancelable(true)
-                        .setNegativeButton("取消", (dialogInterface, i) -> {
-                        }).setPositiveButton("确定", (dialogInterface, i) -> {
-                            SharedPreferences.Editor editor = tsConfig.edit();
-                            editor.putBoolean("auto_sign", true);
-                            editor.apply();
-                            autoSign.turnOn();
-                        }).create();
-                alertDialog.show();
+                TSPreferenceHelper.TbDialogBuilder bdalert = new TSPreferenceHelper.TbDialogBuilder(classLoader, activity, "提示",
+                        "这是一个需要网络请求并且有封号风险的功能，您需要自行承担使用此功能的风险，请谨慎使用！", true, null);
+                bdalert.setOnNoButtonClickListener(v2 -> bdalert.dismiss());
+                bdalert.setOnYesButtonClickListener(v2 -> {
+                    SharedPreferences.Editor editor = tsConfig.edit();
+                    editor.putBoolean("auto_sign", true);
+                    editor.apply();
+                    autoSign.turnOn();
+                    bdalert.dismiss();
+                });
+                bdalert.show();
             });
             autoSign.bdSwitch.setOnTouchListener((v, event) -> false);
         }
@@ -201,43 +202,30 @@ public class TSPreference extends Hook {
         AlertDialog alertDialog;
         if (DisplayHelper.isLightMode(activity))
             alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
-                    .setTitle("贴吧TS设置").setView(preferenceLayout.getPreferenceLayout()).setCancelable(true)
+                    .setTitle("贴吧TS设置").setView(preferenceLayout.create()).setCancelable(true)
                     .setNegativeButton("取消", (dialogInterface, i) -> {
-                    }).setPositiveButton("保存并重启", (dialogInterface, i) -> {
+                    }).setPositiveButton("重启", (dialogInterface, i) -> {
                     }).create();
         else alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_DARK)
-                .setTitle("贴吧TS设置").setView(preferenceLayout.getPreferenceLayout()).setCancelable(true)
+                .setTitle("贴吧TS设置").setView(preferenceLayout.create()).setCancelable(true)
                 .setNegativeButton("取消", (dialogInterface, i) -> {
-                }).setPositiveButton("保存并重启", (dialogInterface, i) -> {
+                }).setPositiveButton("重启", (dialogInterface, i) -> {
                 }).create();
         alertDialog.show();
         isShowTSPreference = false;
         alertDialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
-            SharedPreferences tsPreference = activity.getSharedPreferences("TS_preference", Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = tsPreference.edit();
-            for (int i = 0; i < preferenceLayout.switches.size(); i++) {
-                TSPreferenceHelper.SwitchViewHolder switchViewHolder = preferenceLayout.switches.get(i);
-                if (!switchViewHolder.text.startsWith("过滤"))
-                    editor.putBoolean(switchViewHolder.key, switchViewHolder.isOn());
-            }
-            editor.commit();
-            if (AntiConfusionHelper.getLostList().size() != 0) {
-                Intent intent = new Intent().setClassName(activity, "com.baidu.tieba.launcherGuide.tblauncher.GuideActivity");
-                activity.startActivity(intent);
-            } else {
-                Intent intent = activity.getPackageManager().getLaunchIntentForPackage(activity.getPackageName());
+            Intent intent = activity.getPackageManager().getLaunchIntentForPackage(activity.getPackageName());
+            if (intent != null) {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 activity.startActivity(intent);
-                activity.finishAffinity();
-                System.exit(0);
             }
-            alertDialog.dismiss();
+            activity.finishAffinity();
+            System.exit(0);
         });
     }
 
     @SuppressLint("ApplySharedPref")
     private static void showModifyTabDialog(ClassLoader classLoader, Activity activity) {
-        SharedPreferences tsPreference = activity.getSharedPreferences("TS_preference", Context.MODE_PRIVATE);
         TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
         TSPreferenceHelper.SwitchViewHolder homeRecommend = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "隐藏首页", "home_recommend");
         preferenceLayout.addView(homeRecommend);
@@ -247,35 +235,14 @@ public class TSPreference extends Hook {
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "隐藏消息", "my_message"));
         TSPreferenceHelper.SwitchViewHolder mine = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "隐藏我的", "mine");
         preferenceLayout.addView(mine);
-        AlertDialog alertDialog;
-        if (DisplayHelper.isLightMode(activity))
-            alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
-                    .setTitle("修改底栏").setView(preferenceLayout.getPreferenceLayout()).setCancelable(true)
-                    .setNegativeButton("取消", (dialogInterface, i) -> {
-                    }).setPositiveButton("保存", (dialogInterface, i) -> {
-                    }).create();
-        else alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_DARK)
-                .setTitle("修改底栏").setView(preferenceLayout.getPreferenceLayout()).setCancelable(true)
-                .setNegativeButton("取消", (dialogInterface, i) -> {
-                }).setPositiveButton("保存", (dialogInterface, i) -> {
-                }).create();
-        alertDialog.show();
-        alertDialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
-            if (homeRecommend.isOn() && enterForum.isOn()) {
-                Toast.makeText(activity, "不能同时隐藏首页和隐藏进吧", Toast.LENGTH_LONG).show();
-                return;
-            }
-            if (mine.isOn())
-                Toast.makeText(activity, "隐藏我的后就只能从模块中打开设置了哦", Toast.LENGTH_LONG).show();
-            SharedPreferences.Editor editor = tsPreference.edit();
-            for (int i = 0; i < preferenceLayout.switches.size(); i++) {
-                TSPreferenceHelper.SwitchViewHolder switchViewHolder = preferenceLayout.switches.get(i);
-                if (!switchViewHolder.text.startsWith("过滤"))
-                    editor.putBoolean(switchViewHolder.key, switchViewHolder.isOn());
-            }
-            editor.commit();
-            alertDialog.dismiss();
-        });
+        TSPreferenceHelper.TbDialogBuilder bdalert = new TSPreferenceHelper.TbDialogBuilder(classLoader, activity, null, null, true, preferenceLayout.create());
+        try {
+            bdalert.mRootView.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("no").getInt(null)).setVisibility(View.GONE);
+        } catch (Throwable throwable) {
+            XposedBridge.log(throwable);
+        }
+        bdalert.setOnYesButtonClickListener(v -> bdalert.dismiss());
+        bdalert.show();
     }
 
     private static final Map<String, String> regex = new HashMap<>();
@@ -305,74 +272,26 @@ public class TSPreference extends Hook {
                 regex.put(holder.key, s.toString());
             }
         });
-        try {
-            TSPreferenceHelper.TbDialogBuilder bdalert = new TSPreferenceHelper.TbDialogBuilder(holder.classLoader, holder.newSwitch.getContext(), null, null, editText);
-            bdalert.setOnNoButtonClickListener(v -> bdalert.dismiss());
-            bdalert.setOnYesButtonClickListener(v -> {
-                SharedPreferences.Editor editor = tsPreference.edit();
-                try {
-                    if (TextUtils.isEmpty(editText.getText())) {
-                        editor.putString(holder.key, null);
-                        holder.turnOff();
-                    } else {
-                        Pattern.compile(editText.getText().toString());
-                        editor.putString(holder.key, editText.getText().toString());
-                        holder.turnOn();
-                    }
-                    editor.commit();
-                    bdalert.dismiss();
-                } catch (PatternSyntaxException e) {
-                    Toast.makeText(holder.newSwitch.getContext(), Log.getStackTraceString(e), Toast.LENGTH_SHORT).show();
+        TSPreferenceHelper.TbDialogBuilder bdalert = new TSPreferenceHelper.TbDialogBuilder(holder.classLoader, holder.newSwitch.getContext(), null, null, true, editText);
+        bdalert.setOnNoButtonClickListener(v -> bdalert.dismiss());
+        bdalert.setOnYesButtonClickListener(v -> {
+            SharedPreferences.Editor editor = tsPreference.edit();
+            try {
+                if (TextUtils.isEmpty(editText.getText())) {
+                    editor.putString(holder.key, null);
+                    holder.turnOff();
+                } else {
+                    Pattern.compile(editText.getText().toString());
+                    editor.putString(holder.key, editText.getText().toString());
+                    holder.turnOn();
                 }
-            });
-            bdalert.show();
-            bdalert.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
-        } catch (NullPointerException e) {
-            AlertDialog alertDialog;
-            if (DisplayHelper.isLightMode(holder.newSwitch.getContext()))
-                alertDialog = new AlertDialog.Builder(holder.newSwitch.getContext(), AlertDialog.THEME_HOLO_LIGHT)
-                        .setTitle(holder.text).setView(editText).setCancelable(true)
-                        .setNeutralButton("|", (dialogInterface, i) -> {
-                        }).setNegativeButton("取消", (dialogInterface, i) -> {
-                        }).setPositiveButton("保存", (dialogInterface, i) -> {
-                        }).create();
-            else {
-                editText.setTextColor(modRes.getColor(R.color.colorPrimary, null));
-                alertDialog = new AlertDialog.Builder(holder.newSwitch.getContext(), AlertDialog.THEME_HOLO_DARK)
-                        .setTitle(holder.text).setView(editText).setCancelable(true)
-                        .setNeutralButton("|", (dialogInterface, i) -> {
-                        }).setNegativeButton("取消", (dialogInterface, i) -> {
-                        }).setPositiveButton("保存", (dialogInterface, i) -> {
-                        }).create();
+                editor.commit();
+                bdalert.dismiss();
+            } catch (PatternSyntaxException e) {
+                Toast.makeText(holder.newSwitch.getContext(), Log.getStackTraceString(e), Toast.LENGTH_SHORT).show();
             }
-            alertDialog.show();
-            alertDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
-            alertDialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> {
-                int selectionStart = editText.getSelectionStart();
-                int selectionEnd = editText.getSelectionEnd();
-                String sub1 = editText.getText().toString().substring(0, selectionEnd);
-                String sub2 = editText.getText().toString().substring(selectionEnd);
-                editText.setText(String.format("%s|%s", sub1, sub2));
-                if (selectionStart == selectionEnd) editText.setSelection(selectionEnd + 1);
-                else editText.setSelection(selectionStart, selectionEnd + 1);
-            });
-            alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-                SharedPreferences.Editor editor = tsPreference.edit();
-                try {
-                    if (TextUtils.isEmpty(editText.getText())) {
-                        editor.putString(holder.key, null);
-                        holder.turnOff();
-                    } else {
-                        Pattern.compile(editText.getText().toString());
-                        editor.putString(holder.key, editText.getText().toString());
-                        holder.turnOn();
-                    }
-                    editor.commit();
-                    alertDialog.dismiss();
-                } catch (PatternSyntaxException e2) {
-                    Toast.makeText(holder.newSwitch.getContext(), Log.getStackTraceString(e), Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
+        });
+        bdalert.show();
+        bdalert.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
     }
 }

@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ResolveInfo;
+import android.graphics.Canvas;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -31,7 +32,7 @@ import gm.tieba.tabswitch.Hook;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.util.DisplayHelper;
 
-class TSPreferenceHelper extends Hook {
+public class TSPreferenceHelper extends Hook {
     static class PreferenceLayout {
         public List<SwitchViewHolder> switches;
         private LinearLayout linearLayout;
@@ -51,7 +52,7 @@ class TSPreferenceHelper extends Hook {
             }
         }
 
-        ScrollView getPreferenceLayout() {
+        ScrollView create() {
             ScrollView scrollView = new ScrollView(linearLayout.getContext());
             scrollView.addView(linearLayout);
             return scrollView;
@@ -133,6 +134,22 @@ class TSPreferenceHelper extends Hook {
                     turnOn();
                 else turnOff();
                 this.newSwitch = newSwitch;
+                XposedHelpers.findAndHookMethod("com.baidu.adp.widget.BdSwitchView.BdSwitchView", classLoader, "onDraw", Canvas.class, new XC_MethodHook() {
+                    @SuppressLint("ApplySharedPref")
+                    protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+                        boolean isChangeingSate;
+                        try {
+                            isChangeingSate = (boolean) XposedHelpers.getObjectField(param.thisObject, "mIsChangeingSate");
+                        } catch (NoSuchFieldError e) {
+                            isChangeingSate = (boolean) XposedHelpers.getObjectField(param.thisObject, "m");
+                        }
+                        if (isChangeingSate || text.startsWith("过滤"))
+                            return;
+                        SharedPreferences.Editor editor = activity.getSharedPreferences("TS_preference", Context.MODE_PRIVATE).edit();
+                        editor.putBoolean(key, isOn());
+                        editor.commit();
+                    }
+                });
             } catch (Throwable throwable) {
                 XposedBridge.log(throwable);
             }
@@ -224,15 +241,15 @@ class TSPreferenceHelper extends Hook {
         }
     }
 
-    static class TbDialogBuilder {
+    public static class TbDialogBuilder {
+        public ViewGroup mRootView;
         private Object bdalert;
         private Class<?> TbDialog;
-        private ViewGroup mRootView;
         private final ClassLoader classLoader;
         private Object pageContext;
         private AlertDialog mDialog;
 
-        TbDialogBuilder(ClassLoader classLoader, Context context, String title, String message, View contentView) {
+        public TbDialogBuilder(ClassLoader classLoader, Context context, String title, String message, boolean cancelable, View contentView) {
             XposedHelpers.findAndHookMethod("com.baidu.tbadk.core.BaseFragment", classLoader, "getPageContext", new XC_MethodHook() {
                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                     pageContext = param.getResult();
@@ -244,7 +261,7 @@ class TSPreferenceHelper extends Hook {
                 if (Objects.equals(map.get("rule"), "Lcom/baidu/tieba/R$layout;->dialog_bdalert:I")) {
                     try {
                         TbDialog = classLoader.loadClass(map.get("class"));
-                        bdalert = TbDialog.getConstructor(Activity.class).newInstance(context);
+                        bdalert = TbDialog.getConstructor(Activity.class).newInstance((Activity) context);
                         try {
                             mRootView = (ViewGroup) XposedHelpers.getObjectField(bdalert, "mRootView");
                             XposedHelpers.setObjectField(bdalert, "mTitle", title);
@@ -252,6 +269,8 @@ class TSPreferenceHelper extends Hook {
                             XposedHelpers.setObjectField(bdalert, "mContentView", contentView);
                             XposedHelpers.setObjectField(bdalert, "mPositiveButtonTip", "确定");
                             XposedHelpers.setObjectField(bdalert, "mNegativeButtonTip", "取消");
+                            if (!cancelable)
+                                XposedHelpers.setObjectField(bdalert, "mCancelable", false);
                         } catch (NoSuchFieldError e) {
                             mRootView = (ViewGroup) XposedHelpers.getObjectField(bdalert, "y");
                             XposedHelpers.setObjectField(bdalert, "f", title);
@@ -259,6 +278,7 @@ class TSPreferenceHelper extends Hook {
                             XposedHelpers.setObjectField(bdalert, "g", contentView);
                             XposedHelpers.setObjectField(bdalert, "l", "确定");
                             XposedHelpers.setObjectField(bdalert, "m", "取消");
+                            if (!cancelable) XposedHelpers.setObjectField(bdalert, "C", false);
                         }
                     } catch (Throwable throwable) {
                         XposedBridge.log(throwable);
@@ -269,7 +289,7 @@ class TSPreferenceHelper extends Hook {
             throw new NullPointerException("create tb dialog failed");
         }
 
-        void setOnYesButtonClickListener(View.OnClickListener onClickListener) {
+        public void setOnYesButtonClickListener(View.OnClickListener onClickListener) {
             try {
                 mRootView.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("yes").getInt(null)).setOnClickListener(onClickListener);
             } catch (Throwable throwable) {
@@ -277,7 +297,7 @@ class TSPreferenceHelper extends Hook {
             }
         }
 
-        void setOnNoButtonClickListener(View.OnClickListener onClickListener) {
+        public void setOnNoButtonClickListener(View.OnClickListener onClickListener) {
             try {
                 mRootView.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("no").getInt(null)).setOnClickListener(onClickListener);
             } catch (Throwable throwable) {
@@ -285,7 +305,7 @@ class TSPreferenceHelper extends Hook {
             }
         }
 
-        void show() {
+        public void show() {
             try {
                 Method[] methods = TbDialog.getDeclaredMethods();
                 for (Method method : methods)
@@ -306,11 +326,11 @@ class TSPreferenceHelper extends Hook {
             }
         }
 
-        Window getWindow() {
+        public Window getWindow() {
             return mDialog.getWindow();
         }
 
-        void dismiss() {
+        public void dismiss() {
             try {
                 try {
                     TbDialog.getDeclaredMethod("dismiss").invoke(bdalert);

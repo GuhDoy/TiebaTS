@@ -60,7 +60,7 @@ public class MyAttention extends Hook {
         editText.setHint(key);
         editText.setText(tsNotes.getString(key, null));
         editText.selectAll();
-        TSPreferenceHelper.TbDialogBuilder bdalert = new TSPreferenceHelper.TbDialogBuilder(classLoader, activity, null, null, editText);
+        TSPreferenceHelper.TbDialogBuilder bdalert = new TSPreferenceHelper.TbDialogBuilder(classLoader, activity, null, null, true, editText);
         bdalert.setOnNoButtonClickListener(v -> bdalert.dismiss());
         bdalert.setOnYesButtonClickListener(v -> {
             SharedPreferences.Editor editor = tsNotes.edit();
