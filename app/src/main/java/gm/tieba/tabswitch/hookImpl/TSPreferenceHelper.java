@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ResolveInfo;
-import android.graphics.Canvas;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -17,8 +16,9 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
+import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -34,22 +34,17 @@ import gm.tieba.tabswitch.util.DisplayHelper;
 
 public class TSPreferenceHelper extends Hook {
     static class PreferenceLayout {
-        public List<SwitchViewHolder> switches;
         private LinearLayout linearLayout;
 
         PreferenceLayout(Activity activity) {
             linearLayout = new LinearLayout(activity);
             linearLayout.setOrientation(LinearLayout.VERTICAL);
             linearLayout.setPadding(30, 0, 30, 0);
-            switches = new ArrayList<>();
         }
 
         void addView(Object view) {
             if (view instanceof View) linearLayout.addView((View) view);
-            else {
-                linearLayout.addView(((SwitchViewHolder) view).newSwitch);
-                switches.add((SwitchViewHolder) view);
-            }
+            else linearLayout.addView(((SwitchViewHolder) view).newSwitch);
         }
 
         ScrollView create() {
@@ -98,20 +93,19 @@ public class TSPreferenceHelper extends Hook {
 
     static class SwitchViewHolder {
         public LinearLayout newSwitch;
-        public String text;
         public String key;
         public View bdSwitch;
         public ClassLoader classLoader;
         private Class<?> BdSwitchView;
 
         SwitchViewHolder(ClassLoader classLoader, Activity activity, String text, String key) {
-            this.text = text;
             this.key = key;
             this.classLoader = classLoader;
             try {
                 BdSwitchView = classLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView");
                 bdSwitch = (View) BdSwitchView.getConstructor(Context.class).newInstance(activity);
                 bdSwitch.setLayoutParams(new LinearLayout.LayoutParams(bdSwitch.getWidth(), bdSwitch.getHeight(), 0.25f));
+                setOnSwitchStateChangeListener(bdSwitch);
                 LinearLayout newSwitch = generateButton(classLoader, activity, text, null, v -> {
                     try {
                         Method changeState;
@@ -133,25 +127,41 @@ public class TSPreferenceHelper extends Hook {
                         text.startsWith("过滤") && tsPreference.getString(key, null) != null)
                     turnOn();
                 else turnOff();
+                if (!text.startsWith("过滤")) bdSwitch.setTag(key);
                 this.newSwitch = newSwitch;
-                XposedHelpers.findAndHookMethod("com.baidu.adp.widget.BdSwitchView.BdSwitchView", classLoader, "onDraw", Canvas.class, new XC_MethodHook() {
-                    @SuppressLint("ApplySharedPref")
-                    protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-                        boolean isChangeingSate;
-                        try {
-                            isChangeingSate = (boolean) XposedHelpers.getObjectField(param.thisObject, "mIsChangeingSate");
-                        } catch (NoSuchFieldError e) {
-                            isChangeingSate = (boolean) XposedHelpers.getObjectField(param.thisObject, "m");
-                        }
-                        if (isChangeingSate || text.startsWith("过滤"))
-                            return;
-                        SharedPreferences.Editor editor = activity.getSharedPreferences("TS_preference", Context.MODE_PRIVATE).edit();
-                        editor.putBoolean(key, isOn());
-                        editor.commit();
-                    }
-                });
             } catch (Throwable throwable) {
                 XposedBridge.log(throwable);
+            }
+        }
+
+        void setOnSwitchStateChangeListener(View view) {
+            try {
+                Class<?> OnSwitchStateChangeListener;
+                try {
+                    OnSwitchStateChangeListener = classLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView$b");
+                } catch (ClassNotFoundException e) {
+                    OnSwitchStateChangeListener = classLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView$a");
+                }
+                Object proxy = Proxy.newProxyInstance(classLoader, new Class<?>[]{OnSwitchStateChangeListener}, new MyInvocationHandler());
+                classLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView")
+                        .getDeclaredMethod("setOnSwitchStateChangeListener", OnSwitchStateChangeListener).invoke(view, proxy);
+            } catch (Throwable throwable) {
+                XposedBridge.log(throwable);
+            }
+        }
+
+        static class MyInvocationHandler implements InvocationHandler {
+            @SuppressLint("ApplySharedPref")
+            @Override
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                View view = (View) args[0];
+                String key = (String) view.getTag();
+                if (key != null) {
+                    SharedPreferences.Editor editor = view.getContext().getSharedPreferences("TS_preference", Context.MODE_PRIVATE).edit();
+                    editor.putBoolean(key, args[1].toString().equals("ON"));
+                    editor.commit();
+                }
+                return null;
             }
         }
 
