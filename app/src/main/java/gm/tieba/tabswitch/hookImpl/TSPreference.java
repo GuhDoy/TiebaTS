@@ -93,7 +93,7 @@ public class TSPreference extends Hook {
                             NavigationBar.getDeclaredMethod("setTitleText", String.class).invoke(mNavigationBar, "贴吧TS设置");
                             for (Object HORIZONTAL_RIGHT : enums)
                                 if (HORIZONTAL_RIGHT.toString().equals("HORIZONTAL_RIGHT")) {
-                                    TextView textViewRight = (TextView) NavigationBar.getDeclaredMethod("addTextButton", ControlAlign, String.class, View.OnClickListener.class)
+                                    TextView textView = (TextView) NavigationBar.getDeclaredMethod("addTextButton", ControlAlign, String.class, View.OnClickListener.class)
                                             .invoke(mNavigationBar, HORIZONTAL_RIGHT, "重启", (View.OnClickListener) v -> {
                                                 Intent intent = activity.getPackageManager().getLaunchIntentForPackage(activity.getPackageName());
                                                 if (intent != null) {
@@ -104,7 +104,7 @@ public class TSPreference extends Hook {
                                                 System.exit(0);
                                             });
                                     if (!DisplayHelper.isLightMode(activity))
-                                        textViewRight.setTextColor(Color.parseColor("#FFCBCBCC"));
+                                        textView.setTextColor(Color.parseColor("#FFCBCBCC"));
                                     break;
                                 }
                             LinearLayout containerView = activity.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("container_view").getInt(null));

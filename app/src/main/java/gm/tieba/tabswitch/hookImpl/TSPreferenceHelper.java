@@ -324,11 +324,11 @@ public class TSPreferenceHelper extends Hook {
                     if (Arrays.toString(method.getParameterTypes()).startsWith("[interface") && !Arrays.toString(method.getParameterTypes()).contains("$"))
                         method.invoke(bdalert, pageContext);// create
                 LinearLayout parent = mRootView.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("dialog_content").getInt(null));
-                if (parent.getChildAt(0) instanceof LinearLayout) {
+                if (!DisplayHelper.isLightMode(mRootView.getContext()) && parent.getChildAt(0) instanceof LinearLayout) {
                     LinearLayout linearLayout = (LinearLayout) parent.getChildAt(0);
                     for (int i = 0; i < linearLayout.getChildCount(); i++) {
                         View view = linearLayout.getChildAt(i);
-                        if (view instanceof TextView && !DisplayHelper.isLightMode(mRootView.getContext()))
+                        if (view instanceof TextView)
                             ((TextView) view).setTextColor(Color.parseColor("#FFCBCBCC"));
                     }
                 }

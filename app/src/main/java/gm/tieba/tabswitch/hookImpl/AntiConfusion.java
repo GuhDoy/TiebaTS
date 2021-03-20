@@ -1,12 +1,13 @@
 package gm.tieba.tabswitch.hookImpl;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -27,7 +28,6 @@ import de.robv.android.xposed.XposedBridge;
 import gm.tieba.tabswitch.Hook;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.RulesDbHelper;
-import gm.tieba.tabswitch.util.DisplayHelper;
 import gm.tieba.tabswitch.util.IO;
 
 public class AntiConfusion extends Hook {
@@ -36,10 +36,10 @@ public class AntiConfusion extends Hook {
     public static void hook(ClassLoader classLoader) throws Throwable {
         Method[] methods = classLoader.loadClass("com.baidu.tieba.LogoActivity").getDeclaredMethods();
         for (Method method : methods)
-            if (Arrays.toString(method.getParameterTypes()).equals("[class android.content.Context]"))
+            if (Arrays.toString(method.getParameterTypes()).equals("[class android.os.Bundle]") && !method.getName().startsWith("on"))
                 XposedBridge.hookMethod(method, new XC_MethodReplacement() {
                     protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
-                        Activity activity = (Activity) param.args[0];
+                        Activity activity = (Activity) param.thisObject;
                         if (AntiConfusionHelper.isDexChanged(activity))
                             activity.deleteDatabase("Rules.db");
                         else if (AntiConfusionHelper.getLostList().size() == 0)
@@ -47,10 +47,16 @@ public class AntiConfusion extends Hook {
                         else AntiConfusionHelper.matcherList = AntiConfusionHelper.getLostList();
                         new RulesDbHelper(activity.getApplicationContext()).getReadableDatabase();
 
+                        TextView title = new TextView(activity);
+                        title.setTextSize(16);
+                        title.setPadding(0, 0, 0, 20);
+                        title.setGravity(Gravity.CENTER);
+                        title.setTextColor(Hook.modRes.getColor(R.color.colorPrimaryDark, null));
+                        title.setText("贴吧TS正在定位被混淆的类和方法，请耐心等待");
                         TextView textView = new TextView(activity);
-                        textView.setTextSize(14);
-                        textView.setPadding(0, 5, 0, 5);
-                        textView.setText(String.format("读取%s", "ZipEntry"));
+                        textView.setTextSize(16);
+                        textView.setTextColor(Hook.modRes.getColor(R.color.colorPrimaryDark, null));
+                        textView.setText("读取ZipEntry");
                         TextView progressBackground = new TextView(activity);
                         progressBackground.setBackgroundColor(Hook.modRes.getColor(R.color.colorProgress, null));
                         RelativeLayout progressContainer = new RelativeLayout(activity);
@@ -61,17 +67,12 @@ public class AntiConfusion extends Hook {
                         textView.setLayoutParams(tvLp);
                         RelativeLayout.LayoutParams rlLp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
                         progressContainer.setLayoutParams(rlLp);
-                        AlertDialog alertDialog;
-                        if (DisplayHelper.isLightMode(activity)) {
-                            textView.setTextColor(Hook.modRes.getColor(R.color.colorPrimaryDark, null));
-                            alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
-                                    .setTitle("贴吧TS反混淆").setMessage("正在定位被混淆的类和方法，请耐心等待").setView(progressContainer).setCancelable(false).create();
-                        } else {
-                            textView.setTextColor(Hook.modRes.getColor(R.color.colorPrimary, null));
-                            alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_DARK)
-                                    .setTitle("贴吧TS反混淆").setMessage("正在定位被混淆的类和方法，请耐心等待").setView(progressContainer).setCancelable(false).create();
-                        }
-                        alertDialog.show();
+                        LinearLayout linearLayout = new LinearLayout(activity);
+                        linearLayout.setOrientation(LinearLayout.VERTICAL);
+                        linearLayout.setGravity(Gravity.CENTER);
+                        linearLayout.addView(title);
+                        linearLayout.addView(progressContainer);
+                        activity.setContentView(linearLayout);
                         new Thread(() -> {
                             File dexDir = new File(activity.getCacheDir().getAbsolutePath(), "dex");
                             try {
@@ -143,6 +144,7 @@ public class AntiConfusion extends Hook {
                                         AntiConfusionHelper.searchAndSave(classItem, 1, db);
                                     }
                                 }
+                                activity.runOnUiThread(() -> textView.setText("保存反混淆信息"));
                                 SharedPreferences tsConfig = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
                                 SharedPreferences.Editor editor = tsConfig.edit();
                                 byte[] bytes = new byte[32];
