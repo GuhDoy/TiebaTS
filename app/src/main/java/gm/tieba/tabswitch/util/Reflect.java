@@ -8,8 +8,7 @@ import de.robv.android.xposed.XposedHelpers;
 
 public class Reflect {
     public static Object getObjectField(Object instance, String className) throws Throwable {
-        Field[] fields = instance.getClass().getDeclaredFields();
-        for (Field field : fields) {
+        for (Field field : instance.getClass().getDeclaredFields()) {
             field.setAccessible(true);
             if (field.get(instance) != null && Objects.equals(field.get(instance).getClass().getName(), className))
                 return field.get(instance);

@@ -15,7 +15,6 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import gm.tieba.tabswitch.Hook;
 
 public class PurifyMy extends Hook {
@@ -27,8 +26,7 @@ public class PurifyMy extends Hook {
                 case "Lcom/baidu/tieba/R$drawable;->icon_pure_topbar_store44_svg:I"://商店
                     XposedHelpers.findAndHookMethod(map.get("class"), classLoader, map.get("method"), int.class, new XC_MethodHook() {
                         protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                            Field[] fields = param.thisObject.getClass().getDeclaredFields();
-                            for (Field field : fields) {
+                            for (Field field : param.thisObject.getClass().getDeclaredFields()) {
                                 field.setAccessible(true);
                                 if (field.get(param.thisObject) instanceof ImageView) {
                                     ImageView imageView = (ImageView) field.get(param.thisObject);
@@ -42,10 +40,9 @@ public class PurifyMy extends Hook {
                     });
                     break;
                 case "Lcom/baidu/tieba/R$id;->function_item_bottom_divider:I"://分割线
-                    Method[] dividers = classLoader.loadClass(map.get("class")).getDeclaredMethods();
-                    for (Method divider : dividers)
-                        if (Arrays.toString(divider.getParameterTypes()).equals("[interface com.baidu.tbadk.TbPageContext, int]") && !divider.getName().equals(map.get("method")))
-                            XposedBridge.hookMethod(divider, new XC_MethodHook() {
+                    for (Method method : classLoader.loadClass(map.get("class")).getDeclaredMethods())
+                        if (Arrays.toString(method.getParameterTypes()).equals("[interface com.baidu.tbadk.TbPageContext, int]") && !method.getName().equals(map.get("method")))
+                            XposedBridge.hookMethod(method, new XC_MethodHook() {
                                 protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
                                     Field[] fields = param.thisObject.getClass().getDeclaredFields();
                                     for (Field field : fields) {
@@ -62,13 +59,11 @@ public class PurifyMy extends Hook {
                             });
                     break;
                 case "\"https://tieba.baidu.com/mo/q/duxiaoman/index?noshare=1\""://我的ArrayList
-                    Method[] myArrayLists = classLoader.loadClass(map.get("class")).getDeclaredMethods();
-                    for (Method myArrayList : myArrayLists)
-                        if (Arrays.toString(myArrayList.getParameterTypes()).equals("[class tbclient.Profile.ProfileResIdl]"))
-                            XposedBridge.hookMethod(myArrayList, new XC_MethodHook() {
+                    for (Method method : classLoader.loadClass(map.get("class")).getDeclaredMethods())
+                        if (Arrays.toString(method.getParameterTypes()).equals("[class tbclient.Profile.ProfileResIdl]"))
+                            XposedBridge.hookMethod(method, new XC_MethodHook() {
                                 protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-                                    Field[] fields = param.thisObject.getClass().getDeclaredFields();
-                                    for (Field field : fields) {
+                                    for (Field field : param.thisObject.getClass().getDeclaredFields()) {
                                         field.setAccessible(true);
                                         if (field.get(param.thisObject) instanceof ArrayList) {
                                             ArrayList<?> arrayList = (ArrayList<?>) field.get(param.thisObject);

@@ -24,8 +24,7 @@ public class FontSize extends Hook {
                 XposedBridge.hookAllConstructors(XposedHelpers.findClass(map.get("class"), classLoader), new XC_MethodHook() {
                     @SuppressLint("ClickableViewAccessibility")
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        Field[] fields = param.thisObject.getClass().getDeclaredFields();
-                        for (Field field : fields) {
+                        for (Field field : param.thisObject.getClass().getDeclaredFields()) {
                             field.setAccessible(true);
                             if (field.get(param.thisObject) instanceof RelativeLayout) {
                                 RelativeLayout relativeLayout = (RelativeLayout) field.get(param.thisObject);
@@ -41,8 +40,7 @@ public class FontSize extends Hook {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.pb.videopb.fragment.DetailInfoAndReplyFragment", classLoader, "onCreateView", LayoutInflater.class, ViewGroup.class, Bundle.class, new XC_MethodHook() {
             @SuppressLint("ClickableViewAccessibility")
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                Field[] fields = param.thisObject.getClass().getDeclaredFields();
-                for (Field field : fields) {
+                for (Field field : param.thisObject.getClass().getDeclaredFields()) {
                     field.setAccessible(true);
                     if (field.get(param.thisObject).getClass().getName().equals("com.baidu.adp.widget.ListView.BdTypeRecyclerView")) {
                         ViewGroup recyclerView = (ViewGroup) field.get(param.thisObject);

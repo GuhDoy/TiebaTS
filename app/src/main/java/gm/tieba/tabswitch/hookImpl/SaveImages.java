@@ -40,8 +40,7 @@ public class SaveImages extends Hook {
     private static String title;
 
     public static void hook(ClassLoader classLoader) throws Throwable {
-        Method[] methods = classLoader.loadClass("com.baidu.tbadk.coreExtra.view.ImagePagerAdapter").getDeclaredMethods();
-        for (Method method : methods)
+        for (Method method : classLoader.loadClass("com.baidu.tbadk.coreExtra.view.ImagePagerAdapter").getDeclaredMethods())
             if (Arrays.toString(method.getParameterTypes()).equals("[class java.util.ArrayList]"))
                 XposedBridge.hookMethod(method, new XC_MethodHook() {
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
@@ -55,8 +54,7 @@ public class SaveImages extends Hook {
         });
         XposedHelpers.findAndHookConstructor("com.baidu.tbadk.coreExtra.view.ImageViewerBottomLayout", classLoader, Context.class, new XC_MethodHook() {
             protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-                Field[] fields = param.thisObject.getClass().getDeclaredFields();
-                for (Field field : fields) {
+                for (Field field : param.thisObject.getClass().getDeclaredFields()) {
                     field.setAccessible(true);
                     if (field.get(param.thisObject) instanceof ImageView) {
                         ImageView downloadIcon = (ImageView) field.get(param.thisObject);

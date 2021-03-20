@@ -77,11 +77,10 @@ public class TSPreferenceHelper extends Hook {
             Object instance = TbSettingTextTipView.getConstructor(Context.class).newInstance(activity);
             TbSettingTextTipView.getDeclaredMethod("setText", String.class).invoke(instance, text);
             TbSettingTextTipView.getDeclaredMethod("setTip", String.class).invoke(instance, tip);
-            Field[] linearLayouts = instance.getClass().getDeclaredFields();
-            for (Field linearLayout : linearLayouts) {
-                linearLayout.setAccessible(true);
-                if (linearLayout.get(instance) instanceof LinearLayout) {
-                    LinearLayout newButton = (LinearLayout) linearLayout.get(instance);
+            for (Field field : instance.getClass().getDeclaredFields()) {
+                field.setAccessible(true);
+                if (field.get(instance) instanceof LinearLayout) {
+                    LinearLayout newButton = (LinearLayout) field.get(instance);
                     ((ViewGroup) Objects.requireNonNull(newButton).getParent()).removeView(newButton);
                     if (onClickListener != null) newButton.setOnClickListener(onClickListener);
                     return newButton;
@@ -319,8 +318,7 @@ public class TSPreferenceHelper extends Hook {
 
         public void show() {
             try {
-                Method[] methods = TbDialog.getDeclaredMethods();
-                for (Method method : methods)
+                for (Method method : TbDialog.getDeclaredMethods())
                     if (Arrays.toString(method.getParameterTypes()).startsWith("[interface") && !Arrays.toString(method.getParameterTypes()).contains("$"))
                         method.invoke(bdalert, pageContext);// create
                 LinearLayout parent = mRootView.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("dialog_content").getInt(null));
@@ -332,7 +330,7 @@ public class TSPreferenceHelper extends Hook {
                             ((TextView) view).setTextColor(Color.parseColor("#FFCBCBCC"));
                     }
                 }
-                for (Method method : methods)
+                for (Method method : TbDialog.getDeclaredMethods())
                     if (Arrays.toString(method.getParameterTypes()).equals("[]") && Objects.equals(method.getReturnType(), TbDialog)) {
                         method.invoke(bdalert);// show
                         break;

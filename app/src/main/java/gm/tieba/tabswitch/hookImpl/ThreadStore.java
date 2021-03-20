@@ -49,8 +49,7 @@ public class ThreadStore extends Hook {
             if (Objects.equals(map.get("rule"), "\"c/f/post/threadstore\""))
                 XposedHelpers.findAndHookMethod(map.get("class"), classLoader, map.get("method"), Boolean[].class, new XC_MethodHook() {
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        Field[] fields = param.getResult().getClass().getDeclaredFields();
-                        for (Field field : fields) {
+                        for (Field field : param.getResult().getClass().getDeclaredFields()) {
                             field.setAccessible(true);
                             if (field.get(param.getResult()) instanceof ArrayList) {
                                 ArrayList<?> arrayList = (ArrayList<?>) field.get(param.getResult());

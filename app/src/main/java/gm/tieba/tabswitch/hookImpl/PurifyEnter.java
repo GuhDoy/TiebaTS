@@ -14,7 +14,6 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import gm.tieba.tabswitch.Hook;
 import gm.tieba.tabswitch.util.DisplayHelper;
 
@@ -31,8 +30,7 @@ public class PurifyEnter extends Hook {
                 case "Lcom/baidu/tieba/R$id;->create_bar_container:I"://创建自己的吧
                     XposedBridge.hookAllConstructors(XposedHelpers.findClass(map.get("class"), classLoader), new XC_MethodHook() {
                         protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                            Field[] fields = param.thisObject.getClass().getDeclaredFields();
-                            for (Field field : fields) {
+                            for (Field field : param.thisObject.getClass().getDeclaredFields()) {
                                 field.setAccessible(true);
                                 if (field.get(param.thisObject) instanceof View) {
                                     View view = (View) field.get(param.thisObject);
@@ -56,8 +54,7 @@ public class PurifyEnter extends Hook {
                 }
                 XposedBridge.hookMethod(method, new XC_MethodHook() {
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        Field[] fields = param.thisObject.getClass().getDeclaredFields();
-                        for (Field field : fields) {
+                        for (Field field : param.thisObject.getClass().getDeclaredFields()) {
                             field.setAccessible(true);
                             if (field.get(param.thisObject) instanceof View) {
                                 View view = (View) field.get(param.thisObject);

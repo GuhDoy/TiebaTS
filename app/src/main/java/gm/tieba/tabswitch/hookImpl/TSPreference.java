@@ -88,10 +88,9 @@ public class TSPreference extends Hook {
                         if (activity.getIntent().getBooleanExtra("showTSPreference", false)) {
                             Object mNavigationBar = Reflect.getObjectField(param.thisObject, "com.baidu.tbadk.core.view.NavigationBar");
                             Class<?> ControlAlign = classLoader.loadClass("com.baidu.tbadk.core.view.NavigationBar$ControlAlign");
-                            Object[] enums = ControlAlign.getEnumConstants();
                             Class<?> NavigationBar = classLoader.loadClass("com.baidu.tbadk.core.view.NavigationBar");
                             NavigationBar.getDeclaredMethod("setTitleText", String.class).invoke(mNavigationBar, "贴吧TS设置");
-                            for (Object HORIZONTAL_RIGHT : enums)
+                            for (Object HORIZONTAL_RIGHT : ControlAlign.getEnumConstants())
                                 if (HORIZONTAL_RIGHT.toString().equals("HORIZONTAL_RIGHT")) {
                                     TextView textView = (TextView) NavigationBar.getDeclaredMethod("addTextButton", ControlAlign, String.class, View.OnClickListener.class)
                                             .invoke(mNavigationBar, HORIZONTAL_RIGHT, "重启", (View.OnClickListener) v -> {

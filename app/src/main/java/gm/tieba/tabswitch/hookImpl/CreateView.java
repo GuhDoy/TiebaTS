@@ -22,8 +22,7 @@ public class CreateView extends Hook {
             if (Objects.equals(map.get("rule"), "Lcom/baidu/tieba/R$id;->navigationBarGoSignall:I"))
                 XposedHelpers.findAndHookMethod(map.get("class"), classLoader, map.get("method"), Bundle.class, new XC_MethodHook() {
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        Field[] fields = param.thisObject.getClass().getDeclaredFields();
-                        for (Field field : fields) {
+                        for (Field field : param.thisObject.getClass().getDeclaredFields()) {
                             field.setAccessible(true);
                             if (field.get(param.thisObject) instanceof ImageView) {
                                 ImageView signButton = (ImageView) field.get(param.thisObject);

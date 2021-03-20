@@ -8,8 +8,7 @@ import gm.tieba.tabswitch.Hook;
 
 public class DevelopmentHelper extends Hook {
     public static void hookAllMethods(ClassLoader classLoader, String clazz) throws Throwable {
-        Method[] methods = classLoader.loadClass(clazz).getDeclaredMethods();
-        for (Method method : methods) {
+        for (Method method : classLoader.loadClass(clazz).getDeclaredMethods()) {
             XposedBridge.hookMethod(method, new XC_MethodHook() {
                 @Override
                 protected void beforeHookedMethod(MethodHookParam param) {

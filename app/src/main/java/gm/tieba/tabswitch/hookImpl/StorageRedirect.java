@@ -40,8 +40,7 @@ public class StorageRedirect extends Hook {
         for (int i = 0; i < ruleMapList.size(); i++) {
             Map<String, String> map = ruleMapList.get(i);
             if (Objects.equals(map.get("rule"), "0x4197d783fc000000L")) {
-                Method[] methods = classLoader.loadClass(map.get("class")).getDeclaredMethods();
-                for (Method method : methods)
+                for (Method method : classLoader.loadClass(map.get("class")).getDeclaredMethods())
                     switch (Arrays.toString(method.getParameterTypes())) {
                         case "[class java.lang.String, class [B, class android.content.Context]":
                             XposedBridge.hookMethod(method, new XC_MethodReplacement() {

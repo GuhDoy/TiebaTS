@@ -34,8 +34,7 @@ public class HistoryCache extends Hook {
                 Activity activity = (Activity) param.thisObject;
                 Object mNavigationBar = Reflect.getObjectField(param.thisObject, "com.baidu.tbadk.core.view.NavigationBar");
                 Class<?> ControlAlign = classLoader.loadClass("com.baidu.tbadk.core.view.NavigationBar$ControlAlign");
-                Object[] enums = ControlAlign.getEnumConstants();
-                for (Object HORIZONTAL_RIGHT : enums)
+                for (Object HORIZONTAL_RIGHT : ControlAlign.getEnumConstants())
                     if (HORIZONTAL_RIGHT.toString().equals("HORIZONTAL_RIGHT")) {
                         Class<?> NavigationBar = classLoader.loadClass("com.baidu.tbadk.core.view.NavigationBar");
                         TextView textView = (TextView) NavigationBar.getDeclaredMethod("addTextButton", ControlAlign, String.class, View.OnClickListener.class)
@@ -47,8 +46,7 @@ public class HistoryCache extends Hook {
                     }
             }
         });
-        Method[] methods = classLoader.loadClass("com.baidu.tieba.myCollection.history.PbHistoryActivity").getDeclaredMethods();
-        for (Method method : methods)
+        for (Method method : classLoader.loadClass("com.baidu.tieba.myCollection.history.PbHistoryActivity").getDeclaredMethods())
             if (Arrays.toString(method.getParameterTypes()).equals("[interface java.util.List]"))
                 XposedBridge.hookMethod(method, new XC_MethodHook() {
                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {

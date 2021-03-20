@@ -34,8 +34,7 @@ public class AntiConfusion extends Hook {
     private static final String springboardActivity = "com.baidu.tieba.tblauncher.MainTabActivity";
 
     public static void hook(ClassLoader classLoader) throws Throwable {
-        Method[] methods = classLoader.loadClass("com.baidu.tieba.LogoActivity").getDeclaredMethods();
-        for (Method method : methods)
+        for (Method method : classLoader.loadClass("com.baidu.tieba.LogoActivity").getDeclaredMethods())
             if (Arrays.toString(method.getParameterTypes()).equals("[class android.os.Bundle]") && !method.getName().startsWith("on"))
                 XposedBridge.hookMethod(method, new XC_MethodReplacement() {
                     protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
@@ -159,6 +158,11 @@ public class AntiConfusion extends Hook {
                                     IO.deleteFiles(new File(activity.getCacheDir().getAbsolutePath() + "image"));
                                     IO.deleteFiles(new File(activity.getFilesDir().getAbsolutePath() + File.separator + "newStat" + File.separator + "notUpload"));
                                 } else IO.deleteFiles(dexDir);
+                                if (tsPreference.getBoolean("purify", false)) {
+                                    SharedPreferences.Editor settingsEditor = activity.getSharedPreferences("settings", Context.MODE_PRIVATE).edit();
+                                    settingsEditor.putString("key_location_request_dialog_last_show_version", AntiConfusionHelper.getTbVersion(activity));
+                                    settingsEditor.commit();
+                                }
                                 XposedBridge.log("anti-confusion accomplished, current version: " + AntiConfusionHelper.getTbVersion(activity));
                                 AntiConfusionHelper.saveAndRestart(activity, AntiConfusionHelper.getTbVersion(activity), classLoader.loadClass(springboardActivity));
                             } catch (Throwable throwable) {

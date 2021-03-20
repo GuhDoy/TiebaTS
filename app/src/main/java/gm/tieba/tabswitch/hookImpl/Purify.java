@@ -31,22 +31,19 @@ public class Purify extends Hook {
                     XposedBridge.hookAllMethods(XposedHelpers.findClass(map.get("class"), classLoader), map.get("method"), XC_MethodReplacement.returnConstant(null));
                     break;
                 case "\"pic_amount\""://图片广告：必须"recom_ala_info", "app", 可选"goods_info"
-                    Method[] alas = classLoader.loadClass(map.get("class")).getDeclaredMethods();
-                    for (Method ala : alas)
-                        if (Arrays.toString(ala.getParameterTypes()).contains("JSONObject") && !ala.getName().equals(map.get("method")))
-                            XposedBridge.hookMethod(ala, XC_MethodReplacement.returnConstant(null));
+                    for (Method method : classLoader.loadClass(map.get("class")).getDeclaredMethods())
+                        if (Arrays.toString(method.getParameterTypes()).contains("JSONObject") && !method.getName().equals(map.get("method")))
+                            XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(null));
                     break;
                 case "\"key_frs_dialog_ad_last_show_time\""://吧推广弹窗
-                    Method[] dialogs = classLoader.loadClass(map.get("class")).getDeclaredMethods();
-                    for (Method dialog : dialogs)
-                        if (dialog.getName().equals(map.get("method")) && dialog.getReturnType().toString().equals("boolean"))
-                            XposedBridge.hookMethod(dialog, XC_MethodReplacement.returnConstant(true));
+                    for (Method method : classLoader.loadClass(map.get("class")).getDeclaredMethods())
+                        if (method.getName().equals(map.get("method")) && method.getReturnType().toString().equals("boolean"))
+                            XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(true));
                     break;
                 case "Lcom/baidu/tieba/R$id;->frs_ad_banner:I"://吧推广横幅
-                    Method[] banners = classLoader.loadClass(map.get("class")).getDeclaredMethods();
-                    for (Method banner : banners)
-                        if (Arrays.toString(banner.getParameterTypes()).startsWith("[interface java.util.List, class "))
-                            XposedBridge.hookMethod(banner, new XC_MethodHook() {
+                    for (Method method : classLoader.loadClass(map.get("class")).getDeclaredMethods())
+                        if (Arrays.toString(method.getParameterTypes()).startsWith("[interface java.util.List, class "))
+                            XposedBridge.hookMethod(method, new XC_MethodHook() {
                                 protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                                     param.args[1] = null;
                                 }
@@ -87,12 +84,11 @@ public class Purify extends Hook {
         XposedHelpers.findAndHookConstructor("com.baidu.mobads.vo.XAdInstanceInfo", classLoader, JSONObject.class, XC_MethodReplacement.returnConstant(null));
         //广告sdk："gdt_plugin.jar", "/api/ad/union/sdk/get_ads/"
         try {
-            Method[] funs = classLoader.loadClass("com.fun.ad.sdk.FunAdSdk").getDeclaredMethods();
-            for (Method fun : funs)
-                if (fun.getName().equals("init"))
-                    if (fun.getReturnType().toString().equals("void"))
-                        XposedBridge.hookMethod(fun, XC_MethodReplacement.returnConstant(null));
-                    else XposedBridge.hookMethod(fun, XC_MethodReplacement.returnConstant(true));
+            for (Method method : classLoader.loadClass("com.fun.ad.sdk.FunAdSdk").getDeclaredMethods())
+                if (method.getName().equals("init"))
+                    if (method.getReturnType().toString().equals("void"))
+                        XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(null));
+                    else XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(true));
         } catch (ClassNotFoundException ignored) {
         }
         //帖子直播推荐：在com/baidu/tieba/pb/pb/main/包搜索tbclient/AlaLiveInfo
@@ -103,10 +99,9 @@ public class Purify extends Hook {
         });
         //首页直播推荐卡片：搜索card_home_page_ala_live_item_new，会有两个结果，查找后一个结果所在类构造函数调用
         try {
-            Method[] alas = classLoader.loadClass("com.baidu.tieba.homepage.personalize.adapter.HomePageAlaLiveThreadAdapter").getDeclaredMethods();
-            for (Method ala : alas)
-                if (ala.getReturnType().toString().endsWith("HomePageAlaLiveThreadViewHolder"))
-                    XposedBridge.hookMethod(ala, XC_MethodReplacement.returnConstant(null));
+            for (Method method : classLoader.loadClass("com.baidu.tieba.homepage.personalize.adapter.HomePageAlaLiveThreadAdapter").getDeclaredMethods())
+                if (method.getReturnType().toString().endsWith("HomePageAlaLiveThreadViewHolder"))
+                    XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(null));
         } catch (ClassNotFoundException ignored) {
         }
         //首页不属于任何吧的视频
@@ -124,8 +119,7 @@ public class Purify extends Hook {
         //欢迎页
         XposedHelpers.findAndHookMethod("com.baidu.tieba.launcherGuide.tblauncher.GuideActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                Field[] fields = param.thisObject.getClass().getDeclaredFields();
-                for (Field field : fields) {
+                for (Field field : param.thisObject.getClass().getDeclaredFields()) {
                     field.setAccessible(true);
                     if (field.get(param.thisObject) instanceof int[]) {
                         int[] ints = (int[]) field.get(param.thisObject);
@@ -157,15 +151,13 @@ public class Purify extends Hook {
             }
         });
         //你可能感兴趣的人：initUI
-        Method[] concerns = classLoader.loadClass("com.baidu.tieba.homepage.concern.view.ConcernRecommendLayout").getDeclaredMethods();
-        for (Method concern : concerns)
-            if (Arrays.toString(concern.getParameterTypes()).equals("[]"))
-                XposedBridge.hookMethod(concern, XC_MethodReplacement.returnConstant(null));
+        for (Method method : classLoader.loadClass("com.baidu.tieba.homepage.concern.view.ConcernRecommendLayout").getDeclaredMethods())
+            if (Arrays.toString(method.getParameterTypes()).equals("[]"))
+                XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(null));
         //首页任务中心：R.id.task
         XposedHelpers.findAndHookMethod("com.baidu.tieba.homepage.framework.indicator.NestedScrollHeader", classLoader, "onAttachedToWindow", new XC_MethodHook() {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                Field[] fields = param.thisObject.getClass().getDeclaredFields();
-                for (Field field : fields) {
+                for (Field field : param.thisObject.getClass().getDeclaredFields()) {
                     field.setAccessible(true);
                     if (field.get(param.thisObject) instanceof ImageView) {
                         ImageView imageView = (ImageView) field.get(param.thisObject);
