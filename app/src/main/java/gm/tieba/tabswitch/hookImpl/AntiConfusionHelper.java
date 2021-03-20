@@ -38,6 +38,10 @@ public class AntiConfusionHelper extends Hook {
     }
 
     private static void addMatcher(List<String> list) {
+        //TSPreference
+        list.add("Lcom/baidu/tieba/R$id;->black_address_list:I");
+        //TSPreferenceHelper
+        list.add("Lcom/baidu/tieba/R$layout;->dialog_bdalert:I");
         //Purify
         list.add("\"c/s/splashSchedule\"");//旧启动广告
         list.add("\"custom_ext_data\"");//sdk启动广告
@@ -66,8 +70,6 @@ public class AntiConfusionHelper extends Hook {
         list.add("0x4197d783fc000000L");
         //FontSize
         list.add("Lcom/baidu/tieba/R$id;->new_pb_list:I");
-        //TSPreferenceHelper
-        list.add("Lcom/baidu/tieba/R$layout;->dialog_bdalert:I");
     }
 
     public static List<String> getLostList() {

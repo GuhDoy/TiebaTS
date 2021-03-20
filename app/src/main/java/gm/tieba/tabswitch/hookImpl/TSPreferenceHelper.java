@@ -7,12 +7,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ResolveInfo;
+import android.graphics.Color;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 import java.lang.reflect.Field;
@@ -28,39 +28,46 @@ import java.util.Random;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
+import gm.tieba.tabswitch.BuildConfig;
 import gm.tieba.tabswitch.Hook;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.util.DisplayHelper;
 
 public class TSPreferenceHelper extends Hook {
     static class PreferenceLayout {
-        private LinearLayout linearLayout;
+        public final LinearLayout linearLayout;
 
         PreferenceLayout(Activity activity) {
             linearLayout = new LinearLayout(activity);
             linearLayout.setOrientation(LinearLayout.VERTICAL);
-            linearLayout.setPadding(30, 0, 30, 0);
         }
 
         void addView(Object view) {
             if (view instanceof View) linearLayout.addView((View) view);
             else linearLayout.addView(((SwitchViewHolder) view).newSwitch);
         }
-
-        ScrollView create() {
-            ScrollView scrollView = new ScrollView(linearLayout.getContext());
-            scrollView.addView(linearLayout);
-            return scrollView;
-        }
     }
 
-    static TextView generateTextView(Activity activity, String text) {
-        TextView textView = new TextView(activity);
-        textView.setText(text);
-        textView.setTextColor(Hook.modRes.getColor(R.color.colorInstall, null));
-        textView.setTextSize(17);
-        textView.setPadding(20, 40, 0, 15);
-        return textView;
+    static TextView generateTextView(ClassLoader classLoader, Activity activity, String text) {
+        try {
+            TextView textView = new TextView(activity);
+            textView.setText(text);
+            textView.setTextColor(activity.getColor(classLoader.loadClass("com.baidu.tieba.R$color").getField("CAM_X0108").getInt(null)));
+            textView.setTextSize(DisplayHelper.px2Dip(activity, activity.getResources().getDimension(classLoader.loadClass("com.baidu.tieba.R$dimen").getField("fontsize28").getInt(null))));
+            LinearLayout.LayoutParams layoutParams;
+            if (text != null) {
+                textView.setPadding((int) activity.getResources().getDimension(classLoader.loadClass("com.baidu.tieba.R$dimen").getField("ds30").getInt(null)),
+                        (int) activity.getResources().getDimension(classLoader.loadClass("com.baidu.tieba.R$dimen").getField("ds32").getInt(null)), 0,
+                        (int) activity.getResources().getDimension(classLoader.loadClass("com.baidu.tieba.R$dimen").getField("ds10").getInt(null)));
+                layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            } else
+                layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) activity.getResources().getDimension(classLoader.loadClass("com.baidu.tieba.R$dimen").getField("ds32").getInt(null)));
+            textView.setLayoutParams(layoutParams);
+            return textView;
+        } catch (Throwable throwable) {
+            XposedBridge.log(throwable);
+        }
+        throw new NullPointerException("generate text view failed");
     }
 
     @SuppressLint("UseCompatLoadingForDrawables")
@@ -76,11 +83,6 @@ public class TSPreferenceHelper extends Hook {
                 if (linearLayout.get(instance) instanceof LinearLayout) {
                     LinearLayout newButton = (LinearLayout) linearLayout.get(instance);
                     ((ViewGroup) Objects.requireNonNull(newButton).getParent()).removeView(newButton);
-                    if (!DisplayHelper.isLightMode(activity)) {
-                        ((TextView) newButton.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("text").getInt(null))).setTextColor(Hook.modRes.getColor(R.color.colorPrimary, null));
-                        ((TextView) newButton.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("tip").getInt(null))).setTextColor(Hook.modRes.getColor(R.color.colorPrimary, null));
-                    }
-                    newButton.setBackground(Hook.modRes.getDrawable(R.drawable.item_background_button, null));
                     if (onClickListener != null) newButton.setOnClickListener(onClickListener);
                     return newButton;
                 }
@@ -134,7 +136,7 @@ public class TSPreferenceHelper extends Hook {
             }
         }
 
-        void setOnSwitchStateChangeListener(View view) {
+        private void setOnSwitchStateChangeListener(View view) {
             try {
                 Class<?> OnSwitchStateChangeListener;
                 try {
@@ -150,7 +152,7 @@ public class TSPreferenceHelper extends Hook {
             }
         }
 
-        static class MyInvocationHandler implements InvocationHandler {
+        private static class MyInvocationHandler implements InvocationHandler {
             @SuppressLint("ApplySharedPref")
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -206,7 +208,7 @@ public class TSPreferenceHelper extends Hook {
     static Intent launchModuleIntent(Activity activity) {
         Intent intentToResolve = new Intent(Intent.ACTION_MAIN);
         intentToResolve.addCategory("de.robv.android.xposed.category.MODULE_SETTINGS");
-        intentToResolve.setPackage("gm.tieba.tabswitch");
+        intentToResolve.setPackage(BuildConfig.APPLICATION_ID);
         List<ResolveInfo> ris = activity.getPackageManager().queryIntentActivities(intentToResolve, 0);
         if (ris.size() > 0) return intentToResolve;
         else return null;
@@ -321,6 +323,15 @@ public class TSPreferenceHelper extends Hook {
                 for (Method method : methods)
                     if (Arrays.toString(method.getParameterTypes()).startsWith("[interface") && !Arrays.toString(method.getParameterTypes()).contains("$"))
                         method.invoke(bdalert, pageContext);// create
+                LinearLayout parent = mRootView.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("dialog_content").getInt(null));
+                if (parent.getChildAt(0) instanceof LinearLayout) {
+                    LinearLayout linearLayout = (LinearLayout) parent.getChildAt(0);
+                    for (int i = 0; i < linearLayout.getChildCount(); i++) {
+                        View view = linearLayout.getChildAt(i);
+                        if (view instanceof TextView && !DisplayHelper.isLightMode(mRootView.getContext()))
+                            ((TextView) view).setTextColor(Color.parseColor("#FFCBCBCC"));
+                    }
+                }
                 for (Method method : methods)
                     if (Arrays.toString(method.getParameterTypes()).equals("[]") && Objects.equals(method.getReturnType(), TbDialog)) {
                         method.invoke(bdalert);// show

@@ -2,13 +2,12 @@ package gm.tieba.tabswitch.hookImpl;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ResolveInfo;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
@@ -21,20 +20,24 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BuildConfig;
 import gm.tieba.tabswitch.Hook;
 import gm.tieba.tabswitch.util.DisplayHelper;
+import gm.tieba.tabswitch.util.Reflect;
 
 public class TSPreference extends Hook {
     private static boolean isShowTSPreference = false;
@@ -52,15 +55,7 @@ public class TSPreference extends Hook {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 Activity activity = (Activity) param.thisObject;
                 if (isShowTSPreference && !activity.getClass().getName().equals("com.baidu.tieba.LogoActivity"))
-                    showTSPreferenceDialog(classLoader, activity);
-            }
-        });
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.setting.more.MoreActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
-            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                Activity activity = (Activity) param.thisObject;
-                FrameLayout browseSetting = activity.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("browseSetting").getInt(null));
-                LinearLayout parent = (LinearLayout) browseSetting.getParent();
-                parent.addView(TSPreferenceHelper.generateButton(classLoader, activity, "贴吧TS设置", null, v -> showTSPreferenceDialog(classLoader, activity)), 11);
+                    startMainPreferenceActivity(classLoader, activity);
             }
         });
         XposedHelpers.findAndHookMethod(Dialog.class, "dismissDialog", new XC_MethodHook() {
@@ -76,10 +71,60 @@ public class TSPreference extends Hook {
                 }
             }
         });
+        XposedHelpers.findAndHookMethod("com.baidu.tieba.setting.more.MoreActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
+            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                Activity activity = (Activity) param.thisObject;
+                FrameLayout browseSetting = activity.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("browseSetting").getInt(null));
+                LinearLayout parent = (LinearLayout) browseSetting.getParent();
+                parent.addView(TSPreferenceHelper.generateButton(classLoader, activity, "贴吧TS设置", null, v -> startMainPreferenceActivity(classLoader, activity)), 11);
+            }
+        });
+        for (int i = 0; i < ruleMapList.size(); i++) {
+            Map<String, String> map = ruleMapList.get(i);
+            if (Objects.equals(map.get("rule"), "Lcom/baidu/tieba/R$id;->black_address_list:I"))
+                XposedHelpers.findAndHookMethod(map.get("class"), classLoader, map.get("method"), XposedHelpers.findClass("com.baidu.tieba.setting.im.more.SecretSettingActivity", classLoader), new XC_MethodHook() {
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        Activity activity = (Activity) param.args[0];
+                        if (activity.getIntent().getBooleanExtra("showTSPreference", false)) {
+                            Object mNavigationBar = Reflect.getObjectField(param.thisObject, "com.baidu.tbadk.core.view.NavigationBar");
+                            Class<?> ControlAlign = classLoader.loadClass("com.baidu.tbadk.core.view.NavigationBar$ControlAlign");
+                            Object[] enums = ControlAlign.getEnumConstants();
+                            Class<?> NavigationBar = classLoader.loadClass("com.baidu.tbadk.core.view.NavigationBar");
+                            NavigationBar.getDeclaredMethod("setTitleText", String.class).invoke(mNavigationBar, "贴吧TS设置");
+                            for (Object HORIZONTAL_RIGHT : enums)
+                                if (HORIZONTAL_RIGHT.toString().equals("HORIZONTAL_RIGHT")) {
+                                    TextView textViewRight = (TextView) NavigationBar.getDeclaredMethod("addTextButton", ControlAlign, String.class, View.OnClickListener.class)
+                                            .invoke(mNavigationBar, HORIZONTAL_RIGHT, "重启", (View.OnClickListener) v -> {
+                                                Intent intent = activity.getPackageManager().getLaunchIntentForPackage(activity.getPackageName());
+                                                if (intent != null) {
+                                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                    activity.startActivity(intent);
+                                                }
+                                                activity.finishAffinity();
+                                                System.exit(0);
+                                            });
+                                    if (!DisplayHelper.isLightMode(activity))
+                                        textViewRight.setTextColor(Color.parseColor("#FFCBCBCC"));
+                                    break;
+                                }
+                            LinearLayout containerView = activity.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("container_view").getInt(null));
+                            containerView.removeAllViews();
+                            containerView.addView(generateMainPreference(classLoader, activity));
+                        } else if (activity.getIntent().getBooleanExtra("showModifyTabPreference", false)) {
+                            Object mNavigationBar = Reflect.getObjectField(param.thisObject, "com.baidu.tbadk.core.view.NavigationBar");
+                            Class<?> NavigationBar = classLoader.loadClass("com.baidu.tbadk.core.view.NavigationBar");
+                            NavigationBar.getDeclaredMethod("setTitleText", String.class).invoke(mNavigationBar, "修改底栏");
+                            LinearLayout containerView = activity.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("container_view").getInt(null));
+                            containerView.removeAllViews();
+                            containerView.addView(generateModifyTabPreference(classLoader, activity));
+                        }
+                    }
+                });
+        }
     }
 
-    @SuppressLint({"ApplySharedPref", "ClickableViewAccessibility"})
-    private static void showTSPreferenceDialog(ClassLoader classLoader, Activity activity) {
+    private static void startMainPreferenceActivity(ClassLoader classLoader, Activity activity) {
+        isShowTSPreference = false;
         SharedPreferences tsConfig = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
         if (!tsConfig.getBoolean("EULA", false)) {
             StringBuilder stringBuilder = new StringBuilder().append("本模块开源免费，不会主动发起网络请求，不会上传任何用户数据，旨在技术交流。请勿将本模块用于商业或非法用途，由此产生的后果与开发者无关。\n若您不同意此协议，请立即卸载本模块！无论您以何种形式或方式使用本模块，皆视为您已同意此协议！");
@@ -91,7 +136,7 @@ public class TSPreference extends Hook {
                 intent.setAction(Intent.ACTION_DELETE);
                 Intent intentToResolve = TSPreferenceHelper.launchModuleIntent(activity);
                 if (intentToResolve != null)
-                    intent.setData(Uri.parse("package:" + "gm.tieba.tabswitch"));
+                    intent.setData(Uri.parse("package:" + BuildConfig.APPLICATION_ID));
                 else intent.setData(Uri.parse("package:" + activity.getPackageName()));
                 activity.startActivity(intent);
             });
@@ -99,17 +144,30 @@ public class TSPreference extends Hook {
                 SharedPreferences.Editor editor = tsConfig.edit();
                 editor.putBoolean("EULA", true);
                 editor.apply();
-                showTSPreferenceDialog(classLoader, activity);
+                startMainPreferenceActivity(classLoader, activity);
                 bdalert.dismiss();
             });
             bdalert.show();
-            return;
+        } else {
+            Intent intent = new Intent().setClassName(activity, "com.baidu.tieba.setting.im.more.SecretSettingActivity");
+            intent.putExtra("showTSPreference", true);
+            activity.startActivity(intent);
         }
+    }
+
+    @NotNull
+    private static LinearLayout generateMainPreference(ClassLoader classLoader, Activity activity) {
+        SharedPreferences tsConfig = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
         TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
         if (tsConfig.getBoolean("ze", false))
-            preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "轻车简从"));
-        else preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "净化界面"));
-        preferenceLayout.addView(TSPreferenceHelper.generateButton(classLoader, activity, "修改底栏", null, v -> showModifyTabDialog(classLoader, activity)));
+            preferenceLayout.addView(TSPreferenceHelper.generateTextView(classLoader, activity, "轻车简从"));
+        else
+            preferenceLayout.addView(TSPreferenceHelper.generateTextView(classLoader, activity, "净化界面"));
+        preferenceLayout.addView(TSPreferenceHelper.generateButton(classLoader, activity, "修改底栏", null, v -> {
+            Intent intent = new Intent().setClassName(activity, "com.baidu.tieba.setting.im.more.SecretSettingActivity");
+            intent.putExtra("showModifyTabPreference", true);
+            activity.startActivity(intent);
+        }));
         if (tsConfig.getBoolean("ze", false))
             preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "真正的净化界面", "purify"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "净化进吧", "purify_enter"));
@@ -125,8 +183,9 @@ public class TSPreference extends Hook {
         contentFilter.bdSwitch.setOnTouchListener((v, event) -> false);
         preferenceLayout.addView(contentFilter);
         if (tsConfig.getBoolean("ze", false))
-            preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "别出新意"));
-        else preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "增加功能"));
+            preferenceLayout.addView(TSPreferenceHelper.generateTextView(classLoader, activity, "别出新意"));
+        else
+            preferenceLayout.addView(TSPreferenceHelper.generateTextView(classLoader, activity, "增加功能"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "进吧增加收藏、历史", "create_view"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "我的收藏增加搜索、吧名", "thread_store"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "浏览历史增加搜索", "history_cache"));
@@ -134,8 +193,9 @@ public class TSPreference extends Hook {
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "长按下载保存全部图片", "save_images"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "长按关注的人设置备注名", "my_attention"));
         if (tsConfig.getBoolean("ze", false))
-            preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "垂手可得"));
-        else preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "自动化"));
+            preferenceLayout.addView(TSPreferenceHelper.generateTextView(classLoader, activity, "垂手可得"));
+        else
+            preferenceLayout.addView(TSPreferenceHelper.generateTextView(classLoader, activity, "自动化"));
         TSPreferenceHelper.SwitchViewHolder autoSign = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "自动签到", "auto_sign");
         if (!tsConfig.getBoolean("auto_sign", false)) {
             autoSign.newSwitch.setOnClickListener(v -> {
@@ -158,16 +218,18 @@ public class TSPreference extends Hook {
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "更新时清理缓存", "clean_dir"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "自动查看原图", "origin_src"));
         if (tsConfig.getBoolean("ze", false))
-            preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "奇怪怪"));
-        else preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "其它"));
+            preferenceLayout.addView(TSPreferenceHelper.generateTextView(classLoader, activity, "奇怪怪"));
+        else
+            preferenceLayout.addView(TSPreferenceHelper.generateTextView(classLoader, activity, "其它"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "存储重定向", "storage_redirect"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "禁用帖子缩放手势", "font_size"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "用夜间模式代替深色模式", "eyeshield_mode"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "用赞踩差数代替赞数", "agree_num"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "交换吧热门与最新", "frs_tab"));
         if (tsConfig.getBoolean("ze", false))
-            preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "关于就是关于"));
-        else preferenceLayout.addView(TSPreferenceHelper.generateTextView(activity, "关于"));
+            preferenceLayout.addView(TSPreferenceHelper.generateTextView(classLoader, activity, "关于就是关于"));
+        else
+            preferenceLayout.addView(TSPreferenceHelper.generateTextView(classLoader, activity, "关于"));
         preferenceLayout.addView(TSPreferenceHelper.generateButton(classLoader, activity, "版本", BuildConfig.VERSION_NAME, v -> {
             Intent intentToResolve = TSPreferenceHelper.launchModuleIntent(activity);
             if (intentToResolve == null) return;
@@ -199,50 +261,18 @@ public class TSPreference extends Hook {
                 editor.apply();
             }
         }));
-        AlertDialog alertDialog;
-        if (DisplayHelper.isLightMode(activity))
-            alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
-                    .setTitle("贴吧TS设置").setView(preferenceLayout.create()).setCancelable(true)
-                    .setNegativeButton("取消", (dialogInterface, i) -> {
-                    }).setPositiveButton("重启", (dialogInterface, i) -> {
-                    }).create();
-        else alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_DARK)
-                .setTitle("贴吧TS设置").setView(preferenceLayout.create()).setCancelable(true)
-                .setNegativeButton("取消", (dialogInterface, i) -> {
-                }).setPositiveButton("重启", (dialogInterface, i) -> {
-                }).create();
-        alertDialog.show();
-        isShowTSPreference = false;
-        alertDialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
-            Intent intent = activity.getPackageManager().getLaunchIntentForPackage(activity.getPackageName());
-            if (intent != null) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                activity.startActivity(intent);
-            }
-            activity.finishAffinity();
-            System.exit(0);
-        });
+        return preferenceLayout.linearLayout;
     }
 
-    @SuppressLint("ApplySharedPref")
-    private static void showModifyTabDialog(ClassLoader classLoader, Activity activity) {
+    private static LinearLayout generateModifyTabPreference(ClassLoader classLoader, Activity activity) {
         TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
-        TSPreferenceHelper.SwitchViewHolder homeRecommend = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "隐藏首页", "home_recommend");
-        preferenceLayout.addView(homeRecommend);
-        TSPreferenceHelper.SwitchViewHolder enterForum = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "隐藏进吧", "enter_forum");
-        preferenceLayout.addView(enterForum);
+        preferenceLayout.addView(TSPreferenceHelper.generateTextView(classLoader, activity, null));
+        preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "隐藏首页", "home_recommend"));
+        preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "隐藏进吧", "enter_forum"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "隐藏频道", "new_category"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "隐藏消息", "my_message"));
-        TSPreferenceHelper.SwitchViewHolder mine = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "隐藏我的", "mine");
-        preferenceLayout.addView(mine);
-        TSPreferenceHelper.TbDialogBuilder bdalert = new TSPreferenceHelper.TbDialogBuilder(classLoader, activity, null, null, true, preferenceLayout.create());
-        try {
-            bdalert.mRootView.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("no").getInt(null)).setVisibility(View.GONE);
-        } catch (Throwable throwable) {
-            XposedBridge.log(throwable);
-        }
-        bdalert.setOnYesButtonClickListener(v -> bdalert.dismiss());
-        bdalert.show();
+        preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "隐藏我的", "mine"));
+        return preferenceLayout.linearLayout;
     }
 
     private static final Map<String, String> regex = new HashMap<>();

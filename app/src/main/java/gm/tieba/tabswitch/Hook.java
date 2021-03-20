@@ -40,8 +40,8 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
-        if (lpparam.packageName.equals("gm.tieba.tabswitch")) {
-            XposedHelpers.findAndHookMethod("gm.tieba.tabswitch.ui.MainActivity", lpparam.classLoader, "isModuleActive", XC_MethodReplacement.returnConstant(true));
+        if (lpparam.packageName.equals(BuildConfig.APPLICATION_ID)) {
+            XposedHelpers.findAndHookMethod(BuildConfig.APPLICATION_ID + ".ui.MainActivity", lpparam.classLoader, "isModuleActive", XC_MethodReplacement.returnConstant(true));
             //System.load(modulePath.substring(0, modulePath.lastIndexOf('/')) + "/lib/arm/libcrust.so");
         } else if (lpparam.packageName.equals("com.baidu.tieba") || XposedHelpers.findClassIfExists("com.baidu.tieba.tblauncher.MainTabActivity", lpparam.classLoader) != null) {
             XposedHelpers.findAndHookMethod(Instrumentation.class, "callApplicationOnCreate", Application.class, new XC_MethodHook() {

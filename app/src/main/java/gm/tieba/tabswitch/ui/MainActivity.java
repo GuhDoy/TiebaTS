@@ -219,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public static boolean isModuleActive() {
-        Log.i("gm.tieba.tabswitch", "module not active");
+        Log.i(BuildConfig.APPLICATION_ID, "module not active");
         return false;
     }
 }
