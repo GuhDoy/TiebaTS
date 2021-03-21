@@ -96,7 +96,21 @@ public class AntiConfusion extends Hook {
                                         IO.copyFile(zipFile.getInputStream(ze), new File(dexDir, ze.getName()));
                                 }
                                 File[] fs = dexDir.listFiles();
-                                Arrays.sort(fs);
+                                Arrays.sort(fs, (o1, o2) -> {
+                                    int i1;
+                                    int i2;
+                                    try {
+                                        i1 = Integer.parseInt(o1.getName().replaceAll("[a-z.]", ""));
+                                    } catch (NumberFormatException e) {
+                                        i1 = 1;
+                                    }
+                                    try {
+                                        i2 = Integer.parseInt(o2.getName().replaceAll("[a-z.]", ""));
+                                    } catch (NumberFormatException e) {
+                                        i2 = 1;
+                                    }
+                                    return i1 - i2;
+                                });
                                 List<List<Integer>> itemList = new ArrayList<>();
                                 int totalItemCount = 0;
                                 boolean isSkip = false;
@@ -105,12 +119,12 @@ public class AntiConfusion extends Hook {
                                     List<ClassDefItem> classes = dex.ClassDefsSection.getItems();
                                     List<Integer> arrayList = new ArrayList<>();
                                     for (int j = 0; j < classes.size(); j++) {
-                                        float clsProgress = (float) j / fs.length / classes.size() + (float) i / fs.length;
+                                        float progress = (float) j / fs.length / classes.size() + (float) i / fs.length;
                                         activity.runOnUiThread(() -> {
                                             textView.setText("读取类签名");
                                             ViewGroup.LayoutParams lp = progressBackground.getLayoutParams();
                                             lp.height = textView.getHeight();
-                                            lp.width = (int) (progressContainer.getWidth() * clsProgress);
+                                            lp.width = (int) (progressContainer.getWidth() * progress);
                                             progressBackground.setLayoutParams(lp);
                                         });
                                         String signature = classes.get(j).getClassType().getTypeDescriptor();
@@ -130,12 +144,12 @@ public class AntiConfusion extends Hook {
                                     List<Integer> arrayList = itemList.get(i);
                                     for (int j = 0; j < arrayList.size(); j++) {
                                         itemCount++;
-                                        float clsProgress = (float) itemCount / totalItemCount;
+                                        float progress = (float) itemCount / totalItemCount;
                                         activity.runOnUiThread(() -> {
                                             textView.setText("搜索");
                                             ViewGroup.LayoutParams lp = progressBackground.getLayoutParams();
                                             lp.height = textView.getHeight();
-                                            lp.width = (int) (progressContainer.getWidth() * clsProgress);
+                                            lp.width = (int) (progressContainer.getWidth() * progress);
                                             progressBackground.setLayoutParams(lp);
                                         });
                                         ClassDefItem classItem = dex.ClassDefsSection.getItemByIndex(arrayList.get(j));
@@ -144,8 +158,7 @@ public class AntiConfusion extends Hook {
                                     }
                                 }
                                 activity.runOnUiThread(() -> textView.setText("保存反混淆信息"));
-                                SharedPreferences tsConfig = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
-                                SharedPreferences.Editor editor = tsConfig.edit();
+                                SharedPreferences.Editor editor = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE).edit();
                                 byte[] bytes = new byte[32];
                                 new FileInputStream(fs[0]).read(bytes);
                                 DexFile.calcSignature(bytes);
