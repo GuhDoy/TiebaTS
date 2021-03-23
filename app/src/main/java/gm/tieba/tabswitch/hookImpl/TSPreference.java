@@ -221,7 +221,7 @@ public class TSPreference extends Hook {
         else
             preferenceLayout.addView(TSPreferenceHelper.generateTextView(classLoader, activity, "其它"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "存储重定向", "storage_redirect"));
-        preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "禁用帖子缩放手势", "font_size"));
+        preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "禁用帖子手势", "forbid_gesture"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "用夜间模式代替深色模式", "eyeshield_mode"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "用赞踩差数代替赞数", "agree_num"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "交换吧热门与最新", "frs_tab"));

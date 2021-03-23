@@ -68,7 +68,7 @@ public class AntiConfusionHelper extends Hook {
         list.add("Lcom/baidu/tieba/R$layout;->person_list_item:I");
         //StorageRedirect
         list.add("0x4197d783fc000000L");
-        //FontSize
+        //ForbidGesture
         list.add("Lcom/baidu/tieba/R$id;->new_pb_list:I");
     }
 

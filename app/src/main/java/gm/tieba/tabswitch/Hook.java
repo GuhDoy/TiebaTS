@@ -87,7 +87,6 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
                             return;
                         }
 
-
                         TSPreference.hook(classLoader);
                         XposedHelpers.findAndHookMethod("com.baidu.tbadk.core.data.AccountData", classLoader, "getBDUSS", new XC_MethodHook() {
                             protected void afterHookedMethod(MethodHookParam param) throws Throwable {

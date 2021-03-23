@@ -86,9 +86,9 @@ public class Purify extends Hook {
         try {
             for (Method method : classLoader.loadClass("com.fun.ad.sdk.FunAdSdk").getDeclaredMethods())
                 if (method.getName().equals("init"))
-                    if (method.getReturnType().toString().equals("void"))
-                        XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(null));
-                    else XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(true));
+                    if (method.getReturnType().getTypeName().equals("boolean"))
+                        XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(true));
+                    else XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(null));
         } catch (ClassNotFoundException ignored) {
         }
         //帖子直播推荐：在com/baidu/tieba/pb/pb/main/包搜索tbclient/AlaLiveInfo

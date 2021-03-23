@@ -23,7 +23,7 @@ import gm.tieba.tabswitch.hookImpl.AutoSign;
 import gm.tieba.tabswitch.hookImpl.ContentFilter;
 import gm.tieba.tabswitch.hookImpl.CreateView;
 import gm.tieba.tabswitch.hookImpl.EyeshieldMode;
-import gm.tieba.tabswitch.hookImpl.FontSize;
+import gm.tieba.tabswitch.hookImpl.ForbidGesture;
 import gm.tieba.tabswitch.hookImpl.HistoryCache;
 import gm.tieba.tabswitch.hookImpl.HomeRecommend;
 import gm.tieba.tabswitch.hookImpl.MyAttention;
@@ -160,8 +160,8 @@ public class HookDispatcher extends Hook {
                 case "storage_redirect":
                     if ((Boolean) entry.getValue()) StorageRedirect.hook(classLoader, context);
                     break;
-                case "font_size":
-                    if ((Boolean) entry.getValue()) FontSize.hook(classLoader);
+                case "forbid_gesture":
+                    if ((Boolean) entry.getValue()) ForbidGesture.hook(classLoader);
                     break;
                 case "eyeshield_mode":
                     if ((Boolean) entry.getValue()) EyeshieldMode.hook(classLoader, context);
