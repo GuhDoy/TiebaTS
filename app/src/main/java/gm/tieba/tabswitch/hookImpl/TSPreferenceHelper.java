@@ -288,8 +288,13 @@ public class TSPreferenceHelper extends Hook {
                             XposedHelpers.setObjectField(bdalert, "g", contentView);
                             if (!cancelable) XposedHelpers.setObjectField(bdalert, "C", false);
                         }
-                        mRootView.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("bdDialog_divider_line").getInt(null)).setBackgroundColor(mRootView.getContext().getColor(classLoader.loadClass("com.baidu.tieba.R$color").getField("CAM_X0204").getInt(null)));
-                        mRootView.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("divider_yes_no_button").getInt(null)).setBackgroundColor(mRootView.getContext().getColor(classLoader.loadClass("com.baidu.tieba.R$color").getField("CAM_X0204").getInt(null)));
+                        if (DisplayHelper.isLightMode(context)) {
+                            mRootView.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("bdDialog_divider_line").getInt(null)).setBackgroundColor(mRootView.getContext().getColor(classLoader.loadClass("com.baidu.tieba.R$color").getField("CAM_X0204").getInt(null)));
+                            mRootView.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("divider_yes_no_button").getInt(null)).setBackgroundColor(mRootView.getContext().getColor(classLoader.loadClass("com.baidu.tieba.R$color").getField("CAM_X0204").getInt(null)));
+                        } else {
+                            mRootView.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("bdDialog_divider_line").getInt(null)).setBackgroundColor(mRootView.getContext().getColor(classLoader.loadClass("com.baidu.tieba.R$color").getField("CAM_X0105").getInt(null)));
+                            mRootView.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("divider_yes_no_button").getInt(null)).setBackgroundColor(mRootView.getContext().getColor(classLoader.loadClass("com.baidu.tieba.R$color").getField("CAM_X0105").getInt(null)));
+                        }
                     } catch (Throwable throwable) {
                         XposedBridge.log(throwable);
                     }

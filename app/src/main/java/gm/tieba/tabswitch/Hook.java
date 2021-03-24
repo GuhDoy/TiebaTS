@@ -112,7 +112,7 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
         } else {
             XposedHelpers.findAndHookMethod(String.class, "format", String.class, Object[].class, new XC_MethodHook() {
                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                    if (((String) param.args[0]).equals("https://%s%s")) {
+                    if (param.args[0].equals("https://%s%s")) {
                         Object[] objects = (Object[]) param.args[1];
                         if (objects.length == 2 && objects[1].equals("/api/ad/union/sdk/get_ads/"))
                             param.setResult(null);
