@@ -14,6 +14,7 @@ public class ContentFilter extends Hook {
     private static final List<Object> idList = new ArrayList<>();
 
     public static void hook(ClassLoader classLoader, String contentFilter) throws Throwable {
+        final Pattern pattern = Pattern.compile(contentFilter);
         XposedHelpers.findAndHookMethod("tbclient.PbPage.DataRes$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 List<?> postList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "post_list");
@@ -23,7 +24,7 @@ public class ContentFilter extends Hook {
                     String[] authors = new String[]{(String) XposedHelpers.getObjectField(userList.get(i), "name"),
                             (String) XposedHelpers.getObjectField(userList.get(i), "name_show")};
                     for (String string : authors)
-                        if (Pattern.compile(contentFilter).matcher(string).find()) {
+                        if (pattern.matcher(string).find()) {
                             idList.add(XposedHelpers.getObjectField(userList.get(i), "id"));
                             break;
                         }
@@ -31,7 +32,7 @@ public class ContentFilter extends Hook {
 
                 for (int i = 0; i < postList.size(); i++) {
                     if ((int) XposedHelpers.getObjectField(postList.get(i), "floor") == 1) continue;
-                    if (Pattern.compile(contentFilter).matcher(Reflect.pbContentParser(postList.get(i), "content")).find()) {
+                    if (pattern.matcher(Reflect.pbContentParser(postList.get(i), "content")).find()) {
                         postList.remove(i);
                         i--;
                         continue;
@@ -49,7 +50,7 @@ public class ContentFilter extends Hook {
                 List<?> subPostList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "sub_post_list");
                 if (subPostList == null) return;
                 for (int i = 0; i < subPostList.size(); i++) {
-                    if (Pattern.compile(contentFilter).matcher(Reflect.pbContentParser(subPostList.get(i), "content")).find()) {
+                    if (pattern.matcher(Reflect.pbContentParser(subPostList.get(i), "content")).find()) {
                         subPostList.remove(i);
                         i--;
                         continue;
@@ -67,7 +68,7 @@ public class ContentFilter extends Hook {
                 List<?> subpostList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "subpost_list");
                 if (subpostList == null) return;
                 for (int i = 0; i < subpostList.size(); i++) {
-                    if (Pattern.compile(contentFilter).matcher(Reflect.pbContentParser(subpostList.get(i), "content")).find()) {
+                    if (pattern.matcher(Reflect.pbContentParser(subpostList.get(i), "content")).find()) {
                         subpostList.remove(i);
                         i--;
                         continue;
@@ -77,7 +78,7 @@ public class ContentFilter extends Hook {
                     String[] authors = new String[]{(String) XposedHelpers.getObjectField(author, "name"),
                             (String) XposedHelpers.getObjectField(author, "name_show")};
                     for (String string : authors)
-                        if (Pattern.compile(contentFilter).matcher(string).find()) {
+                        if (pattern.matcher(string).find()) {
                             subpostList.remove(i);
                             i--;
                             break;
