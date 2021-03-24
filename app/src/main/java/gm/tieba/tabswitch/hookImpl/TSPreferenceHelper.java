@@ -107,20 +107,7 @@ public class TSPreferenceHelper extends Hook {
                 bdSwitch = (View) BdSwitchView.getConstructor(Context.class).newInstance(activity);
                 bdSwitch.setLayoutParams(new LinearLayout.LayoutParams(bdSwitch.getWidth(), bdSwitch.getHeight(), 0.25f));
                 setOnSwitchStateChangeListener(bdSwitch);
-                LinearLayout newSwitch = generateButton(classLoader, activity, text, null, v -> {
-                    try {
-                        Method changeState;
-                        try {
-                            changeState = BdSwitchView.getDeclaredMethod("changeState");
-                        } catch (NoSuchMethodException e) {
-                            changeState = BdSwitchView.getDeclaredMethod("b");
-                        }
-                        changeState.setAccessible(true);
-                        changeState.invoke(bdSwitch);
-                    } catch (Throwable throwable) {
-                        XposedBridge.log(throwable);
-                    }
-                });
+                LinearLayout newSwitch = generateButton(classLoader, activity, text, null, v -> changeState());
                 newSwitch.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("arrow2").getInt(null)).setVisibility(View.GONE);
                 newSwitch.addView(bdSwitch);
                 SharedPreferences tsPreference = activity.getSharedPreferences("TS_preference", Context.MODE_PRIVATE);
@@ -177,6 +164,21 @@ public class TSPreferenceHelper extends Hook {
                 XposedBridge.log(throwable);
             }
             return false;
+        }
+
+        void changeState() {
+            try {
+                Method changeState;
+                try {
+                    changeState = BdSwitchView.getDeclaredMethod("changeState");
+                } catch (NoSuchMethodException e) {
+                    changeState = BdSwitchView.getDeclaredMethod("b");
+                }
+                changeState.setAccessible(true);
+                changeState.invoke(bdSwitch);
+            } catch (Throwable throwable) {
+                XposedBridge.log(throwable);
+            }
         }
 
         void turnOn() {
@@ -238,7 +240,6 @@ public class TSPreferenceHelper extends Hook {
             editText.setFocusable(true);
             editText.setFocusableInTouchMode(true);
             editText.setTextSize(17);
-            editText.requestFocus();
             editText.setHintTextColor(Hook.modRes.getColor(R.color.colorProgress, null));
             if (!DisplayHelper.isLightMode(context))
                 editText.setTextColor(modRes.getColor(R.color.colorPrimary, null));
@@ -253,7 +254,7 @@ public class TSPreferenceHelper extends Hook {
     }
 
     public static class TbDialogBuilder {
-        public ViewGroup mRootView;
+        private ViewGroup mRootView;
         private Object bdalert;
         private Class<?> TbDialog;
         private final ClassLoader classLoader;
@@ -278,8 +279,6 @@ public class TSPreferenceHelper extends Hook {
                             XposedHelpers.setObjectField(bdalert, "mTitle", title);
                             XposedHelpers.setObjectField(bdalert, "mMessage", message);
                             XposedHelpers.setObjectField(bdalert, "mContentView", contentView);
-                            XposedHelpers.setObjectField(bdalert, "mPositiveButtonTip", "确定");
-                            XposedHelpers.setObjectField(bdalert, "mNegativeButtonTip", "取消");
                             if (!cancelable)
                                 XposedHelpers.setObjectField(bdalert, "mCancelable", false);
                         } catch (NoSuchFieldError e) {
@@ -287,10 +286,10 @@ public class TSPreferenceHelper extends Hook {
                             XposedHelpers.setObjectField(bdalert, "f", title);
                             XposedHelpers.setObjectField(bdalert, "h", message);
                             XposedHelpers.setObjectField(bdalert, "g", contentView);
-                            XposedHelpers.setObjectField(bdalert, "l", "确定");
-                            XposedHelpers.setObjectField(bdalert, "m", "取消");
                             if (!cancelable) XposedHelpers.setObjectField(bdalert, "C", false);
                         }
+                        mRootView.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("bdDialog_divider_line").getInt(null)).setBackgroundColor(mRootView.getContext().getColor(classLoader.loadClass("com.baidu.tieba.R$color").getField("CAM_X0204").getInt(null)));
+                        mRootView.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("divider_yes_no_button").getInt(null)).setBackgroundColor(mRootView.getContext().getColor(classLoader.loadClass("com.baidu.tieba.R$color").getField("CAM_X0204").getInt(null)));
                     } catch (Throwable throwable) {
                         XposedBridge.log(throwable);
                     }
@@ -300,20 +299,39 @@ public class TSPreferenceHelper extends Hook {
             throw new NullPointerException("create tb dialog failed");
         }
 
-        public void setOnYesButtonClickListener(View.OnClickListener onClickListener) {
+        public void setOnNoButtonClickListener(View.OnClickListener onClickListener) {
             try {
-                mRootView.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("yes").getInt(null)).setOnClickListener(onClickListener);
+                try {
+                    XposedHelpers.setObjectField(bdalert, "mNegativeButtonTip", "取消");
+                } catch (NoSuchFieldError e) {
+                    XposedHelpers.setObjectField(bdalert, "m", "取消");
+                }
+                mRootView.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("no").getInt(null)).setOnClickListener(onClickListener);
             } catch (Throwable throwable) {
                 XposedBridge.log(throwable);
             }
         }
 
-        public void setOnNoButtonClickListener(View.OnClickListener onClickListener) {
+        public void setOnYesButtonClickListener(View.OnClickListener onClickListener) {
             try {
-                mRootView.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("no").getInt(null)).setOnClickListener(onClickListener);
+                try {
+                    XposedHelpers.setObjectField(bdalert, "mPositiveButtonTip", "确定");
+                } catch (NoSuchFieldError e) {
+                    XposedHelpers.setObjectField(bdalert, "l", "确定");
+                }
+                getYesButton().setOnClickListener(onClickListener);
             } catch (Throwable throwable) {
                 XposedBridge.log(throwable);
             }
+        }
+
+        public TextView getYesButton() {
+            try {
+                return mRootView.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("yes").getInt(null));
+            } catch (Throwable throwable) {
+                XposedBridge.log(throwable);
+            }
+            return null;
         }
 
         public void show() {

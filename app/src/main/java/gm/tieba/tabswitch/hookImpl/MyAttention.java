@@ -5,9 +5,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.text.TextUtils;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -59,7 +61,6 @@ public class MyAttention extends Hook {
         EditText editText = new TSPreferenceHelper.TbEditTextBuilder(classLoader, activity).editText;
         editText.setHint(key);
         editText.setText(tsNotes.getString(key, null));
-        editText.selectAll();
         TSPreferenceHelper.TbDialogBuilder bdalert = new TSPreferenceHelper.TbDialogBuilder(classLoader, activity, null, null, true, editText);
         bdalert.setOnNoButtonClickListener(v -> bdalert.dismiss());
         bdalert.setOnYesButtonClickListener(v -> {
@@ -73,5 +74,16 @@ public class MyAttention extends Hook {
         });
         bdalert.show();
         bdalert.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        editText.setSingleLine();
+        editText.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        editText.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE || event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+                bdalert.getYesButton().performClick();
+                return true;
+            }
+            return false;
+        });
+        editText.selectAll();
+        editText.requestFocus();
     }
 }

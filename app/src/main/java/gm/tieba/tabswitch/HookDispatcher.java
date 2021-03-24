@@ -13,7 +13,6 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
@@ -88,14 +87,11 @@ public class HookDispatcher extends Hook {
                             }
                             List<?> list = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");
                             if (list == null) return;
-                            label:
-                            for (int i = 0; i < list.size(); i++) {
-                                for (String pb : Hook.follow)
-                                    if (Objects.equals(XposedHelpers.getObjectField(list.get(i), "fname"), pb))
-                                        continue label;
-                                list.remove(i);
-                                i--;
-                            }
+                            for (int i = 0; i < list.size(); i++)
+                                if (!Hook.follow.contains(XposedHelpers.getObjectField(list.get(i), "fname"))) {
+                                    list.remove(i);
+                                    i--;
+                                }
                         }
                     });
                     break;

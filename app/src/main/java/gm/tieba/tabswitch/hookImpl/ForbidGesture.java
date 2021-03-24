@@ -68,7 +68,7 @@ public class ForbidGesture extends Hook {
         XposedBridge.hookMethod(method, new XC_MethodHook() {
             protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
                 float mMaxScale = (float) param.getResult();
-                param.setResult(4 * mMaxScale);
+                param.setResult(3 * mMaxScale);
             }
         });
     }

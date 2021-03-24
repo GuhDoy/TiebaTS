@@ -14,9 +14,11 @@ import android.database.sqlite.SQLiteException;
 import android.os.Build;
 import android.os.Bundle;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
@@ -40,10 +42,9 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
-        if (lpparam.packageName.equals(BuildConfig.APPLICATION_ID)) {
+        if (lpparam.packageName.equals(BuildConfig.APPLICATION_ID))
             XposedHelpers.findAndHookMethod(BuildConfig.APPLICATION_ID + ".ui.MainActivity", lpparam.classLoader, "isModuleActive", XC_MethodReplacement.returnConstant(true));
-            //System.load(modulePath.substring(0, modulePath.lastIndexOf('/')) + "/lib/arm/libcrust.so");
-        } else if (lpparam.packageName.equals("com.baidu.tieba") || XposedHelpers.findClassIfExists("com.baidu.tieba.tblauncher.MainTabActivity", lpparam.classLoader) != null) {
+        else if (lpparam.packageName.equals("com.baidu.tieba") || XposedHelpers.findClassIfExists("com.baidu.tieba.tblauncher.MainTabActivity", lpparam.classLoader) != null) {
             XposedHelpers.findAndHookMethod(Instrumentation.class, "callApplicationOnCreate", Application.class, new XC_MethodHook() {
                 protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                     if (param.args[0] instanceof Application) {
@@ -100,6 +101,28 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
                         for (Map.Entry<String, ?> entry : preferenceMap.entrySet())
                             HookDispatcher.hook(classLoader, entry, context);
                     }
+                }
+            });
+        } else if (lpparam.packageName.equals("com.baidu.netdisk")) {
+            ClassLoader classLoader = lpparam.classLoader;
+            XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.Navigate", classLoader, "initFlashFragment", XC_MethodReplacement.returnConstant(null));
+            XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.advertise.FlashAdvertiseActivity", classLoader, "initFlashFragment", XC_MethodReplacement.returnConstant(null));
+            XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.preview.video.source.NormalVideoSource", classLoader, "getAdTime", XC_MethodReplacement.returnConstant(0));
+            XposedHelpers.findAndHookMethod("com.baidu.netdisk.preview.video.model._", classLoader, "getAdTime", XC_MethodReplacement.returnConstant(0));
+        } else {
+            XposedHelpers.findAndHookMethod(String.class, "format", String.class, Object[].class, new XC_MethodHook() {
+                protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                    if (((String) param.args[0]).equals("https://%s%s")) {
+                        Object[] objects = (Object[]) param.args[1];
+                        if (objects.length == 2 && objects[1].equals("/api/ad/union/sdk/get_ads/"))
+                            param.setResult(null);
+                    }
+                }
+            });
+            XposedHelpers.findAndHookConstructor(File.class, String.class, String.class, new XC_MethodHook() {
+                protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                    if (Objects.equals(param.args[1], "gdt_plugin.jar"))
+                        XposedHelpers.setObjectField(param.thisObject, "path", null);
                 }
             });
         }

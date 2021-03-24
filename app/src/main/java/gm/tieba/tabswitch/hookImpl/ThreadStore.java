@@ -5,8 +5,10 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -81,7 +83,6 @@ public class ThreadStore extends Hook {
         EditText editText = new TSPreferenceHelper.TbEditTextBuilder(classLoader, activity).editText;
         editText.setHint("请输入正则表达式，如.*");
         editText.setText(regex);
-        editText.selectAll();
         editText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -110,5 +111,16 @@ public class ThreadStore extends Hook {
         });
         bdalert.show();
         bdalert.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        editText.setSingleLine();
+        editText.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
+        editText.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_SEARCH || event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+                bdalert.getYesButton().performClick();
+                return true;
+            }
+            return false;
+        });
+        editText.selectAll();
+        editText.requestFocus();
     }
 }

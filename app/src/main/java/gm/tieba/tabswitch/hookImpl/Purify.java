@@ -82,7 +82,7 @@ public class Purify extends Hook {
         }
         //启动广告
         XposedHelpers.findAndHookConstructor("com.baidu.mobads.vo.XAdInstanceInfo", classLoader, JSONObject.class, XC_MethodReplacement.returnConstant(null));
-        //广告sdk："gdt_plugin.jar", "/api/ad/union/sdk/get_ads/"
+        //广告sdk
         try {
             for (Method method : classLoader.loadClass("com.fun.ad.sdk.FunAdSdk").getDeclaredMethods())
                 if (method.getName().equals("init"))

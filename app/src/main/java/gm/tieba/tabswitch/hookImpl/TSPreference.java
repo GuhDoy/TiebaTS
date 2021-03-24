@@ -14,8 +14,10 @@ import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -286,7 +288,6 @@ public class TSPreference extends Hook {
             text = tsPreference.getString(holder.key, null);
         else text = regex.get(holder.key);
         editText.setText(text);
-        editText.setSelection(text == null ? 0 : text.length());
         editText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -322,5 +323,15 @@ public class TSPreference extends Hook {
         });
         bdalert.show();
         bdalert.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        editText.setSingleLine();
+        editText.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        editText.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE || event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+                bdalert.getYesButton().performClick();
+                return true;
+            }
+            return false;
+        });
+        editText.requestFocus();
     }
 }
