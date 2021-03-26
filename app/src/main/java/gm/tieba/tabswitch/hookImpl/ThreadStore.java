@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -56,6 +55,7 @@ public class ThreadStore extends Hook {
                             if (field.get(param.getResult()) instanceof ArrayList) {
                                 ArrayList<?> arrayList = (ArrayList<?>) field.get(param.getResult());
                                 if (arrayList == null) return;
+                                final Pattern pattern = Pattern.compile(regex);
                                 label:
                                 for (int j = 0; j < arrayList.size(); j++) {
                                     // com.baidu.tbadk.baseEditMark.MarkData
@@ -63,7 +63,7 @@ public class ThreadStore extends Hook {
                                             (String) XposedHelpers.getObjectField(arrayList.get(j), "mForumName"),
                                             (String) XposedHelpers.getObjectField(arrayList.get(j), "mAuthorName")};
                                     for (String string : strings)
-                                        if (Pattern.compile(regex).matcher(string).find())
+                                        if (pattern.matcher(string).find())
                                             continue label;
                                     arrayList.remove(j);
                                     j--;
@@ -106,7 +106,7 @@ public class ThreadStore extends Hook {
                 activity.startActivity(activity.getIntent());
                 bdalert.dismiss();
             } catch (PatternSyntaxException e) {
-                Toast.makeText(activity, Log.getStackTraceString(e), Toast.LENGTH_SHORT).show();
+                Toast.makeText(activity, e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
         bdalert.show();

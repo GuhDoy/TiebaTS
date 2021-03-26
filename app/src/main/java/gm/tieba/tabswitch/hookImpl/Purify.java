@@ -1,12 +1,16 @@
 package gm.tieba.tabswitch.hookImpl;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.view.View;
 import android.widget.ImageView;
 
 import org.json.JSONObject;
 
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -127,6 +131,21 @@ public class Purify extends Hook {
                             ints[i] = 0;
                     }
                 }
+            }
+        });
+        //浏览器打开热门推荐
+        XposedHelpers.findAndHookMethod("com.baidu.tieba.pb.pb.main.PbActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                Activity activity = (Activity) param.thisObject;
+                Bundle bundle = activity.getIntent().getExtras();
+                Intent intent = new Intent();
+                for (String key : bundle.keySet())
+                    if (key.equals("key_uri"))
+                        intent.putExtra("thread_id", ((Uri) bundle.get(key)).getQueryParameter("tid"));
+                    else if (bundle.get(key) instanceof Serializable)
+                        intent.putExtra(key, (Serializable) bundle.get(key));
+                    else intent.putExtra(key, (Parcelable) bundle.get(key));
+                activity.setIntent(intent);
             }
         });
         //吧小程序

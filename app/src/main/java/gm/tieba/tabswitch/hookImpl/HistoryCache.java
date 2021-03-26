@@ -5,7 +5,6 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -54,6 +53,7 @@ public class HistoryCache extends Hook {
                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                         List<?> list = (List<?>) param.args[0];
                         if (list == null) return;
+                        final Pattern pattern = Pattern.compile(regex);
                         label:
                         for (int j = 0; j < list.size(); j++) {
                             String[] strings;
@@ -66,7 +66,7 @@ public class HistoryCache extends Hook {
                                         (String) XposedHelpers.getObjectField(list.get(j), "f")};
                             }
                             for (String string : strings)
-                                if (Pattern.compile(regex).matcher(string).find())
+                                if (pattern.matcher(string).find())
                                     continue label;
                             list.remove(j);
                             j--;
@@ -102,7 +102,7 @@ public class HistoryCache extends Hook {
                 activity.startActivity(activity.getIntent());
                 bdalert.dismiss();
             } catch (PatternSyntaxException e) {
-                Toast.makeText(activity, Log.getStackTraceString(e), Toast.LENGTH_SHORT).show();
+                Toast.makeText(activity, e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
         bdalert.show();
