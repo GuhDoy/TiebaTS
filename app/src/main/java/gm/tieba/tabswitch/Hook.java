@@ -110,6 +110,7 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
             XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.preview.video.source.NormalVideoSource", classLoader, "getAdTime", XC_MethodReplacement.returnConstant(0));
             XposedHelpers.findAndHookMethod("com.baidu.netdisk.preview.video.model._", classLoader, "getAdTime", XC_MethodReplacement.returnConstant(0));
         } else {
+            ClassLoader classLoader = lpparam.classLoader;
             XposedHelpers.findAndHookMethod(String.class, "format", String.class, Object[].class, new XC_MethodHook() {
                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                     if (param.args[0].equals("https://%s%s")) {
@@ -125,6 +126,8 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
                         XposedHelpers.setObjectField(param.thisObject, "path", null);
                 }
             });
+            if (lpparam.packageName.equals("com.coolapk.market"))
+                XposedHelpers.findAndHookMethod("com.coolapk.market.model.$$AutoValue_Feed", classLoader, "getDetailSponsorCard", XC_MethodReplacement.returnConstant(null));
         }
     }
 
