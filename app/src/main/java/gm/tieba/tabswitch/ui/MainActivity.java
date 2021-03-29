@@ -34,6 +34,7 @@ import gm.tieba.tabswitch.util.IO;
 import gm.tieba.tabswitch.util.ManifestParser;
 import gm.tieba.tabswitch.util.RepackageProcessor;
 import gm.tieba.tabswitch.util.XpatchAssetHelper;
+import rikka.recyclerview.RecyclerViewKt;
 
 public class MainActivity extends AppCompatActivity {
     @Override
@@ -143,6 +144,8 @@ public class MainActivity extends AppCompatActivity {
                             map.put("isChecked", !(Boolean) map.get("isChecked"));
                             RepackageProcessor.moduleList.set(layoutPosition, map);
                         });
+                        RecyclerViewKt.addFastScroller(recyclerView, recyclerView);
+                        RecyclerViewKt.fixEdgeEffect(recyclerView, false, true);
                         DisplayMetrics metrics = getResources().getDisplayMetrics();
                         final int maxWidth = DisplayHelper.px2Dip(this, metrics.widthPixels) - 91;
                         final int maxHeight = DisplayHelper.px2Dip(this, metrics.heightPixels) - 322;//306

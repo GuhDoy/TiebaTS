@@ -53,6 +53,7 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
     implementation 'androidx.cardview:cardview:1.0.0'
+    implementation "dev.rikka.rikkax.recyclerview:recyclerview-ktx:1.2.0"
     compileOnly files('libs/XposedBridgeApi-89.jar')
     implementation files('libs/apksigner.jar')
     implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '5.0.0-alpha.2'
