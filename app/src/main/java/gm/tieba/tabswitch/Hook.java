@@ -15,6 +15,7 @@ import android.os.Build;
 import android.os.Bundle;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -107,8 +108,14 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
             ClassLoader classLoader = lpparam.classLoader;
             XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.Navigate", classLoader, "initFlashFragment", XC_MethodReplacement.returnConstant(null));
             XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.advertise.FlashAdvertiseActivity", classLoader, "initFlashFragment", XC_MethodReplacement.returnConstant(null));
+            XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.transfer.TransferListTabActivity", classLoader, "initYouaGuideView", XC_MethodReplacement.returnConstant(null));
+            // XposedHelpers.findAndHookMethod("com.baidu.netdisk.account._", classLoader, "isVip", XC_MethodReplacement.returnConstant(true));
             XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.preview.video.source.NormalVideoSource", classLoader, "getAdTime", XC_MethodReplacement.returnConstant(0));
             XposedHelpers.findAndHookMethod("com.baidu.netdisk.preview.video.model._", classLoader, "getAdTime", XC_MethodReplacement.returnConstant(0));
+            Method[] methods = classLoader.loadClass("com.baidu.netdisk.ui.preview.common.speedup.SpeedUpModle").getDeclaredMethods();
+            for (Method method : methods)
+                if (method.getReturnType().getTypeName().equals("boolean"))
+                    XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(true));
         } else {
             ClassLoader classLoader = lpparam.classLoader;
             XposedHelpers.findAndHookMethod(String.class, "format", String.class, Object[].class, new XC_MethodHook() {
