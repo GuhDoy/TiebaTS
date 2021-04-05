@@ -16,6 +16,7 @@ import android.os.Bundle;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -104,18 +105,32 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
                     }
                 }
             });
-        } else if (lpparam.packageName.equals("com.baidu.netdisk")) {
+        } else if (lpparam.packageName.startsWith("com.baidu.netdisk")) {
             ClassLoader classLoader = lpparam.classLoader;
             XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.Navigate", classLoader, "initFlashFragment", XC_MethodReplacement.returnConstant(null));
             XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.advertise.FlashAdvertiseActivity", classLoader, "initFlashFragment", XC_MethodReplacement.returnConstant(null));
             XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.transfer.TransferListTabActivity", classLoader, "initYouaGuideView", XC_MethodReplacement.returnConstant(null));
-            // XposedHelpers.findAndHookMethod("com.baidu.netdisk.account._", classLoader, "isVip", XC_MethodReplacement.returnConstant(true));
+            // "show or close "
+            Method[] methods = classLoader.loadClass("com.baidu.netdisk.homepage.ui.card.____").getDeclaredMethods();
+            for (Method method : methods)
+                if (Arrays.toString(method.getParameterTypes()).equals("[boolean]"))
+                    XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(null));
+
             XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.preview.video.source.NormalVideoSource", classLoader, "getAdTime", XC_MethodReplacement.returnConstant(0));
             XposedHelpers.findAndHookMethod("com.baidu.netdisk.preview.video.model._", classLoader, "getAdTime", XC_MethodReplacement.returnConstant(0));
-            Method[] methods = classLoader.loadClass("com.baidu.netdisk.ui.preview.common.speedup.SpeedUpModle").getDeclaredMethods();
-            for (Method method : methods)
+
+            Method[] methods2 = classLoader.loadClass("com.baidu.netdisk.ui.preview.common.speedup.SpeedUpModle").getDeclaredMethods();
+            for (Method method : methods2)
                 if (method.getReturnType().getTypeName().equals("boolean"))
                     XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(true));
+
+            /*
+            for (Object ORIGINAL : classLoader.loadClass("com.baidu.netdisk.preview.video.VideoPlayerConstants$VideoPlayQuality").getEnumConstants())
+                if (ORIGINAL.toString().equals("ORIGINAL")) {
+                    XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.preview.video.presenter.VideoPlayerPresenter", classLoader, "getCurrentQuality", XC_MethodReplacement.returnConstant(ORIGINAL));
+                    break;
+                }
+             */
         } else {
             ClassLoader classLoader = lpparam.classLoader;
             XposedHelpers.findAndHookMethod(String.class, "format", String.class, Object[].class, new XC_MethodHook() {
@@ -134,7 +149,10 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
                 }
             });
             if (lpparam.packageName.equals("com.coolapk.market"))
-                XposedHelpers.findAndHookMethod("com.coolapk.market.model.$$AutoValue_Feed", classLoader, "getDetailSponsorCard", XC_MethodReplacement.returnConstant(null));
+                try {
+                    XposedHelpers.findAndHookMethod("com.coolapk.market.model.$$AutoValue_Feed", classLoader, "getDetailSponsorCard", XC_MethodReplacement.returnConstant(null));
+                } catch (XposedHelpers.ClassNotFoundError ignored) {
+                }
         }
     }
 

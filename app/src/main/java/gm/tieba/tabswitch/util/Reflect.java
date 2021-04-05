@@ -16,6 +16,15 @@ public class Reflect {
         throw new NoSuchFieldException(className + " field not found");
     }
 
+    public static void setObjectField(Object instance, String className, Object value) throws Throwable {
+        for (Field field : instance.getClass().getDeclaredFields()) {
+            field.setAccessible(true);
+            if (field.get(instance) != null && Objects.equals(field.get(instance).getClass().getName(), className))
+                field.set(instance, value);
+        }
+        throw new NoSuchFieldException(className + " field not found");
+    }
+
     public static String pbContentParser(Object instance, String fieldName) {
         List<?> contents = (List<?>) XposedHelpers.getObjectField(instance, fieldName);
         StringBuilder pbContent = new StringBuilder();

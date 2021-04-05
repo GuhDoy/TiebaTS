@@ -142,7 +142,6 @@ public class MainActivity extends AppCompatActivity {
                             cb.performClick();
                             Map<String, Object> map = RepackageProcessor.moduleList.get(layoutPosition);
                             map.put("isChecked", !(Boolean) map.get("isChecked"));
-                            RepackageProcessor.moduleList.set(layoutPosition, map);
                         });
                         RecyclerViewKt.addFastScroller(recyclerView, recyclerView);
                         RecyclerViewKt.fixEdgeEffect(recyclerView, false, true);

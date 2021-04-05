@@ -3,6 +3,7 @@ package gm.tieba.tabswitch.util;
 import android.view.MotionEvent;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
@@ -16,8 +17,8 @@ public class Development extends Hook {
             XposedBridge.hookMethod(method, new XC_MethodHook() {
                 @Override
                 protected void beforeHookedMethod(MethodHookParam param) {
-                    XposedBridge.log(className);
                     XposedBridge.log(method.getName());
+                    XposedBridge.log(Arrays.toString(method.getParameterTypes()));
                 }
             });
     }

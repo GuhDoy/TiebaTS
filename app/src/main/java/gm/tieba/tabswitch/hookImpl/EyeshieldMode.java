@@ -20,14 +20,6 @@ public class EyeshieldMode extends Hook {
         SharedPreferences sharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("key_is_follow_system_mode", false)) return;
         savedUiMode = DisplayHelper.isLightMode(context);
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.LogoActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
-            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                Activity activity = (Activity) param.thisObject;
-                savedUiMode = !savedUiMode;
-                Intent intent = new Intent().setClassName(activity, "com.baidu.tieba.setting.more.MoreActivity");
-                activity.startActivity(intent);
-            }
-        });
         XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", classLoader, "onConfigurationChanged", Configuration.class, new XC_MethodHook() {
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 Activity activity = (Activity) param.thisObject;
