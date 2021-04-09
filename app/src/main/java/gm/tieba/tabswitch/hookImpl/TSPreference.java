@@ -77,7 +77,7 @@ public class TSPreference extends Hook {
                 Activity activity = (Activity) param.thisObject;
                 FrameLayout browseSetting = activity.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("browseSetting").getInt(null));
                 LinearLayout parent = (LinearLayout) browseSetting.getParent();
-                parent.addView(TSPreferenceHelper.generateButton(classLoader, activity, "贴吧TS设置", null, v -> startMainPreferenceActivity(classLoader, activity)), 11);
+                parent.addView(TSPreferenceHelper.createButton(classLoader, activity, "贴吧TS设置", null, v -> startMainPreferenceActivity(classLoader, activity)), 11);
             }
         });
         for (int i = 0; i < ruleMapList.size(); i++) {
@@ -160,10 +160,10 @@ public class TSPreference extends Hook {
         SharedPreferences tsConfig = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
         TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
         if (tsConfig.getBoolean("ze", false))
-            preferenceLayout.addView(TSPreferenceHelper.generateTextView(classLoader, activity, "轻车简从"));
+            preferenceLayout.addView(TSPreferenceHelper.createTextView(classLoader, activity, "轻车简从"));
         else
-            preferenceLayout.addView(TSPreferenceHelper.generateTextView(classLoader, activity, "净化界面"));
-        preferenceLayout.addView(TSPreferenceHelper.generateButton(classLoader, activity, "修改底栏", null, v -> {
+            preferenceLayout.addView(TSPreferenceHelper.createTextView(classLoader, activity, "净化界面"));
+        preferenceLayout.addView(TSPreferenceHelper.createButton(classLoader, activity, "修改底栏", null, v -> {
             Intent intent = new Intent().setClassName(activity, "com.baidu.tieba.setting.im.more.SecretSettingActivity");
             intent.putExtra("showModifyTabPreference", true);
             activity.startActivity(intent);
@@ -183,9 +183,9 @@ public class TSPreference extends Hook {
         contentFilter.bdSwitch.setOnTouchListener((v, event) -> false);
         preferenceLayout.addView(contentFilter);
         if (tsConfig.getBoolean("ze", false))
-            preferenceLayout.addView(TSPreferenceHelper.generateTextView(classLoader, activity, "别出新意"));
+            preferenceLayout.addView(TSPreferenceHelper.createTextView(classLoader, activity, "别出新意"));
         else
-            preferenceLayout.addView(TSPreferenceHelper.generateTextView(classLoader, activity, "增加功能"));
+            preferenceLayout.addView(TSPreferenceHelper.createTextView(classLoader, activity, "增加功能"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "进吧增加收藏、历史", "create_view"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "我的收藏增加搜索、吧名", "thread_store"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "浏览历史增加搜索", "history_cache"));
@@ -193,9 +193,9 @@ public class TSPreference extends Hook {
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "长按下载保存全部图片", "save_images"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "长按关注的人设置备注名", "my_attention"));
         if (tsConfig.getBoolean("ze", false))
-            preferenceLayout.addView(TSPreferenceHelper.generateTextView(classLoader, activity, "垂手可得"));
+            preferenceLayout.addView(TSPreferenceHelper.createTextView(classLoader, activity, "垂手可得"));
         else
-            preferenceLayout.addView(TSPreferenceHelper.generateTextView(classLoader, activity, "自动化"));
+            preferenceLayout.addView(TSPreferenceHelper.createTextView(classLoader, activity, "自动化"));
         TSPreferenceHelper.SwitchViewHolder autoSign = new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "自动签到", "auto_sign");
         if (!tsConfig.getBoolean("auto_sign", false)) {
             autoSign.newSwitch.setOnClickListener(v -> {
@@ -218,19 +218,19 @@ public class TSPreference extends Hook {
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "更新时清理缓存", "clean_dir"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "自动查看原图", "origin_src"));
         if (tsConfig.getBoolean("ze", false))
-            preferenceLayout.addView(TSPreferenceHelper.generateTextView(classLoader, activity, "奇怪怪"));
+            preferenceLayout.addView(TSPreferenceHelper.createTextView(classLoader, activity, "奇怪怪"));
         else
-            preferenceLayout.addView(TSPreferenceHelper.generateTextView(classLoader, activity, "其它"));
+            preferenceLayout.addView(TSPreferenceHelper.createTextView(classLoader, activity, "其它"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "存储重定向", "storage_redirect"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "禁用帖子手势", "forbid_gesture"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "用夜间模式代替深色模式", "eyeshield_mode"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "用赞踩差数代替赞数", "agree_num"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "交换吧热门与最新", "frs_tab"));
         if (tsConfig.getBoolean("ze", false))
-            preferenceLayout.addView(TSPreferenceHelper.generateTextView(classLoader, activity, "关于就是关于"));
+            preferenceLayout.addView(TSPreferenceHelper.createTextView(classLoader, activity, "关于就是关于"));
         else
-            preferenceLayout.addView(TSPreferenceHelper.generateTextView(classLoader, activity, "关于"));
-        preferenceLayout.addView(TSPreferenceHelper.generateButton(classLoader, activity, "版本", BuildConfig.VERSION_NAME, v -> {
+            preferenceLayout.addView(TSPreferenceHelper.createTextView(classLoader, activity, "关于"));
+        preferenceLayout.addView(TSPreferenceHelper.createButton(classLoader, activity, "版本", BuildConfig.VERSION_NAME, v -> {
             Intent intentToResolve = TSPreferenceHelper.launchModuleIntent(activity);
             if (intentToResolve == null) return;
             Intent intent = new Intent(intentToResolve);
@@ -239,19 +239,19 @@ public class TSPreference extends Hook {
             intent.setClassName(ris.get(0).activityInfo.packageName, ris.get(0).activityInfo.name);
             activity.startActivity(intent);
         }));
-        preferenceLayout.addView(TSPreferenceHelper.generateButton(classLoader, activity, "源代码", "想要小星星", v -> {
+        preferenceLayout.addView(TSPreferenceHelper.createButton(classLoader, activity, "源代码", "想要小星星", v -> {
             Intent intent = new Intent();
             intent.setAction("android.intent.action.VIEW");
             intent.setData(Uri.parse("https://github.com/GuhDoy/TiebaTS"));
             activity.startActivity(intent);
         }));
-        preferenceLayout.addView(TSPreferenceHelper.generateButton(classLoader, activity, "TG群", "及时获取更新", v -> {
+        preferenceLayout.addView(TSPreferenceHelper.createButton(classLoader, activity, "TG群", "及时获取更新", v -> {
             Intent intent = new Intent();
             intent.setAction("android.intent.action.VIEW");
             intent.setData(Uri.parse("https://t.me/TabSwitch"));
             activity.startActivity(intent);
         }));
-        preferenceLayout.addView(TSPreferenceHelper.generateButton(classLoader, activity, "作者", "developed by GM", v -> {
+        preferenceLayout.addView(TSPreferenceHelper.createButton(classLoader, activity, "作者", "developed by GM", v -> {
             count++;
             if (count % 3 == 0)
                 Toast.makeText(activity, TSPreferenceHelper.randomToast(), Toast.LENGTH_SHORT).show();
@@ -266,7 +266,7 @@ public class TSPreference extends Hook {
 
     private static LinearLayout generateModifyTabPreference(ClassLoader classLoader, Activity activity) {
         TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
-        preferenceLayout.addView(TSPreferenceHelper.generateTextView(classLoader, activity, null));
+        preferenceLayout.addView(TSPreferenceHelper.createTextView(classLoader, activity, null));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "隐藏首页", "home_recommend"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "隐藏进吧", "enter_forum"));
         preferenceLayout.addView(new TSPreferenceHelper.SwitchViewHolder(classLoader, activity, "隐藏频道", "new_category"));

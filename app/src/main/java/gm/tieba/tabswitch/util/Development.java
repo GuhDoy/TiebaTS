@@ -1,26 +1,43 @@
 package gm.tieba.tabswitch.util;
 
-import android.view.MotionEvent;
+import org.json.JSONObject;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.Hook;
 
 public class Development extends Hook {
-    public static void logAllMethods(String className, ClassLoader classLoader) throws Throwable {
+    public static void logJSONObject() throws Throwable {
+        XposedBridge.hookAllConstructors(JSONObject.class, new XC_MethodHook() {
+            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                XposedBridge.log(String.valueOf(param.args[0]));
+            }
+        });
+    }
+
+    private static void logMethod(Method method) throws Throwable {
+        XposedBridge.hookMethod(method, new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(MethodHookParam param) {
+                if (param.getResult() == null) return;
+                XposedBridge.log(method.getName());
+                XposedBridge.log(param.getResult().toString());
+            }
+        });
+    }
+
+    public static void logMethods(String className, ClassLoader classLoader) throws Throwable {
         for (Method method : classLoader.loadClass(className).getDeclaredMethods())
-            XposedBridge.hookMethod(method, new XC_MethodHook() {
-                @Override
-                protected void beforeHookedMethod(MethodHookParam param) {
-                    XposedBridge.log(method.getName());
-                    XposedBridge.log(Arrays.toString(method.getParameterTypes()));
-                }
-            });
+            logMethod(method);
+    }
+
+    public static void logMethods(String className, ClassLoader classLoader, String methodName) throws Throwable {
+        for (Method method : classLoader.loadClass(className).getDeclaredMethods())
+            if (method.getName().equals(methodName))
+                logMethod(method);
     }
 
     public static void disableMethods(String className, ClassLoader classLoader) throws Throwable {
@@ -38,13 +55,5 @@ public class Development extends Hook {
         if (method.getReturnType().getTypeName().equals("boolean"))
             XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(true));
         else XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(null));
-    }
-
-    public static void logMotionEvent(String className, ClassLoader classLoader) throws Throwable {
-        XposedHelpers.findAndHookMethod(className, classLoader, "dispatchTouchEvent", MotionEvent.class, new XC_MethodHook() {
-            protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-                XposedBridge.log(String.valueOf(param.args[0]));
-            }
-        });
     }
 }

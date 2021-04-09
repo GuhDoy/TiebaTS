@@ -48,7 +48,7 @@ public class TSPreferenceHelper extends Hook {
         }
     }
 
-    static TextView generateTextView(ClassLoader classLoader, Activity activity, String text) {
+    static TextView createTextView(ClassLoader classLoader, Activity activity, String text) {
         try {
             TextView textView = new TextView(activity);
             textView.setText(text);
@@ -71,7 +71,7 @@ public class TSPreferenceHelper extends Hook {
     }
 
     @SuppressLint("UseCompatLoadingForDrawables")
-    static LinearLayout generateButton(ClassLoader classLoader, Activity activity, String text, String tip, View.OnClickListener onClickListener) {
+    static LinearLayout createButton(ClassLoader classLoader, Activity activity, String text, String tip, View.OnClickListener onClickListener) {
         try {
             Class<?> TbSettingTextTipView = classLoader.loadClass("com.baidu.tbadk.coreExtra.view.TbSettingTextTipView");
             Object instance = TbSettingTextTipView.getConstructor(Context.class).newInstance(activity);
@@ -107,7 +107,7 @@ public class TSPreferenceHelper extends Hook {
                 bdSwitch = (View) BdSwitchView.getConstructor(Context.class).newInstance(activity);
                 bdSwitch.setLayoutParams(new LinearLayout.LayoutParams(bdSwitch.getWidth(), bdSwitch.getHeight(), 0.25f));
                 setOnSwitchStateChangeListener(bdSwitch);
-                LinearLayout newSwitch = generateButton(classLoader, activity, text, null, v -> changeState());
+                LinearLayout newSwitch = createButton(classLoader, activity, text, null, v -> changeState());
                 newSwitch.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("arrow2").getInt(null)).setVisibility(View.GONE);
                 newSwitch.addView(bdSwitch);
                 SharedPreferences tsPreference = activity.getSharedPreferences("TS_preference", Context.MODE_PRIVATE);
@@ -141,7 +141,7 @@ public class TSPreferenceHelper extends Hook {
         private static class MyInvocationHandler implements InvocationHandler {
             @SuppressLint("ApplySharedPref")
             @Override
-            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            public Object invoke(Object proxy, Method method, Object[] args) {
                 View view = (View) args[0];
                 String key = (String) view.getTag();
                 if (key != null) {

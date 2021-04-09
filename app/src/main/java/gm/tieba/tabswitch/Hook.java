@@ -44,13 +44,13 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
+        ClassLoader classLoader = lpparam.classLoader;
         if (lpparam.packageName.equals(BuildConfig.APPLICATION_ID))
             XposedHelpers.findAndHookMethod(BuildConfig.APPLICATION_ID + ".ui.MainActivity", lpparam.classLoader, "isModuleActive", XC_MethodReplacement.returnConstant(true));
         else if (lpparam.packageName.equals("com.baidu.tieba") || XposedHelpers.findClassIfExists("com.baidu.tieba.tblauncher.MainTabActivity", lpparam.classLoader) != null) {
             XposedHelpers.findAndHookMethod(Instrumentation.class, "callApplicationOnCreate", Application.class, new XC_MethodHook() {
                 protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                     if (param.args[0] instanceof Application) {
-                        ClassLoader classLoader = lpparam.classLoader;
                         Context context = ((Application) param.args[0]).getApplicationContext();
 
                         try {
@@ -106,7 +106,6 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
                 }
             });
         } else if (lpparam.packageName.startsWith("com.baidu.netdisk")) {
-            ClassLoader classLoader = lpparam.classLoader;
             XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.Navigate", classLoader, "initFlashFragment", XC_MethodReplacement.returnConstant(null));
             XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.advertise.FlashAdvertiseActivity", classLoader, "initFlashFragment", XC_MethodReplacement.returnConstant(null));
             XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.transfer.TransferListTabActivity", classLoader, "initYouaGuideView", XC_MethodReplacement.returnConstant(null));
@@ -132,7 +131,6 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
                 }
              */
         } else {
-            ClassLoader classLoader = lpparam.classLoader;
             XposedHelpers.findAndHookMethod(String.class, "format", String.class, Object[].class, new XC_MethodHook() {
                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                     if (param.args[0].equals("https://%s%s")) {
@@ -148,11 +146,17 @@ public class Hook implements IXposedHookLoadPackage, IXposedHookZygoteInit {
                         XposedHelpers.setObjectField(param.thisObject, "path", null);
                 }
             });
-            if (lpparam.packageName.equals("com.coolapk.market"))
+            if (lpparam.packageName.equals("com.coolapk.market")) {
                 try {
                     XposedHelpers.findAndHookMethod("com.coolapk.market.model.$$AutoValue_Feed", classLoader, "getDetailSponsorCard", XC_MethodReplacement.returnConstant(null));
+                    XposedBridge.hookAllConstructors(XposedHelpers.findClass("com.coolapk.market.model.AutoValue_Feed", classLoader), new XC_MethodHook() {
+                        protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                            param.args[142] = null;
+                        }
+                    });
                 } catch (XposedHelpers.ClassNotFoundError ignored) {
                 }
+            }
         }
     }
 
