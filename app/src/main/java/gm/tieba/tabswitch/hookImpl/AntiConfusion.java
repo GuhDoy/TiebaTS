@@ -75,7 +75,7 @@ public class AntiConfusion extends Hook {
                         new Thread(() -> {
                             File dexDir = new File(activity.getCacheDir().getAbsolutePath(), "dex");
                             try {
-                                if (dexDir.exists()) IO.deleteFiles(dexDir);
+                                if (dexDir.exists()) IO.deleteRecursive(dexDir);
                                 dexDir.mkdirs();
                                 bin.zip.ZipFile zipFile = new bin.zip.ZipFile(new File(activity.getPackageResourcePath()));
                                 Enumeration<ZipEntry> enumeration = zipFile.getEntries();
@@ -166,11 +166,11 @@ public class AntiConfusion extends Hook {
                                 editor.apply();
                                 SharedPreferences tsPreference = activity.getSharedPreferences("TS_preference", Context.MODE_PRIVATE);
                                 if (tsPreference.getBoolean("clean_dir", false)) {
-                                    IO.deleteFiles(activity.getExternalCacheDir());
-                                    IO.deleteFiles(activity.getCacheDir());
-                                    IO.deleteFiles(new File(activity.getCacheDir().getAbsolutePath() + "image"));
-                                    IO.deleteFiles(new File(activity.getFilesDir().getAbsolutePath() + File.separator + "newStat" + File.separator + "notUpload"));
-                                } else IO.deleteFiles(dexDir);
+                                    IO.deleteRecursive(activity.getExternalCacheDir());
+                                    IO.deleteRecursive(activity.getCacheDir());
+                                    IO.deleteRecursive(new File(activity.getCacheDir().getAbsolutePath() + "image"));
+                                    IO.deleteRecursive(new File(activity.getFilesDir().getAbsolutePath() + File.separator + "newStat" + File.separator + "notUpload"));
+                                } else IO.deleteRecursive(dexDir);
                                 if (tsPreference.getBoolean("purify", false)) {
                                     SharedPreferences.Editor settingsEditor = activity.getSharedPreferences("settings", Context.MODE_PRIVATE).edit();
                                     settingsEditor.putString("key_location_request_dialog_last_show_version", AntiConfusionHelper.getTbVersion(activity));

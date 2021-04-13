@@ -85,6 +85,7 @@ public class Purify extends Hook {
             }
         }
         //启动广告
+        XposedHelpers.findAndHookMethod("com.baidu.tbadk.core.TbadkCoreApplication", classLoader, "getIsFirstUse", XC_MethodReplacement.returnConstant(true));
         XposedHelpers.findAndHookConstructor("com.baidu.mobads.vo.XAdInstanceInfo", classLoader, JSONObject.class, XC_MethodReplacement.returnConstant(null));
         //广告sdk
         try {
