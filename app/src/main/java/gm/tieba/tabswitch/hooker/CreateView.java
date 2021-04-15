@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hookImpl;
+package gm.tieba.tabswitch.hooker;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -8,19 +8,21 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import java.lang.reflect.Field;
-import java.util.Map;
 import java.util.Objects;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.Hook;
+import gm.tieba.tabswitch.hooker.model.BaseHooker;
+import gm.tieba.tabswitch.hooker.model.Hooker;
+import gm.tieba.tabswitch.hooker.model.Rule;
 
-public class CreateView extends Hook {
-    public static void hook(ClassLoader classLoader) throws Throwable {
-        for (int i = 0; i < ruleMapList.size(); i++) {
-            Map<String, String> map = ruleMapList.get(i);
-            if (Objects.equals(map.get("rule"), "Lcom/baidu/tieba/R$id;->navigationBarGoSignall:I"))
-                XposedHelpers.findAndHookMethod(map.get("class"), classLoader, map.get("method"), Bundle.class, new XC_MethodHook() {
+public class CreateView extends BaseHooker implements Hooker {
+    public void hook() throws Throwable {
+        Rule.findRule(new Rule.RuleCallBack() {
+            @Override
+            public void onRuleFound(String rule, String clazz, String method) {
+                XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, Bundle.class, new XC_MethodHook() {
+                    @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                         for (Field field : param.thisObject.getClass().getDeclaredFields()) {
                             field.setAccessible(true);
@@ -33,7 +35,7 @@ public class CreateView extends Hook {
                                 signButton.setLayoutParams(signButtonLayoutParams);
                                 //historyButton
                                 final ImageView historyDrawable = new ImageView(activity);
-                                historyDrawable.setImageResource(classLoader.loadClass("com.baidu.tieba.R$drawable").getField("icon_mask_wo_list_history24_svg").getInt(null));
+                                historyDrawable.setImageResource(sClassLoader.loadClass("com.baidu.tieba.R$drawable").getField("icon_mask_wo_list_history24_svg").getInt(null));
                                 final RelativeLayout historyButton = new RelativeLayout(activity);
                                 RelativeLayout.LayoutParams historyLayoutParams = new RelativeLayout.LayoutParams(signButtonLayoutParams.height, RelativeLayout.LayoutParams.MATCH_PARENT);
                                 historyLayoutParams.addRule(RelativeLayout.LEFT_OF, signButton.getId());
@@ -50,7 +52,7 @@ public class CreateView extends Hook {
                                 });
                                 //collectButton
                                 final ImageView collectDrawable = new ImageView(activity);
-                                collectDrawable.setImageResource(classLoader.loadClass("com.baidu.tieba.R$drawable").getField("icon_mask_wo_list_collect24_svg").getInt(null));
+                                collectDrawable.setImageResource(sClassLoader.loadClass("com.baidu.tieba.R$drawable").getField("icon_mask_wo_list_collect24_svg").getInt(null));
                                 final RelativeLayout collectButton = new RelativeLayout(activity);
                                 RelativeLayout.LayoutParams collectButtonLayoutParams = new RelativeLayout.LayoutParams(signButtonLayoutParams.height, RelativeLayout.LayoutParams.MATCH_PARENT);
                                 collectButtonLayoutParams.addRule(RelativeLayout.LEFT_OF, historyButton.getId());
@@ -67,6 +69,7 @@ public class CreateView extends Hook {
                         }
                     }
                 });
-        }
+            }
+        }, "Lcom/baidu/tieba/R$id;->navigationBarGoSignall:I");
     }
 }

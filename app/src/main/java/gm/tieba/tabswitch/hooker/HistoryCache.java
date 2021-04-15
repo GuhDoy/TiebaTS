@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hookImpl;
+package gm.tieba.tabswitch.hooker;
 
 import android.app.Activity;
 import android.graphics.Color;
@@ -22,38 +22,46 @@ import java.util.regex.PatternSyntaxException;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.Hook;
+import gm.tieba.tabswitch.hooker.model.BaseHooker;
+import gm.tieba.tabswitch.hooker.model.Hooker;
+import gm.tieba.tabswitch.hooker.model.TbDialogBuilder;
+import gm.tieba.tabswitch.hooker.model.TbEditText;
 import gm.tieba.tabswitch.util.DisplayHelper;
 import gm.tieba.tabswitch.util.Reflect;
 
-public class HistoryCache extends Hook {
-    private static String regex = "";
+public class HistoryCache extends BaseHooker implements Hooker {
+    private String mRegex = "";
 
-    public static void hook(ClassLoader classLoader) throws Throwable {
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.myCollection.history.PbHistoryActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
+    public void hook() throws Throwable {
+        XposedHelpers.findAndHookMethod("com.baidu.tieba.myCollection.history.PbHistoryActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
+            @Override
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 Activity activity = (Activity) param.thisObject;
-                Object mNavigationBar = Reflect.getObjectField(param.thisObject, "com.baidu.tbadk.core.view.NavigationBar");
-                Class<?> ControlAlign = classLoader.loadClass("com.baidu.tbadk.core.view.NavigationBar$ControlAlign");
-                for (Object HORIZONTAL_RIGHT : ControlAlign.getEnumConstants())
+                Object navigationBar = Reflect.getObjectField(param.thisObject, "com.baidu.tbadk.core.view.NavigationBar");
+                Class<?> ControlAlign = sClassLoader.loadClass("com.baidu.tbadk.core.view.NavigationBar$ControlAlign");
+                for (Object HORIZONTAL_RIGHT : ControlAlign.getEnumConstants()) {
                     if (HORIZONTAL_RIGHT.toString().equals("HORIZONTAL_RIGHT")) {
-                        Class<?> NavigationBar = classLoader.loadClass("com.baidu.tbadk.core.view.NavigationBar");
+                        Class<?> NavigationBar = sClassLoader.loadClass("com.baidu.tbadk.core.view.NavigationBar");
                         TextView textView = (TextView) NavigationBar.getDeclaredMethod("addTextButton", ControlAlign, String.class, View.OnClickListener.class)
-                                .invoke(mNavigationBar, HORIZONTAL_RIGHT, "搜索", (View.OnClickListener) v -> showRegexDialog(classLoader, activity));
-                        if (DisplayHelper.isLightMode(activity))
+                                .invoke(navigationBar, HORIZONTAL_RIGHT, "搜索", (View.OnClickListener) v -> showRegexDialog(activity));
+                        if (DisplayHelper.isLightMode(activity)) {
                             textView.setTextColor(Color.parseColor("#FF3E3D40"));
-                        else textView.setTextColor(Color.parseColor("#FFCBCBCC"));
+                        } else {
+                            textView.setTextColor(Color.parseColor("#FFCBCBCC"));
+                        }
                         return;
                     }
+                }
             }
         });
-        for (Method method : classLoader.loadClass("com.baidu.tieba.myCollection.history.PbHistoryActivity").getDeclaredMethods())
-            if (Arrays.toString(method.getParameterTypes()).equals("[interface java.util.List]"))
+        for (Method method : sClassLoader.loadClass("com.baidu.tieba.myCollection.history.PbHistoryActivity").getDeclaredMethods()) {
+            if (Arrays.toString(method.getParameterTypes()).equals("[interface java.util.List]")) {
                 XposedBridge.hookMethod(method, new XC_MethodHook() {
+                    @Override
                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                         List<?> list = (List<?>) param.args[0];
                         if (list == null) return;
-                        final Pattern pattern = Pattern.compile(regex);
+                        final Pattern pattern = Pattern.compile(mRegex);
                         label:
                         for (int j = 0; j < list.size(); j++) {
                             String[] strings;
@@ -65,20 +73,24 @@ public class HistoryCache extends Hook {
                                 strings = new String[]{(String) XposedHelpers.getObjectField(list.get(j), "g"),
                                         (String) XposedHelpers.getObjectField(list.get(j), "f")};
                             }
-                            for (String string : strings)
-                                if (pattern.matcher(string).find())
+                            for (String string : strings) {
+                                if (pattern.matcher(string).find()) {
                                     continue label;
+                                }
+                            }
                             list.remove(j);
                             j--;
                         }
                     }
                 });
+            }
+        }
     }
 
-    private static void showRegexDialog(ClassLoader classLoader, Activity activity) {
-        EditText editText = new TSPreferenceHelper.TbEditTextBuilder(classLoader, activity).editText;
+    private void showRegexDialog(Activity activity) {
+        EditText editText = new TbEditText(sClassLoader, activity, sRes);
         editText.setHint("请输入正则表达式，如.*");
-        editText.setText(regex);
+        editText.setText(mRegex);
         editText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -90,28 +102,28 @@ public class HistoryCache extends Hook {
 
             @Override
             public void afterTextChanged(Editable s) {
-                regex = s.toString();
+                mRegex = s.toString();
             }
         });
-        TSPreferenceHelper.TbDialogBuilder bdalert = new TSPreferenceHelper.TbDialogBuilder(classLoader, activity, null, null, true, editText);
-        bdalert.setOnNoButtonClickListener(v -> bdalert.dismiss());
-        bdalert.setOnYesButtonClickListener(v -> {
+        TbDialogBuilder bdAlert = new TbDialogBuilder(sClassLoader, activity, null, null, true, editText);
+        bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
+        bdAlert.setOnYesButtonClickListener(v -> {
             try {
                 Pattern.compile(editText.getText().toString());
                 activity.finish();
                 activity.startActivity(activity.getIntent());
-                bdalert.dismiss();
+                bdAlert.dismiss();
             } catch (PatternSyntaxException e) {
                 Toast.makeText(activity, e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
-        bdalert.show();
-        bdalert.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        bdAlert.show();
+        bdAlert.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         editText.setSingleLine();
         editText.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
         editText.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH || event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-                bdalert.getYesButton().performClick();
+                bdAlert.getYesButton().performClick();
                 return true;
             }
             return false;

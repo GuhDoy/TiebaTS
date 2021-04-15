@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hookImpl;
+package gm.tieba.tabswitch.hooker;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -20,37 +20,40 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Map;
-import java.util.Objects;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.Hook;
+import gm.tieba.tabswitch.hooker.model.BaseHooker;
+import gm.tieba.tabswitch.hooker.model.Hooker;
+import gm.tieba.tabswitch.hooker.model.Rule;
 import gm.tieba.tabswitch.util.IO;
 
-public class StorageRedirect extends Hook {
-    public static void hook(ClassLoader classLoader, Context context) throws Throwable {
+public class StorageRedirect extends BaseHooker implements Hooker {
+    public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod(Environment.class, "getExternalStorageDirectory", new XC_MethodHook() {
+            @Override
             protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-                param.setResult(context.getExternalCacheDir());
+                param.setResult(sContextRef.get().getExternalCacheDir());
             }
         });
-        for (int i = 0; i < ruleMapList.size(); i++) {
-            Map<String, String> map = ruleMapList.get(i);
-            if (Objects.equals(map.get("rule"), "0x4197d783fc000000L")) {
-                for (Method method : classLoader.loadClass(map.get("class")).getDeclaredMethods())
-                    switch (Arrays.toString(method.getParameterTypes())) {
+        Rule.findRule(new Rule.RuleCallBack() {
+            @Override
+            public void onRuleFound(String rule, String clazz, String method) throws ClassNotFoundException {
+                for (Method md : sClassLoader.loadClass(clazz).getDeclaredMethods())
+                    switch (Arrays.toString(md.getParameterTypes())) {
                         case "[class java.lang.String, class [B, class android.content.Context]":
-                            XposedBridge.hookMethod(method, new XC_MethodReplacement() {
+                            XposedBridge.hookMethod(md, new XC_MethodReplacement() {
+                                @Override
                                 protected Object replaceHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
                                     return saveImage((String) param.args[0], new ByteArrayInputStream((byte[]) param.args[1]), (Context) param.args[2]);
                                 }
                             });
                             break;
                         case "[class java.lang.String, class java.lang.String, class android.content.Context]":
-                            XposedBridge.hookMethod(method, new XC_MethodReplacement() {
+                            XposedBridge.hookMethod(md, new XC_MethodReplacement() {
+                                @Override
                                 protected Object replaceHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
                                     return saveImage((String) param.args[1], new FileInputStream((String) param.args[0]), (Context) param.args[2]);
                                 }
@@ -58,16 +61,16 @@ public class StorageRedirect extends Hook {
                             break;
                     }
             }
-        }
+        }, "0x4197d783fc000000L");
     }
 
-    private static int saveImage(String url, InputStream inputStream, Context context) {
+    private int saveImage(String url, InputStream in, Context context) {
         Context applicationContext = context.getApplicationContext();
         String fileName = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("."));
         try {
-            ByteArrayOutputStream baos = IO.cloneInputStream(inputStream);
+            ByteArrayOutputStream baos = IO.cloneInputStream(in);
             String extension = IO.getExtension(baos);
-            inputStream = new ByteArrayInputStream(baos.toByteArray());
+            in = new ByteArrayInputStream(baos.toByteArray());
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 ContentValues newImageDetails = new ContentValues();
                 newImageDetails.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + File.separator + "tieba");
@@ -76,11 +79,11 @@ public class StorageRedirect extends Hook {
                 ContentResolver resolver = applicationContext.getContentResolver();
                 Uri imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, newImageDetails);
                 ParcelFileDescriptor descriptor = resolver.openFileDescriptor(imageUri, "w");
-                IO.copyFile(inputStream, descriptor.getFileDescriptor());
+                IO.copyFile(in, descriptor.getFileDescriptor());
             } else {
                 File imageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "tieba");
                 imageDir.mkdirs();
-                IO.copyFile(inputStream, new File(imageDir.getPath(), fileName + "." + extension));
+                IO.copyFile(in, new File(imageDir.getPath(), fileName + "." + extension));
 
                 Intent scanIntent = new Intent("android.intent.action.MEDIA_SCANNER_SCAN_DIR");
                 scanIntent.setData(Uri.fromFile(imageDir));

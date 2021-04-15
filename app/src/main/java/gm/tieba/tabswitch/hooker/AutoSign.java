@@ -1,8 +1,6 @@
-package gm.tieba.tabswitch.hookImpl;
+package gm.tieba.tabswitch.hooker;
 
 import android.app.Activity;
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Looper;
 import android.widget.Toast;
@@ -11,40 +9,45 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.Hook;
+import gm.tieba.tabswitch.hooker.model.BaseHooker;
+import gm.tieba.tabswitch.hooker.model.Hooker;
+import gm.tieba.tabswitch.hooker.model.Preferences;
 
-public class AutoSign extends Hook {
-    public static void hook(ClassLoader classLoader) throws Throwable {
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
+public class AutoSign extends BaseHooker implements Hooker {
+    private String mBDUSS;
+
+    public void hook() throws Throwable {
+        XposedHelpers.findAndHookMethod("com.baidu.tbadk.core.data.AccountData", sClassLoader, "getBDUSS", new XC_MethodHook() {
+            @Override
+            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                mBDUSS = String.valueOf(param.getResult());
+            }
+        });
+        XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
+            @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 Activity activity = (Activity) param.thisObject;
-                SharedPreferences tsConfig = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
-                if (Calendar.getInstance().get(Calendar.DAY_OF_YEAR) != tsConfig.getInt("sign_date", 0))
-                    new Thread(() -> {
-                        Looper.prepare();
-                        if (Hook.BDUSS == null)
-                            Toast.makeText(activity.getApplicationContext(), "暂未获取到 BDUSS", Toast.LENGTH_LONG).show();
-                        else {
-                            String result = main(Hook.BDUSS);
-                            Toast.makeText(activity.getApplicationContext(), result, Toast.LENGTH_LONG).show();
-                            if (result.endsWith("全部签到成功")) {
-                                SharedPreferences.Editor editor = tsConfig.edit();
-                                editor.putInt("sign_date", Calendar.getInstance().get(Calendar.DAY_OF_YEAR));
-                                Hook.follow = new HashSet<>(success);
-                                editor.putStringSet("follow", Hook.follow);
-                                editor.apply();
-                            }
+                if (Preferences.getIsSigned()) return;
+                new Thread(() -> {
+                    Looper.prepare();
+                    if (mBDUSS == null) {
+                        Toast.makeText(activity.getApplicationContext(), "暂未获取到 BDUSS", Toast.LENGTH_LONG).show();
+                    } else {
+                        String result = main(mBDUSS);
+                        Toast.makeText(activity.getApplicationContext(), result, Toast.LENGTH_LONG).show();
+                        if (result.endsWith("全部签到成功")) {
+                            Preferences.putSignDate();
+                            Preferences.putFollow(success);
                         }
-                        Looper.loop();
-                    }).start();
+                    }
+                    Looper.loop();
+                }).start();
             }
         });
     }
@@ -56,12 +59,12 @@ public class AutoSign extends Hook {
     //贴吧签到接口
     private static final String SIGN_URL = "http://c.tieba.baidu.com/c/c/forum/sign";
 
-    private static final List<String> follow = new ArrayList<>();
-    private static final List<String> success = new ArrayList<>();
-    private static String tbs = "";
-    private static Integer followNum = 201;
+    private final List<String> follow = new ArrayList<>();
+    public final List<String> success = new ArrayList<>();
+    private String tbs = "";
+    private Integer followNum = 201;
 
-    private static String main(String arg) {
+    private String main(String arg) {
         AutoSignHelper.setCookie(arg);
         getTbs();
         getFollow();
@@ -73,7 +76,7 @@ public class AutoSign extends Hook {
         else return result;
     }
 
-    private static void getTbs() {
+    private void getTbs() {
         try {
             JSONObject jsonObject = AutoSignHelper.get(TBS_URL);
             if ("1".equals(jsonObject.getString("is_login"))) {
@@ -85,7 +88,7 @@ public class AutoSign extends Hook {
         }
     }
 
-    private static void getFollow() {
+    private void getFollow() {
         try {
             JSONObject jsonObject = AutoSignHelper.get(LIKE_URL);
             XposedBridge.log("获取贴吧列表成功");
@@ -93,18 +96,17 @@ public class AutoSign extends Hook {
             followNum = jsonArray.length();
             // 获取用户所有关注的贴吧
             for (int i = 0; i < jsonArray.length(); i++)
-                if ("0".equals(jsonArray.optJSONObject(i).getString("is_sign")))
-                    // 将未签到的贴吧加入到 follow 中，待签到
+                if ("0".equals(jsonArray.optJSONObject(i).getString("is_sign"))) {
                     follow.add(jsonArray.optJSONObject(i).getString("forum_name"));
-                else
-                    // 将已经成功签到的贴吧，加入到 success
+                } else {
                     success.add(jsonArray.optJSONObject(i).getString("forum_name"));
+                }
         } catch (Exception e) {
             XposedBridge.log("获取贴吧列表部分出现错误 -- " + e);
         }
     }
 
-    private static void runSign() {
+    private void runSign() {
         // 当执行 3 轮所有贴吧还未签到成功就结束操作
         int flag = 3;
         try {

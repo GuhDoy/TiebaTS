@@ -1,5 +1,7 @@
 package gm.tieba.tabswitch.util;
 
+import android.os.FileUtils;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -11,8 +13,6 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 public class IO {
-    private static final int BUFFER_SIZE = 10240;
-
     public static void copyFile(Object input, Object output) throws IOException {
         InputStream inputStream;
         if (input instanceof InputStream) {
@@ -36,28 +36,12 @@ public class IO {
             fileOutputStream = new FileOutputStream((String) output);
         } else throw new IOException("unknown output type");
 
-        copyFile(inputStream, fileOutputStream);
+        FileUtils.copy(inputStream, fileOutputStream);
     }
 
-    private static void copyFile(InputStream is, FileOutputStream fos) throws IOException {
-        byte[] buffer = new byte[BUFFER_SIZE];
-        int byteCount;
-        while ((byteCount = is.read(buffer)) != -1) {
-            fos.write(buffer, 0, byteCount);
-        }
-        fos.flush();
-        is.close();
-        fos.close();
-    }
-
-    public static ByteArrayOutputStream cloneInputStream(InputStream input) throws IOException {
+    public static ByteArrayOutputStream cloneInputStream(InputStream in) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        byte[] buffer = new byte[BUFFER_SIZE];
-        int len;
-        while ((len = input.read(buffer)) > -1) {
-            baos.write(buffer, 0, len);
-        }
-        baos.flush();
+        FileUtils.copy(in, baos);
         return baos;
     }
 
@@ -71,12 +55,12 @@ public class IO {
         return "jpg";
     }
 
-    public static void deleteRecursive(File file) {
+    public static void deleteRecursively(File file) {
         if (file.isDirectory()) {
             File[] files = file.listFiles();
             if (files != null) {
                 for (File f : files) {
-                    deleteRecursive(f);
+                    deleteRecursively(f);
                 }
             }
         }

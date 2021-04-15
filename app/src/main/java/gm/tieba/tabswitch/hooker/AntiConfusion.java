@@ -1,8 +1,9 @@
-package gm.tieba.tabswitch.hookImpl;
+package gm.tieba.tabswitch.hooker;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 import android.view.Gravity;
@@ -16,6 +17,7 @@ import org.jf.dexlib.DexFile;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,39 +27,48 @@ import java.util.List;
 import bin.zip.ZipEntry;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
-import gm.tieba.tabswitch.Hook;
 import gm.tieba.tabswitch.R;
-import gm.tieba.tabswitch.RulesDbHelper;
+import gm.tieba.tabswitch.hooker.model.BaseHooker;
+import gm.tieba.tabswitch.hooker.model.Hooker;
+import gm.tieba.tabswitch.hooker.model.Preferences;
 import gm.tieba.tabswitch.util.IO;
+import gm.tieba.tabswitch.util.RulesDbHelper;
 
-public class AntiConfusion extends Hook {
-    private static final String springboardActivity = "com.baidu.tieba.tblauncher.MainTabActivity";
+public class AntiConfusion extends BaseHooker implements Hooker {
+    private static final String SPRINGBOARD_ACTIVITY = "com.baidu.tieba.tblauncher.MainTabActivity";
 
-    public static void hook(ClassLoader classLoader) throws Throwable {
-        for (Method method : classLoader.loadClass("com.baidu.tieba.LogoActivity").getDeclaredMethods())
-            if (Arrays.toString(method.getParameterTypes()).equals("[class android.os.Bundle]") && !method.getName().startsWith("on"))
+    public AntiConfusion(ClassLoader classLoader, Resources res) {
+        super(classLoader, res);
+    }
+
+    public void hook() throws Throwable {
+        for (Method method : sClassLoader.loadClass("com.baidu.tieba.LogoActivity").getDeclaredMethods()) {
+            if (!method.getName().startsWith("on") && Arrays.toString(method.getParameterTypes()).equals("[class android.os.Bundle]")) {
                 XposedBridge.hookMethod(method, new XC_MethodReplacement() {
+                    @Override
                     protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
                         Activity activity = (Activity) param.thisObject;
-                        if (AntiConfusionHelper.isDexChanged(activity))
+                        if (AntiConfusionHelper.isDexChanged(activity)) {
                             activity.deleteDatabase("Rules.db");
-                        else if (AntiConfusionHelper.getLostList().size() == 0)
-                            AntiConfusionHelper.saveAndRestart(activity, AntiConfusionHelper.getTbVersion(activity), classLoader.loadClass(springboardActivity));
-                        else AntiConfusionHelper.matcherList = AntiConfusionHelper.getLostList();
+                        } else if (AntiConfusionHelper.getLostList(activity).size() != 0) {
+                            AntiConfusionHelper.matcherList = AntiConfusionHelper.getLostList(activity);
+                        } else {
+                            AntiConfusionHelper.saveAndRestart(activity, AntiConfusionHelper.getTbVersion(activity), sClassLoader.loadClass(SPRINGBOARD_ACTIVITY));
+                        }
                         new RulesDbHelper(activity.getApplicationContext()).getReadableDatabase();
 
                         TextView title = new TextView(activity);
                         title.setTextSize(16);
                         title.setPadding(0, 0, 0, 20);
                         title.setGravity(Gravity.CENTER);
-                        title.setTextColor(Hook.modRes.getColor(R.color.colorPrimaryDark, null));
+                        title.setTextColor(sRes.getColor(R.color.colorPrimaryDark, null));
                         title.setText("贴吧TS正在定位被混淆的类和方法，请耐心等待");
                         TextView textView = new TextView(activity);
                         textView.setTextSize(16);
-                        textView.setTextColor(Hook.modRes.getColor(R.color.colorPrimaryDark, null));
+                        textView.setTextColor(sRes.getColor(R.color.colorPrimaryDark, null));
                         textView.setText("读取ZipEntry");
                         TextView progressBackground = new TextView(activity);
-                        progressBackground.setBackgroundColor(Hook.modRes.getColor(R.color.colorProgress, null));
+                        progressBackground.setBackgroundColor(sRes.getColor(R.color.colorProgress, null));
                         RelativeLayout progressContainer = new RelativeLayout(activity);
                         progressContainer.addView(progressBackground);
                         progressContainer.addView(textView);
@@ -75,7 +86,7 @@ public class AntiConfusion extends Hook {
                         new Thread(() -> {
                             File dexDir = new File(activity.getCacheDir().getAbsolutePath(), "dex");
                             try {
-                                if (dexDir.exists()) IO.deleteRecursive(dexDir);
+                                IO.deleteRecursively(dexDir);
                                 dexDir.mkdirs();
                                 bin.zip.ZipFile zipFile = new bin.zip.ZipFile(new File(activity.getPackageResourcePath()));
                                 Enumeration<ZipEntry> enumeration = zipFile.getEntries();
@@ -92,10 +103,12 @@ public class AntiConfusion extends Hook {
                                         progressBackground.setLayoutParams(lp);
                                     });
                                     ZipEntry ze = enumeration.nextElement();
-                                    if (ze.getName().matches("classes[0-9]*?\\.dex"))
+                                    if (ze.getName().matches("classes[0-9]*?\\.dex")) {
                                         IO.copyFile(zipFile.getInputStream(ze), new File(dexDir, ze.getName()));
+                                    }
                                 }
                                 File[] fs = dexDir.listFiles();
+                                if (fs == null) throw new FileNotFoundException("解压失败");
                                 Arrays.sort(fs, (o1, o2) -> {
                                     int i1;
                                     int i2;
@@ -131,8 +144,9 @@ public class AntiConfusion extends Hook {
                                         if (signature.matches("L[d-e]/b/[g-m]0/.*")) {
                                             arrayList.add(classes.get(j).getIndex());
                                             isSkip = true;
-                                        } else if (signature.startsWith("Lcom/baidu/tbadk") || !isSkip && (signature.startsWith("Lcom/baidu/tieba")))
+                                        } else if (signature.startsWith("Lcom/baidu/tbadk") || !isSkip && (signature.startsWith("Lcom/baidu/tieba"))) {
                                             arrayList.add(classes.get(j).getIndex());
+                                        }
                                     }
                                     totalItemCount += arrayList.size();
                                     itemList.add(arrayList);
@@ -158,26 +172,23 @@ public class AntiConfusion extends Hook {
                                     }
                                 }
                                 activity.runOnUiThread(() -> textView.setText("保存反混淆信息"));
-                                SharedPreferences.Editor editor = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE).edit();
                                 byte[] bytes = new byte[32];
                                 new FileInputStream(fs[0]).read(bytes);
                                 DexFile.calcSignature(bytes);
-                                editor.putInt("signature", Arrays.hashCode(bytes));
-                                editor.apply();
-                                SharedPreferences tsPreference = activity.getSharedPreferences("TS_preference", Context.MODE_PRIVATE);
-                                if (tsPreference.getBoolean("clean_dir", false)) {
-                                    IO.deleteRecursive(activity.getExternalCacheDir());
-                                    IO.deleteRecursive(activity.getCacheDir());
-                                    IO.deleteRecursive(new File(activity.getCacheDir().getAbsolutePath() + "image"));
-                                    IO.deleteRecursive(new File(activity.getFilesDir().getAbsolutePath() + File.separator + "newStat" + File.separator + "notUpload"));
-                                } else IO.deleteRecursive(dexDir);
-                                if (tsPreference.getBoolean("purify", false)) {
+                                Preferences.putSignature(Arrays.hashCode(bytes));
+                                if (Preferences.getIsCleanDir()) {
+                                    IO.deleteRecursively(activity.getExternalCacheDir());
+                                    IO.deleteRecursively(activity.getCacheDir());
+                                    IO.deleteRecursively(new File(activity.getCacheDir().getAbsolutePath() + "image"));
+                                    IO.deleteRecursively(new File(activity.getFilesDir().getAbsolutePath() + File.separator + "newStat" + File.separator + "notUpload"));
+                                } else IO.deleteRecursively(dexDir);
+                                if (Preferences.getIsPurify()) {
                                     SharedPreferences.Editor settingsEditor = activity.getSharedPreferences("settings", Context.MODE_PRIVATE).edit();
                                     settingsEditor.putString("key_location_request_dialog_last_show_version", AntiConfusionHelper.getTbVersion(activity));
                                     settingsEditor.commit();
                                 }
                                 XposedBridge.log("anti-confusion accomplished, current version: " + AntiConfusionHelper.getTbVersion(activity));
-                                AntiConfusionHelper.saveAndRestart(activity, AntiConfusionHelper.getTbVersion(activity), classLoader.loadClass(springboardActivity));
+                                AntiConfusionHelper.saveAndRestart(activity, AntiConfusionHelper.getTbVersion(activity), sClassLoader.loadClass(SPRINGBOARD_ACTIVITY));
                             } catch (Throwable throwable) {
                                 activity.runOnUiThread(() -> textView.setText(String.format("处理失败\n%s", Log.getStackTraceString(throwable))));
                                 XposedBridge.log(throwable);
@@ -186,5 +197,7 @@ public class AntiConfusion extends Hook {
                         return null;
                     }
                 });
+            }
+        }
     }
 }

@@ -16,11 +16,11 @@ import gm.tieba.tabswitch.databinding.AdapterItemModuleListBinding;
 import gm.tieba.tabswitch.util.RepackageProcessor;
 
 public class ModuleListAdapter extends RecyclerView.Adapter<ModuleListAdapter.ViewHolder> {
-    private final Activity activity;
-    private OnItemClickListener onItemClickListener;
+    private final Activity mActivity;
+    private OnItemClickListener mOnItemClickListener;
 
     public ModuleListAdapter(MainActivity mainActivity) {
-        activity = mainActivity;
+        mActivity = mainActivity;
     }
 
     @NonNull
@@ -37,8 +37,8 @@ public class ModuleListAdapter extends RecyclerView.Adapter<ModuleListAdapter.Vi
             super(item.getRoot());
             binding = item;
             binding.getRoot().setOnClickListener(v -> {
-                if (onItemClickListener != null)
-                    onItemClickListener.OnItemClick(item.getRoot(), getLayoutPosition());
+                if (mOnItemClickListener != null)
+                    mOnItemClickListener.onItemClick(item.getRoot(), getLayoutPosition());
             });
         }
     }
@@ -47,7 +47,7 @@ public class ModuleListAdapter extends RecyclerView.Adapter<ModuleListAdapter.Vi
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Map<String, Object> map = RepackageProcessor.moduleList.get(position);
         holder.binding.cb.setChecked((Boolean) map.get("isChecked"));
-        PackageManager pm = activity.getPackageManager();
+        PackageManager pm = mActivity.getPackageManager();
         try {
             PackageInfo pi = pm.getPackageInfo((String) map.get("packageName"), PackageManager.GET_ACTIVITIES);
             holder.binding.iv.setImageDrawable(pi.applicationInfo.loadIcon(pm));
@@ -64,10 +64,10 @@ public class ModuleListAdapter extends RecyclerView.Adapter<ModuleListAdapter.Vi
     }
 
     public interface OnItemClickListener {
-        void OnItemClick(View view, int layoutPosition);
+        void onItemClick(View view, int layoutPosition);
     }
 
     public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
-        this.onItemClickListener = onItemClickListener;
+        mOnItemClickListener = onItemClickListener;
     }
 }

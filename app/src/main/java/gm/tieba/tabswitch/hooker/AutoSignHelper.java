@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hookImpl;
+package gm.tieba.tabswitch.hooker;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -9,18 +9,17 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 
 import de.robv.android.xposed.XposedBridge;
-import gm.tieba.tabswitch.Hook;
 import okhttp3.Call;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class AutoSignHelper extends Hook {
-    private static String cookie;
+public class AutoSignHelper {
+    private static String sCookie;
 
     static void setCookie(String BDUSS) {
-        cookie = "BDUSS=" + BDUSS;
+        sCookie = "BDUSS=" + BDUSS;
     }
 
     static JSONObject get(String url) throws JSONException {
@@ -31,7 +30,7 @@ public class AutoSignHelper extends Hook {
                 .addHeader("Content-Type", "application/x-www-form-urlencoded")
                 .addHeader("charset", "UTF-8")
                 .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36")
-                .addHeader("Cookie", cookie)
+                .addHeader("Cookie", sCookie)
                 .build();
         Call call = okHttpClient.newCall(request);
         String respContent = null;
@@ -56,7 +55,7 @@ public class AutoSignHelper extends Hook {
                 .addHeader("Content-Type", "application/x-www-form-urlencoded")
                 .addHeader("charset", "UTF-8")
                 .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36")
-                .addHeader("Cookie", cookie)
+                .addHeader("Cookie", sCookie)
                 .build();
         Call call = okHttpClient.newCall(request);
         String respContent = null;

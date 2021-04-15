@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hookImpl;
+package gm.tieba.tabswitch.hooker;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -7,8 +7,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Build;
 import android.os.Bundle;
 
 import org.jf.dexlib.ClassDataItem;
@@ -21,65 +21,73 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.Hook;
+import gm.tieba.tabswitch.hooker.model.Preferences;
+import gm.tieba.tabswitch.hooker.model.Rule;
 
-public class AntiConfusionHelper extends Hook {
-    public static List<String> matcherList = new ArrayList<>();
+public class AntiConfusionHelper {
+    static List<String> matcherList = new ArrayList<>();
 
     static {
-        addMatcher(matcherList);
-    }
-
-    private static void addMatcher(List<String> list) {
         //TSPreference
-        list.add("Lcom/baidu/tieba/R$id;->black_address_list:I");
+        matcherList.add("Lcom/baidu/tieba/R$id;->black_address_list:I");
         //TSPreferenceHelper
-        list.add("Lcom/baidu/tieba/R$layout;->dialog_bdalert:I");
+        matcherList.add("Lcom/baidu/tieba/R$layout;->dialog_bdalert:I");
         //Purify
-        list.add("\"c/s/splashSchedule\"");//旧启动广告
-        list.add("\"custom_ext_data\"");//sdk启动广告
-        list.add("Lcom/baidu/tieba/recapp/lego/model/AdCard;-><init>(Lorg/json/JSONObject;)V");//卡片广告
-        list.add("\"pic_amount\"");//图片广告
-        list.add("\"key_frs_dialog_ad_last_show_time\"");//吧推广弹窗
-        list.add("Lcom/baidu/tieba/R$id;->frs_ad_banner:I");//吧推广横幅
-        list.add("Lcom/baidu/tieba/R$string;->mark_like:I");//关注作者追帖更简单
-        list.add("Lcom/baidu/tieba/R$layout;->pb_child_title:I");//视频相关推荐
+        Collections.addAll(matcherList, getPurifyMatchers());
         //PurifyEnter
-        list.add("Lcom/baidu/tieba/R$id;->square_background:I");//吧广场
-        list.add("Lcom/baidu/tieba/R$id;->create_bar_container:I");//创建自己的吧
+        matcherList.add("Lcom/baidu/tieba/R$id;->square_background:I");//吧广场
+        matcherList.add("Lcom/baidu/tieba/R$id;->create_bar_container:I");//创建自己的吧
         //PurifyMy
-        list.add("Lcom/baidu/tieba/R$drawable;->icon_pure_topbar_store44_svg:I");//商店
-        list.add("Lcom/baidu/tieba/R$id;->function_item_bottom_divider:I");//分割线
-        list.add("\"https://tieba.baidu.com/mo/q/duxiaoman/index?noshare=1\"");//我的ArrayList
+        Collections.addAll(matcherList, getPurifyMyMatchers());
         //CreateView
-        list.add("Lcom/baidu/tieba/R$id;->navigationBarGoSignall:I");
+        matcherList.add("Lcom/baidu/tieba/R$id;->navigationBarGoSignall:I");
         //ThreadStore
-        list.add("\"c/f/post/threadstore\"");
+        matcherList.add("\"c/f/post/threadstore\"");
         //NewSub
-        list.add("Lcom/baidu/tieba/R$id;->subpb_head_user_info_root:I");
+        matcherList.add("Lcom/baidu/tieba/R$id;->subpb_head_user_info_root:I");
         //MyAttention
-        list.add("Lcom/baidu/tieba/R$layout;->person_list_item:I");
+        matcherList.add("Lcom/baidu/tieba/R$layout;->person_list_item:I");
         //StorageRedirect
-        list.add("0x4197d783fc000000L");
+        matcherList.add("0x4197d783fc000000L");
         //ForbidGesture
-        list.add("Lcom/baidu/tieba/R$id;->new_pb_list:I");
+        matcherList.add("Lcom/baidu/tieba/R$id;->new_pb_list:I");
     }
 
-    public static List<String> getLostList() {
-        List<String> ruleList = new ArrayList<>();
-        for (int i = 0; i < ruleMapList.size(); i++) {
-            Map<String, String> map = ruleMapList.get(i);
-            ruleList.add(map.get("rule"));
-        }
+    public static String[] getPurifyMatchers() {
+        return new String[]{"\"c/s/splashSchedule\"",//旧启动广告
+                "\"custom_ext_data\"",//sdk启动广告
+                "Lcom/baidu/tieba/recapp/lego/model/AdCard;-><init>(Lorg/json/JSONObject;)V",//卡片广告
+                "\"pic_amount\"",//图片广告
+                "\"key_frs_dialog_ad_last_show_time\"",//吧推广弹窗
+                "Lcom/baidu/tieba/R$id;->frs_ad_banner:I",//吧推广横幅
+                "Lcom/baidu/tieba/R$string;->mark_like:I",//关注作者追帖更简单
+                "Lcom/baidu/tieba/R$layout;->pb_child_title:I"};//视频相关推荐
+    }
+
+    public static String[] getPurifyMyMatchers() {
+        return new String[]{"Lcom/baidu/tieba/R$drawable;->icon_pure_topbar_store44_svg:I",//商店
+                "Lcom/baidu/tieba/R$id;->function_item_bottom_divider:I",//分割线
+                "\"https://tieba.baidu.com/mo/q/duxiaoman/index?noshare=1\""};//我的ArrayList
+    }
+
+    public static List<String> getLostList(Context context) {
+        List<String> ruleList = Rule.getRulesFound();
         List<String> lostList = new ArrayList<>(matcherList);
         lostList.removeAll(ruleList);
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && context.getPackageManager().getPackageInfo(context.getPackageName(), 0).getLongVersionCode() < 201523200 ||
+                    Build.VERSION.SDK_INT < Build.VERSION_CODES.P && context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionCode < 201523200) {
+                AntiConfusionHelper.matcherList.remove("\"custom_ext_data\"");
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+            XposedBridge.log(e);
+        }
         return lostList;
     }
 
@@ -90,12 +98,11 @@ public class AntiConfusionHelper extends Hook {
 
     public static boolean isDexChanged(Context context) {
         try {
-            SharedPreferences tsConfig = context.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
             bin.zip.ZipFile zipFile = new bin.zip.ZipFile(new File(context.getPackageResourcePath()));
             byte[] bytes = new byte[32];
             zipFile.getInputStream(zipFile.getEntry("classes.dex")).read(bytes);
             DexFile.calcSignature(bytes);
-            return Arrays.hashCode(bytes) != tsConfig.getInt("signature", 0);
+            return Arrays.hashCode(bytes) != Preferences.getSignature();
         } catch (IOException e) {
             XposedBridge.log(e);
         }
@@ -152,22 +159,6 @@ public class AntiConfusionHelper extends Hook {
                     return;
                 }
         }
-    }
-
-    public static List<Map<String, String>> convertDbToMapList(SQLiteDatabase db) {
-        List<Map<String, String>> dbDataList = new ArrayList<>();
-        Cursor c = db.query("rules", null, null, null, null, null, null);
-        for (int j = 0; j < c.getCount(); j++) {
-            c.moveToNext();
-            Map<String, String> map = new HashMap<>();
-            map.put("rule", c.getString(1));
-            map.put("class", c.getString(2));
-            map.put("method", c.getString(3));
-            dbDataList.add(map);
-        }
-        c.close();
-        db.close();
-        return dbDataList;
     }
 
     public static String getTbVersion(Context context) {

@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hookImpl;
+package gm.tieba.tabswitch.hooker;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -15,24 +15,27 @@ import android.widget.Toast;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.Hook;
+import gm.tieba.tabswitch.hooker.model.BaseHooker;
+import gm.tieba.tabswitch.hooker.model.Hooker;
+import gm.tieba.tabswitch.hooker.model.Rule;
+import gm.tieba.tabswitch.hooker.model.TbDialogBuilder;
+import gm.tieba.tabswitch.hooker.model.TbEditText;
 import gm.tieba.tabswitch.util.DisplayHelper;
 
-public class ThreadStore extends Hook {
-    private static String regex = "";
+public class ThreadStore extends BaseHooker implements Hooker {
+    private String mRegex = "";
 
-    public static void hook(ClassLoader classLoader) throws Throwable {
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.myCollection.CollectTabActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
+    public void hook() throws Throwable {
+        XposedHelpers.findAndHookMethod("com.baidu.tieba.myCollection.CollectTabActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
+            @Override
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 Activity activity = (Activity) param.thisObject;
-                TextView edit = activity.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("right_textview").getInt(null));
+                TextView edit = activity.findViewById(sClassLoader.loadClass("com.baidu.tieba.R$id").getField("right_textview").getInt(null));
                 TextView textView = new TextView(activity);
                 LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 layoutParams.setMargins(60, 0, 20, 0);
@@ -40,49 +43,54 @@ public class ThreadStore extends Hook {
                 textView.setTextSize(DisplayHelper.px2Dip(activity, edit.getTextSize()));
                 textView.setTextColor(edit.getTextColors());
                 textView.setText("搜索");
-                LinearLayout naviRightButton = activity.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("navi_right_button").getInt(null));
+                LinearLayout naviRightButton = activity.findViewById(sClassLoader.loadClass("com.baidu.tieba.R$id").getField("navi_right_button").getInt(null));
                 naviRightButton.addView(textView);
-                textView.setOnClickListener(v -> showRegexDialog(classLoader, activity));
+                textView.setOnClickListener(v -> showRegexDialog(activity));
             }
         });
-        for (int i = 0; i < ruleMapList.size(); i++) {
-            Map<String, String> map = ruleMapList.get(i);
-            if (Objects.equals(map.get("rule"), "\"c/f/post/threadstore\""))
-                XposedHelpers.findAndHookMethod(map.get("class"), classLoader, map.get("method"), Boolean[].class, new XC_MethodHook() {
+        Rule.findRule(new Rule.RuleCallBack() {
+            @Override
+            public void onRuleFound(String rule, String clazz, String method) {
+                XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, Boolean[].class, new XC_MethodHook() {
+                    @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                         for (Field field : param.getResult().getClass().getDeclaredFields()) {
                             field.setAccessible(true);
                             if (field.get(param.getResult()) instanceof ArrayList) {
                                 ArrayList<?> arrayList = (ArrayList<?>) field.get(param.getResult());
                                 if (arrayList == null) return;
-                                final Pattern pattern = Pattern.compile(regex);
+                                final Pattern pattern = Pattern.compile(mRegex);
                                 label:
                                 for (int j = 0; j < arrayList.size(); j++) {
                                     // com.baidu.tbadk.baseEditMark.MarkData
                                     String[] strings = new String[]{(String) XposedHelpers.getObjectField(arrayList.get(j), "mTitle"),
                                             (String) XposedHelpers.getObjectField(arrayList.get(j), "mForumName"),
                                             (String) XposedHelpers.getObjectField(arrayList.get(j), "mAuthorName")};
-                                    for (String string : strings)
-                                        if (pattern.matcher(string).find())
+                                    for (String string : strings) {
+                                        if (pattern.matcher(string).find()) {
                                             continue label;
+                                        }
+                                    }
                                     arrayList.remove(j);
                                     j--;
                                 }
-                                for (int j = 0; j < arrayList.size(); j++)
+                                for (int j = 0; j < arrayList.size(); j++) {
                                     XposedHelpers.setObjectField(arrayList.get(j), "mAuthorName", String.format("%s-%s",
                                             XposedHelpers.getObjectField(arrayList.get(j), "mForumName"), XposedHelpers.getObjectField(arrayList.get(j), "mAuthorName")));
+                                }
                                 return;
                             }
                         }
                     }
                 });
-        }
+            }
+        }, "\"c/f/post/threadstore\"");
     }
 
-    private static void showRegexDialog(ClassLoader classLoader, Activity activity) {
-        EditText editText = new TSPreferenceHelper.TbEditTextBuilder(classLoader, activity).editText;
+    private void showRegexDialog(Activity activity) {
+        EditText editText = new TbEditText(sClassLoader, activity, sRes);
         editText.setHint("请输入正则表达式，如.*");
-        editText.setText(regex);
+        editText.setText(mRegex);
         editText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -94,28 +102,28 @@ public class ThreadStore extends Hook {
 
             @Override
             public void afterTextChanged(Editable s) {
-                regex = s.toString();
+                mRegex = s.toString();
             }
         });
-        TSPreferenceHelper.TbDialogBuilder bdalert = new TSPreferenceHelper.TbDialogBuilder(classLoader, activity, null, null, true, editText);
-        bdalert.setOnNoButtonClickListener(v -> bdalert.dismiss());
-        bdalert.setOnYesButtonClickListener(v -> {
+        TbDialogBuilder bdAlert = new TbDialogBuilder(sClassLoader, activity, null, null, true, editText);
+        bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
+        bdAlert.setOnYesButtonClickListener(v -> {
             try {
                 Pattern.compile(editText.getText().toString());
                 activity.finish();
                 activity.startActivity(activity.getIntent());
-                bdalert.dismiss();
+                bdAlert.dismiss();
             } catch (PatternSyntaxException e) {
                 Toast.makeText(activity, e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
-        bdalert.show();
-        bdalert.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        bdAlert.show();
+        bdAlert.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         editText.setSingleLine();
         editText.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
         editText.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH || event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-                bdalert.getYesButton().performClick();
+                bdAlert.getYesButton().performClick();
                 return true;
             }
             return false;
