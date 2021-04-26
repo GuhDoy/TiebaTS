@@ -19,6 +19,7 @@ import gm.tieba.tabswitch.hooker.model.BaseHooker;
 import gm.tieba.tabswitch.hooker.model.Hooker;
 import gm.tieba.tabswitch.hooker.model.Rule;
 
+@SuppressLint("ClickableViewAccessibility")
 public class ForbidGesture extends BaseHooker implements Hooker {
     public void hook() throws Throwable {
         Rule.findRule(new Rule.RuleCallBack() {
@@ -26,7 +27,6 @@ public class ForbidGesture extends BaseHooker implements Hooker {
             public void onRuleFound(String rule, String clazz, String method) {
                 XposedBridge.hookAllConstructors(XposedHelpers.findClass(clazz, sClassLoader), new XC_MethodHook() {
                     @Override
-                    @SuppressLint("ClickableViewAccessibility")
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                         for (Field field : param.thisObject.getClass().getDeclaredFields()) {
                             field.setAccessible(true);
@@ -44,7 +44,6 @@ public class ForbidGesture extends BaseHooker implements Hooker {
         }, "Lcom/baidu/tieba/R$id;->new_pb_list:I");
         XposedHelpers.findAndHookMethod("com.baidu.tieba.pb.videopb.fragment.DetailInfoAndReplyFragment", sClassLoader, "onCreateView", LayoutInflater.class, ViewGroup.class, Bundle.class, new XC_MethodHook() {
             @Override
-            @SuppressLint("ClickableViewAccessibility")
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 for (Field field : param.thisObject.getClass().getDeclaredFields()) {
                     field.setAccessible(true);

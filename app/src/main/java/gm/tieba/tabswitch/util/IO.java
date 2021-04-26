@@ -1,7 +1,5 @@
 package gm.tieba.tabswitch.util;
 
-import android.os.FileUtils;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -10,38 +8,50 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
 public class IO {
-    public static void copyFile(Object input, Object output) throws IOException {
-        InputStream inputStream;
+    public static void copy(Object input, Object output) throws IOException {
+        InputStream is;
         if (input instanceof InputStream) {
-            inputStream = (InputStream) input;
+            is = (InputStream) input;
         } else if (input instanceof File) {
-            inputStream = new FileInputStream((File) input);
+            is = new FileInputStream((File) input);
         } else if (input instanceof FileDescriptor) {
-            inputStream = new FileInputStream((FileDescriptor) input);
+            is = new FileInputStream((FileDescriptor) input);
         } else if (input instanceof String) {
-            inputStream = new FileInputStream((String) input);
+            is = new FileInputStream((String) input);
         } else throw new IOException("unknown input type");
 
-        FileOutputStream fileOutputStream;
-        if (output instanceof FileOutputStream) {
-            fileOutputStream = (FileOutputStream) output;
+        OutputStream os;
+        if (output instanceof OutputStream) {
+            os = (OutputStream) output;
         } else if (output instanceof File) {
-            fileOutputStream = new FileOutputStream((File) output);
+            os = new FileOutputStream((File) output);
         } else if (output instanceof FileDescriptor) {
-            fileOutputStream = new FileOutputStream((FileDescriptor) output);
+            os = new FileOutputStream((FileDescriptor) output);
         } else if (output instanceof String) {
-            fileOutputStream = new FileOutputStream((String) output);
+            os = new FileOutputStream((String) output);
         } else throw new IOException("unknown output type");
 
-        FileUtils.copy(inputStream, fileOutputStream);
+        copy(is, os);
+    }
+
+    private static void copy(InputStream is, OutputStream os) throws IOException {
+        byte[] buffer = new byte[8192];
+        int byteCount;
+        while ((byteCount = is.read(buffer)) != -1) {
+            os.write(buffer, 0, byteCount);
+        }
+        os.flush();
+        is.close();
+        os.close();
     }
 
     public static ByteArrayOutputStream cloneInputStream(InputStream in) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        FileUtils.copy(in, baos);
+        copy(in, baos);
         return baos;
     }
 

@@ -19,7 +19,7 @@ import gm.tieba.tabswitch.hooker.model.Rule;
 
 public class PurifyMy extends BaseHooker implements Hooker {
     public void hook() throws Throwable {
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.flutter.view.FlutterDelegateStatic", sClassLoader, "createFragmentTabStructure", XC_MethodReplacement.returnConstant(null));
+        XposedHelpers.findAndHookMethod("com.baidu.tieba.flutter.base.view.FlutterDelegateStatic", sClassLoader, "createFragmentTabStructure", XC_MethodReplacement.returnConstant(null));
         Rule.findRule(new Rule.RuleCallBack() {
             @Override
             public void onRuleFound(String rule, String clazz, String method) throws Throwable {

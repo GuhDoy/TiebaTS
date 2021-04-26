@@ -50,8 +50,8 @@ public class AntiConfusion extends BaseHooker implements Hooker {
                         Activity activity = (Activity) param.thisObject;
                         if (AntiConfusionHelper.isDexChanged(activity)) {
                             activity.deleteDatabase("Rules.db");
-                        } else if (AntiConfusionHelper.getLostList(activity).size() != 0) {
-                            AntiConfusionHelper.matcherList = AntiConfusionHelper.getLostList(activity);
+                        } else if (AntiConfusionHelper.getRulesLost().size() != 0) {
+                            AntiConfusionHelper.matcherList = AntiConfusionHelper.getRulesLost();
                         } else {
                             AntiConfusionHelper.saveAndRestart(activity, AntiConfusionHelper.getTbVersion(activity), sClassLoader.loadClass(SPRINGBOARD_ACTIVITY));
                         }
@@ -104,7 +104,7 @@ public class AntiConfusion extends BaseHooker implements Hooker {
                                     });
                                     ZipEntry ze = enumeration.nextElement();
                                     if (ze.getName().matches("classes[0-9]*?\\.dex")) {
-                                        IO.copyFile(zipFile.getInputStream(ze), new File(dexDir, ze.getName()));
+                                        IO.copy(zipFile.getInputStream(ze), new File(dexDir, ze.getName()));
                                     }
                                 }
                                 File[] fs = dexDir.listFiles();
@@ -141,7 +141,7 @@ public class AntiConfusion extends BaseHooker implements Hooker {
                                             progressBackground.setLayoutParams(lp);
                                         });
                                         String signature = classes.get(j).getClassType().getTypeDescriptor();
-                                        if (signature.matches("L[d-e]/b/[g-m]0/.*")) {
+                                        if (signature.matches("L[d-e]/[a-b]/[g-m]0/.*")) {
                                             arrayList.add(classes.get(j).getIndex());
                                             isSkip = true;
                                         } else if (signature.startsWith("Lcom/baidu/tbadk") || !isSkip && (signature.startsWith("Lcom/baidu/tieba"))) {
@@ -176,13 +176,13 @@ public class AntiConfusion extends BaseHooker implements Hooker {
                                 new FileInputStream(fs[0]).read(bytes);
                                 DexFile.calcSignature(bytes);
                                 Preferences.putSignature(Arrays.hashCode(bytes));
-                                if (Preferences.getIsCleanDir()) {
+                                if (Preferences.getBoolean("clean_dir")) {
                                     IO.deleteRecursively(activity.getExternalCacheDir());
                                     IO.deleteRecursively(activity.getCacheDir());
                                     IO.deleteRecursively(new File(activity.getCacheDir().getAbsolutePath() + "image"));
                                     IO.deleteRecursively(new File(activity.getFilesDir().getAbsolutePath() + File.separator + "newStat" + File.separator + "notUpload"));
                                 } else IO.deleteRecursively(dexDir);
-                                if (Preferences.getIsPurify()) {
+                                if (Preferences.getBoolean("purify")) {
                                     SharedPreferences.Editor settingsEditor = activity.getSharedPreferences("settings", Context.MODE_PRIVATE).edit();
                                     settingsEditor.putString("key_location_request_dialog_last_show_version", AntiConfusionHelper.getTbVersion(activity));
                                     settingsEditor.commit();

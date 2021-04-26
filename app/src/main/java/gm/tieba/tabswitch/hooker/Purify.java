@@ -8,8 +8,6 @@ import android.os.Parcelable;
 import android.view.View;
 import android.widget.ImageView;
 
-import org.json.JSONObject;
-
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -33,7 +31,6 @@ public class Purify extends BaseHooker implements Hooker {
             public void onRuleFound(String rule, String clazz, String method) throws Throwable {
                 switch (rule) {
                     case "\"c/s/splashSchedule\""://旧启动广告
-                    case "\"custom_ext_data\""://sdk启动广告：搜索"bes_ad_id"，查找所在方法调用
                     case "Lcom/baidu/tieba/recapp/lego/model/AdCard;-><init>(Lorg/json/JSONObject;)V"://卡片广告
                         XposedBridge.hookAllMethods(XposedHelpers.findClass(clazz, sClassLoader), method, XC_MethodReplacement.returnConstant(null));
                         break;
@@ -101,7 +98,15 @@ public class Purify extends BaseHooker implements Hooker {
         }, AntiConfusionHelper.getPurifyMatchers());
         //启动广告
         XposedHelpers.findAndHookMethod("com.baidu.tbadk.core.TbadkCoreApplication", sClassLoader, "getIsFirstUse", XC_MethodReplacement.returnConstant(true));
-        XposedHelpers.findAndHookConstructor("com.baidu.mobads.vo.XAdInstanceInfo", sClassLoader, JSONObject.class, XC_MethodReplacement.returnConstant(null));
+        XposedHelpers.findAndHookMethod("com.baidu.adp.framework.MessageManager", sClassLoader, "findTask", int.class, new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                int task = (int) param.args[0];
+                if (task == 2016555 || task == 2921390) {
+                    param.setResult(null);
+                }
+            }
+        });
         //广告sdk
         try {
             for (Method method : sClassLoader.loadClass("com.fun.ad.sdk.FunAdSdk").getDeclaredMethods()) {

@@ -16,7 +16,7 @@ public class ContentFilter extends BaseHooker implements Hooker {
     private final List<Object> mIdList = new ArrayList<>();
 
     public void hook() throws Throwable {
-        final Pattern pattern = Pattern.compile(Preferences.getContentFilter());
+        final Pattern pattern = Pattern.compile(Preferences.getString("content_filter"));
         XposedHelpers.findAndHookMethod("tbclient.PbPage.DataRes$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {

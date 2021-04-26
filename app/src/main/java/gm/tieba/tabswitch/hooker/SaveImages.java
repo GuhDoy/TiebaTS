@@ -112,11 +112,11 @@ public class SaveImages extends BaseHooker implements Hooker {
                     ContentResolver resolver = context.getContentResolver();
                     Uri imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, newImageDetails);
                     ParcelFileDescriptor descriptor = resolver.openFileDescriptor(imageUri, "w");
-                    IO.copyFile(in, descriptor.getFileDescriptor());
+                    IO.copy(in, descriptor.getFileDescriptor());
                 } else {
                     File imageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + File.separator + "tieba" + File.separator + mTitle);
                     imageDir.mkdirs();
-                    IO.copyFile(in, new File(imageDir.getPath(), i + "." + extension));
+                    IO.copy(in, new File(imageDir.getPath(), i + "." + extension));
 
                     Intent scanIntent = new Intent("android.intent.action.MEDIA_SCANNER_SCAN_DIR");
                     scanIntent.setData(Uri.fromFile(imageDir));

@@ -34,14 +34,23 @@ import gm.tieba.tabswitch.hooker.model.Rule;
 import gm.tieba.tabswitch.hooker.model.TbDialogBuilder;
 
 public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit {
+    public static String sPath;
     private Resources mRes;
+
+    @SuppressWarnings("JavaReflectionMemberAccess")
+    @SuppressLint("DiscouragedPrivateApi")
+    @Override
+    public void initZygote(IXposedHookZygoteInit.StartupParam startupParam) throws Throwable {
+        sPath = startupParam.modulePath;
+        AssetManager assetManager = AssetManager.class.newInstance();
+        AssetManager.class.getDeclaredMethod("addAssetPath", String.class).invoke(assetManager, sPath);
+        mRes = new Resources(assetManager, null, null);
+    }
 
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
         ClassLoader classLoader = lpparam.classLoader;
-        if (lpparam.packageName.equals(BuildConfig.APPLICATION_ID)) {
-            XposedHelpers.findAndHookMethod(BuildConfig.APPLICATION_ID + ".ui.MainActivity", lpparam.classLoader, "isModuleActive", XC_MethodReplacement.returnConstant(true));
-        } else if (lpparam.packageName.equals("com.baidu.tieba") || XposedHelpers.findClassIfExists("com.baidu.tieba.tblauncher.MainTabActivity", lpparam.classLoader) != null) {
+        if (lpparam.packageName.equals("com.baidu.tieba") || XposedHelpers.findClassIfExists("com.baidu.tieba.tblauncher.MainTabActivity", lpparam.classLoader) != null) {
             XposedHelpers.findAndHookMethod(Instrumentation.class, "callApplicationOnCreate", Application.class, new XC_MethodHook() {
                 @Override
                 protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
@@ -51,7 +60,7 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
 
                     try {
                         Rule.init(context);
-                        List<String> lostList = AntiConfusionHelper.getLostList(context);
+                        List<String> lostList = AntiConfusionHelper.getRulesLost();
                         if (lostList.size() != 0) {
                             throw new SQLiteException("rules incomplete, current version: " + AntiConfusionHelper.getTbVersion(context) + ", lost " + lostList.size() + " rule(s): " + lostList.toString());
                         }
@@ -101,10 +110,10 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
                 }
             }
 
-            XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.preview.video.source.NormalVideoSource", classLoader, "getAdTime", XC_MethodReplacement.returnConstant(0));
+            XposedHelpers.findAndHookMethod("com.baidu.netdisk.media.video.source.NormalVideoSource", classLoader, "getAdTime", XC_MethodReplacement.returnConstant(0));
             XposedHelpers.findAndHookMethod("com.baidu.netdisk.preview.video.model._", classLoader, "getAdTime", XC_MethodReplacement.returnConstant(0));
 
-            Method[] methods2 = classLoader.loadClass("com.baidu.netdisk.ui.preview.common.speedup.SpeedUpModle").getDeclaredMethods();
+            Method[] methods2 = classLoader.loadClass("com.baidu.netdisk.media.speedup.SpeedUpModle").getDeclaredMethods();
             for (Method method : methods2) {
                 if (method.getReturnType().getTypeName().equals("boolean")) {
                     XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(true));
@@ -143,13 +152,5 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
                 }
             }
         }
-    }
-
-    @SuppressLint("DiscouragedPrivateApi")
-    @Override
-    public void initZygote(IXposedHookZygoteInit.StartupParam startupParam) throws Throwable {
-        AssetManager assetManager = AssetManager.class.newInstance();
-        AssetManager.class.getDeclaredMethod("addAssetPath", String.class).invoke(assetManager, startupParam.modulePath);
-        mRes = new Resources(assetManager, null, null);
     }
 }

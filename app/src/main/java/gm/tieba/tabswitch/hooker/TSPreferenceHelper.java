@@ -3,9 +3,6 @@ package gm.tieba.tabswitch.hooker;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.pm.ResolveInfo;
 import android.content.res.Resources;
 import android.text.Editable;
 import android.text.TextUtils;
@@ -25,7 +22,6 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
@@ -33,7 +29,6 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import de.robv.android.xposed.XposedBridge;
-import gm.tieba.tabswitch.BuildConfig;
 import gm.tieba.tabswitch.hooker.model.Preferences;
 import gm.tieba.tabswitch.hooker.model.TbDialogBuilder;
 import gm.tieba.tabswitch.hooker.model.TbEditText;
@@ -98,6 +93,9 @@ public class TSPreferenceHelper {
     }
 
     static class SwitchViewHolder {
+        public final static int TYPE_SWITCH = 0;
+        public final static int TYPE_DIALOG = 1;
+        public final static int TYPE_SET = 2;
         private final ClassLoader mClassLoader;
         private Class<?> mBdSwitchView;
         private final String mKey;
@@ -105,7 +103,7 @@ public class TSPreferenceHelper {
         public View bdSwitch;
 
         @SuppressLint("ClickableViewAccessibility")
-        SwitchViewHolder(ClassLoader classLoader, Activity activity, Resources res, String text, String key) {
+        SwitchViewHolder(ClassLoader classLoader, Activity activity, Resources res, String text, String key, int type) {
             mClassLoader = classLoader;
             mKey = key;
             try {
@@ -113,22 +111,28 @@ public class TSPreferenceHelper {
                 bdSwitch = (View) mBdSwitchView.getConstructor(Context.class).newInstance(activity);
                 bdSwitch.setLayoutParams(new LinearLayout.LayoutParams(bdSwitch.getWidth(), bdSwitch.getHeight(), 0.25f));
                 setOnSwitchStateChangeListener();
-
-                if (!text.startsWith("过滤")) {
-                    newSwitch = createButton(classLoader, activity, text, null, v -> changeState());
-                    bdSwitch.setTag(key);
-                } else {
-                    newSwitch = createButton(classLoader, activity, text, null, v -> showRegexDialog(activity, res));
-                    bdSwitch.setOnTouchListener((v, event) -> false);
+                switch (type) {
+                    case TYPE_SWITCH:
+                        newSwitch = createButton(classLoader, activity, text, null, v -> changeState());
+                        bdSwitch.setTag("SWITCH" + key);
+                        if (Preferences.getBoolean(key)) turnOn();
+                        else turnOff();
+                        break;
+                    case TYPE_DIALOG:
+                        newSwitch = createButton(classLoader, activity, text, null, v -> showRegexDialog(activity, res));
+                        bdSwitch.setOnTouchListener((v, event) -> false);
+                        if (Preferences.getString(key) != null) turnOn();
+                        else turnOff();
+                        break;
+                    case TYPE_SET:
+                        newSwitch = createButton(classLoader, activity, text, null, v -> changeState());
+                        bdSwitch.setTag("SET" + key);
+                        if (Preferences.getStringSet().contains(key)) turnOn();
+                        else turnOff();
+                        break;
                 }
                 newSwitch.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("arrow2").getInt(null)).setVisibility(View.GONE);
                 newSwitch.addView(bdSwitch);
-                if (!text.startsWith("过滤") && Preferences.getBoolean(key) ||
-                        text.startsWith("过滤") && Preferences.getString(key) != null) {
-                    turnOn();
-                } else {
-                    turnOff();
-                }
             } catch (Throwable throwable) {
                 XposedBridge.log(throwable);
             }
@@ -151,38 +155,23 @@ public class TSPreferenceHelper {
         }
 
         private static class MyInvocationHandler implements InvocationHandler {
-            @SuppressLint("ApplySharedPref")
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) {
                 View view = (View) args[0];
                 String key = (String) view.getTag();
                 if (key != null) {
-                    SharedPreferences.Editor editor = view.getContext().getSharedPreferences("TS_preference", Context.MODE_PRIVATE).edit();
-                    editor.putBoolean(key, args[1].toString().equals("ON"));
-                    editor.commit();
+                    if (key.startsWith("SWITCH")) {
+                        Preferences.putBoolean(key.replace("SWITCH", ""), args[1].toString().equals("ON"));
+                    } else if (key.startsWith("SET")) {
+                        Preferences.putStringSet(key.replace("SET", ""), args[1].toString().equals("ON"));
+                    }
                 }
                 return null;
             }
         }
 
-        void changeState() {
-            try {
-                Method changeState;
-                try {
-                    changeState = mBdSwitchView.getDeclaredMethod("changeState");
-                } catch (NoSuchMethodException e) {
-                    changeState = mBdSwitchView.getDeclaredMethod("b");
-                }
-                changeState.setAccessible(true);
-                changeState.invoke(bdSwitch);
-            } catch (Throwable throwable) {
-                XposedBridge.log(throwable);
-            }
-        }
-
         private final Map<String, String> mRegex = new HashMap<>();
 
-        @SuppressLint("ApplySharedPref")
         private void showRegexDialog(Activity activity, Resources res) {
             EditText editText = new TbEditText(mClassLoader, activity, res);
             editText.setHint("请输入正则表达式，如.*");
@@ -206,17 +195,15 @@ public class TSPreferenceHelper {
             TbDialogBuilder bdAlert = new TbDialogBuilder(mClassLoader, activity, null, null, true, editText);
             bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
             bdAlert.setOnYesButtonClickListener(v -> {
-                SharedPreferences.Editor editor = Preferences.getTsPreferencesEditor();
                 try {
                     if (TextUtils.isEmpty(editText.getText())) {
-                        editor.putString(mKey, null);
+                        Preferences.putString(mKey, null);
                         turnOff();
                     } else {
                         Pattern.compile(editText.getText().toString());
-                        editor.putString(mKey, editText.getText().toString());
+                        Preferences.putString(mKey, editText.getText().toString());
                         turnOn();
                     }
-                    editor.commit();
                     bdAlert.dismiss();
                 } catch (PatternSyntaxException e) {
                     Toast.makeText(activity, e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -248,6 +235,21 @@ public class TSPreferenceHelper {
             return false;
         }
 
+        void changeState() {
+            try {
+                Method changeState;
+                try {
+                    changeState = mBdSwitchView.getDeclaredMethod("changeState");
+                } catch (NoSuchMethodException e) {
+                    changeState = mBdSwitchView.getDeclaredMethod("b");
+                }
+                changeState.setAccessible(true);
+                changeState.invoke(bdSwitch);
+            } catch (Throwable throwable) {
+                XposedBridge.log(throwable);
+            }
+        }
+
         void turnOn() {
             try {
                 try {
@@ -271,15 +273,6 @@ public class TSPreferenceHelper {
                 XposedBridge.log(throwable);
             }
         }
-    }
-
-    static Intent launchModuleIntent(Activity activity) {
-        Intent intentToResolve = new Intent(Intent.ACTION_MAIN);
-        intentToResolve.addCategory("de.robv.android.xposed.category.MODULE_SETTINGS");
-        intentToResolve.setPackage(BuildConfig.APPLICATION_ID);
-        List<ResolveInfo> ris = activity.getPackageManager().queryIntentActivities(intentToResolve, 0);
-        if (ris.size() > 0) return intentToResolve;
-        else return null;
     }
 
     static String randomToast() {

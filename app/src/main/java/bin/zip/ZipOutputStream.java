@@ -18,18 +18,27 @@
 
 package bin.zip;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FilterOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.zip.CRC32;
+import java.util.zip.Deflater;
+import java.util.zip.ZipException;
+
 import bin.zip.encoding.ZipEncoding;
 import bin.zip.encoding.ZipEncodingHelper;
 import bin.zip.extrafield.UnicodeCommentExtraField;
 import bin.zip.extrafield.UnicodePathExtraField;
-import gm.tieba.tabswitch.util.RepackageProcessor;
-
-import java.io.*;
-import java.nio.ByteBuffer;
-import java.util.*;
-import java.util.zip.CRC32;
-import java.util.zip.Deflater;
-import java.util.zip.ZipException;
 
 import static bin.zip.ZipLong.putLong;
 import static bin.zip.ZipShort.putShort;
@@ -65,7 +74,7 @@ public class ZipOutputStream extends FilterOutputStream {
     private static final int SHORT = 2;
     private static final int WORD = 4;
     public static final int BUFFER_SIZE = 10240;
-    /* 
+    /*
      * Apparently Deflater.setInput gets slowed down a lot on Sun JVMs
      * when it gets handed a really big buffer.  See
      * https://issues.apache.org/bugzilla/show_bug.cgi?id=45396
@@ -508,10 +517,8 @@ public class ZipOutputStream extends FilterOutputStream {
     public void writeFully(InputStream is) throws IOException {
         int len;
         byte[] b = new byte[BUFFER_SIZE];
-        while ((len = is.read(b)) > 0) {
+        while ((len = is.read(b)) > 0)
             write(b, 0, len);
-            RepackageProcessor.writtenSize +=len;
-        }
     }
 
     public void copyZipEntry(ZipEntry zipEntry, ZipFile zipFile) throws IOException {
@@ -519,10 +526,8 @@ public class ZipOutputStream extends FilterOutputStream {
         putNextRawEntry(zipEntry);
         int len;
         byte[] b = new byte[BUFFER_SIZE];
-        while ((len = rawInputStream.read(b)) > 0) {
+        while ((len = rawInputStream.read(b)) > 0)
             writeRaw(b, 0, len);
-            RepackageProcessor.writtenSize +=len;
-        }
         closeEntry();
     }
 

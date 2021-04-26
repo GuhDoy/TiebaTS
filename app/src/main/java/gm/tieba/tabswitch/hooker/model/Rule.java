@@ -43,21 +43,12 @@ public class Rule {
         }
     }
 
-    public static boolean isRuleFound(String rule) throws Throwable {
+    public static boolean isRuleFound(String rule) {
         for (Map<String, String> map : sRulesFromDb) {
             if (Objects.equals(map.get("rule"), rule)) {
                 return true;
             }
         }
         return false;
-    }
-
-    public static List<String> getRulesFound() {
-        List<String> ruleList = new ArrayList<>();
-        for (int i = 0; i < sRulesFromDb.size(); i++) {
-            Map<String, String> map = sRulesFromDb.get(i);
-            ruleList.add(map.get("rule"));
-        }
-        return ruleList;
     }
 }

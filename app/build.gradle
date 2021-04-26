@@ -10,13 +10,10 @@ android {
         applicationId 'gm.tieba.tabswitch'
         minSdkVersion 23
         targetSdkVersion 30
-        versionCode 10
-        versionName "2.4"
+        versionCode 11
+        versionName "2.5-beta"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         multiDexEnabled false
-        ndk {
-            abiFilters 'armeabi-v7a'
-        }
     }
 
     buildTypes {
@@ -25,10 +22,6 @@ android {
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
-    }
-
-    buildFeatures {
-        viewBinding true
     }
 
     externalNativeBuild {
@@ -75,11 +68,6 @@ tasks.whenTaskAdded { task ->
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'androidx.recyclerview:recyclerview:1.1.0'
-    implementation 'androidx.cardview:cardview:1.0.0'
-    implementation "dev.rikka.rikkax.recyclerview:recyclerview-ktx:1.2.0"
     compileOnly files('libs/XposedBridgeApi-89.jar')
-    implementation files('libs/apksigner.jar')
-    implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '5.0.0-alpha.2'
+    implementation "com.squareup.okhttp3:okhttp:5.0.0-alpha.2"
 }

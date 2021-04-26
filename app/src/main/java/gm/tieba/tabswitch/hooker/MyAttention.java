@@ -35,8 +35,8 @@ public class MyAttention extends BaseHooker implements Hooker {
                         View itemView = root.findViewById(sClassLoader.loadClass("com.baidu.tieba.R$id").getField("item_view").getInt(null));
                         TextView textView = root.findViewById(sClassLoader.loadClass("com.baidu.tieba.R$id").getField("name").getInt(null));
                         View tailContainer = root.findViewById(sClassLoader.loadClass("com.baidu.tieba.R$id").getField("tail_container").getInt(null));
-                        if (textView.getText() != null) {
-                            String name = (String) textView.getText();
+                        String name = (String) textView.getText();
+                        if (name != null) {
                             tailContainer.setTag(name);
                             itemView.setOnLongClickListener(v -> {
                                 showNoteDialog(activity, (String) tailContainer.getTag());

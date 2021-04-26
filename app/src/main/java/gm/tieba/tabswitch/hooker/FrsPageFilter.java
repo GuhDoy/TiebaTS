@@ -11,10 +11,10 @@ import gm.tieba.tabswitch.hooker.model.Hooker;
 import gm.tieba.tabswitch.hooker.model.Preferences;
 import gm.tieba.tabswitch.util.Reflect;
 
-public class PersonalizedFilter extends BaseHooker implements Hooker {
+public class FrsPageFilter extends BaseHooker implements Hooker {
     public void hook() throws Throwable {
-        final Pattern pattern = Pattern.compile(Preferences.getString("personalized_filter"));
-        XposedHelpers.findAndHookMethod("tbclient.Personalized.DataRes$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
+        final Pattern pattern = Pattern.compile(Preferences.getString("frs_page_filter"));
+        XposedHelpers.findAndHookMethod("tbclient.FrsPage.DataRes$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 List<?> threadList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");

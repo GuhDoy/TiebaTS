@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
@@ -22,39 +23,49 @@ public class Preferences {
         sTsNotes = context.getSharedPreferences("TS_notes", Context.MODE_PRIVATE);
     }
 
-    public static boolean getIsCleanDir() {
-        return sTsPreferences.getBoolean("clean_dir", false);
-    }
-
-    public static boolean getIsPurify() {
-        return sTsPreferences.getBoolean("purify", false);
-    }
-
-    public static String getPersonalizedFilter() {
-        return sTsPreferences.getString("personalized_filter", null);
-    }
-
-    public static String getContentFilter() {
-        return sTsPreferences.getString("content_filter", null);
-    }
-
+    // Preferences
     public static Map<String, ?> getAll() {
         return sTsPreferences.getAll();
+    }
+
+    public static void putBoolean(String key, boolean value) {
+        SharedPreferences.Editor editor = sTsPreferences.edit();
+        editor.putBoolean(key, value);
+        editor.commit();
     }
 
     public static boolean getBoolean(String s) {
         return sTsPreferences.getBoolean(s, false);
     }
 
+    public static void putString(String key, String value) {
+        SharedPreferences.Editor editor = sTsPreferences.edit();
+        editor.putString(key, value);
+        editor.commit();
+    }
+
     public static String getString(String s) {
         return sTsPreferences.getString(s, null);
     }
 
-    public static SharedPreferences.Editor getTsPreferencesEditor() {
-        return sTsPreferences.edit();
+    public static void putStringSet(String key, boolean value) {
+        List<String> list = new ArrayList<>(getStringSet());
+        if (!value) {
+            list.remove(key);
+        } else if (!list.contains(key)) {
+            list.add(key);
+        }
+        SharedPreferences.Editor editor = sTsPreferences.edit();
+        editor.putStringSet("switch_manager", new HashSet<>(list));
+        editor.commit();
     }
 
-    public static void setEULAAccepted() {
+    public static Set<String> getStringSet() {
+        return sTsPreferences.getStringSet("switch_manager", new HashSet<>());
+    }
+
+    // Config
+    public static void putEULAAccepted() {
         SharedPreferences.Editor editor = sTsConfig.edit();
         editor.putBoolean("EULA", true);
         editor.apply();
@@ -64,7 +75,7 @@ public class Preferences {
         return sTsConfig.getBoolean("EULA", false);
     }
 
-    public static void setAutoSignEnabled() {
+    public static void putAutoSignEnabled() {
         SharedPreferences.Editor editor = sTsConfig.edit();
         editor.putBoolean("auto_sign", true);
         editor.apply();
@@ -74,7 +85,7 @@ public class Preferences {
         return sTsConfig.getBoolean("auto_sign", false);
     }
 
-    public static void setPurifyEnabled() {
+    public static void putPurifyEnabled() {
         SharedPreferences.Editor editor = sTsConfig.edit();
         editor.putBoolean("ze", true);
         editor.apply();
@@ -114,10 +125,7 @@ public class Preferences {
         return Calendar.getInstance().get(Calendar.DAY_OF_YEAR) == sTsConfig.getInt("sign_date", 0);
     }
 
-    public static boolean getIsPurifyEnter() {
-        return sTsPreferences.getBoolean("purify_enter", false);
-    }
-
+    // Notes
     public static String getNote(String s) {
         return sTsNotes.getString(s, null);
     }

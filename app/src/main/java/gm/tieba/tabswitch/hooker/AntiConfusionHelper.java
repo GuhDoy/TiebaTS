@@ -8,7 +8,6 @@ import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.Build;
 import android.os.Bundle;
 
 import org.jf.dexlib.ClassDataItem;
@@ -52,7 +51,7 @@ public class AntiConfusionHelper {
         //NewSub
         matcherList.add("Lcom/baidu/tieba/R$id;->subpb_head_user_info_root:I");
         //MyAttention
-        matcherList.add("Lcom/baidu/tieba/R$layout;->person_list_item:I");
+        // matcherList.add("Lcom/baidu/tieba/R$layout;->person_list_item:I");
         //StorageRedirect
         matcherList.add("0x4197d783fc000000L");
         //ForbidGesture
@@ -61,7 +60,6 @@ public class AntiConfusionHelper {
 
     public static String[] getPurifyMatchers() {
         return new String[]{"\"c/s/splashSchedule\"",//旧启动广告
-                "\"custom_ext_data\"",//sdk启动广告
                 "Lcom/baidu/tieba/recapp/lego/model/AdCard;-><init>(Lorg/json/JSONObject;)V",//卡片广告
                 "\"pic_amount\"",//图片广告
                 "\"key_frs_dialog_ad_last_show_time\"",//吧推广弹窗
@@ -76,17 +74,13 @@ public class AntiConfusionHelper {
                 "\"https://tieba.baidu.com/mo/q/duxiaoman/index?noshare=1\""};//我的ArrayList
     }
 
-    public static List<String> getLostList(Context context) {
-        List<String> ruleList = Rule.getRulesFound();
+    public static List<String> getRulesLost() {
         List<String> lostList = new ArrayList<>(matcherList);
-        lostList.removeAll(ruleList);
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && context.getPackageManager().getPackageInfo(context.getPackageName(), 0).getLongVersionCode() < 201523200 ||
-                    Build.VERSION.SDK_INT < Build.VERSION_CODES.P && context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionCode < 201523200) {
-                AntiConfusionHelper.matcherList.remove("\"custom_ext_data\"");
+        for (int i = 0; i < lostList.size(); i++) {
+            if (Rule.isRuleFound(lostList.get(i))) {
+                lostList.remove(i);
+                i--;
             }
-        } catch (PackageManager.NameNotFoundException e) {
-            XposedBridge.log(e);
         }
         return lostList;
     }
@@ -151,13 +145,14 @@ public class AntiConfusionHelper {
             Parser parser = new Parser(method.codeItem);
             IndentingWriter2 writer = new IndentingWriter2();
             parser.dump(writer);
-            for (int i = 0; i < matcherList.size(); i++)
+            for (int i = 0; i < matcherList.size(); i++) {
                 if (writer.getString().contains(matcherList.get(i))) {
                     String clazz = classItem.getClassType().getTypeDescriptor();
                     clazz = clazz.substring(clazz.indexOf("L") + 1, clazz.indexOf(";")).replace("/", ".");
                     db.execSQL("insert into rules(rule,class,method) values(?,?,?)", new Object[]{matcherList.get(i), clazz, method.method.methodName.getStringValue()});
                     return;
                 }
+            }
         }
     }
 

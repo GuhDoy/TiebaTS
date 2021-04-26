@@ -19,10 +19,7 @@ import gm.tieba.tabswitch.util.DisplayHelper;
 
 public class PurifyEnter extends BaseHooker implements Hooker {
     public void hook() throws Throwable {
-        try {
-            XposedHelpers.findAndHookMethod("com.baidu.tieba.flutter.view.FlutterEnterForumDelegateStatic", sClassLoader, "createFragmentTabStructure", XC_MethodReplacement.returnConstant(null));
-        } catch (XposedHelpers.ClassNotFoundError ignored) {
-        }
+        XposedHelpers.findAndHookMethod("com.baidu.tieba.flutter.base.view.FlutterEnterForumDelegateStatic", sClassLoader, "createFragmentTabStructure", XC_MethodReplacement.returnConstant(null));
         Rule.findRule(new Rule.RuleCallBack() {
             @Override
             public void onRuleFound(String rule, String clazz, String method) {
