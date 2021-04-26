@@ -91,13 +91,13 @@ public class BaseHooker {
                 if ((Boolean) entry.getValue()) new FollowFilter().hook();
                 break;
             case "personalized_filter":
-                if (Preferences.getString(entry.getKey()) != null) new PersonalizedFilter().hook();
+                new PersonalizedFilter().hook();
                 break;
             case "content_filter":
-                if (Preferences.getString(entry.getKey()) != null) new ContentFilter().hook();
+                new ContentFilter().hook();
                 break;
             case "frs_page_filter":
-                if (Preferences.getString(entry.getKey()) != null) new FrsPageFilter().hook();
+                new FrsPageFilter().hook();
                 break;
             case "create_view":
                 if ((Boolean) entry.getValue()) new CreateView().hook();
