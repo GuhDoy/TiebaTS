@@ -7,7 +7,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
@@ -16,6 +15,7 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.hooker.model.BaseHooker;
 import gm.tieba.tabswitch.hooker.model.Hooker;
 import gm.tieba.tabswitch.hooker.model.Rule;
+import gm.tieba.tabswitch.util.Reflect;
 
 public class PurifyMy extends BaseHooker implements Hooker {
     public void hook() throws Throwable {
@@ -73,16 +73,29 @@ public class PurifyMy extends BaseHooker implements Hooker {
                                             field.setAccessible(true);
                                             if (field.get(param.thisObject) instanceof ArrayList) {
                                                 ArrayList<?> arrayList = (ArrayList<?>) field.get(param.thisObject);
-                                                arrayList.remove(3);
-                                                arrayList.remove(3);
-                                                for (int j = 0; j < 11; j++) {
-                                                    arrayList.remove(5);
-                                                }
-                                                Iterator<?> iterator = arrayList.iterator();
-                                                for (int k = 0; k < 6; k++) iterator.next();
-                                                while (iterator.hasNext()) {
-                                                    iterator.next();
-                                                    iterator.remove();
+                                                for (int i = 0; i < arrayList.size(); i++) {
+                                                    try {
+                                                        Reflect.getObjectField(arrayList.get(i), "com.baidu.tbadk.core.data.UserData");
+                                                    } catch (NoSuchFieldException e) {
+                                                        arrayList.remove(i);
+                                                        i--;
+                                                        continue;
+                                                    }
+
+                                                    for (Field field2 : arrayList.get(i).getClass().getDeclaredFields()) {
+                                                        field2.setAccessible(true);
+                                                        if (field2.get(arrayList.get(i)) instanceof String) {
+                                                            String type = (String) field2.get(arrayList.get(i));
+                                                            if (type == null) continue;
+                                                            if (!type.startsWith("http") &&
+                                                                    !type.equals("我的收藏") &&
+                                                                    !type.equals("浏览历史") &&
+                                                                    !type.equals("服务中心")) {
+                                                                arrayList.remove(i);
+                                                                i--;
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                                 return;
                                             }

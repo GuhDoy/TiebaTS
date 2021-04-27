@@ -98,13 +98,12 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
                     }
                 }
             });
-        } else if (lpparam.packageName.startsWith("com.baidu.netdisk")) {
+        } else if (lpparam.packageName.equals("com.baidu.netdisk")) {
             XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.Navigate", classLoader, "initFlashFragment", XC_MethodReplacement.returnConstant(null));
             XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.advertise.FlashAdvertiseActivity", classLoader, "initFlashFragment", XC_MethodReplacement.returnConstant(null));
             XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.transfer.TransferListTabActivity", classLoader, "initYouaGuideView", XC_MethodReplacement.returnConstant(null));
             // "show or close "
-            Method[] methods = classLoader.loadClass("com.baidu.netdisk.homepage.ui.card.____").getDeclaredMethods();
-            for (Method method : methods) {
+            for (Method method : classLoader.loadClass("com.baidu.netdisk.homepage.ui.card.____").getDeclaredMethods()) {
                 if (Arrays.toString(method.getParameterTypes()).equals("[boolean]")) {
                     XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(null));
                 }
@@ -113,8 +112,7 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
             XposedHelpers.findAndHookMethod("com.baidu.netdisk.media.video.source.NormalVideoSource", classLoader, "getAdTime", XC_MethodReplacement.returnConstant(0));
             XposedHelpers.findAndHookMethod("com.baidu.netdisk.preview.video.model._", classLoader, "getAdTime", XC_MethodReplacement.returnConstant(0));
 
-            Method[] methods2 = classLoader.loadClass("com.baidu.netdisk.media.speedup.SpeedUpModle").getDeclaredMethods();
-            for (Method method : methods2) {
+            for (Method method : classLoader.loadClass("com.baidu.netdisk.media.speedup.SpeedUpModle").getDeclaredMethods()) {
                 if (method.getReturnType().getTypeName().equals("boolean")) {
                     XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(true));
                 }
