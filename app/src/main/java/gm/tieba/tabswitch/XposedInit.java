@@ -57,7 +57,6 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
                     if (!(param.args[0] instanceof Application)) return;
                     Context context = ((Application) param.args[0]).getApplicationContext();
                     Preferences.init(context);
-
                     try {
                         Rule.init(context);
                         List<String> lostList = AntiConfusionHelper.getRulesLost();

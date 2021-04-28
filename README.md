@@ -20,7 +20,7 @@
 - 浏览历史增加搜索
 - 楼层回复增加查看主题贴
 - 长按下载保存全部图片
-- 长按关注的人设置备注名（仅支持 12.4.8.2 及以前版本）
+- 长按关注的人设置备注名（仅支持 12.4.8.15 及以前版本）
 - 自动签到
 - 更新时清理缓存
 - 自动查看原图
@@ -30,9 +30,13 @@
 - 用赞踩差数代替赞数
 - 交换吧热门与最新
 
+## 项目地址
+
+[https://github.com/GuhDoy/TiebaTS](https://github.com/GuhDoy/TiebaTS)
+
 ## 特别鸣谢
 
-详见[LicenseActivity.java](https://github.com/GuhDoy/TiebaTS/blob/main/app/src/main/java/gm/tieba/tabswitch/ui/LicenseActivity.java)
+详见[LicenseActivity.java](https://github.com/GuhDoy/TiebaTS/blob/full/app/src/main/java/gm/tieba/tabswitch/ui/LicenseActivity.java)
 
 ## 下载
 

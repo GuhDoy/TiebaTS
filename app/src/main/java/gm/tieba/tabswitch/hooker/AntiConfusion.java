@@ -1,5 +1,6 @@
 package gm.tieba.tabswitch.hooker;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -45,6 +46,7 @@ public class AntiConfusion extends BaseHooker implements Hooker {
         for (Method method : sClassLoader.loadClass("com.baidu.tieba.LogoActivity").getDeclaredMethods()) {
             if (!method.getName().startsWith("on") && Arrays.toString(method.getParameterTypes()).equals("[class android.os.Bundle]")) {
                 XposedBridge.hookMethod(method, new XC_MethodReplacement() {
+                    @SuppressLint({"ApplySharedPref", "SetTextI18n"})
                     @Override
                     protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
                         Activity activity = (Activity) param.thisObject;

@@ -73,6 +73,7 @@ public class PurifyMy extends BaseHooker implements Hooker {
                                             field.setAccessible(true);
                                             if (field.get(param.thisObject) instanceof ArrayList) {
                                                 ArrayList<?> arrayList = (ArrayList<?>) field.get(param.thisObject);
+                                                if (arrayList == null) continue;
                                                 for (int i = 0; i < arrayList.size(); i++) {
                                                     try {
                                                         Reflect.getObjectField(arrayList.get(i), "com.baidu.tbadk.core.data.UserData");
@@ -86,11 +87,10 @@ public class PurifyMy extends BaseHooker implements Hooker {
                                                         field2.setAccessible(true);
                                                         if (field2.get(arrayList.get(i)) instanceof String) {
                                                             String type = (String) field2.get(arrayList.get(i));
-                                                            if (type == null) continue;
-                                                            if (!type.startsWith("http") &&
-                                                                    !type.equals("我的收藏") &&
-                                                                    !type.equals("浏览历史") &&
-                                                                    !type.equals("服务中心")) {
+                                                            if (type != null && !type.startsWith("http")
+                                                                    && !type.equals("我的收藏")
+                                                                    && !type.equals("浏览历史")
+                                                                    && !type.equals("服务中心")) {
                                                                 arrayList.remove(i);
                                                                 i--;
                                                             }
