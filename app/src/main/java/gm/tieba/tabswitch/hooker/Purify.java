@@ -26,7 +26,7 @@ import gm.tieba.tabswitch.hooker.model.Rule;
 
 public class Purify extends BaseHooker implements Hooker {
     public void hook() throws Throwable {
-        Rule.findRule(new Rule.RuleCallBack() {
+        Rule.findRule(AntiConfusionHelper.getPurifyMatchers(), new Rule.Callback() {
             @Override
             public void onRuleFound(String rule, String clazz, String method) throws Throwable {
                 switch (rule) {
@@ -95,7 +95,7 @@ public class Purify extends BaseHooker implements Hooker {
                         break;
                 }
             }
-        }, AntiConfusionHelper.getPurifyMatchers());
+        });
         //启动广告
         XposedHelpers.findAndHookMethod("com.baidu.tbadk.core.TbadkCoreApplication", sClassLoader, "getIsFirstUse", XC_MethodReplacement.returnConstant(true));
         XposedHelpers.findAndHookMethod("com.baidu.adp.framework.MessageManager", sClassLoader, "findTask", int.class, new XC_MethodHook() {

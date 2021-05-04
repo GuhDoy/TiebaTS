@@ -20,23 +20,24 @@ import gm.tieba.tabswitch.util.DisplayHelper;
 public class PurifyEnter extends BaseHooker implements Hooker {
     public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.flutter.base.view.FlutterEnterForumDelegateStatic", sClassLoader, "createFragmentTabStructure", XC_MethodReplacement.returnConstant(null));
-        Rule.findRule(new Rule.RuleCallBack() {
-            @Override
-            public void onRuleFound(String rule, String clazz, String method) {
-                XposedBridge.hookAllConstructors(XposedHelpers.findClass(clazz, sClassLoader), new XC_MethodHook() {
+        Rule.findRule("Lcom/baidu/tieba/R$id;->square_background:I",
+                "Lcom/baidu/tieba/R$id;->create_bar_container:I", new Rule.Callback() {
                     @Override
-                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        for (Field field : param.thisObject.getClass().getDeclaredFields()) {
-                            field.setAccessible(true);
-                            if (field.get(param.thisObject) instanceof View) {
-                                View view = (View) field.get(param.thisObject);
-                                view.setVisibility(View.GONE);
+                    public void onRuleFound(String rule, String clazz, String method) {
+                        XposedBridge.hookAllConstructors(XposedHelpers.findClass(clazz, sClassLoader), new XC_MethodHook() {
+                            @Override
+                            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                                for (Field field : param.thisObject.getClass().getDeclaredFields()) {
+                                    field.setAccessible(true);
+                                    if (field.get(param.thisObject) instanceof View) {
+                                        View view = (View) field.get(param.thisObject);
+                                        view.setVisibility(View.GONE);
+                                    }
+                                }
                             }
-                        }
+                        });
                     }
                 });
-            }
-        }, "Lcom/baidu/tieba/R$id;->square_background:I", "Lcom/baidu/tieba/R$id;->create_bar_container:I");
         //可能感兴趣的吧
         XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
             @Override

@@ -25,12 +25,16 @@ public class TbEditText extends EditText {
         if (!DisplayHelper.isLightMode(context)) {
             setTextColor(res.getColor(R.color.colorPrimary, null));
         }
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         setLayoutParams(layoutParams);
         try {
-            setTextSize(DisplayHelper.px2Dip(context, context.getResources().getDimension(classLoader.loadClass("com.baidu.tieba.R$dimen").getField("fontsize36").getInt(null))));
-            setBackgroundResource(classLoader.loadClass("com.baidu.tieba.R$drawable").getField("blue_rectangle_input_bg").getInt(null));
-            setMinWidth((int) context.getResources().getDimension(classLoader.loadClass("com.baidu.tieba.R$dimen").getField("ds140").getInt(null)));
+            setTextSize(DisplayHelper.px2Dip(context, context.getResources().getDimension(
+                    classLoader.loadClass("com.baidu.tieba.R$dimen").getField("fontsize36").getInt(null))));
+            setBackgroundResource(classLoader.loadClass("com.baidu.tieba.R$drawable")
+                    .getField("blue_rectangle_input_bg").getInt(null));
+            setMinWidth((int) context.getResources().getDimension(classLoader.loadClass(
+                    "com.baidu.tieba.R$dimen").getField("ds140").getInt(null)));
         } catch (Throwable throwable) {
             XposedBridge.log(throwable);
         }

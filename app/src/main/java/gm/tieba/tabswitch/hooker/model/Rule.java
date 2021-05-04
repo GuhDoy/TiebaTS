@@ -29,18 +29,34 @@ public class Rule {
         db.close();
     }
 
-    public interface RuleCallBack {
+    public interface Callback {
         void onRuleFound(String rule, String clazz, String method) throws Throwable;
     }
 
-    public static void findRule(RuleCallBack ruleCallBack, String... rules) throws Throwable {
-        for (String rule : rules) {
-            for (Map<String, String> map : sRulesFromDb) {
-                if (Objects.equals(map.get("rule"), rule)) {
-                    ruleCallBack.onRuleFound(rule, map.get("class"), map.get("method"));
+    public static void findRule(Object... rulesAndCallback) throws Throwable {
+        if (rulesAndCallback.length != 0
+                && rulesAndCallback[rulesAndCallback.length - 1] instanceof Callback) {
+            Callback callback = (Callback) rulesAndCallback[rulesAndCallback.length - 1];
+            for (String rule : getParameterRules(rulesAndCallback)) {
+                for (Map<String, String> map : sRulesFromDb) {
+                    if (Objects.equals(map.get("rule"), rule)) {
+                        callback.onRuleFound(rule, map.get("class"), map.get("method"));
+                    }
                 }
             }
+        } else {
+            throw new IllegalArgumentException("no callback defined");
         }
+    }
+
+    private static String[] getParameterRules(Object[] rulesAndCallback) {
+        if (rulesAndCallback[0] instanceof String[]) return (String[]) rulesAndCallback[0];
+
+        String[] rules = new String[rulesAndCallback.length - 1];
+        for (int i = 0; i < rulesAndCallback.length - 1; i++) {
+            rules[i] = (String) rulesAndCallback[i];
+        }
+        return rules;
     }
 
     public static boolean isRuleFound(String rule) {

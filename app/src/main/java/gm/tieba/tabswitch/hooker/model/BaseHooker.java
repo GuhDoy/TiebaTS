@@ -44,7 +44,8 @@ public class BaseHooker {
         sRes = res;
     }
 
-    public static void init(ClassLoader classLoader, Context context, Resources res, Map.Entry<String, ?> entry) throws Throwable {
+    public static void init(ClassLoader classLoader, Context context, Resources res,
+                            Map.Entry<String, ?> entry) throws Throwable {
         sClassLoader = classLoader;
         sContextRef = new WeakReference<>(context);
         sRes = res;

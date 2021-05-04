@@ -65,7 +65,7 @@ public class TSPreference extends BaseHooker implements Hooker {
                 parent.addView(TSPreferenceHelper.createButton(sClassLoader, activity, SETTINGS_MAIN, null, v -> startMainPreferenceActivity(activity)), 11);
             }
         });
-        Rule.findRule(new Rule.RuleCallBack() {
+        Rule.findRule("Lcom/baidu/tieba/R$id;->black_address_list:I", new Rule.Callback() {
             @Override
             public void onRuleFound(String rule, String clazz, String method) {
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, XposedHelpers.findClass("com.baidu.tieba.setting.im.more.SecretSettingActivity", sClassLoader), new XC_MethodHook() {
@@ -83,7 +83,7 @@ public class TSPreference extends BaseHooker implements Hooker {
                     }
                 });
             }
-        }, "Lcom/baidu/tieba/R$id;->black_address_list:I");
+        });
     }
 
     private void proxyPage(Activity activity, Object navigationBar, Class<?> NavigationBar, LinearLayout containerView, String title, LinearLayout preferenceLayout) throws ClassNotFoundException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {

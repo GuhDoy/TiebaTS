@@ -10,8 +10,9 @@ public class Reflect {
     public static Object getObjectField(Object instance, String className) throws Throwable {
         for (Field field : instance.getClass().getDeclaredFields()) {
             field.setAccessible(true);
-            if (field.get(instance) != null && Objects.equals(field.get(instance).getClass().getName(), className)) {
-                return field.get(instance);
+            Object objField = field.get(instance);
+            if (objField != null && Objects.equals(objField.getClass().getName(), className)) {
+                return objField;
             }
         }
         throw new NoSuchFieldException(className + " field not found");
@@ -20,7 +21,8 @@ public class Reflect {
     public static void setObjectField(Object instance, String className, Object value) throws Throwable {
         for (Field field : instance.getClass().getDeclaredFields()) {
             field.setAccessible(true);
-            if (field.get(instance) != null && Objects.equals(field.get(instance).getClass().getName(), className)) {
+            Object objField = field.get(instance);
+            if (objField != null && Objects.equals(objField.getClass().getName(), className)) {
                 field.set(instance, value);
             }
         }

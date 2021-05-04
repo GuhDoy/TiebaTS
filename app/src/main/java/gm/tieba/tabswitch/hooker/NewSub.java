@@ -19,7 +19,7 @@ public class NewSub extends BaseHooker implements Hooker {
     private Object mPostId;
 
     public void hook() throws Throwable {
-        Rule.findRule(new Rule.RuleCallBack() {
+        Rule.findRule("Lcom/baidu/tieba/R$id;->subpb_head_user_info_root:I", new Rule.Callback() {
             @Override
             public void onRuleFound(String rule, String clazz, String method) {
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
@@ -42,7 +42,7 @@ public class NewSub extends BaseHooker implements Hooker {
                     }
                 });
             }
-        }, "Lcom/baidu/tieba/R$id;->subpb_head_user_info_root:I");
+        });
         XposedHelpers.findAndHookMethod("tbclient.PbFloor.DataRes$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {

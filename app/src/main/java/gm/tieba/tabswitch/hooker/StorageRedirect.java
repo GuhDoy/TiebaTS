@@ -38,7 +38,7 @@ public class StorageRedirect extends BaseHooker implements Hooker {
                 param.setResult(sContextRef.get().getExternalCacheDir());
             }
         });
-        Rule.findRule(new Rule.RuleCallBack() {
+        Rule.findRule("0x4197d783fc000000L", new Rule.Callback() {
             @Override
             public void onRuleFound(String rule, String clazz, String method) throws ClassNotFoundException {
                 for (Method md : sClassLoader.loadClass(clazz).getDeclaredMethods())
@@ -61,7 +61,7 @@ public class StorageRedirect extends BaseHooker implements Hooker {
                             break;
                     }
             }
-        }, "0x4197d783fc000000L");
+        });
     }
 
     private int saveImage(String url, InputStream in, Context context) {

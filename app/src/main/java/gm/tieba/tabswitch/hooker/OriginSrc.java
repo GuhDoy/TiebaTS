@@ -40,7 +40,7 @@ public class OriginSrc extends BaseHooker implements Hooker {
             super.onCapabilitiesChanged(network, networkCapabilities);
             if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) && networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
                 try {
-                    Rule.findRule(new Rule.RuleCallBack() {
+                    Rule.findRule("\"pic_amount\"", new Rule.Callback() {
                         @Override
                         public void onRuleFound(String rule, String clazz, String method) {
                             XposedHelpers.findAndHookMethod(clazz, mClassLoader, method, JSONObject.class, Boolean.class, new XC_MethodHook() {
@@ -62,7 +62,7 @@ public class OriginSrc extends BaseHooker implements Hooker {
                                 }
                             });
                         }
-                    }, "\"pic_amount\"");
+                    });
                 } catch (Throwable throwable) {
                     XposedBridge.log(throwable);
                 }

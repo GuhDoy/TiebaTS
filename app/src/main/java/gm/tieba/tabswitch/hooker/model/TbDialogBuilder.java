@@ -36,7 +36,7 @@ public class TbDialogBuilder {
         });
         mClassLoader = classLoader;
         try {
-            Rule.findRule(new Rule.RuleCallBack() {
+            Rule.findRule("Lcom/baidu/tieba/R$layout;->dialog_bdalert:I", new Rule.Callback() {
                 @Override
                 public void onRuleFound(String rule, String clazz, String method) {
                     try {
@@ -66,7 +66,7 @@ public class TbDialogBuilder {
                         XposedBridge.log(throwable);
                     }
                 }
-            }, "Lcom/baidu/tieba/R$layout;->dialog_bdalert:I");
+            });
         } catch (Throwable throwable) {
             XposedBridge.log(throwable);
         }

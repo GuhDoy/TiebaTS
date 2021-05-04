@@ -24,7 +24,7 @@ import gm.tieba.tabswitch.util.Reflect;
 
 public class MyAttention extends BaseHooker implements Hooker {
     public void hook() throws Throwable {
-        Rule.findRule(new Rule.RuleCallBack() {
+        Rule.findRule("Lcom/baidu/tieba/R$layout;->person_list_item:I", new Rule.Callback() {
             @Override
             public void onRuleFound(String rule, String clazz, String method) {
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, int.class, View.class, ViewGroup.class, new XC_MethodHook() {
@@ -49,7 +49,7 @@ public class MyAttention extends BaseHooker implements Hooker {
                     }
                 });
             }
-        }, "Lcom/baidu/tieba/R$layout;->person_list_item:I");
+        });
         XposedHelpers.findAndHookMethod("tbclient.User$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {

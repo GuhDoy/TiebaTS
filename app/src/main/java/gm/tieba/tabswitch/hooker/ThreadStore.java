@@ -48,7 +48,7 @@ public class ThreadStore extends BaseHooker implements Hooker {
                 textView.setOnClickListener(v -> showRegexDialog(activity));
             }
         });
-        Rule.findRule(new Rule.RuleCallBack() {
+        Rule.findRule("\"c/f/post/threadstore\"", new Rule.Callback() {
             @Override
             public void onRuleFound(String rule, String clazz, String method) {
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, Boolean[].class, new XC_MethodHook() {
@@ -84,7 +84,7 @@ public class ThreadStore extends BaseHooker implements Hooker {
                     }
                 });
             }
-        }, "\"c/f/post/threadstore\"");
+        });
     }
 
     private void showRegexDialog(Activity activity) {

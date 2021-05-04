@@ -25,8 +25,7 @@ public class RedTip extends BaseHooker implements Hooker {
         try {
             XposedBridge.hookAllMethods(XposedHelpers.findClass("com.baidu.tieba.personCenter.b.b$2", sClassLoader), "onMessage", XC_MethodReplacement.returnConstant(null));
         } catch (XposedHelpers.ClassNotFoundError e) {
-            //历史记录："e.b.m0.d2.d.b$b","e.b.h0.f2.d.b$b"
-            Rule.findRule(new Rule.RuleCallBack() {
+            Rule.findRule("\"https://tieba.baidu.com/mo/q/duxiaoman/index?noshare=1\"", new Rule.Callback() {
                 @Override
                 public void onRuleFound(String rule, String clazz, String method) {
                     for (int j = 0; j < 2; j++) {
@@ -35,7 +34,7 @@ public class RedTip extends BaseHooker implements Hooker {
                     clazz += ".d.b$b";
                     XposedBridge.hookAllMethods(XposedHelpers.findClass(clazz, sClassLoader), "onMessage", XC_MethodReplacement.returnConstant(null));
                 }
-            }, "\"https://tieba.baidu.com/mo/q/duxiaoman/index?noshare=1\"");
+            });
         }
     }
 }

@@ -18,7 +18,7 @@ import gm.tieba.tabswitch.hooker.model.Rule;
 
 public class CreateView extends BaseHooker implements Hooker {
     public void hook() throws Throwable {
-        Rule.findRule(new Rule.RuleCallBack() {
+        Rule.findRule("Lcom/baidu/tieba/R$id;->navigationBarGoSignall:I", new Rule.Callback() {
             @Override
             public void onRuleFound(String rule, String clazz, String method) {
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, Bundle.class, new XC_MethodHook() {
@@ -70,6 +70,6 @@ public class CreateView extends BaseHooker implements Hooker {
                     }
                 });
             }
-        }, "Lcom/baidu/tieba/R$id;->navigationBarGoSignall:I");
+        });
     }
 }
