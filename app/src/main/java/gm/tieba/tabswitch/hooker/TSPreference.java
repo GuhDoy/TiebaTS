@@ -174,6 +174,7 @@ public class TSPreference extends BaseHooker implements Hooker {
         preferenceLayout.addView(new SwitchViewHolder(sClassLoader, activity, sRes, "我的收藏增加搜索、吧名", "thread_store", SwitchViewHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchViewHolder(sClassLoader, activity, sRes, "浏览历史增加搜索", "history_cache", SwitchViewHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchViewHolder(sClassLoader, activity, sRes, "楼层回复增加查看主题贴", "new_sub", SwitchViewHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchViewHolder(sClassLoader, activity, sRes, "楼层增加水波纹点按效果", "ripple", SwitchViewHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchViewHolder(sClassLoader, activity, sRes, "长按下载保存全部图片", "save_images", SwitchViewHolder.TYPE_SWITCH));
         // preferenceLayout.addView(new SwitchViewHolder(sClassLoader, activity, sRes, "长按关注的人设置备注名", "my_attention"));
         if (Preferences.getIsPurifyEnabled()) {

@@ -46,6 +46,8 @@ public class AntiConfusionHelper {
         Collections.addAll(matcherList, getPurifyMyMatchers());
         //CreateView
         matcherList.add("Lcom/baidu/tieba/R$id;->navigationBarGoSignall:I");
+        //Ripple
+        matcherList.add("Lcom/baidu/tieba/R$layout;->new_sub_pb_list_item:I");
         //ThreadStore
         matcherList.add("\"c/f/post/threadstore\"");
         //NewSub

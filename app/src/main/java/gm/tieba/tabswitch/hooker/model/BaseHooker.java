@@ -27,6 +27,7 @@ import gm.tieba.tabswitch.hooker.Purify;
 import gm.tieba.tabswitch.hooker.PurifyEnter;
 import gm.tieba.tabswitch.hooker.PurifyMy;
 import gm.tieba.tabswitch.hooker.RedTip;
+import gm.tieba.tabswitch.hooker.Ripple;
 import gm.tieba.tabswitch.hooker.SaveImages;
 import gm.tieba.tabswitch.hooker.StorageRedirect;
 import gm.tieba.tabswitch.hooker.ThreadStore;
@@ -75,6 +76,14 @@ public class BaseHooker {
                         }
                     }
                 });
+                if (Preferences.getStringSet().contains("flutter_person_center_enable_android_12")) {
+                    XposedHelpers.findAndHookMethod("com.baidu.tbadk.core.view.AgreeView", sClassLoader, "setAgreeAlone", boolean.class, new XC_MethodHook() {
+                        @Override
+                        protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                            param.args[0] = true;
+                        }
+                    });
+                }
                 break;
             case "purify":
                 if ((Boolean) entry.getValue()) new Purify().hook();
@@ -111,6 +120,9 @@ public class BaseHooker {
                 break;
             case "new_sub":
                 if ((Boolean) entry.getValue()) new NewSub().hook();
+                break;
+            case "ripple":
+                if ((Boolean) entry.getValue()) new Ripple().hook();
                 break;
             case "save_images":
                 if ((Boolean) entry.getValue()) new SaveImages().hook();
