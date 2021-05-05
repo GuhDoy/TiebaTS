@@ -1,7 +1,9 @@
 package gm.tieba.tabswitch.hooker;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.View;
@@ -17,6 +19,10 @@ public class EyeshieldMode extends BaseHooker implements Hooker {
 
     public void hook() throws Throwable {
         sSavedUiMode = DisplayHelper.isLightMode(sContextRef.get());
+        SharedPreferences.Editor settingsEditor = sContextRef.get()
+                .getSharedPreferences("common_settings", Context.MODE_PRIVATE).edit();
+        settingsEditor.putString("skin_", sSavedUiMode ? "0" : "1");
+        settingsEditor.apply();
         XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader, "onConfigurationChanged", Configuration.class, new XC_MethodHook() {
             @Override
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
