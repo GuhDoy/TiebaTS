@@ -97,46 +97,49 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
                     }
                 }
             });
-        } else if (lpparam.packageName.equals("com.baidu.netdisk")) {
-            XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.Navigate", classLoader, "initFlashFragment", XC_MethodReplacement.returnConstant(null));
-            XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.advertise.FlashAdvertiseActivity", classLoader, "initFlashFragment", XC_MethodReplacement.returnConstant(null));
-            XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.transfer.TransferListTabActivity", classLoader, "initYouaGuideView", XC_MethodReplacement.returnConstant(null));
-            // "show or close "
-            for (Method method : classLoader.loadClass("com.baidu.netdisk.homepage.ui.card.____").getDeclaredMethods()) {
-                if (Arrays.toString(method.getParameterTypes()).equals("[boolean]")) {
-                    XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(null));
+        } else switch (lpparam.packageName) {
+            case "android":
+                break;
+            case "com.baidu.netdisk":
+                XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.Navigate", classLoader, "initFlashFragment", XC_MethodReplacement.returnConstant(null));
+                XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.advertise.FlashAdvertiseActivity", classLoader, "initFlashFragment", XC_MethodReplacement.returnConstant(null));
+                XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.transfer.TransferListTabActivity", classLoader, "initYouaGuideView", XC_MethodReplacement.returnConstant(null));
+                // "show or close "
+                for (Method method : classLoader.loadClass("com.baidu.netdisk.homepage.ui.card.____").getDeclaredMethods()) {
+                    if (Arrays.toString(method.getParameterTypes()).equals("[boolean]")) {
+                        XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(null));
+                    }
                 }
-            }
 
-            XposedHelpers.findAndHookMethod("com.baidu.netdisk.media.video.source.NormalVideoSource", classLoader, "getAdTime", XC_MethodReplacement.returnConstant(0));
-            XposedHelpers.findAndHookMethod("com.baidu.netdisk.preview.video.model._", classLoader, "getAdTime", XC_MethodReplacement.returnConstant(0));
+                XposedHelpers.findAndHookMethod("com.baidu.netdisk.media.video.source.NormalVideoSource", classLoader, "getAdTime", XC_MethodReplacement.returnConstant(0));
+                XposedHelpers.findAndHookMethod("com.baidu.netdisk.preview.video.model._", classLoader, "getAdTime", XC_MethodReplacement.returnConstant(0));
 
-            for (Method method : classLoader.loadClass("com.baidu.netdisk.media.speedup.SpeedUpModle").getDeclaredMethods()) {
-                if (method.getReturnType().getTypeName().equals("boolean")) {
-                    XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(true));
+                for (Method method : classLoader.loadClass("com.baidu.netdisk.media.speedup.SpeedUpModle").getDeclaredMethods()) {
+                    if (method.getReturnType().equals(boolean.class)) {
+                        XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(true));
+                    }
                 }
-            }
-        } else {
-            XposedHelpers.findAndHookMethod(String.class, "format", String.class, Object[].class, new XC_MethodHook() {
-                @Override
-                protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                    if (param.args[0].equals("https://%s%s")) {
-                        Object[] objects = (Object[]) param.args[1];
-                        if (objects.length == 2 && objects[1].equals("/api/ad/union/sdk/get_ads/")) {
-                            param.setResult(null);
+                break;
+            case "com.coolapk.market":
+                XposedHelpers.findAndHookMethod(String.class, "format", String.class, Object[].class, new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        if (param.args[0].equals("https://%s%s")) {
+                            Object[] objects = (Object[]) param.args[1];
+                            if (objects.length == 2 && objects[1].equals("/api/ad/union/sdk/get_ads/")) {
+                                param.setResult(null);
+                            }
                         }
                     }
-                }
-            });
-            XposedHelpers.findAndHookConstructor(File.class, String.class, String.class, new XC_MethodHook() {
-                @Override
-                protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                    if (Objects.equals(param.args[1], "gdt_plugin.jar")) {
-                        XposedHelpers.setObjectField(param.thisObject, "path", null);
+                });
+                XposedHelpers.findAndHookConstructor(File.class, String.class, String.class, new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        if (Objects.equals(param.args[1], "gdt_plugin.jar")) {
+                            XposedHelpers.setObjectField(param.thisObject, "path", null);
+                        }
                     }
-                }
-            });
-            if (lpparam.packageName.equals("com.coolapk.market")) {
+                });
                 try {
                     XposedHelpers.findAndHookMethod("com.coolapk.market.model.$$AutoValue_Feed", classLoader, "getDetailSponsorCard", XC_MethodReplacement.returnConstant(null));
                     XposedBridge.hookAllConstructors(XposedHelpers.findClass("com.coolapk.market.model.AutoValue_Feed", classLoader), new XC_MethodHook() {
@@ -147,7 +150,7 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
                     });
                 } catch (XposedHelpers.ClassNotFoundError ignored) {
                 }
-            }
+                break;
         }
     }
 }

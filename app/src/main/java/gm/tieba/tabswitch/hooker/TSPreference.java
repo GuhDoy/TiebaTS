@@ -144,8 +144,9 @@ public class TSPreference extends BaseHooker implements Hooker {
     @SuppressLint("ClickableViewAccessibility")
     @NotNull
     private LinearLayout createMainPreference(Activity activity) {
+        boolean isPurifyEnabled = Preferences.getIsPurifyEnabled();
         TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
-        if (Preferences.getIsPurifyEnabled()) {
+        if (isPurifyEnabled) {
             preferenceLayout.addView(TSPreferenceHelper.createTextView(sClassLoader, activity, "轻车简从"));
         } else {
             preferenceLayout.addView(TSPreferenceHelper.createTextView(sClassLoader, activity, "净化界面"));
@@ -155,7 +156,7 @@ public class TSPreference extends BaseHooker implements Hooker {
             intent.putExtra("showModifyTabPreference", true);
             activity.startActivity(intent);
         }));
-        if (Preferences.getIsPurifyEnabled()) {
+        if (isPurifyEnabled) {
             preferenceLayout.addView(new SwitchViewHolder(sClassLoader, activity, sRes, "真正的净化界面", "purify", SwitchViewHolder.TYPE_SWITCH));
         }
         preferenceLayout.addView(new SwitchViewHolder(sClassLoader, activity, sRes, "净化进吧", "purify_enter", SwitchViewHolder.TYPE_SWITCH));
@@ -165,7 +166,7 @@ public class TSPreference extends BaseHooker implements Hooker {
         preferenceLayout.addView(new SwitchViewHolder(sClassLoader, activity, sRes, "过滤首页推荐", "personalized_filter", SwitchViewHolder.TYPE_DIALOG));
         preferenceLayout.addView(new SwitchViewHolder(sClassLoader, activity, sRes, "过滤帖子回复", "content_filter", SwitchViewHolder.TYPE_DIALOG));
         preferenceLayout.addView(new SwitchViewHolder(sClassLoader, activity, sRes, "过滤吧页面", "frs_page_filter", SwitchViewHolder.TYPE_DIALOG));
-        if (Preferences.getIsPurifyEnabled()) {
+        if (isPurifyEnabled) {
             preferenceLayout.addView(TSPreferenceHelper.createTextView(sClassLoader, activity, "别出新意"));
         } else {
             preferenceLayout.addView(TSPreferenceHelper.createTextView(sClassLoader, activity, "增加功能"));
@@ -177,7 +178,7 @@ public class TSPreference extends BaseHooker implements Hooker {
         preferenceLayout.addView(new SwitchViewHolder(sClassLoader, activity, sRes, "楼层增加水波纹点按效果", "ripple", SwitchViewHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchViewHolder(sClassLoader, activity, sRes, "长按下载保存全部图片", "save_images", SwitchViewHolder.TYPE_SWITCH));
         // preferenceLayout.addView(new SwitchViewHolder(sClassLoader, activity, sRes, "长按关注的人设置备注名", "my_attention"));
-        if (Preferences.getIsPurifyEnabled()) {
+        if (isPurifyEnabled) {
             preferenceLayout.addView(TSPreferenceHelper.createTextView(sClassLoader, activity, "垂手可得"));
         } else {
             preferenceLayout.addView(TSPreferenceHelper.createTextView(sClassLoader, activity, "自动化"));
@@ -200,18 +201,18 @@ public class TSPreference extends BaseHooker implements Hooker {
         preferenceLayout.addView(autoSign);
         preferenceLayout.addView(new SwitchViewHolder(sClassLoader, activity, sRes, "自动打开一键签到", "open_sign", SwitchViewHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchViewHolder(sClassLoader, activity, sRes, "更新时清理缓存", "clean_dir", SwitchViewHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchViewHolder(sClassLoader, activity, sRes, "自动切换夜间模式", "eyeshield_mode", SwitchViewHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchViewHolder(sClassLoader, activity, sRes, "自动查看原图", "origin_src", SwitchViewHolder.TYPE_SWITCH));
-        if (Preferences.getIsPurifyEnabled()) {
+        if (isPurifyEnabled) {
             preferenceLayout.addView(TSPreferenceHelper.createTextView(sClassLoader, activity, "奇怪怪"));
         } else {
             preferenceLayout.addView(TSPreferenceHelper.createTextView(sClassLoader, activity, "其它"));
         }
         preferenceLayout.addView(new SwitchViewHolder(sClassLoader, activity, sRes, "存储重定向", "storage_redirect", SwitchViewHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchViewHolder(sClassLoader, activity, sRes, "禁用帖子手势", "forbid_gesture", SwitchViewHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchViewHolder(sClassLoader, activity, sRes, "用夜间模式代替深色模式", "eyeshield_mode", SwitchViewHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchViewHolder(sClassLoader, activity, sRes, "用赞踩差数代替赞数", "agree_num", SwitchViewHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchViewHolder(sClassLoader, activity, sRes, "交换吧热门与最新", "frs_tab", SwitchViewHolder.TYPE_SWITCH));
-        if (Preferences.getIsPurifyEnabled()) {
+        if (isPurifyEnabled) {
             preferenceLayout.addView(TSPreferenceHelper.createTextView(sClassLoader, activity, "关于就是关于"));
         } else {
             preferenceLayout.addView(TSPreferenceHelper.createTextView(sClassLoader, activity, "关于"));

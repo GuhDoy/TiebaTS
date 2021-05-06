@@ -59,7 +59,7 @@ public class Development extends XposedInit {
     }
 
     private static void disableMethod(Method method) throws Throwable {
-        if (method.getReturnType().getTypeName().equals("boolean")) {
+        if (method.getReturnType().equals(boolean.class)) {
             XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(true));
         } else {
             XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(null));

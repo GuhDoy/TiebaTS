@@ -111,7 +111,7 @@ public class Purify extends BaseHooker implements Hooker {
         try {
             for (Method method : sClassLoader.loadClass("com.fun.ad.sdk.FunAdSdk").getDeclaredMethods()) {
                 if (method.getName().equals("init")) {
-                    if (method.getReturnType().getTypeName().equals("boolean")) {
+                    if (method.getReturnType().equals(boolean.class)) {
                         XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(true));
                     } else {
                         XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(null));
@@ -127,7 +127,7 @@ public class Purify extends BaseHooker implements Hooker {
                 XposedHelpers.setObjectField(param.thisObject, "user_info", null);
             }
         });
-        //首页直播推荐卡片：搜索card_home_page_ala_live_item_new，会有两个结果，查找后一个结果所在类构造函数调用
+        //首页直播推荐卡片：R.layout.card_home_page_ala_live_item_new
         try {
             for (Method method : sClassLoader.loadClass("com.baidu.tieba.homepage.personalize.adapter.HomePageAlaLiveThreadAdapter").getDeclaredMethods()) {
                 if (method.getReturnType().toString().endsWith("HomePageAlaLiveThreadViewHolder")) {
@@ -207,7 +207,7 @@ public class Purify extends BaseHooker implements Hooker {
                 XposedHelpers.setObjectField(param.thisObject, "star_enter", new ArrayList<>());
             }
         });
-        //你可能感兴趣的人：initUI
+        //你可能感兴趣的人：initUI()
         for (Method method : sClassLoader.loadClass("com.baidu.tieba.homepage.concern.view.ConcernRecommendLayout").getDeclaredMethods()) {
             if (Arrays.toString(method.getParameterTypes()).equals("[]")) {
                 XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(null));

@@ -19,10 +19,10 @@ public class EyeshieldMode extends BaseHooker implements Hooker {
 
     public void hook() throws Throwable {
         sSavedUiMode = DisplayHelper.isLightMode(sContextRef.get());
-        SharedPreferences.Editor settingsEditor = sContextRef.get()
-                .getSharedPreferences("common_settings", Context.MODE_PRIVATE).edit();
-        settingsEditor.putString("skin_", sSavedUiMode ? "0" : "1");
-        settingsEditor.apply();
+        SharedPreferences.Editor editor = sContextRef.get().getSharedPreferences(
+                "common_settings", Context.MODE_PRIVATE).edit();
+        editor.putString("skin_", sSavedUiMode ? "0" : "1");
+        editor.apply();
         XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader, "onConfigurationChanged", Configuration.class, new XC_MethodHook() {
             @Override
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {

@@ -30,6 +30,7 @@ import gm.tieba.tabswitch.hooker.RedTip;
 import gm.tieba.tabswitch.hooker.Ripple;
 import gm.tieba.tabswitch.hooker.SaveImages;
 import gm.tieba.tabswitch.hooker.StorageRedirect;
+import gm.tieba.tabswitch.hooker.SwitchManager;
 import gm.tieba.tabswitch.hooker.ThreadStore;
 
 public class BaseHooker {
@@ -56,34 +57,19 @@ public class BaseHooker {
                 break;
             case "enter_forum":
                 if (!(Boolean) entry.getValue()) break;
-                XposedHelpers.findAndHookMethod("com.baidu.tieba.flutter.base.view.FlutterEnterForumDelegateStatic", classLoader, "createFragmentTabStructure", XC_MethodReplacement.returnConstant(null));
-                XposedHelpers.findAndHookMethod("com.baidu.tieba.enterForum.home.EnterForumDelegateStatic", classLoader, "isAvailable", XC_MethodReplacement.returnConstant(false));
+                XposedHelpers.findAndHookMethod("com.baidu.tieba.flutter.base.view.FlutterEnterForumDelegateStatic", sClassLoader, "createFragmentTabStructure", XC_MethodReplacement.returnConstant(null));
+                XposedHelpers.findAndHookMethod("com.baidu.tieba.enterForum.home.EnterForumDelegateStatic", sClassLoader, "isAvailable", XC_MethodReplacement.returnConstant(false));
                 break;
             case "new_category":
                 if (!(Boolean) entry.getValue()) break;
-                XposedHelpers.findAndHookMethod("com.baidu.tieba.flutter.base.view.FlutterNewCategoryDelegateStatic", classLoader, "isAvailable", XC_MethodReplacement.returnConstant(false));
+                XposedHelpers.findAndHookMethod("com.baidu.tieba.flutter.base.view.FlutterNewCategoryDelegateStatic", sClassLoader, "isAvailable", XC_MethodReplacement.returnConstant(false));
                 break;
             case "my_message":
                 if (!(Boolean) entry.getValue()) break;
-                XposedHelpers.findAndHookMethod("com.baidu.tieba.imMessageCenter.im.chat.notify.ImMessageCenterDelegateStatic", classLoader, "isAvailable", XC_MethodReplacement.returnConstant(false));
+                XposedHelpers.findAndHookMethod("com.baidu.tieba.imMessageCenter.im.chat.notify.ImMessageCenterDelegateStatic", sClassLoader, "isAvailable", XC_MethodReplacement.returnConstant(false));
                 break;
             case "switch_manager":
-                XposedHelpers.findAndHookMethod("com.baidu.adp.lib.featureSwitch.SwitchManager", sClassLoader, "findType", String.class, new XC_MethodHook() {
-                    @Override
-                    public void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                        if (Preferences.getStringSet().contains(param.args[0])) {
-                            param.setResult(-1);
-                        }
-                    }
-                });
-                if (Preferences.getStringSet().contains("flutter_person_center_enable_android_12")) {
-                    XposedHelpers.findAndHookMethod("com.baidu.tbadk.core.view.AgreeView", sClassLoader, "setAgreeAlone", boolean.class, new XC_MethodHook() {
-                        @Override
-                        protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                            param.args[0] = true;
-                        }
-                    });
-                }
+                new SwitchManager().hook();
                 break;
             case "purify":
                 if ((Boolean) entry.getValue()) new Purify().hook();
@@ -136,6 +122,9 @@ public class BaseHooker {
             case "open_sign":
                 if ((Boolean) entry.getValue()) new OpenSign().hook();
                 break;
+            case "eyeshield_mode":
+                if ((Boolean) entry.getValue()) new EyeshieldMode().hook();
+                break;
             case "origin_src":
                 if ((Boolean) entry.getValue()) new OriginSrc().hook();
                 break;
@@ -145,12 +134,9 @@ public class BaseHooker {
             case "forbid_gesture":
                 if ((Boolean) entry.getValue()) new ForbidGesture().hook();
                 break;
-            case "eyeshield_mode":
-                if ((Boolean) entry.getValue()) new EyeshieldMode().hook();
-                break;
             case "agree_num":
                 if (!(Boolean) entry.getValue()) break;
-                XposedHelpers.findAndHookMethod("tbclient.Agree$Builder", classLoader, "build", boolean.class, new XC_MethodHook() {
+                XposedHelpers.findAndHookMethod("tbclient.Agree$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
                     @Override
                     public void beforeHookedMethod(MethodHookParam param) throws Throwable {
                         XposedHelpers.setObjectField(param.thisObject, "agree_num", XposedHelpers.getObjectField(param.thisObject, "diff_agree_num"));

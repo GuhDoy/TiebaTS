@@ -185,9 +185,9 @@ public class AntiConfusion extends BaseHooker implements Hooker {
                                     IO.deleteRecursively(new File(activity.getFilesDir().getAbsolutePath() + File.separator + "newStat" + File.separator + "notUpload"));
                                 } else IO.deleteRecursively(dexDir);
                                 if (Preferences.getBoolean("purify")) {
-                                    SharedPreferences.Editor settingsEditor = activity.getSharedPreferences("settings", Context.MODE_PRIVATE).edit();
-                                    settingsEditor.putString("key_location_request_dialog_last_show_version", AntiConfusionHelper.getTbVersion(activity));
-                                    settingsEditor.commit();
+                                    SharedPreferences.Editor editor = activity.getSharedPreferences("settings", Context.MODE_PRIVATE).edit();
+                                    editor.putString("key_location_request_dialog_last_show_version", AntiConfusionHelper.getTbVersion(activity));
+                                    editor.commit();
                                 }
                                 XposedBridge.log("anti-confusion accomplished, current version: " + AntiConfusionHelper.getTbVersion(activity));
                                 AntiConfusionHelper.saveAndRestart(activity, AntiConfusionHelper.getTbVersion(activity), sClassLoader.loadClass(SPRINGBOARD_ACTIVITY));
