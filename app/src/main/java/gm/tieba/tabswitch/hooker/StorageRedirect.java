@@ -1,5 +1,6 @@
 package gm.tieba.tabswitch.hooker;
 
+import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -26,18 +27,22 @@ import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.hooker.model.BaseHooker;
-import gm.tieba.tabswitch.hooker.model.Hooker;
+import gm.tieba.tabswitch.hooker.model.IHooker;
 import gm.tieba.tabswitch.hooker.model.Rule;
 import gm.tieba.tabswitch.util.IO;
 
-public class StorageRedirect extends BaseHooker implements Hooker {
+public class StorageRedirect extends BaseHooker implements IHooker {
+    @SuppressLint("DiscouragedPrivateApi")
     public void hook() throws Throwable {
-        XposedHelpers.findAndHookMethod(Environment.class, "getExternalStorageDirectory", new XC_MethodHook() {
-            @Override
-            protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-                param.setResult(sContextRef.get().getExternalCacheDir());
-            }
-        });
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        } else {
+            XposedHelpers.findAndHookMethod(Environment.class, "getExternalStorageDirectory", new XC_MethodHook() {
+                @Override
+                protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+                    param.setResult(sContextRef.get().getExternalCacheDir());
+                }
+            });
+        }
         Rule.findRule("0x4197d783fc000000L", new Rule.Callback() {
             @Override
             public void onRuleFound(String rule, String clazz, String method) throws ClassNotFoundException {

@@ -29,14 +29,14 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.hooker.model.BaseHooker;
-import gm.tieba.tabswitch.hooker.model.Hooker;
+import gm.tieba.tabswitch.hooker.model.IHooker;
 import gm.tieba.tabswitch.util.IO;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
 
-public class SaveImages extends BaseHooker implements Hooker {
+public class SaveImages extends BaseHooker implements IHooker {
     private ArrayList<String> mArrayList;
     private String mTitle;
 

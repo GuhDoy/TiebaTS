@@ -8,11 +8,11 @@ import java.util.regex.Pattern;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.hooker.model.BaseHooker;
-import gm.tieba.tabswitch.hooker.model.Hooker;
+import gm.tieba.tabswitch.hooker.model.IHooker;
 import gm.tieba.tabswitch.hooker.model.Preferences;
 import gm.tieba.tabswitch.util.Reflect;
 
-public class ContentFilter extends BaseHooker implements Hooker {
+public class ContentFilter extends BaseHooker implements IHooker {
     private final List<Object> mIdList = new ArrayList<>();
 
     public void hook() throws Throwable {

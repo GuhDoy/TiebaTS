@@ -21,10 +21,10 @@ import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.hooker.model.BaseHooker;
-import gm.tieba.tabswitch.hooker.model.Hooker;
+import gm.tieba.tabswitch.hooker.model.IHooker;
 import gm.tieba.tabswitch.hooker.model.Rule;
 
-public class Purify extends BaseHooker implements Hooker {
+public class Purify extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
         Rule.findRule(AntiConfusionHelper.getPurifyMatchers(), new Rule.Callback() {
             @Override

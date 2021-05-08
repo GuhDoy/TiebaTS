@@ -13,10 +13,10 @@ import java.util.Objects;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.hooker.model.BaseHooker;
-import gm.tieba.tabswitch.hooker.model.Hooker;
+import gm.tieba.tabswitch.hooker.model.IHooker;
 import gm.tieba.tabswitch.hooker.model.Rule;
 
-public class CreateView extends BaseHooker implements Hooker {
+public class CreateView extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
         Rule.findRule("Lcom/baidu/tieba/R$id;->navigationBarGoSignall:I", new Rule.Callback() {
             @Override

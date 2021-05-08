@@ -23,13 +23,13 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.hooker.model.BaseHooker;
-import gm.tieba.tabswitch.hooker.model.Hooker;
+import gm.tieba.tabswitch.hooker.model.IHooker;
 import gm.tieba.tabswitch.hooker.model.TbDialogBuilder;
 import gm.tieba.tabswitch.hooker.model.TbEditText;
 import gm.tieba.tabswitch.util.DisplayHelper;
 import gm.tieba.tabswitch.util.Reflect;
 
-public class HistoryCache extends BaseHooker implements Hooker {
+public class HistoryCache extends BaseHooker implements IHooker {
     private String mRegex = "";
 
     public void hook() throws Throwable {

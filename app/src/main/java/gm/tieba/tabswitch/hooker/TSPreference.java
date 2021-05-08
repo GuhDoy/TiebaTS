@@ -26,14 +26,14 @@ import gm.tieba.tabswitch.BuildConfig;
 import gm.tieba.tabswitch.XposedInit;
 import gm.tieba.tabswitch.hooker.TSPreferenceHelper.SwitchViewHolder;
 import gm.tieba.tabswitch.hooker.model.BaseHooker;
-import gm.tieba.tabswitch.hooker.model.Hooker;
+import gm.tieba.tabswitch.hooker.model.IHooker;
 import gm.tieba.tabswitch.hooker.model.Preferences;
 import gm.tieba.tabswitch.hooker.model.Rule;
 import gm.tieba.tabswitch.hooker.model.TbDialogBuilder;
 import gm.tieba.tabswitch.util.DisplayHelper;
 import gm.tieba.tabswitch.util.Reflect;
 
-public class TSPreference extends BaseHooker implements Hooker {
+public class TSPreference extends BaseHooker implements IHooker {
     private static int sCount = 0;
     private final static String SETTINGS_MAIN = "贴吧TS设置";
     private final static String SETTINGS_MODIFY_TAB = "修改页面";

@@ -15,14 +15,14 @@ import android.widget.TextView;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.hooker.model.BaseHooker;
-import gm.tieba.tabswitch.hooker.model.Hooker;
+import gm.tieba.tabswitch.hooker.model.IHooker;
 import gm.tieba.tabswitch.hooker.model.Preferences;
 import gm.tieba.tabswitch.hooker.model.Rule;
 import gm.tieba.tabswitch.hooker.model.TbDialogBuilder;
 import gm.tieba.tabswitch.hooker.model.TbEditText;
 import gm.tieba.tabswitch.util.Reflect;
 
-public class MyAttention extends BaseHooker implements Hooker {
+public class MyAttention extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
         Rule.findRule("Lcom/baidu/tieba/R$layout;->person_list_item:I", new Rule.Callback() {
             @Override

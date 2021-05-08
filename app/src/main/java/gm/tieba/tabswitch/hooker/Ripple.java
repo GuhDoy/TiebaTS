@@ -12,10 +12,10 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.hooker.model.BaseHooker;
-import gm.tieba.tabswitch.hooker.model.Hooker;
+import gm.tieba.tabswitch.hooker.model.IHooker;
 import gm.tieba.tabswitch.hooker.model.Rule;
 
-public class Ripple extends BaseHooker implements Hooker {
+public class Ripple extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
         Rule.findRule("Lcom/baidu/tieba/R$layout;->new_sub_pb_list_item:I", new Rule.Callback() {
             @Override

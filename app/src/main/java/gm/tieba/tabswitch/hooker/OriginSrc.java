@@ -15,10 +15,10 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.hooker.model.BaseHooker;
-import gm.tieba.tabswitch.hooker.model.Hooker;
+import gm.tieba.tabswitch.hooker.model.IHooker;
 import gm.tieba.tabswitch.hooker.model.Rule;
 
-public class OriginSrc extends BaseHooker implements Hooker {
+public class OriginSrc extends BaseHooker implements IHooker {
     @SuppressLint("MissingPermission")
     public void hook() throws Throwable {
         NetworkCallbackImpl networkCallback = new NetworkCallbackImpl(sClassLoader);

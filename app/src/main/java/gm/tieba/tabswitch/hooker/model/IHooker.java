@@ -1,5 +1,5 @@
 package gm.tieba.tabswitch.hooker.model;
 
-public interface Hooker {
+public interface IHooker {
     void hook() throws Throwable;
 }

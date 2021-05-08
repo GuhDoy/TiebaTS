@@ -3,9 +3,9 @@ package gm.tieba.tabswitch.hooker.model;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.ArrayMap;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -19,7 +19,7 @@ public class Rule {
         Cursor c = db.query("rules", null, null, null, null, null, null);
         for (int j = 0; j < c.getCount(); j++) {
             c.moveToNext();
-            Map<String, String> map = new HashMap<>();
+            Map<String, String> map = new ArrayMap<>();
             map.put("rule", c.getString(1));
             map.put("class", c.getString(2));
             map.put("method", c.getString(3));

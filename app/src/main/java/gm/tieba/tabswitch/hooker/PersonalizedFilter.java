@@ -7,11 +7,11 @@ import java.util.regex.Pattern;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.hooker.model.BaseHooker;
-import gm.tieba.tabswitch.hooker.model.Hooker;
+import gm.tieba.tabswitch.hooker.model.IHooker;
 import gm.tieba.tabswitch.hooker.model.Preferences;
 import gm.tieba.tabswitch.util.Reflect;
 
-public class PersonalizedFilter extends BaseHooker implements Hooker {
+public class PersonalizedFilter extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
         final Pattern pattern = Pattern.compile(Preferences.getString("personalized_filter"));
         XposedHelpers.findAndHookMethod("tbclient.Personalized.DataRes$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {

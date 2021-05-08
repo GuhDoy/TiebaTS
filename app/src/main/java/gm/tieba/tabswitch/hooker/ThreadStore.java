@@ -21,13 +21,13 @@ import java.util.regex.PatternSyntaxException;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.hooker.model.BaseHooker;
-import gm.tieba.tabswitch.hooker.model.Hooker;
+import gm.tieba.tabswitch.hooker.model.IHooker;
 import gm.tieba.tabswitch.hooker.model.Rule;
 import gm.tieba.tabswitch.hooker.model.TbDialogBuilder;
 import gm.tieba.tabswitch.hooker.model.TbEditText;
 import gm.tieba.tabswitch.util.DisplayHelper;
 
-public class ThreadStore extends BaseHooker implements Hooker {
+public class ThreadStore extends BaseHooker implements IHooker {
     private String mRegex = "";
 
     public void hook() throws Throwable {

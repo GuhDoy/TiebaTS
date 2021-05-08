@@ -16,10 +16,10 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.hooker.model.BaseHooker;
-import gm.tieba.tabswitch.hooker.model.Hooker;
+import gm.tieba.tabswitch.hooker.model.IHooker;
 import gm.tieba.tabswitch.hooker.model.Preferences;
 
-public class AutoSign extends BaseHooker implements Hooker {
+public class AutoSign extends BaseHooker implements IHooker {
     private String mBDUSS;
 
     public void hook() throws Throwable {

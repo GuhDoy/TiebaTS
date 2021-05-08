@@ -4,10 +4,10 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.hooker.model.BaseHooker;
-import gm.tieba.tabswitch.hooker.model.Hooker;
+import gm.tieba.tabswitch.hooker.model.IHooker;
 import gm.tieba.tabswitch.hooker.model.Preferences;
 
-public class HomeRecommend extends BaseHooker implements Hooker {
+public class HomeRecommend extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
         XposedHelpers.setStaticIntField(sClassLoader.loadClass("com.baidu.tieba.R$string"), "home_recommend",
                 XposedHelpers.getStaticIntField(sClassLoader.loadClass("com.baidu.tieba.R$string"), "enter_forum"));
