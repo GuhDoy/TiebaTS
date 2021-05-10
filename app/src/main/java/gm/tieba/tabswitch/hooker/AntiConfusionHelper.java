@@ -37,6 +37,7 @@ public class AntiConfusionHelper {
         matcherList.add("Lcom/baidu/tieba/R$id;->black_address_list:I");
         //TSPreferenceHelper
         matcherList.add("Lcom/baidu/tieba/R$layout;->dialog_bdalert:I");
+        matcherList.add("\"can not be call not thread! trace = \"");
         //Purify
         Collections.addAll(matcherList, getPurifyMatchers());
         //PurifyEnter

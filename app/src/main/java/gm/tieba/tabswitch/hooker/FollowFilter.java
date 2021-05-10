@@ -1,7 +1,6 @@
 package gm.tieba.tabswitch.hooker;
 
 import android.os.Looper;
-import android.widget.Toast;
 
 import java.util.List;
 
@@ -10,6 +9,7 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.hooker.model.BaseHooker;
 import gm.tieba.tabswitch.hooker.model.IHooker;
 import gm.tieba.tabswitch.hooker.model.Preferences;
+import gm.tieba.tabswitch.hooker.model.TbToast;
 
 public class FollowFilter extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
@@ -18,7 +18,7 @@ public class FollowFilter extends BaseHooker implements IHooker {
             public void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 if (Preferences.getFollow() == null) {
                     Looper.prepare();
-                    Toast.makeText(sContextRef.get(), "暂未获取到关注列表", Toast.LENGTH_LONG).show();
+                    TbToast.showTbToast(sClassLoader, sContextRef.get(), "暂未获取到关注列表", TbToast.LENGTH_LONG);
                     Looper.loop();
                 }
                 List<?> list = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");

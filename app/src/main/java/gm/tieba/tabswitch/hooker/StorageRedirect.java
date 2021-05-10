@@ -14,7 +14,6 @@ import android.os.ParcelFileDescriptor;
 import android.os.storage.StorageVolume;
 import android.provider.MediaStore;
 import android.util.ArrayMap;
-import android.widget.Toast;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -35,6 +34,7 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.hooker.model.BaseHooker;
 import gm.tieba.tabswitch.hooker.model.IHooker;
 import gm.tieba.tabswitch.hooker.model.Rule;
+import gm.tieba.tabswitch.hooker.model.TbToast;
 import gm.tieba.tabswitch.util.IO;
 
 @SuppressLint({"PrivateApi", "DiscouragedPrivateApi"})
@@ -164,7 +164,7 @@ public class StorageRedirect extends BaseHooker implements IHooker {
                 applicationContext.sendBroadcast(scanIntent);
             }
             Looper.prepare();
-            Toast.makeText(applicationContext, fileName + "." + extension, Toast.LENGTH_SHORT).show();
+            TbToast.showTbToast(sClassLoader, applicationContext, fileName + "." + extension, TbToast.LENGTH_SHORT);
             Looper.loop();
         } catch (IOException e) {
             XposedBridge.log(e);

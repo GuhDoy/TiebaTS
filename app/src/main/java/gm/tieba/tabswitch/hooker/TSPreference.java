@@ -13,7 +13,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -30,6 +29,7 @@ import gm.tieba.tabswitch.hooker.model.IHooker;
 import gm.tieba.tabswitch.hooker.model.Preferences;
 import gm.tieba.tabswitch.hooker.model.Rule;
 import gm.tieba.tabswitch.hooker.model.TbDialogBuilder;
+import gm.tieba.tabswitch.hooker.model.TbToast;
 import gm.tieba.tabswitch.util.DisplayHelper;
 import gm.tieba.tabswitch.util.Reflect;
 
@@ -233,7 +233,7 @@ public class TSPreference extends BaseHooker implements IHooker {
         preferenceLayout.addView(TSPreferenceHelper.createButton(sClassLoader, activity, "作者", "developed by GM", v -> {
             sCount++;
             if (sCount % 3 == 0) {
-                Toast.makeText(activity, TSPreferenceHelper.randomToast(), Toast.LENGTH_SHORT).show();
+                TbToast.showTbToast(sClassLoader, activity, TSPreferenceHelper.randomToast(), TbToast.LENGTH_SHORT);
             }
             if (sCount >= 10) {
                 Preferences.putPurifyEnabled();

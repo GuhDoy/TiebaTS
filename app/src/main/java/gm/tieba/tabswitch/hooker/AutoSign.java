@@ -3,7 +3,6 @@ package gm.tieba.tabswitch.hooker;
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.Looper;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -18,6 +17,7 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.hooker.model.BaseHooker;
 import gm.tieba.tabswitch.hooker.model.IHooker;
 import gm.tieba.tabswitch.hooker.model.Preferences;
+import gm.tieba.tabswitch.hooker.model.TbToast;
 
 public class AutoSign extends BaseHooker implements IHooker {
     private String mBDUSS;
@@ -37,10 +37,10 @@ public class AutoSign extends BaseHooker implements IHooker {
                 new Thread(() -> {
                     Looper.prepare();
                     if (mBDUSS == null) {
-                        Toast.makeText(activity.getApplicationContext(), "暂未获取到 BDUSS", Toast.LENGTH_LONG).show();
+                        TbToast.showTbToast(sClassLoader, activity, "暂未获取到 BDUSS", TbToast.LENGTH_LONG);
                     } else {
                         String result = main(mBDUSS);
-                        Toast.makeText(activity.getApplicationContext(), result, Toast.LENGTH_LONG).show();
+                        TbToast.showTbToast(sClassLoader, activity, result, TbToast.LENGTH_SHORT);
                         if (result.endsWith("全部签到成功")) {
                             Preferences.putSignDate();
                             Preferences.putFollow(success);

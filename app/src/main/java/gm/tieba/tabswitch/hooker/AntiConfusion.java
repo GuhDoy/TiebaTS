@@ -143,7 +143,7 @@ public class AntiConfusion extends BaseHooker implements IHooker {
                                             progressBackground.setLayoutParams(lp);
                                         });
                                         String signature = classes.get(j).getClassType().getTypeDescriptor();
-                                        if (signature.matches("L[d-e]/[a-b]/[g-m]0/.*")) {
+                                        if (signature.matches("Ld/[a-b]/.*")) {
                                             arrayList.add(classes.get(j).getIndex());
                                             isSkip = true;
                                         } else if (signature.startsWith("Lcom/baidu/tbadk") || !isSkip && (signature.startsWith("Lcom/baidu/tieba"))) {

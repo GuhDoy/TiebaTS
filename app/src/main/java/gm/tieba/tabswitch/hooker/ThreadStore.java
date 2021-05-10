@@ -11,7 +11,6 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -25,6 +24,7 @@ import gm.tieba.tabswitch.hooker.model.IHooker;
 import gm.tieba.tabswitch.hooker.model.Rule;
 import gm.tieba.tabswitch.hooker.model.TbDialogBuilder;
 import gm.tieba.tabswitch.hooker.model.TbEditText;
+import gm.tieba.tabswitch.hooker.model.TbToast;
 import gm.tieba.tabswitch.util.DisplayHelper;
 
 public class ThreadStore extends BaseHooker implements IHooker {
@@ -114,7 +114,7 @@ public class ThreadStore extends BaseHooker implements IHooker {
                 activity.startActivity(activity.getIntent());
                 bdAlert.dismiss();
             } catch (PatternSyntaxException e) {
-                Toast.makeText(activity, e.getMessage(), Toast.LENGTH_SHORT).show();
+                TbToast.showTbToast(sClassLoader, activity, e.getMessage(), TbToast.LENGTH_SHORT);
             }
         });
         bdAlert.show();

@@ -10,7 +10,6 @@ import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -30,6 +29,7 @@ import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.hooker.model.BaseHooker;
 import gm.tieba.tabswitch.hooker.model.IHooker;
+import gm.tieba.tabswitch.hooker.model.TbToast;
 import gm.tieba.tabswitch.util.IO;
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -78,7 +78,8 @@ public class SaveImages extends BaseHooker implements IHooker {
                                 }
                                 saveImage(url, i, context);
                             }
-                            Toast.makeText(context, String.format(Locale.CHINA, "已保存%d张图片至手机相册", mArrayList.size()), Toast.LENGTH_SHORT).show();
+                            TbToast.showTbToast(sClassLoader, context, String.format(Locale.CHINA,
+                                    "已保存%d张图片至手机相册", mArrayList.size()), TbToast.LENGTH_SHORT);
                             return true;
                         }));
                         return;

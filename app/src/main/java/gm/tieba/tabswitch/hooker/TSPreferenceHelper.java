@@ -15,7 +15,6 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
@@ -32,6 +31,7 @@ import de.robv.android.xposed.XposedBridge;
 import gm.tieba.tabswitch.hooker.model.Preferences;
 import gm.tieba.tabswitch.hooker.model.TbDialogBuilder;
 import gm.tieba.tabswitch.hooker.model.TbEditText;
+import gm.tieba.tabswitch.hooker.model.TbToast;
 import gm.tieba.tabswitch.util.DisplayHelper;
 
 public class TSPreferenceHelper {
@@ -206,7 +206,7 @@ public class TSPreferenceHelper {
                     }
                     bdAlert.dismiss();
                 } catch (PatternSyntaxException e) {
-                    Toast.makeText(activity, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    TbToast.showTbToast(mClassLoader, activity, e.getMessage(), TbToast.LENGTH_SHORT);
                 }
             });
             bdAlert.show();

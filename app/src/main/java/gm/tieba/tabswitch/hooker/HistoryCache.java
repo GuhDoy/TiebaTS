@@ -26,6 +26,7 @@ import gm.tieba.tabswitch.hooker.model.BaseHooker;
 import gm.tieba.tabswitch.hooker.model.IHooker;
 import gm.tieba.tabswitch.hooker.model.TbDialogBuilder;
 import gm.tieba.tabswitch.hooker.model.TbEditText;
+import gm.tieba.tabswitch.hooker.model.TbToast;
 import gm.tieba.tabswitch.util.DisplayHelper;
 import gm.tieba.tabswitch.util.Reflect;
 
@@ -114,7 +115,7 @@ public class HistoryCache extends BaseHooker implements IHooker {
                 activity.startActivity(activity.getIntent());
                 bdAlert.dismiss();
             } catch (PatternSyntaxException e) {
-                Toast.makeText(activity, e.getMessage(), Toast.LENGTH_SHORT).show();
+                TbToast.showTbToast(sClassLoader, activity, e.getMessage(), TbToast.LENGTH_SHORT);
             }
         });
         bdAlert.show();
