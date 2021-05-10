@@ -66,7 +66,6 @@ public class AntiConfusionHelper {
                 "\"pic_amount\"",//图片广告
                 "\"key_frs_dialog_ad_last_show_time\"",//吧推广弹窗
                 "Lcom/baidu/tieba/R$id;->frs_ad_banner:I",//吧推广横幅
-                "Lcom/baidu/tieba/R$string;->mark_like:I",//关注作者追帖更简单
                 "Lcom/baidu/tieba/R$layout;->pb_child_title:I"};//视频相关推荐
     }
 

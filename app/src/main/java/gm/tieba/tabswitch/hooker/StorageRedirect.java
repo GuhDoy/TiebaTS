@@ -66,7 +66,7 @@ public class StorageRedirect extends BaseHooker implements IHooker {
         Rule.findRule("0x4197d783fc000000L", new Rule.Callback() {
             @Override
             public void onRuleFound(String rule, String clazz, String method) throws ClassNotFoundException {
-                for (Method md : sClassLoader.loadClass(clazz).getDeclaredMethods())
+                for (Method md : sClassLoader.loadClass(clazz).getDeclaredMethods()) {
                     switch (Arrays.toString(md.getParameterTypes())) {
                         case "[class java.lang.String, class [B, class android.content.Context]":
                             XposedBridge.hookMethod(md, new XC_MethodReplacement() {
@@ -85,6 +85,7 @@ public class StorageRedirect extends BaseHooker implements IHooker {
                             });
                             break;
                     }
+                }
             }
         });
     }

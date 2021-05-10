@@ -98,8 +98,6 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
                 }
             });
         } else switch (lpparam.packageName) {
-            case "android":
-                break;
             case "com.baidu.netdisk":
                 XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.Navigate", classLoader, "initFlashFragment", XC_MethodReplacement.returnConstant(null));
                 XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.advertise.FlashAdvertiseActivity", classLoader, "initFlashFragment", XC_MethodReplacement.returnConstant(null));

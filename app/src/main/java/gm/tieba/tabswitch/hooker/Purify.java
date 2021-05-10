@@ -60,16 +60,6 @@ public class Purify extends BaseHooker implements IHooker {
                             }
                         }
                         break;
-                    case "Lcom/baidu/tieba/R$string;->mark_like:I"://关注作者追帖更简单
-                        XposedBridge.hookAllMethods(XposedHelpers.findClass(clazz, sClassLoader), method, new XC_MethodHook() {
-                            @Override
-                            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                                if (param.args[0].getClass().getName().equals("com.baidu.tbadk.core.data.MetaData")) {
-                                    param.args[0] = null;
-                                }
-                            }
-                        });
-                        break;
                     case "Lcom/baidu/tieba/R$layout;->pb_child_title:I"://视频相关推荐
                         if (!Objects.equals(clazz, "com.baidu.tieba.pb.videopb.fragment.DetailInfoAndReplyFragment")) {
                             Method md;
