@@ -90,7 +90,7 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
                         new AntiConfusion(classLoader, mRes).hook();
                         return;
                     }
-XposedBridge.log(Arrays.toString(mRes.getStringArray(R.array.PurifyMy)));
+
                     new TSPreference(classLoader, mRes).hook();
                     for (Map.Entry<String, ?> entry : Preferences.getAll().entrySet()) {
                         BaseHooker.init(classLoader, context, mRes, entry);
