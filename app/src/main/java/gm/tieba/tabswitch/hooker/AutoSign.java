@@ -37,10 +37,10 @@ public class AutoSign extends BaseHooker implements IHooker {
                 new Thread(() -> {
                     Looper.prepare();
                     if (mBDUSS == null) {
-                        TbToast.showTbToast(sClassLoader, activity, "暂未获取到 BDUSS", TbToast.LENGTH_LONG);
+                        TbToast.showTbToast(sClassLoader, activity, sRes, "暂未获取到 BDUSS", TbToast.LENGTH_LONG);
                     } else {
                         String result = main(mBDUSS);
-                        TbToast.showTbToast(sClassLoader, activity, result, TbToast.LENGTH_SHORT);
+                        TbToast.showTbToast(sClassLoader, activity, sRes, result, TbToast.LENGTH_SHORT);
                         if (result.endsWith("全部签到成功")) {
                             Preferences.putSignDate();
                             Preferences.putFollow(success);

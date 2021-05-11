@@ -14,13 +14,14 @@ import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
+import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.Rule;
 import gm.tieba.tabswitch.util.Reflect;
 
 public class PurifyMy extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.flutter.base.view.FlutterDelegateStatic", sClassLoader, "createFragmentTabStructure", XC_MethodReplacement.returnConstant(null));
-        Rule.findRule(AntiConfusionHelper.getPurifyMyMatchers(), new Rule.Callback() {
+        Rule.findRule(sRes.getStringArray(R.array.PurifyMy), new Rule.Callback() {
             @Override
             public void onRuleFound(String rule, String clazz, String method) throws Throwable {
                 switch (rule) {

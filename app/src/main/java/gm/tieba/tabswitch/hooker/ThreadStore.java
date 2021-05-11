@@ -21,11 +21,12 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
+import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.Rule;
+import gm.tieba.tabswitch.util.DisplayHelper;
 import gm.tieba.tabswitch.widget.TbDialog;
 import gm.tieba.tabswitch.widget.TbEditText;
 import gm.tieba.tabswitch.widget.TbToast;
-import gm.tieba.tabswitch.util.DisplayHelper;
 
 public class ThreadStore extends BaseHooker implements IHooker {
     private String mRegex = "";
@@ -48,7 +49,7 @@ public class ThreadStore extends BaseHooker implements IHooker {
                 textView.setOnClickListener(v -> showRegexDialog(activity));
             }
         });
-        Rule.findRule("\"c/f/post/threadstore\"", new Rule.Callback() {
+        Rule.findRule(sRes.getString(R.string.ThreadStore), new Rule.Callback() {
             @Override
             public void onRuleFound(String rule, String clazz, String method) {
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, Boolean[].class, new XC_MethodHook() {
@@ -105,7 +106,7 @@ public class ThreadStore extends BaseHooker implements IHooker {
                 mRegex = s.toString();
             }
         });
-        TbDialog bdAlert = new TbDialog(sClassLoader, activity, null, null, true, editText);
+        TbDialog bdAlert = new TbDialog(sClassLoader, activity, sRes, null, null, true, editText);
         bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
         bdAlert.setOnYesButtonClickListener(v -> {
             try {
@@ -114,7 +115,7 @@ public class ThreadStore extends BaseHooker implements IHooker {
                 activity.startActivity(activity.getIntent());
                 bdAlert.dismiss();
             } catch (PatternSyntaxException e) {
-                TbToast.showTbToast(sClassLoader, activity, e.getMessage(), TbToast.LENGTH_SHORT);
+                TbToast.showTbToast(sClassLoader, activity, sRes, e.getMessage(), TbToast.LENGTH_SHORT);
             }
         });
         bdAlert.show();

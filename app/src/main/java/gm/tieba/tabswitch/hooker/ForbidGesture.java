@@ -17,12 +17,13 @@ import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
+import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.Rule;
 
 @SuppressLint("ClickableViewAccessibility")
 public class ForbidGesture extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
-        Rule.findRule("Lcom/baidu/tieba/R$id;->new_pb_list:I", new Rule.Callback() {
+        Rule.findRule(sRes.getString(R.string.ForbidGesture), new Rule.Callback() {
             @Override
             public void onRuleFound(String rule, String clazz, String method) {
                 XposedBridge.hookAllConstructors(XposedHelpers.findClass(clazz, sClassLoader), new XC_MethodHook() {

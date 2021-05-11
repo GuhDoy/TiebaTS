@@ -100,12 +100,14 @@ public class TSPreferenceHelper {
         public final static int TYPE_SET = 2;
         private final ClassLoader mClassLoader;
         private final String mKey;
+        private final Resources mRes;
         public Switch bdSwitch;
         public LinearLayout switchButton;
 
         SwitchButtonHolder(ClassLoader classLoader, Activity activity, Resources res, String text,
                            String key, int type) {
             mClassLoader = classLoader;
+            mRes = res;
             mKey = key;
             bdSwitch = new Switch(classLoader, activity);
             bdSwitch.setOnSwitchStateChangeListener(new SwitchStatusChangeHandler());
@@ -184,7 +186,7 @@ public class TSPreferenceHelper {
                     mRegex.put(mKey, s.toString());
                 }
             });
-            TbDialog bdAlert = new TbDialog(mClassLoader, activity, null, null, true, editText);
+            TbDialog bdAlert = new TbDialog(mClassLoader, activity, mRes, null, null, true, editText);
             bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
             bdAlert.setOnYesButtonClickListener(v -> {
                 try {
@@ -198,7 +200,7 @@ public class TSPreferenceHelper {
                     }
                     bdAlert.dismiss();
                 } catch (PatternSyntaxException e) {
-                    TbToast.showTbToast(mClassLoader, activity, e.getMessage(), TbToast.LENGTH_SHORT);
+                    TbToast.showTbToast(mClassLoader, activity, res, e.getMessage(), TbToast.LENGTH_SHORT);
                 }
             });
             bdAlert.show();

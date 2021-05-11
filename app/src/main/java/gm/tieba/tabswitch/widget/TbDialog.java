@@ -3,6 +3,7 @@ package gm.tieba.tabswitch.widget;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +18,7 @@ import java.util.Objects;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
+import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.Rule;
 import gm.tieba.tabswitch.util.DisplayHelper;
 
@@ -28,7 +30,7 @@ public class TbDialog {
     private ViewGroup mRootView;
     private AlertDialog mDialog;
 
-    public TbDialog(ClassLoader classLoader, Context context, String title, String message, boolean cancelable, View contentView) {
+    public TbDialog(ClassLoader classLoader, Context context, Resources res, String title, String message, boolean cancelable, View contentView) {
         XposedHelpers.findAndHookMethod("com.baidu.tbadk.core.BaseFragment", classLoader, "getPageContext", new XC_MethodHook() {
             @Override
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
@@ -37,7 +39,7 @@ public class TbDialog {
         });
         mClassLoader = classLoader;
         try {
-            Rule.findRule("Lcom/baidu/tieba/R$layout;->dialog_bdalert:I", new Rule.Callback() {
+            Rule.findRule(res.getString(R.string.TbDialog), new Rule.Callback() {
                 @Override
                 public void onRuleFound(String rule, String clazz, String method) {
                     try {

@@ -29,8 +29,8 @@ import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
-import gm.tieba.tabswitch.widget.TbToast;
 import gm.tieba.tabswitch.util.IO;
+import gm.tieba.tabswitch.widget.TbToast;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
@@ -78,7 +78,7 @@ public class SaveImages extends BaseHooker implements IHooker {
                                 }
                                 saveImage(url, i, context);
                             }
-                            TbToast.showTbToast(sClassLoader, context, String.format(Locale.CHINA,
+                            TbToast.showTbToast(sClassLoader, context, sRes, String.format(Locale.CHINA,
                                     "已保存%d张图片至手机相册", mArrayList.size()), TbToast.LENGTH_SHORT);
                             return true;
                         }));

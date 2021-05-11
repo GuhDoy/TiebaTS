@@ -88,7 +88,7 @@ public class HistoryCache extends BaseHooker implements IHooker {
                 mRegex = s.toString();
             }
         });
-        TbDialog bdAlert = new TbDialog(sClassLoader, activity, null, null, true, editText);
+        TbDialog bdAlert = new TbDialog(sClassLoader, activity, sRes, null, null, true, editText);
         bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
         bdAlert.setOnYesButtonClickListener(v -> {
             try {
@@ -97,7 +97,7 @@ public class HistoryCache extends BaseHooker implements IHooker {
                 activity.startActivity(activity.getIntent());
                 bdAlert.dismiss();
             } catch (PatternSyntaxException e) {
-                TbToast.showTbToast(sClassLoader, activity, e.getMessage(), TbToast.LENGTH_SHORT);
+                TbToast.showTbToast(sClassLoader, activity, sRes, e.getMessage(), TbToast.LENGTH_SHORT);
             }
         });
         bdAlert.show();

@@ -33,9 +33,10 @@ import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
+import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.Rule;
-import gm.tieba.tabswitch.widget.TbToast;
 import gm.tieba.tabswitch.util.IO;
+import gm.tieba.tabswitch.widget.TbToast;
 
 @SuppressLint({"PrivateApi", "DiscouragedPrivateApi"})
 public class StorageRedirect extends BaseHooker implements IHooker {
@@ -63,7 +64,7 @@ public class StorageRedirect extends BaseHooker implements IHooker {
                 }
             });
         }
-        Rule.findRule("0x4197d783fc000000L", new Rule.Callback() {
+        Rule.findRule(sRes.getString(R.string.StorageRedirect), new Rule.Callback() {
             @Override
             public void onRuleFound(String rule, String clazz, String method) throws ClassNotFoundException {
                 for (Method md : sClassLoader.loadClass(clazz).getDeclaredMethods()) {
@@ -164,7 +165,7 @@ public class StorageRedirect extends BaseHooker implements IHooker {
                 applicationContext.sendBroadcast(scanIntent);
             }
             Looper.prepare();
-            TbToast.showTbToast(sClassLoader, applicationContext, fileName + "." + extension, TbToast.LENGTH_SHORT);
+            TbToast.showTbToast(sClassLoader, applicationContext, sRes, fileName + "." + extension, TbToast.LENGTH_SHORT);
             Looper.loop();
         } catch (IOException e) {
             XposedBridge.log(e);

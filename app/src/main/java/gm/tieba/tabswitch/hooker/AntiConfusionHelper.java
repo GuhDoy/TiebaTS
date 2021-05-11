@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 
@@ -26,54 +27,27 @@ import java.util.List;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
+import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.dao.Rule;
 
 public class AntiConfusionHelper {
     static List<String> matcherList = new ArrayList<>();
 
-    static {
-        //TSPreference
-        matcherList.add("Lcom/baidu/tieba/R$id;->black_address_list:I");
-        //TSPreferenceHelper
-        matcherList.add("Lcom/baidu/tieba/R$layout;->dialog_bdalert:I");
-        matcherList.add("\"can not be call not thread! trace = \"");
-        //Purify
-        Collections.addAll(matcherList, getPurifyMatchers());
-        //PurifyEnter
-        matcherList.add("Lcom/baidu/tieba/R$id;->square_background:I");//吧广场
-        matcherList.add("Lcom/baidu/tieba/R$id;->create_bar_container:I");//创建自己的吧
-        //PurifyMy
-        Collections.addAll(matcherList, getPurifyMyMatchers());
-        //CreateView
-        matcherList.add("Lcom/baidu/tieba/R$id;->navigationBarGoSignall:I");
-        //Ripple
-        matcherList.add("Lcom/baidu/tieba/R$layout;->new_sub_pb_list_item:I");
-        //ThreadStore
-        matcherList.add("\"c/f/post/threadstore\"");
-        //NewSub
-        matcherList.add("Lcom/baidu/tieba/R$id;->subpb_head_user_info_root:I");
-        //MyAttention
-        // matcherList.add("Lcom/baidu/tieba/R$layout;->person_list_item:I");
-        //StorageRedirect
-        matcherList.add("0x4197d783fc000000L");
-        //ForbidGesture
-        matcherList.add("Lcom/baidu/tieba/R$id;->new_pb_list:I");
-    }
-
-    public static String[] getPurifyMatchers() {
-        return new String[]{"\"c/s/splashSchedule\"",//旧启动广告
-                "Lcom/baidu/tieba/recapp/lego/model/AdCard;-><init>(Lorg/json/JSONObject;)V",//卡片广告
-                "\"pic_amount\"",//图片广告
-                "\"key_frs_dialog_ad_last_show_time\"",//吧推广弹窗
-                "Lcom/baidu/tieba/R$id;->frs_ad_banner:I",//吧推广横幅
-                "Lcom/baidu/tieba/R$layout;->pb_child_title:I"};//视频相关推荐
-    }
-
-    public static String[] getPurifyMyMatchers() {
-        return new String[]{"Lcom/baidu/tieba/R$drawable;->icon_pure_topbar_store44_svg:I",//商店
-                "Lcom/baidu/tieba/R$id;->function_item_bottom_divider:I",//分割线
-                "\"https://tieba.baidu.com/mo/q/duxiaoman/index?noshare=1\""};//我的ArrayList
+    public static void initMatchers(Resources res) {
+        matcherList.add(res.getString(R.string.TSPreference));
+        matcherList.add(res.getString(R.string.TbDialog));
+        matcherList.add(res.getString(R.string.TbToast));
+        Collections.addAll(matcherList, res.getStringArray(R.array.Purify));
+        Collections.addAll(matcherList, res.getStringArray(R.array.PurifyEnter));
+        Collections.addAll(matcherList, res.getStringArray(R.array.PurifyMy));
+        matcherList.add(res.getString(R.string.CreateView));
+        matcherList.add(res.getString(R.string.Ripple));
+        matcherList.add(res.getString(R.string.ThreadStore));
+        matcherList.add(res.getString(R.string.NewSub));
+        // matcherList.add(res.getString(R.string.MyAttention));
+        matcherList.add(res.getString(R.string.StorageRedirect));
+        matcherList.add(res.getString(R.string.ForbidGesture));
     }
 
     public static List<String> getRulesLost() {

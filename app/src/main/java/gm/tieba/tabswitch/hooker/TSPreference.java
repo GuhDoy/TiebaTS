@@ -21,6 +21,7 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.BuildConfig;
 import gm.tieba.tabswitch.IHooker;
+import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.XposedInit;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.dao.Rule;
@@ -61,7 +62,7 @@ public class TSPreference extends BaseHooker implements IHooker {
                 parent.addView(TSPreferenceHelper.createButton(sClassLoader, activity, SETTINGS_MAIN, null, v -> startMainPreferenceActivity(activity)), 11);
             }
         });
-        Rule.findRule("Lcom/baidu/tieba/R$id;->black_address_list:I", new Rule.Callback() {
+        Rule.findRule(sRes.getString(R.string.TSPreference), new Rule.Callback() {
             @Override
             public void onRuleFound(String rule, String clazz, String method) {
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, XposedHelpers.findClass("com.baidu.tieba.setting.im.more.SecretSettingActivity", sClassLoader), new XC_MethodHook() {
@@ -104,7 +105,7 @@ public class TSPreference extends BaseHooker implements IHooker {
             if (BuildConfig.VERSION_NAME.contains("alpha") || BuildConfig.VERSION_NAME.contains("beta")) {
                 stringBuilder.append("\n\n提示：您当前安装的是非正式版本，可能含有较多错误，如果您希望得到更稳定的使用体验，建议您安装正式版本。");
             }
-            TbDialog bdAlert = new TbDialog(sClassLoader, activity, "使用协议", stringBuilder.toString(), true, null);
+            TbDialog bdAlert = new TbDialog(sClassLoader, activity, sRes, "使用协议", stringBuilder.toString(), true, null);
             bdAlert.setOnNoButtonClickListener(v -> {
                 Intent intent = new Intent();
                 intent.setAction(Intent.ACTION_DELETE);
@@ -173,7 +174,7 @@ public class TSPreference extends BaseHooker implements IHooker {
         SwitchButtonHolder autoSign = new SwitchButtonHolder(sClassLoader, activity, sRes, "自动签到", "auto_sign", SwitchButtonHolder.TYPE_SWITCH);
         if (!Preferences.getIsAutoSignEnabled()) {
             autoSign.setOnButtonClickListener(v -> {
-                TbDialog bdalert = new TbDialog(sClassLoader, activity, "提示",
+                TbDialog bdalert = new TbDialog(sClassLoader, activity, sRes, "提示",
                         "这是一个需要网络请求并且有封号风险的功能，您需要自行承担使用此功能的风险，请谨慎使用！", true, null);
                 bdalert.setOnNoButtonClickListener(v2 -> bdalert.dismiss());
                 bdalert.setOnYesButtonClickListener(v2 -> {
@@ -219,7 +220,7 @@ public class TSPreference extends BaseHooker implements IHooker {
         preferenceLayout.addView(TSPreferenceHelper.createButton(sClassLoader, activity, "作者", "developed by GM", v -> {
             sCount++;
             if (sCount % 3 == 0) {
-                TbToast.showTbToast(sClassLoader, activity, TSPreferenceHelper.randomToast(), TbToast.LENGTH_SHORT);
+                TbToast.showTbToast(sClassLoader, activity, sRes, TSPreferenceHelper.randomToast(), TbToast.LENGTH_SHORT);
             }
             if (sCount >= 10) {
                 Preferences.putPurifyEnabled();

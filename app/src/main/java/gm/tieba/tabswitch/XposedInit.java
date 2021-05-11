@@ -25,11 +25,11 @@ import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
+import gm.tieba.tabswitch.dao.Preferences;
+import gm.tieba.tabswitch.dao.Rule;
 import gm.tieba.tabswitch.hooker.AntiConfusion;
 import gm.tieba.tabswitch.hooker.AntiConfusionHelper;
 import gm.tieba.tabswitch.hooker.TSPreference;
-import gm.tieba.tabswitch.dao.Preferences;
-import gm.tieba.tabswitch.dao.Rule;
 import gm.tieba.tabswitch.widget.TbDialog;
 
 public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit {
@@ -56,6 +56,7 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
                     if (!(param.args[0] instanceof Application)) return;
                     Context context = ((Application) param.args[0]).getApplicationContext();
                     Preferences.init(context);
+                    AntiConfusionHelper.initMatchers(mRes);
                     try {
                         Rule.init(context);
                         List<String> lostList = AntiConfusionHelper.getRulesLost();
@@ -71,7 +72,7 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
                                 XposedBridge.log(e.toString());
                                 String message = "规则异常，建议您执行反混淆。若执行完后仍出现此对话框则应更新模块，若模块已是最新版本则应向作者反馈。\n" + e.getMessage();
                                 if (Rule.isRuleFound("Lcom/baidu/tieba/R$layout;->dialog_bdalert:I")) {
-                                    TbDialog bdAlert = new TbDialog(classLoader, activity, "警告", message, false, null);
+                                    TbDialog bdAlert = new TbDialog(classLoader, activity, mRes, "警告", message, false, null);
                                     bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
                                     bdAlert.setOnYesButtonClickListener(v -> AntiConfusionHelper.saveAndRestart(activity, "unknown", null));
                                     bdAlert.show();
@@ -89,7 +90,7 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
                         new AntiConfusion(classLoader, mRes).hook();
                         return;
                     }
-
+XposedBridge.log(Arrays.toString(mRes.getStringArray(R.array.PurifyMy)));
                     new TSPreference(classLoader, mRes).hook();
                     for (Map.Entry<String, ?> entry : Preferences.getAll().entrySet()) {
                         BaseHooker.init(classLoader, context, mRes, entry);

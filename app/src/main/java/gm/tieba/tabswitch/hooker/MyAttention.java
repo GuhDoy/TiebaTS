@@ -5,26 +5,22 @@ import android.app.Activity;
 import android.content.SharedPreferences;
 import android.text.TextUtils;
 import android.view.KeyEvent;
-import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
-import android.widget.TextView;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.dao.Preferences;
-import gm.tieba.tabswitch.dao.Rule;
 import gm.tieba.tabswitch.widget.TbDialog;
 import gm.tieba.tabswitch.widget.TbEditText;
-import gm.tieba.tabswitch.util.Reflect;
 
 public class MyAttention extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
-        Rule.findRule("Lcom/baidu/tieba/R$layout;->person_list_item:I", new Rule.Callback() {
+        /*
+        Rule.findRule(sRes.getString(R.string.MyAttention), new Rule.Callback() {
             @Override
             public void onRuleFound(String rule, String clazz, String method) {
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, int.class, View.class, ViewGroup.class, new XC_MethodHook() {
@@ -50,6 +46,7 @@ public class MyAttention extends BaseHooker implements IHooker {
                 });
             }
         });
+        */
         XposedHelpers.findAndHookMethod("tbclient.User$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
@@ -66,7 +63,7 @@ public class MyAttention extends BaseHooker implements IHooker {
     private void showNoteDialog(Activity activity, String key) {
         EditText editText = new TbEditText(sClassLoader, activity, sRes);
         editText.setHint(Preferences.getNote(key));
-        TbDialog bdAlert = new TbDialog(sClassLoader, activity, null, null, true, editText);
+        TbDialog bdAlert = new TbDialog(sClassLoader, activity, sRes, null, null, true, editText);
         bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
         bdAlert.setOnYesButtonClickListener(v -> {
             SharedPreferences.Editor editor = Preferences.getTsNotesEditor();

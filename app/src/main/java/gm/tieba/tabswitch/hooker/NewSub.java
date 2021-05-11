@@ -7,6 +7,7 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
+import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.Rule;
 import gm.tieba.tabswitch.util.Reflect;
 import gm.tieba.tabswitch.widget.NavigationBar;
@@ -16,7 +17,7 @@ public class NewSub extends BaseHooker implements IHooker {
     private Object mPostId;
 
     public void hook() throws Throwable {
-        Rule.findRule("Lcom/baidu/tieba/R$id;->subpb_head_user_info_root:I", new Rule.Callback() {
+        Rule.findRule(sRes.getString(R.string.NewSub), new Rule.Callback() {
             @Override
             public void onRuleFound(String rule, String clazz, String method) {
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {

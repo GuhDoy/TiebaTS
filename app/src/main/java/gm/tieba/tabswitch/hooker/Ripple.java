@@ -10,14 +10,14 @@ import java.lang.reflect.Field;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
+import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.Rule;
 
 public class Ripple extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
-        Rule.findRule("Lcom/baidu/tieba/R$layout;->new_sub_pb_list_item:I", new Rule.Callback() {
+        Rule.findRule(sRes.getString(R.string.Ripple), new Rule.Callback() {
             @Override
             public void onRuleFound(String rule, String clazz, String method) {
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {

@@ -14,30 +14,30 @@ import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
+import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.Rule;
 import gm.tieba.tabswitch.util.DisplayHelper;
 
 public class PurifyEnter extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.flutter.base.view.FlutterEnterForumDelegateStatic", sClassLoader, "createFragmentTabStructure", XC_MethodReplacement.returnConstant(null));
-        Rule.findRule("Lcom/baidu/tieba/R$id;->square_background:I",
-                "Lcom/baidu/tieba/R$id;->create_bar_container:I", new Rule.Callback() {
+        Rule.findRule(sRes.getStringArray(R.array.PurifyEnter), new Rule.Callback() {
+            @Override
+            public void onRuleFound(String rule, String clazz, String method) {
+                XposedBridge.hookAllConstructors(XposedHelpers.findClass(clazz, sClassLoader), new XC_MethodHook() {
                     @Override
-                    public void onRuleFound(String rule, String clazz, String method) {
-                        XposedBridge.hookAllConstructors(XposedHelpers.findClass(clazz, sClassLoader), new XC_MethodHook() {
-                            @Override
-                            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                                for (Field field : param.thisObject.getClass().getDeclaredFields()) {
-                                    field.setAccessible(true);
-                                    if (field.get(param.thisObject) instanceof View) {
-                                        View view = (View) field.get(param.thisObject);
-                                        view.setVisibility(View.GONE);
-                                    }
-                                }
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        for (Field field : param.thisObject.getClass().getDeclaredFields()) {
+                            field.setAccessible(true);
+                            if (field.get(param.thisObject) instanceof View) {
+                                View view = (View) field.get(param.thisObject);
+                                view.setVisibility(View.GONE);
                             }
-                        });
+                        }
                     }
                 });
+            }
+        });
         //可能感兴趣的吧
         XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
             @Override

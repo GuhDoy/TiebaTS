@@ -22,11 +22,12 @@ import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
+import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.Rule;
 
 public class Purify extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
-        Rule.findRule(AntiConfusionHelper.getPurifyMatchers(), new Rule.Callback() {
+        Rule.findRule(sRes.getStringArray(R.array.Purify), new Rule.Callback() {
             @Override
             public void onRuleFound(String rule, String clazz, String method) throws Throwable {
                 switch (rule) {

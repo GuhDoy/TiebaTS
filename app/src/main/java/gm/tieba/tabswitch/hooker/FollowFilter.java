@@ -18,7 +18,7 @@ public class FollowFilter extends BaseHooker implements IHooker {
             public void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 if (Preferences.getFollow() == null) {
                     Looper.prepare();
-                    TbToast.showTbToast(sClassLoader, sContextRef.get(), "暂未获取到关注列表", TbToast.LENGTH_LONG);
+                    TbToast.showTbToast(sClassLoader, sContextRef.get(), sRes, "暂未获取到关注列表", TbToast.LENGTH_LONG);
                     Looper.loop();
                 }
                 List<?> list = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");
