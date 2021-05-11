@@ -14,9 +14,9 @@ import org.json.JSONObject;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.hooker.model.BaseHooker;
-import gm.tieba.tabswitch.hooker.model.IHooker;
-import gm.tieba.tabswitch.hooker.model.Rule;
+import gm.tieba.tabswitch.BaseHooker;
+import gm.tieba.tabswitch.IHooker;
+import gm.tieba.tabswitch.dao.Rule;
 
 public class OriginSrc extends BaseHooker implements IHooker {
     @SuppressLint("MissingPermission")

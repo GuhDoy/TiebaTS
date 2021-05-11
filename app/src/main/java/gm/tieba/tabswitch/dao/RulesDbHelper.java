@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.util;
+package gm.tieba.tabswitch.dao;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;

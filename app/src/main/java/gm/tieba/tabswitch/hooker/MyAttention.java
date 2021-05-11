@@ -14,12 +14,12 @@ import android.widget.TextView;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.hooker.model.BaseHooker;
-import gm.tieba.tabswitch.hooker.model.IHooker;
-import gm.tieba.tabswitch.hooker.model.Preferences;
-import gm.tieba.tabswitch.hooker.model.Rule;
-import gm.tieba.tabswitch.hooker.model.TbDialogBuilder;
-import gm.tieba.tabswitch.hooker.model.TbEditText;
+import gm.tieba.tabswitch.BaseHooker;
+import gm.tieba.tabswitch.IHooker;
+import gm.tieba.tabswitch.dao.Preferences;
+import gm.tieba.tabswitch.dao.Rule;
+import gm.tieba.tabswitch.widget.TbDialog;
+import gm.tieba.tabswitch.widget.TbEditText;
 import gm.tieba.tabswitch.util.Reflect;
 
 public class MyAttention extends BaseHooker implements IHooker {
@@ -66,7 +66,7 @@ public class MyAttention extends BaseHooker implements IHooker {
     private void showNoteDialog(Activity activity, String key) {
         EditText editText = new TbEditText(sClassLoader, activity, sRes);
         editText.setHint(Preferences.getNote(key));
-        TbDialogBuilder bdAlert = new TbDialogBuilder(sClassLoader, activity, null, null, true, editText);
+        TbDialog bdAlert = new TbDialog(sClassLoader, activity, null, null, true, editText);
         bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
         bdAlert.setOnYesButtonClickListener(v -> {
             SharedPreferences.Editor editor = Preferences.getTsNotesEditor();

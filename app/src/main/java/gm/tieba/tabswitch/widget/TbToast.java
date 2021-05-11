@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hooker.model;
+package gm.tieba.tabswitch.widget;
 
 import android.content.Context;
 
@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 
 import de.robv.android.xposed.XposedBridge;
+import gm.tieba.tabswitch.dao.Rule;
 
 public class TbToast {
     public static int LENGTH_SHORT = 2000;

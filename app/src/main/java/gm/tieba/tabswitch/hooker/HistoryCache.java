@@ -1,17 +1,13 @@
 package gm.tieba.tabswitch.hooker;
 
 import android.app.Activity;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
-import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -22,13 +18,12 @@ import java.util.regex.PatternSyntaxException;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.hooker.model.BaseHooker;
-import gm.tieba.tabswitch.hooker.model.IHooker;
-import gm.tieba.tabswitch.hooker.model.TbDialogBuilder;
-import gm.tieba.tabswitch.hooker.model.TbEditText;
-import gm.tieba.tabswitch.hooker.model.TbToast;
-import gm.tieba.tabswitch.util.DisplayHelper;
-import gm.tieba.tabswitch.util.Reflect;
+import gm.tieba.tabswitch.BaseHooker;
+import gm.tieba.tabswitch.IHooker;
+import gm.tieba.tabswitch.widget.NavigationBar;
+import gm.tieba.tabswitch.widget.TbDialog;
+import gm.tieba.tabswitch.widget.TbEditText;
+import gm.tieba.tabswitch.widget.TbToast;
 
 public class HistoryCache extends BaseHooker implements IHooker {
     private String mRegex = "";
@@ -38,21 +33,8 @@ public class HistoryCache extends BaseHooker implements IHooker {
             @Override
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 Activity activity = (Activity) param.thisObject;
-                Object navigationBar = Reflect.getObjectField(param.thisObject, "com.baidu.tbadk.core.view.NavigationBar");
-                Class<?> ControlAlign = sClassLoader.loadClass("com.baidu.tbadk.core.view.NavigationBar$ControlAlign");
-                for (Object HORIZONTAL_RIGHT : ControlAlign.getEnumConstants()) {
-                    if (HORIZONTAL_RIGHT.toString().equals("HORIZONTAL_RIGHT")) {
-                        Class<?> NavigationBar = sClassLoader.loadClass("com.baidu.tbadk.core.view.NavigationBar");
-                        TextView textView = (TextView) NavigationBar.getDeclaredMethod("addTextButton", ControlAlign, String.class, View.OnClickListener.class)
-                                .invoke(navigationBar, HORIZONTAL_RIGHT, "搜索", (View.OnClickListener) v -> showRegexDialog(activity));
-                        if (DisplayHelper.isLightMode(activity)) {
-                            textView.setTextColor(Color.parseColor("#FF3E3D40"));
-                        } else {
-                            textView.setTextColor(Color.parseColor("#FFCBCBCC"));
-                        }
-                        return;
-                    }
-                }
+                new NavigationBar(sClassLoader, activity, param.thisObject)
+                        .addTextButton("搜索", v -> showRegexDialog(activity));
             }
         });
         for (Method method : sClassLoader.loadClass("com.baidu.tieba.myCollection.history.PbHistoryActivity").getDeclaredMethods()) {
@@ -106,7 +88,7 @@ public class HistoryCache extends BaseHooker implements IHooker {
                 mRegex = s.toString();
             }
         });
-        TbDialogBuilder bdAlert = new TbDialogBuilder(sClassLoader, activity, null, null, true, editText);
+        TbDialog bdAlert = new TbDialog(sClassLoader, activity, null, null, true, editText);
         bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
         bdAlert.setOnYesButtonClickListener(v -> {
             try {

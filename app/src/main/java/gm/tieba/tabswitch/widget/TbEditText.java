@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hooker.model;
+package gm.tieba.tabswitch.widget;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -35,8 +35,8 @@ public class TbEditText extends EditText {
                     .getField("blue_rectangle_input_bg").getInt(null));
             setMinWidth((int) context.getResources().getDimension(classLoader.loadClass(
                     "com.baidu.tieba.R$dimen").getField("ds140").getInt(null)));
-        } catch (Throwable throwable) {
-            XposedBridge.log(throwable);
+        } catch (Throwable e) {
+            XposedBridge.log(e);
         }
     }
 }

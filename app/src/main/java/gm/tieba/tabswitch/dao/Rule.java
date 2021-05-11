@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hooker.model;
+package gm.tieba.tabswitch.dao;
 
 import android.content.Context;
 import android.database.Cursor;

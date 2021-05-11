@@ -10,8 +10,8 @@ import android.view.View;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.hooker.model.BaseHooker;
-import gm.tieba.tabswitch.hooker.model.IHooker;
+import gm.tieba.tabswitch.BaseHooker;
+import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.util.DisplayHelper;
 
 public class EyeshieldMode extends BaseHooker implements IHooker {

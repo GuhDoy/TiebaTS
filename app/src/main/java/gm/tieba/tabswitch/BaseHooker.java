@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hooker.model;
+package gm.tieba.tabswitch;
 
 import android.content.Context;
 import android.content.res.Resources;

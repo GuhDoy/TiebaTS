@@ -29,11 +29,11 @@ import bin.zip.ZipEntry;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import gm.tieba.tabswitch.R;
-import gm.tieba.tabswitch.hooker.model.BaseHooker;
-import gm.tieba.tabswitch.hooker.model.IHooker;
-import gm.tieba.tabswitch.hooker.model.Preferences;
+import gm.tieba.tabswitch.BaseHooker;
+import gm.tieba.tabswitch.IHooker;
+import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.util.IO;
-import gm.tieba.tabswitch.util.RulesDbHelper;
+import gm.tieba.tabswitch.dao.RulesDbHelper;
 
 public class AntiConfusion extends BaseHooker implements IHooker {
     private static final String SPRINGBOARD_ACTIVITY = "com.baidu.tieba.tblauncher.MainTabActivity";

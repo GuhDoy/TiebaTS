@@ -2,17 +2,14 @@ package gm.tieba.tabswitch.hooker;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Color;
-import android.view.View;
-import android.widget.TextView;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.hooker.model.BaseHooker;
-import gm.tieba.tabswitch.hooker.model.IHooker;
-import gm.tieba.tabswitch.hooker.model.Rule;
-import gm.tieba.tabswitch.util.DisplayHelper;
+import gm.tieba.tabswitch.BaseHooker;
+import gm.tieba.tabswitch.IHooker;
+import gm.tieba.tabswitch.dao.Rule;
 import gm.tieba.tabswitch.util.Reflect;
+import gm.tieba.tabswitch.widget.NavigationBar;
 
 public class NewSub extends BaseHooker implements IHooker {
     private Object mThreadId;
@@ -25,25 +22,16 @@ public class NewSub extends BaseHooker implements IHooker {
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        Activity activity = (Activity) Reflect.getObjectField(param.thisObject, "com.baidu.tieba.pb.pb.sub.NewSubPbActivity");
-                        Object navigationBar = Reflect.getObjectField(param.thisObject, "com.baidu.tbadk.core.view.NavigationBar");
-                        Class<?> ControlAlign = sClassLoader.loadClass("com.baidu.tbadk.core.view.NavigationBar$ControlAlign");
-                        for (Object HORIZONTAL_RIGHT : ControlAlign.getEnumConstants()) {
-                            if (HORIZONTAL_RIGHT.toString().equals("HORIZONTAL_RIGHT")) {
-                                Class<?> NavigationBar = sClassLoader.loadClass("com.baidu.tbadk.core.view.NavigationBar");
-                                TextView textView = (TextView) NavigationBar.getDeclaredMethod("addTextButton", ControlAlign, String.class, View.OnClickListener.class)
-                                        .invoke(navigationBar, HORIZONTAL_RIGHT, "查看主题贴", (View.OnClickListener) v -> startPbActivity(activity));
-                                if (!DisplayHelper.isLightMode(activity)) {
-                                    textView.setTextColor(Color.parseColor("#FFCBCBCC"));
-                                }
-                                return;
-                            }
-                        }
+                        Activity activity = (Activity) Reflect.getObjectField(param.thisObject,
+                                "com.baidu.tieba.pb.pb.sub.NewSubPbActivity");
+                        new NavigationBar(sClassLoader, activity, param.thisObject)
+                                .addTextButton("查看主题贴", v -> startPbActivity(activity));
                     }
                 });
             }
         });
-        XposedHelpers.findAndHookMethod("tbclient.PbFloor.DataRes$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
+        XposedHelpers.findAndHookMethod("tbclient.PbFloor.DataRes$Builder", sClassLoader,
+                "build", boolean.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 Object thread = XposedHelpers.getObjectField(param.thisObject, "thread");

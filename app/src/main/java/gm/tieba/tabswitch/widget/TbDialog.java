@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hooker.model;
+package gm.tieba.tabswitch.widget;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -17,9 +17,10 @@ import java.util.Objects;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
+import gm.tieba.tabswitch.dao.Rule;
 import gm.tieba.tabswitch.util.DisplayHelper;
 
-public class TbDialogBuilder {
+public class TbDialog {
     private final ClassLoader mClassLoader;
     private Class<?> mTbDialog;
     private Object mBdAlert;
@@ -27,7 +28,7 @@ public class TbDialogBuilder {
     private ViewGroup mRootView;
     private AlertDialog mDialog;
 
-    public TbDialogBuilder(ClassLoader classLoader, Context context, String title, String message, boolean cancelable, View contentView) {
+    public TbDialog(ClassLoader classLoader, Context context, String title, String message, boolean cancelable, View contentView) {
         XposedHelpers.findAndHookMethod("com.baidu.tbadk.core.BaseFragment", classLoader, "getPageContext", new XC_MethodHook() {
             @Override
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
@@ -62,13 +63,13 @@ public class TbDialogBuilder {
                             mRootView.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("bdDialog_divider_line").getInt(null)).setBackgroundColor(mRootView.getContext().getColor(classLoader.loadClass("com.baidu.tieba.R$color").getField("CAM_X0105").getInt(null)));
                             mRootView.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("divider_yes_no_button").getInt(null)).setBackgroundColor(mRootView.getContext().getColor(classLoader.loadClass("com.baidu.tieba.R$color").getField("CAM_X0105").getInt(null)));
                         }
-                    } catch (Throwable throwable) {
-                        XposedBridge.log(throwable);
+                    } catch (Throwable e) {
+                        XposedBridge.log(e);
                     }
                 }
             });
-        } catch (Throwable throwable) {
-            XposedBridge.log(throwable);
+        } catch (Throwable e) {
+            XposedBridge.log(e);
         }
     }
 
@@ -80,8 +81,8 @@ public class TbDialogBuilder {
                 XposedHelpers.setObjectField(mBdAlert, "m", "取消");
             }
             mRootView.findViewById(mClassLoader.loadClass("com.baidu.tieba.R$id").getField("no").getInt(null)).setOnClickListener(onClickListener);
-        } catch (Throwable throwable) {
-            XposedBridge.log(throwable);
+        } catch (Throwable e) {
+            XposedBridge.log(e);
         }
     }
 
@@ -93,16 +94,16 @@ public class TbDialogBuilder {
                 XposedHelpers.setObjectField(mBdAlert, "l", "确定");
             }
             getYesButton().setOnClickListener(onClickListener);
-        } catch (Throwable throwable) {
-            XposedBridge.log(throwable);
+        } catch (Throwable e) {
+            XposedBridge.log(e);
         }
     }
 
     public TextView getYesButton() {
         try {
             return mRootView.findViewById(mClassLoader.loadClass("com.baidu.tieba.R$id").getField("yes").getInt(null));
-        } catch (Throwable throwable) {
-            XposedBridge.log(throwable);
+        } catch (Throwable e) {
+            XposedBridge.log(e);
         }
         return null;
     }
@@ -135,8 +136,8 @@ public class TbDialogBuilder {
             } catch (NoSuchFieldError e) {
                 mDialog = (AlertDialog) XposedHelpers.getObjectField(mBdAlert, "w");
             }
-        } catch (Throwable throwable) {
-            XposedBridge.log(throwable);
+        } catch (Throwable e) {
+            XposedBridge.log(e);
         }
     }
 
@@ -151,8 +152,8 @@ public class TbDialogBuilder {
             } catch (NoSuchMethodException e) {
                 mTbDialog.getDeclaredMethod("k").invoke(mBdAlert);
             }
-        } catch (Throwable throwable) {
-            XposedBridge.log(throwable);
+        } catch (Throwable e) {
+            XposedBridge.log(e);
         }
     }
 }

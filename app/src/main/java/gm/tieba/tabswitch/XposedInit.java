@@ -28,10 +28,9 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import gm.tieba.tabswitch.hooker.AntiConfusion;
 import gm.tieba.tabswitch.hooker.AntiConfusionHelper;
 import gm.tieba.tabswitch.hooker.TSPreference;
-import gm.tieba.tabswitch.hooker.model.BaseHooker;
-import gm.tieba.tabswitch.hooker.model.Preferences;
-import gm.tieba.tabswitch.hooker.model.Rule;
-import gm.tieba.tabswitch.hooker.model.TbDialogBuilder;
+import gm.tieba.tabswitch.dao.Preferences;
+import gm.tieba.tabswitch.dao.Rule;
+import gm.tieba.tabswitch.widget.TbDialog;
 
 public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit {
     public static String sPath;
@@ -70,15 +69,15 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
                                 Activity activity = (Activity) param.thisObject;
                                 if (!Preferences.getIsEULAAccepted()) return;
                                 XposedBridge.log(e.toString());
+                                String message = "规则异常，建议您执行反混淆。若执行完后仍出现此对话框则应更新模块，若模块已是最新版本则应向作者反馈。\n" + e.getMessage();
                                 if (Rule.isRuleFound("Lcom/baidu/tieba/R$layout;->dialog_bdalert:I")) {
-                                    TbDialogBuilder bdAlert = new TbDialogBuilder(classLoader, activity, "警告",
-                                            "规则异常，建议您执行反混淆。若执行完后仍出现此对话框则应更新模块，若模块已是最新版本则应向作者反馈。\n" + e.toString(), false, null);
+                                    TbDialog bdAlert = new TbDialog(classLoader, activity, "警告", message, false, null);
                                     bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
                                     bdAlert.setOnYesButtonClickListener(v -> AntiConfusionHelper.saveAndRestart(activity, "unknown", null));
                                     bdAlert.show();
                                 } else {
                                     AlertDialog alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
-                                            .setTitle("警告").setMessage("规则异常，建议您执行反混淆。若执行完后仍出现此对话框则应更新模块，若模块已是最新版本则应向作者反馈。\n" + e.toString()).setCancelable(false)
+                                            .setTitle("警告").setMessage(message).setCancelable(false)
                                             .setNegativeButton("取消", (dialogInterface, i) -> {
                                             }).setPositiveButton("确定", (dialogInterface, i) -> AntiConfusionHelper.saveAndRestart(activity, "unknown", null)).create();
                                     alertDialog.show();

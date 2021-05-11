@@ -26,8 +26,8 @@ import java.util.List;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.hooker.model.Preferences;
-import gm.tieba.tabswitch.hooker.model.Rule;
+import gm.tieba.tabswitch.dao.Preferences;
+import gm.tieba.tabswitch.dao.Rule;
 
 public class AntiConfusionHelper {
     static List<String> matcherList = new ArrayList<>();

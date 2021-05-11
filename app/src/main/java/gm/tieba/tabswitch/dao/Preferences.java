@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hooker.model;
+package gm.tieba.tabswitch.dao;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
