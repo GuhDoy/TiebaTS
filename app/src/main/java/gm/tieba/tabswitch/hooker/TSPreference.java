@@ -24,7 +24,7 @@ import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.XposedInit;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.dao.Rule;
-import gm.tieba.tabswitch.hooker.TSPreferenceHelper.SwitchHolder;
+import gm.tieba.tabswitch.hooker.TSPreferenceHelper.SwitchButtonHolder;
 import gm.tieba.tabswitch.widget.NavigationBar;
 import gm.tieba.tabswitch.widget.TbDialog;
 import gm.tieba.tabswitch.widget.TbToast;
@@ -144,61 +144,60 @@ public class TSPreference extends BaseHooker implements IHooker {
             activity.startActivity(intent);
         }));
         if (isPurifyEnabled) {
-            preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "真正的净化界面", "purify", SwitchHolder.TYPE_SWITCH));
+            preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "真正的净化界面", "purify", SwitchButtonHolder.TYPE_SWITCH));
         }
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "净化进吧", "purify_enter", SwitchHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "净化我的", "purify_my", SwitchHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "隐藏小红点", "red_tip", SwitchHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "只推荐已关注的吧", "follow_filter", SwitchHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "过滤首页推荐", "personalized_filter", SwitchHolder.TYPE_DIALOG));
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "过滤帖子回复", "content_filter", SwitchHolder.TYPE_DIALOG));
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "过滤吧页面", "frs_page_filter", SwitchHolder.TYPE_DIALOG));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "净化进吧", "purify_enter", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "净化我的", "purify_my", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "隐藏小红点", "red_tip", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "只推荐已关注的吧", "follow_filter", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "过滤首页推荐", "personalized_filter", SwitchButtonHolder.TYPE_DIALOG));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "过滤帖子回复", "content_filter", SwitchButtonHolder.TYPE_DIALOG));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "过滤吧页面", "frs_page_filter", SwitchButtonHolder.TYPE_DIALOG));
         if (isPurifyEnabled) {
             preferenceLayout.addView(TSPreferenceHelper.createTextView(sClassLoader, activity, "别出新意"));
         } else {
             preferenceLayout.addView(TSPreferenceHelper.createTextView(sClassLoader, activity, "增加功能"));
         }
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "进吧增加收藏、历史", "create_view", SwitchHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "我的收藏增加搜索、吧名", "thread_store", SwitchHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "浏览历史增加搜索", "history_cache", SwitchHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "楼层回复增加查看主题贴", "new_sub", SwitchHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "楼层增加水波纹点按效果", "ripple", SwitchHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "长按下载保存全部图片", "save_images", SwitchHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "进吧增加收藏、历史", "create_view", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "我的收藏增加搜索、吧名", "thread_store", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "浏览历史增加搜索", "history_cache", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "楼层回复增加查看主题贴", "new_sub", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "楼层增加水波纹点按效果", "ripple", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "长按下载保存全部图片", "save_images", SwitchButtonHolder.TYPE_SWITCH));
         // preferenceLayout.addView(new SwitchViewHolder(sClassLoader, activity, sRes, "长按关注的人设置备注名", "my_attention"));
         if (isPurifyEnabled) {
             preferenceLayout.addView(TSPreferenceHelper.createTextView(sClassLoader, activity, "垂手可得"));
         } else {
             preferenceLayout.addView(TSPreferenceHelper.createTextView(sClassLoader, activity, "自动化"));
         }
-        SwitchHolder autoSign = new SwitchHolder(sClassLoader, activity, sRes, "自动签到", "auto_sign", SwitchHolder.TYPE_SWITCH);
+        SwitchButtonHolder autoSign = new SwitchButtonHolder(sClassLoader, activity, sRes, "自动签到", "auto_sign", SwitchButtonHolder.TYPE_SWITCH);
         if (!Preferences.getIsAutoSignEnabled()) {
-            autoSign.newSwitch.setOnClickListener(v -> {
+            autoSign.setOnButtonClickListener(v -> {
                 TbDialog bdalert = new TbDialog(sClassLoader, activity, "提示",
                         "这是一个需要网络请求并且有封号风险的功能，您需要自行承担使用此功能的风险，请谨慎使用！", true, null);
                 bdalert.setOnNoButtonClickListener(v2 -> bdalert.dismiss());
                 bdalert.setOnYesButtonClickListener(v2 -> {
                     Preferences.putAutoSignEnabled();
-                    autoSign.turnOn();
+                    autoSign.bdSwitch.turnOn();
                     bdalert.dismiss();
                 });
                 bdalert.show();
             });
-            autoSign.bdSwitch.setOnTouchListener((v, event) -> false);
         }
         preferenceLayout.addView(autoSign);
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "自动打开一键签到", "open_sign", SwitchHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "更新时清理缓存", "clean_dir", SwitchHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "自动切换夜间模式", "eyeshield_mode", SwitchHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "自动查看原图", "origin_src", SwitchHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "自动打开一键签到", "open_sign", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "更新时清理缓存", "clean_dir", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "自动切换夜间模式", "eyeshield_mode", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "自动查看原图", "origin_src", SwitchButtonHolder.TYPE_SWITCH));
         if (isPurifyEnabled) {
             preferenceLayout.addView(TSPreferenceHelper.createTextView(sClassLoader, activity, "奇怪怪"));
         } else {
             preferenceLayout.addView(TSPreferenceHelper.createTextView(sClassLoader, activity, "其它"));
         }
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "存储重定向", "storage_redirect", SwitchHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "禁用帖子手势", "forbid_gesture", SwitchHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "用赞踩差数代替赞数", "agree_num", SwitchHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "交换吧热门与最新", "frs_tab", SwitchHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "存储重定向", "storage_redirect", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "禁用帖子手势", "forbid_gesture", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "用赞踩差数代替赞数", "agree_num", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "交换吧热门与最新", "frs_tab", SwitchButtonHolder.TYPE_SWITCH));
         if (isPurifyEnabled) {
             preferenceLayout.addView(TSPreferenceHelper.createTextView(sClassLoader, activity, "关于就是关于"));
         } else {
@@ -232,17 +231,17 @@ public class TSPreference extends BaseHooker implements IHooker {
     private LinearLayout createModifyTabPreference(Activity activity) {
         TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
         preferenceLayout.addView(TSPreferenceHelper.createTextView(sClassLoader, activity, "修改底栏"));
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "隐藏首页", "home_recommend", SwitchHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "隐藏进吧", "enter_forum", SwitchHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "隐藏频道", "new_category", SwitchHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "隐藏消息", "my_message", SwitchHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "隐藏首页", "home_recommend", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "隐藏进吧", "enter_forum", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "隐藏频道", "new_category", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "隐藏消息", "my_message", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(TSPreferenceHelper.createTextView(sClassLoader, activity, "禁用 Flutter"));
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "我关注的吧", "flutter_concern_forum_enable_android", SwitchHolder.TYPE_SET));
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "吧资料", "flutter_forum_detail_enable_android_112", SwitchHolder.TYPE_SET));
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "MyTab", "flutter_mytab_enable_android_112", SwitchHolder.TYPE_SET));
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "粉丝", "flutter_attention_enable_android_112", SwitchHolder.TYPE_SET));
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "个人中心", "flutter_person_center_enable_android_12", SwitchHolder.TYPE_SET));
-        preferenceLayout.addView(new SwitchHolder(sClassLoader, activity, sRes, "一键签到", "flutter_signin_enable_android_119", SwitchHolder.TYPE_SET));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "我关注的吧", "flutter_concern_forum_enable_android", SwitchButtonHolder.TYPE_SET));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "吧资料", "flutter_forum_detail_enable_android_112", SwitchButtonHolder.TYPE_SET));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "MyTab", "flutter_mytab_enable_android_112", SwitchButtonHolder.TYPE_SET));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "粉丝", "flutter_attention_enable_android_112", SwitchButtonHolder.TYPE_SET));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "个人中心", "flutter_person_center_enable_android_12", SwitchButtonHolder.TYPE_SET));
+        preferenceLayout.addView(new SwitchButtonHolder(sClassLoader, activity, sRes, "一键签到", "flutter_signin_enable_android_119", SwitchButtonHolder.TYPE_SET));
         return preferenceLayout;
     }
 }

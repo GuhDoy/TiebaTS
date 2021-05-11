@@ -8,6 +8,7 @@ import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -19,7 +20,6 @@ import android.widget.TextView;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -29,10 +29,11 @@ import java.util.regex.PatternSyntaxException;
 
 import de.robv.android.xposed.XposedBridge;
 import gm.tieba.tabswitch.dao.Preferences;
+import gm.tieba.tabswitch.util.DisplayHelper;
+import gm.tieba.tabswitch.widget.Switch;
 import gm.tieba.tabswitch.widget.TbDialog;
 import gm.tieba.tabswitch.widget.TbEditText;
 import gm.tieba.tabswitch.widget.TbToast;
-import gm.tieba.tabswitch.util.DisplayHelper;
 
 public class TSPreferenceHelper {
     static class PreferenceLayout extends LinearLayout {
@@ -43,7 +44,7 @@ public class TSPreferenceHelper {
 
         void addView(Object view) {
             if (view instanceof View) addView((View) view);
-            else addView(((SwitchHolder) view).newSwitch);
+            else addView(((SwitchButtonHolder) view).switchButton);
         }
     }
 
@@ -92,79 +93,69 @@ public class TSPreferenceHelper {
         throw new NullPointerException("create button failed");
     }
 
-    //TODO: 封装SwitchHolder，此类改名为createSwitchButton
-    static class SwitchHolder {
+    @SuppressLint("ClickableViewAccessibility")
+    static class SwitchButtonHolder {
         public final static int TYPE_SWITCH = 0;
         public final static int TYPE_DIALOG = 1;
         public final static int TYPE_SET = 2;
         private final ClassLoader mClassLoader;
-        private Class<?> mClass;
         private final String mKey;
-        public LinearLayout newSwitch;
-        public View bdSwitch;
+        public Switch bdSwitch;
+        public LinearLayout switchButton;
 
-        @SuppressLint("ClickableViewAccessibility")
-        SwitchHolder(ClassLoader classLoader, Activity activity, Resources res, String text, String key, int type) {
+        SwitchButtonHolder(ClassLoader classLoader, Activity activity, Resources res, String text,
+                           String key, int type) {
             mClassLoader = classLoader;
             mKey = key;
+            bdSwitch = new Switch(classLoader, activity);
+            bdSwitch.setOnSwitchStateChangeListener(new SwitchStatusChangeHandler());
+            View bdSwitchView = bdSwitch.bdSwitch;
+            bdSwitchView.setLayoutParams(new LinearLayout.LayoutParams(bdSwitchView.getWidth(),
+                    bdSwitchView.getHeight(), 0.25f));
+            switch (type) {
+                case TYPE_SWITCH:
+                    switchButton = createButton(classLoader, activity, text, null, v -> bdSwitch.changeState());
+                    bdSwitchView.setTag(TYPE_SWITCH + key);
+                    if (Preferences.getBoolean(key)) bdSwitch.turnOn();
+                    else bdSwitch.turnOff();
+                    break;
+                case TYPE_DIALOG:
+                    switchButton = createButton(classLoader, activity, text, null, v -> showRegexDialog(activity, res));
+                    bdSwitchView.setOnTouchListener((v, event) -> false);
+                    if (Preferences.getString(key) != null) bdSwitch.turnOn();
+                    else bdSwitch.turnOff();
+                    break;
+                case TYPE_SET:
+                    switchButton = createButton(classLoader, activity, text, null, v -> bdSwitch.changeState());
+                    bdSwitchView.setTag(TYPE_SET + key);
+                    if (Preferences.getStringSet().contains(key)) bdSwitch.turnOn();
+                    else bdSwitch.turnOff();
+                    break;
+            }
             try {
-                mClass = classLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView");
-                bdSwitch = (View) mClass.getConstructor(Context.class).newInstance(activity);
-                bdSwitch.setLayoutParams(new LinearLayout.LayoutParams(bdSwitch.getWidth(), bdSwitch.getHeight(), 0.25f));
-                setOnSwitchStateChangeListener();
-                switch (type) {
-                    case TYPE_SWITCH:
-                        newSwitch = createButton(classLoader, activity, text, null, v -> changeState());
-                        bdSwitch.setTag("SWITCH" + key);
-                        if (Preferences.getBoolean(key)) turnOn();
-                        else turnOff();
-                        break;
-                    case TYPE_DIALOG:
-                        newSwitch = createButton(classLoader, activity, text, null, v -> showRegexDialog(activity, res));
-                        bdSwitch.setOnTouchListener((v, event) -> false);
-                        if (Preferences.getString(key) != null) turnOn();
-                        else turnOff();
-                        break;
-                    case TYPE_SET:
-                        newSwitch = createButton(classLoader, activity, text, null, v -> changeState());
-                        bdSwitch.setTag("SET" + key);
-                        if (Preferences.getStringSet().contains(key)) turnOn();
-                        else turnOff();
-                        break;
-                }
-                newSwitch.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("arrow2").getInt(null)).setVisibility(View.GONE);
-                newSwitch.addView(bdSwitch);
+                switchButton.findViewById(classLoader.loadClass("com.baidu.tieba.R$id")
+                        .getField("arrow2").getInt(null)).setVisibility(View.GONE);
+                switchButton.addView(bdSwitchView);
             } catch (Throwable e) {
                 XposedBridge.log(e);
             }
         }
 
-        private void setOnSwitchStateChangeListener() {
-            try {
-                Class<?> OnSwitchStateChangeListener;
-                try {
-                    OnSwitchStateChangeListener = mClassLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView$b");
-                } catch (ClassNotFoundException e) {
-                    OnSwitchStateChangeListener = mClassLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView$a");
-                }
-                Object proxy = Proxy.newProxyInstance(mClassLoader, new Class<?>[]{OnSwitchStateChangeListener}, new MyInvocationHandler());
-                mClass.getDeclaredMethod("setOnSwitchStateChangeListener",
-                        OnSwitchStateChangeListener).invoke(bdSwitch, proxy);
-            } catch (Throwable e) {
-                XposedBridge.log(e);
-            }
+        void setOnButtonClickListener(View.OnClickListener onClick) {
+            switchButton.setOnClickListener(onClick);
+            bdSwitch.bdSwitch.setOnTouchListener((View v, MotionEvent event) -> false);
         }
 
-        private static class MyInvocationHandler implements InvocationHandler {
+        private static class SwitchStatusChangeHandler implements InvocationHandler {
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) {
                 View view = (View) args[0];
                 String key = (String) view.getTag();
                 if (key != null) {
-                    if (key.startsWith("SWITCH")) {
-                        Preferences.putBoolean(key.replace("SWITCH", ""), args[1].toString().equals("ON"));
-                    } else if (key.startsWith("SET")) {
-                        Preferences.putStringSet(key.replace("SET", ""), args[1].toString().equals("ON"));
+                    if (key.startsWith(String.valueOf(TYPE_SWITCH))) {
+                        Preferences.putBoolean(key.substring(1), args[1].toString().equals("ON"));
+                    } else if (key.startsWith(String.valueOf(TYPE_SET))) {
+                        Preferences.putStringSet(key.substring(1), args[1].toString().equals("ON"));
                     }
                 }
                 return null;
@@ -199,11 +190,11 @@ public class TSPreferenceHelper {
                 try {
                     if (TextUtils.isEmpty(editText.getText())) {
                         Preferences.putString(mKey, null);
-                        turnOff();
+                        bdSwitch.turnOff();
                     } else {
                         Pattern.compile(editText.getText().toString());
                         Preferences.putString(mKey, editText.getText().toString());
-                        turnOn();
+                        bdSwitch.turnOn();
                     }
                     bdAlert.dismiss();
                 } catch (PatternSyntaxException e) {
@@ -221,58 +212,6 @@ public class TSPreferenceHelper {
                 return false;
             });
             editText.requestFocus();
-        }
-
-        boolean isOn() {
-            try {
-                try {
-                    return (Boolean) mClass.getDeclaredMethod("isOn").invoke(bdSwitch);
-                } catch (NoSuchMethodException e) {
-                    return (Boolean) mClass.getDeclaredMethod("d").invoke(bdSwitch);
-                }
-            } catch (Throwable e) {
-                XposedBridge.log(e);
-            }
-            return false;
-        }
-
-        void changeState() {
-            try {
-                Method changeState;
-                try {
-                    changeState = mClass.getDeclaredMethod("changeState");
-                } catch (NoSuchMethodException e) {
-                    changeState = mClass.getDeclaredMethod("b");
-                }
-                changeState.setAccessible(true);
-                changeState.invoke(bdSwitch);
-            } catch (Throwable e) {
-                XposedBridge.log(e);
-            }
-        }
-
-        void turnOn() {
-            try {
-                try {
-                    mClass.getDeclaredMethod("turnOn").invoke(bdSwitch);
-                } catch (NoSuchMethodException e) {
-                    mClass.getDeclaredMethod("i").invoke(bdSwitch);
-                }
-            } catch (Throwable e) {
-                XposedBridge.log(e);
-            }
-        }
-
-        void turnOff() {
-            try {
-                try {
-                    mClass.getDeclaredMethod("turnOff").invoke(bdSwitch);
-                } catch (NoSuchMethodException e) {
-                    mClass.getDeclaredMethod("f").invoke(bdSwitch);
-                }
-            } catch (Throwable e) {
-                XposedBridge.log(e);
-            }
         }
     }
 
