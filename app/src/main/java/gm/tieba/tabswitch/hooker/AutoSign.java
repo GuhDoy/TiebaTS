@@ -1,6 +1,5 @@
 package gm.tieba.tabswitch.hooker;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.os.Looper;
 
@@ -32,15 +31,14 @@ public class AutoSign extends BaseHooker implements IHooker {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                Activity activity = (Activity) param.thisObject;
                 if (Preferences.getIsSigned()) return;
                 new Thread(() -> {
                     Looper.prepare();
                     if (mBDUSS == null) {
-                        TbToast.showTbToast(sClassLoader, activity, sRes, "暂未获取到 BDUSS", TbToast.LENGTH_LONG);
+                        TbToast.showTbToast("暂未获取到 BDUSS", TbToast.LENGTH_LONG);
                     } else {
                         String result = main(mBDUSS);
-                        TbToast.showTbToast(sClassLoader, activity, sRes, result, TbToast.LENGTH_SHORT);
+                        TbToast.showTbToast(result, TbToast.LENGTH_SHORT);
                         if (result.endsWith("全部签到成功")) {
                             Preferences.putSignDate();
                             Preferences.putFollow(success);

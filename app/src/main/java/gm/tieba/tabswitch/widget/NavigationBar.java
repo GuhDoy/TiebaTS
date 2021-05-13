@@ -1,25 +1,19 @@
 package gm.tieba.tabswitch.widget;
 
-import android.app.Activity;
-import android.graphics.Color;
 import android.view.View;
 import android.widget.TextView;
 
 import de.robv.android.xposed.XposedBridge;
-import gm.tieba.tabswitch.util.DisplayHelper;
+import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.util.Reflect;
 
-public class NavigationBar {
-    private final ClassLoader mClassLoader;
+public class NavigationBar extends BaseHooker {
     public Class<?> mClass;
     private Object mNavigationBar;
-    private final boolean mIsLightMode;
 
-    public NavigationBar(ClassLoader classLoader, Activity activity, Object instanceInClass) {
-        mClassLoader = classLoader;
-        mIsLightMode = DisplayHelper.isLightMode(activity);
+    public NavigationBar(Object instanceInClass) {
         try {
-            mClass = classLoader.loadClass("com.baidu.tbadk.core.view.NavigationBar");
+            mClass = sClassLoader.loadClass("com.baidu.tbadk.core.view.NavigationBar");
             mNavigationBar = Reflect.getObjectField(instanceInClass,
                     "com.baidu.tbadk.core.view.NavigationBar");
         } catch (Throwable e) {
@@ -29,16 +23,14 @@ public class NavigationBar {
 
     public void addTextButton(String text, View.OnClickListener onClick) {
         try {
-            Class<?> ControlAlign = mClassLoader.loadClass(
+            Class<?> ControlAlign = sClassLoader.loadClass(
                     "com.baidu.tbadk.core.view.NavigationBar$ControlAlign");
             for (Object HORIZONTAL_RIGHT : ControlAlign.getEnumConstants()) {
                 if (HORIZONTAL_RIGHT.toString().equals("HORIZONTAL_RIGHT")) {
                     TextView textView = (TextView) mClass.getDeclaredMethod("addTextButton",
                             ControlAlign, String.class, View.OnClickListener.class)
                             .invoke(mNavigationBar, HORIZONTAL_RIGHT, text, onClick);
-                    if (!mIsLightMode) {
-                        textView.setTextColor(Color.parseColor("#FFCBCBCC"));
-                    }
+                    textView.setTextColor(Reflect.getColor("CAM_X0105"));
                     break;
                 }
             }

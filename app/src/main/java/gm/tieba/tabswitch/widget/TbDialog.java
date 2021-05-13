@@ -2,9 +2,6 @@ package gm.tieba.tabswitch.widget;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
-import android.content.res.Resources;
-import android.graphics.Color;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -18,33 +15,33 @@ import java.util.Objects;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
+import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.Rule;
-import gm.tieba.tabswitch.util.DisplayHelper;
+import gm.tieba.tabswitch.util.Reflect;
 
-public class TbDialog {
-    private final ClassLoader mClassLoader;
+public class TbDialog extends BaseHooker {
     private Class<?> mTbDialog;
     private Object mBdAlert;
     private Object mPageContext;
     private ViewGroup mRootView;
     private AlertDialog mDialog;
 
-    public TbDialog(ClassLoader classLoader, Context context, Resources res, String title, String message, boolean cancelable, View contentView) {
-        XposedHelpers.findAndHookMethod("com.baidu.tbadk.core.BaseFragment", classLoader, "getPageContext", new XC_MethodHook() {
-            @Override
-            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                mPageContext = param.getResult();
-            }
-        });
-        mClassLoader = classLoader;
+    public TbDialog(Activity activity, String title, String message, boolean cancelable, View contentView) {
+        XposedHelpers.findAndHookMethod("com.baidu.tbadk.core.BaseFragment", sClassLoader,
+                "getPageContext", new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        mPageContext = param.getResult();
+                    }
+                });
         try {
-            Rule.findRule(res.getString(R.string.TbDialog), new Rule.Callback() {
+            Rule.findRule(sRes.getString(R.string.TbDialog), new Rule.Callback() {
                 @Override
                 public void onRuleFound(String rule, String clazz, String method) {
                     try {
-                        mTbDialog = classLoader.loadClass(clazz);
-                        mBdAlert = mTbDialog.getConstructor(Activity.class).newInstance((Activity) context);
+                        mTbDialog = sClassLoader.loadClass(clazz);
+                        mBdAlert = mTbDialog.getConstructor(Activity.class).newInstance((Activity) activity);
                         try {
                             mRootView = (ViewGroup) XposedHelpers.getObjectField(mBdAlert, "mRootView");
                             XposedHelpers.setObjectField(mBdAlert, "mTitle", title);
@@ -58,13 +55,11 @@ public class TbDialog {
                             XposedHelpers.setObjectField(mBdAlert, "C", cancelable);
                             XposedHelpers.setObjectField(mBdAlert, "g", contentView);
                         }
-                        if (DisplayHelper.isLightMode(context)) {
-                            mRootView.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("bdDialog_divider_line").getInt(null)).setBackgroundColor(mRootView.getContext().getColor(classLoader.loadClass("com.baidu.tieba.R$color").getField("CAM_X0204").getInt(null)));
-                            mRootView.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("divider_yes_no_button").getInt(null)).setBackgroundColor(mRootView.getContext().getColor(classLoader.loadClass("com.baidu.tieba.R$color").getField("CAM_X0204").getInt(null)));
-                        } else {
-                            mRootView.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("bdDialog_divider_line").getInt(null)).setBackgroundColor(mRootView.getContext().getColor(classLoader.loadClass("com.baidu.tieba.R$color").getField("CAM_X0105").getInt(null)));
-                            mRootView.findViewById(classLoader.loadClass("com.baidu.tieba.R$id").getField("divider_yes_no_button").getInt(null)).setBackgroundColor(mRootView.getContext().getColor(classLoader.loadClass("com.baidu.tieba.R$color").getField("CAM_X0105").getInt(null)));
-                        }
+                        int color = Reflect.getColor("CAM_X0204");
+                        mRootView.findViewById(Reflect.getId("bdDialog_divider_line"))
+                                .setBackgroundColor(color);
+                        mRootView.findViewById(Reflect.getId("divider_yes_no_button"))
+                                .setBackgroundColor(color);
                     } catch (Throwable e) {
                         XposedBridge.log(e);
                     }
@@ -82,7 +77,7 @@ public class TbDialog {
             } catch (NoSuchFieldError e) {
                 XposedHelpers.setObjectField(mBdAlert, "m", "取消");
             }
-            mRootView.findViewById(mClassLoader.loadClass("com.baidu.tieba.R$id").getField("no").getInt(null)).setOnClickListener(onClickListener);
+            mRootView.findViewById(Reflect.getId("no")).setOnClickListener(onClickListener);
         } catch (Throwable e) {
             XposedBridge.log(e);
         }
@@ -103,7 +98,7 @@ public class TbDialog {
 
     public TextView getYesButton() {
         try {
-            return mRootView.findViewById(mClassLoader.loadClass("com.baidu.tieba.R$id").getField("yes").getInt(null));
+            return mRootView.findViewById(Reflect.getId("yes"));
         } catch (Throwable e) {
             XposedBridge.log(e);
         }
@@ -113,22 +108,24 @@ public class TbDialog {
     public void show() {
         try {
             for (Method method : mTbDialog.getDeclaredMethods()) {
-                if (Arrays.toString(method.getParameterTypes()).startsWith("[interface") && !Arrays.toString(method.getParameterTypes()).contains("$")) {
+                if (Arrays.toString(method.getParameterTypes()).startsWith("[interface")
+                        && !Arrays.toString(method.getParameterTypes()).contains("$")) {
                     method.invoke(mBdAlert, mPageContext);// create
                 }
             }
-            LinearLayout parent = mRootView.findViewById(mClassLoader.loadClass("com.baidu.tieba.R$id").getField("dialog_content").getInt(null));
-            if (!DisplayHelper.isLightMode(mRootView.getContext()) && parent.getChildAt(0) instanceof LinearLayout) {
+            LinearLayout parent = mRootView.findViewById(Reflect.getId("dialog_content"));
+            if (parent.getChildAt(0) instanceof LinearLayout) {
                 LinearLayout linearLayout = (LinearLayout) parent.getChildAt(0);
                 for (int i = 0; i < linearLayout.getChildCount(); i++) {
                     View view = linearLayout.getChildAt(i);
                     if (view instanceof TextView) {
-                        ((TextView) view).setTextColor(Color.parseColor("#FFCBCBCC"));
+                        ((TextView) view).setTextColor(Reflect.getColor("CAM_X0105"));
                     }
                 }
             }
             for (Method method : mTbDialog.getDeclaredMethods()) {
-                if (Arrays.toString(method.getParameterTypes()).equals("[]") && Objects.equals(method.getReturnType(), mTbDialog)) {
+                if (Arrays.toString(method.getParameterTypes()).equals("[]")
+                        && Objects.equals(method.getReturnType(), mTbDialog)) {
                     method.invoke(mBdAlert);// show
                     break;
                 }

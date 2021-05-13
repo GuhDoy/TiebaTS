@@ -2,7 +2,9 @@
 
 提供修改百度贴吧底栏等个性化功能。An Xposed module for Baidu Tieba with personalized functions.
 
+[![Android CI](https://github.com/GuhDoy/TiebaTS/workflows/Android%20CI/badge.svg)](https://github.com/GuhDoy/TiebaTS/actions)
 [![Chat](https://img.shields.io/badge/Telegram-Chat-blue.svg?logo=telegram)](https://t.me/TabSwitch)
+[![Stars](https://img.shields.io/github/stars/GuhDoy/TiebaTS?label=Stars)](https://github.com/GuhDoy/TiebaTS)
 [![Download](https://img.shields.io/github/v/release/GuhDoy/TiebaTS?label=Download)](https://github.com/GuhDoy/TiebaTS/releases/latest)
 
 ## 功能

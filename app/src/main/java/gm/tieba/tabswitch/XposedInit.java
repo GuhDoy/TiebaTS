@@ -49,7 +49,8 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
         ClassLoader classLoader = lpparam.classLoader;
-        if (lpparam.packageName.equals("com.baidu.tieba") || XposedHelpers.findClassIfExists("com.baidu.tieba.tblauncher.MainTabActivity", lpparam.classLoader) != null) {
+        if (lpparam.packageName.equals("com.baidu.tieba") || XposedHelpers.findClassIfExists(
+                "com.baidu.tieba.tblauncher.MainTabActivity", lpparam.classLoader) != null) {
             XposedHelpers.findAndHookMethod(Instrumentation.class, "callApplicationOnCreate", Application.class, new XC_MethodHook() {
                 @Override
                 protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
@@ -61,30 +62,34 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
                         Rule.init(context);
                         List<String> lostList = AntiConfusionHelper.getRulesLost();
                         if (lostList.size() != 0) {
-                            throw new SQLiteException("rules incomplete, current version: " + AntiConfusionHelper.getTbVersion(context) + ", lost " + lostList.size() + " rule(s): " + lostList.toString());
+                            throw new SQLiteException("rules incomplete, current version: " + AntiConfusionHelper.getTbVersion(context) +
+                                    ", lost " + lostList.size() + " rule(s): " + lostList.toString());
                         }
                     } catch (SQLiteException e) {
-                        XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
-                            @Override
-                            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                                Activity activity = (Activity) param.thisObject;
-                                if (!Preferences.getIsEULAAccepted()) return;
-                                XposedBridge.log(e.toString());
-                                String message = "规则异常，建议您执行反混淆。若执行完后仍出现此对话框则应更新模块，若模块已是最新版本则应向作者反馈。\n" + e.getMessage();
-                                if (Rule.isRuleFound("Lcom/baidu/tieba/R$layout;->dialog_bdalert:I")) {
-                                    TbDialog bdAlert = new TbDialog(classLoader, activity, mRes, "警告", message, false, null);
-                                    bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
-                                    bdAlert.setOnYesButtonClickListener(v -> AntiConfusionHelper.saveAndRestart(activity, "unknown", null));
-                                    bdAlert.show();
-                                } else {
-                                    AlertDialog alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
-                                            .setTitle("警告").setMessage(message).setCancelable(false)
-                                            .setNegativeButton("取消", (dialogInterface, i) -> {
-                                            }).setPositiveButton("确定", (dialogInterface, i) -> AntiConfusionHelper.saveAndRestart(activity, "unknown", null)).create();
-                                    alertDialog.show();
-                                }
-                            }
-                        });
+                        XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", classLoader,
+                                "onCreate", Bundle.class, new XC_MethodHook() {
+                                    @Override
+                                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                                        XposedBridge.log(e.toString());
+                                        if (!Preferences.getIsEULAAccepted()) return;
+                                        Activity activity = (Activity) param.thisObject;
+                                        String message = mRes.getString(R.string.rules_incomplete) + "\n" + e.getMessage();
+                                        if (Rule.isRuleFound(mRes.getString(R.string.TbDialog))) {
+                                            TbDialog bdAlert = new TbDialog(activity, "警告", message, false, null);
+                                            bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
+                                            bdAlert.setOnYesButtonClickListener(v -> AntiConfusionHelper
+                                                    .saveAndRestart(activity, "unknown", null));
+                                            bdAlert.show();
+                                        } else {
+                                            AlertDialog alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
+                                                    .setTitle("警告").setMessage(message).setCancelable(false)
+                                                    .setNegativeButton("取消", (dialogInterface, i) -> {
+                                                    }).setPositiveButton("确定", (dialogInterface, i) -> AntiConfusionHelper
+                                                            .saveAndRestart(activity, "unknown", null)).create();
+                                            alertDialog.show();
+                                        }
+                                    }
+                                });
                     }
                     if (AntiConfusionHelper.isVersionChanged(context)) {
                         new AntiConfusion(classLoader, mRes).hook();
@@ -99,9 +104,12 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
             });
         } else switch (lpparam.packageName) {
             case "com.baidu.netdisk":
-                XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.Navigate", classLoader, "initFlashFragment", XC_MethodReplacement.returnConstant(null));
-                XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.advertise.FlashAdvertiseActivity", classLoader, "initFlashFragment", XC_MethodReplacement.returnConstant(null));
-                XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.transfer.TransferListTabActivity", classLoader, "initYouaGuideView", XC_MethodReplacement.returnConstant(null));
+                XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.Navigate", classLoader,
+                        "initFlashFragment", XC_MethodReplacement.returnConstant(null));
+                XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.advertise.FlashAdvertiseActivity", classLoader,
+                        "initFlashFragment", XC_MethodReplacement.returnConstant(null));
+                XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.transfer.TransferListTabActivity", classLoader,
+                        "initYouaGuideView", XC_MethodReplacement.returnConstant(null));
                 // "show or close "
                 for (Method method : classLoader.loadClass("com.baidu.netdisk.homepage.ui.card.____").getDeclaredMethods()) {
                     if (Arrays.toString(method.getParameterTypes()).equals("[boolean]")) {
@@ -109,8 +117,10 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
                     }
                 }
 
-                XposedHelpers.findAndHookMethod("com.baidu.netdisk.media.video.source.NormalVideoSource", classLoader, "getAdTime", XC_MethodReplacement.returnConstant(0));
-                XposedHelpers.findAndHookMethod("com.baidu.netdisk.preview.video.model._", classLoader, "getAdTime", XC_MethodReplacement.returnConstant(0));
+                XposedHelpers.findAndHookMethod("com.baidu.netdisk.media.video.source.NormalVideoSource", classLoader,
+                        "getAdTime", XC_MethodReplacement.returnConstant(0));
+                XposedHelpers.findAndHookMethod("com.baidu.netdisk.preview.video.model._", classLoader,
+                        "getAdTime", XC_MethodReplacement.returnConstant(0));
 
                 for (Method method : classLoader.loadClass("com.baidu.netdisk.media.speedup.SpeedUpModle").getDeclaredMethods()) {
                     if (method.getReturnType().equals(boolean.class)) {
@@ -139,8 +149,10 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
                     }
                 });
                 try {
-                    XposedHelpers.findAndHookMethod("com.coolapk.market.model.$$AutoValue_Feed", classLoader, "getDetailSponsorCard", XC_MethodReplacement.returnConstant(null));
-                    XposedBridge.hookAllConstructors(XposedHelpers.findClass("com.coolapk.market.model.AutoValue_Feed", classLoader), new XC_MethodHook() {
+                    XposedHelpers.findAndHookMethod("com.coolapk.market.model.$$AutoValue_Feed", classLoader,
+                            "getDetailSponsorCard", XC_MethodReplacement.returnConstant(null));
+                    XposedBridge.hookAllConstructors(XposedHelpers.findClass(
+                            "com.coolapk.market.model.AutoValue_Feed", classLoader), new XC_MethodHook() {
                         @Override
                         protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                             param.args[142] = null;

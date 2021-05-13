@@ -29,14 +29,15 @@ public class HistoryCache extends BaseHooker implements IHooker {
     private String mRegex = "";
 
     public void hook() throws Throwable {
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.myCollection.history.PbHistoryActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
-            @Override
-            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                Activity activity = (Activity) param.thisObject;
-                new NavigationBar(sClassLoader, activity, param.thisObject)
-                        .addTextButton("搜索", v -> showRegexDialog(activity));
-            }
-        });
+        XposedHelpers.findAndHookMethod("com.baidu.tieba.myCollection.history.PbHistoryActivity", sClassLoader,
+                "onCreate", Bundle.class, new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        Activity activity = (Activity) param.thisObject;
+                        new NavigationBar(param.thisObject)
+                                .addTextButton("搜索", v -> showRegexDialog(activity));
+                    }
+                });
         for (Method method : sClassLoader.loadClass("com.baidu.tieba.myCollection.history.PbHistoryActivity").getDeclaredMethods()) {
             if (Arrays.toString(method.getParameterTypes()).equals("[interface java.util.List]")) {
                 XposedBridge.hookMethod(method, new XC_MethodHook() {
@@ -71,7 +72,7 @@ public class HistoryCache extends BaseHooker implements IHooker {
     }
 
     private void showRegexDialog(Activity activity) {
-        EditText editText = new TbEditText(sClassLoader, activity, sRes);
+        EditText editText = new TbEditText(activity);
         editText.setHint("请输入正则表达式，如.*");
         editText.setText(mRegex);
         editText.addTextChangedListener(new TextWatcher() {
@@ -88,7 +89,7 @@ public class HistoryCache extends BaseHooker implements IHooker {
                 mRegex = s.toString();
             }
         });
-        TbDialog bdAlert = new TbDialog(sClassLoader, activity, sRes, null, null, true, editText);
+        TbDialog bdAlert = new TbDialog(activity, null, null, true, editText);
         bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
         bdAlert.setOnYesButtonClickListener(v -> {
             try {
@@ -97,7 +98,7 @@ public class HistoryCache extends BaseHooker implements IHooker {
                 activity.startActivity(activity.getIntent());
                 bdAlert.dismiss();
             } catch (PatternSyntaxException e) {
-                TbToast.showTbToast(sClassLoader, activity, sRes, e.getMessage(), TbToast.LENGTH_SHORT);
+                TbToast.showTbToast(e.getMessage(), TbToast.LENGTH_SHORT);
             }
         });
         bdAlert.show();
@@ -105,7 +106,8 @@ public class HistoryCache extends BaseHooker implements IHooker {
         editText.setSingleLine();
         editText.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
         editText.setOnEditorActionListener((v, actionId, event) -> {
-            if (actionId == EditorInfo.IME_ACTION_SEARCH || event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+            if (actionId == EditorInfo.IME_ACTION_SEARCH || event != null
+                    && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
                 bdAlert.getYesButton().performClick();
                 return true;
             }

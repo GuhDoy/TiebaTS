@@ -57,12 +57,13 @@ public class StorageRedirect extends BaseHooker implements IHooker {
             ArrayMap<String, IBinder> map = (ArrayMap<String, IBinder>) field.get(null);
             map.put("mount", binder);
         } else {
-            XposedHelpers.findAndHookMethod(Environment.class, "getExternalStorageDirectory", new XC_MethodHook() {
-                @Override
-                protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-                    param.setResult(mTarget);
-                }
-            });
+            XposedHelpers.findAndHookMethod(Environment.class,
+                    "getExternalStorageDirectory", new XC_MethodHook() {
+                        @Override
+                        protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+                            param.setResult(mTarget);
+                        }
+                    });
         }
         Rule.findRule(sRes.getString(R.string.StorageRedirect), new Rule.Callback() {
             @Override
@@ -73,7 +74,8 @@ public class StorageRedirect extends BaseHooker implements IHooker {
                             XposedBridge.hookMethod(md, new XC_MethodReplacement() {
                                 @Override
                                 protected Object replaceHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-                                    return saveImage((String) param.args[0], new ByteArrayInputStream((byte[]) param.args[1]), (Context) param.args[2]);
+                                    return saveImage((String) param.args[0], new ByteArrayInputStream(
+                                            (byte[]) param.args[1]), (Context) param.args[2]);
                                 }
                             });
                             break;
@@ -81,7 +83,8 @@ public class StorageRedirect extends BaseHooker implements IHooker {
                             XposedBridge.hookMethod(md, new XC_MethodReplacement() {
                                 @Override
                                 protected Object replaceHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-                                    return saveImage((String) param.args[1], new FileInputStream((String) param.args[0]), (Context) param.args[2]);
+                                    return saveImage((String) param.args[1], new FileInputStream(
+                                            (String) param.args[0]), (Context) param.args[2]);
                                 }
                             });
                             break;
@@ -148,7 +151,8 @@ public class StorageRedirect extends BaseHooker implements IHooker {
             in = new ByteArrayInputStream(baos.toByteArray());
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 ContentValues newImageDetails = new ContentValues();
-                newImageDetails.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + File.separator + "tieba");
+                newImageDetails.put(MediaStore.MediaColumns.RELATIVE_PATH,
+                        Environment.DIRECTORY_PICTURES + File.separator + "tieba");
                 newImageDetails.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
                 newImageDetails.put(MediaStore.MediaColumns.MIME_TYPE, "image/" + extension);
                 ContentResolver resolver = applicationContext.getContentResolver();
@@ -156,7 +160,8 @@ public class StorageRedirect extends BaseHooker implements IHooker {
                 ParcelFileDescriptor descriptor = resolver.openFileDescriptor(imageUri, "w");
                 IO.copy(in, descriptor.getFileDescriptor());
             } else {
-                File imageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "tieba");
+                File imageDir = new File(Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_PICTURES), "tieba");
                 imageDir.mkdirs();
                 IO.copy(in, new File(imageDir.getPath(), fileName + "." + extension));
 
@@ -165,7 +170,8 @@ public class StorageRedirect extends BaseHooker implements IHooker {
                 applicationContext.sendBroadcast(scanIntent);
             }
             Looper.prepare();
-            TbToast.showTbToast(sClassLoader, applicationContext, sRes, fileName + "." + extension, TbToast.LENGTH_SHORT);
+            TbToast.showTbToast(
+                    fileName + "." + extension, TbToast.LENGTH_SHORT);
             Looper.loop();
         } catch (IOException e) {
             XposedBridge.log(e);

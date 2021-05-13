@@ -1,6 +1,5 @@
 package gm.tieba.tabswitch.widget;
 
-import android.app.Activity;
 import android.content.Context;
 import android.view.View;
 
@@ -9,26 +8,24 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 import de.robv.android.xposed.XposedBridge;
+import gm.tieba.tabswitch.BaseHooker;
 
-public class Switch {
-    private final ClassLoader mClassLoader;
+public class Switch extends BaseHooker {
     private Class<?> mClass;
     public View bdSwitch;
 
-    public Switch(ClassLoader classLoader, Activity activity) {
-        mClassLoader = classLoader;
+    public Switch() {
         try {
-            mClass = classLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView");
-            bdSwitch = (View) mClass.getConstructor(Context.class).newInstance(activity);
+            mClass = sClassLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView");
+            bdSwitch = (View) mClass.getConstructor(Context.class).newInstance(sContextRef.get());
         } catch (Throwable e) {
             XposedBridge.log(e);
         }
     }
 
-    public Switch(ClassLoader classLoader, View bdSwitch) {
-        mClassLoader = classLoader;
+    public Switch(View bdSwitch) {
         try {
-            mClass = classLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView");
+            mClass = sClassLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView");
             this.bdSwitch = bdSwitch;
         } catch (Throwable e) {
             XposedBridge.log(e);
@@ -39,11 +36,11 @@ public class Switch {
         try {
             Class<?> clazz;
             try {
-                clazz = mClassLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView$b");
+                clazz = sClassLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView$b");
             } catch (ClassNotFoundException e) {
-                clazz = mClassLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView$a");
+                clazz = sClassLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView$a");
             }
-            Object proxy = Proxy.newProxyInstance(mClassLoader, new Class<?>[]{clazz}, onSwitchStateChange);
+            Object proxy = Proxy.newProxyInstance(sClassLoader, new Class<?>[]{clazz}, onSwitchStateChange);
             mClass.getDeclaredMethod("setOnSwitchStateChangeListener",
                     clazz).invoke(bdSwitch, proxy);
         } catch (Throwable e) {

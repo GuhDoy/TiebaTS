@@ -33,7 +33,7 @@ import gm.tieba.tabswitch.hooker.StorageRedirect;
 import gm.tieba.tabswitch.hooker.SwitchManager;
 import gm.tieba.tabswitch.hooker.ThreadStore;
 
-public class BaseHooker {
+public abstract class BaseHooker {
     protected static ClassLoader sClassLoader;
     protected static WeakReference<Context> sContextRef;
     protected static Resources sRes;
@@ -57,16 +57,20 @@ public class BaseHooker {
                 break;
             case "enter_forum":
                 if (!(Boolean) entry.getValue()) break;
-                XposedHelpers.findAndHookMethod("com.baidu.tieba.flutter.base.view.FlutterEnterForumDelegateStatic", sClassLoader, "createFragmentTabStructure", XC_MethodReplacement.returnConstant(null));
-                XposedHelpers.findAndHookMethod("com.baidu.tieba.enterForum.home.EnterForumDelegateStatic", sClassLoader, "isAvailable", XC_MethodReplacement.returnConstant(false));
+                XposedHelpers.findAndHookMethod("com.baidu.tieba.flutter.base.view.FlutterEnterForumDelegateStatic", sClassLoader,
+                        "createFragmentTabStructure", XC_MethodReplacement.returnConstant(null));
+                XposedHelpers.findAndHookMethod("com.baidu.tieba.enterForum.home.EnterForumDelegateStatic", sClassLoader,
+                        "isAvailable", XC_MethodReplacement.returnConstant(false));
                 break;
             case "new_category":
                 if (!(Boolean) entry.getValue()) break;
-                XposedHelpers.findAndHookMethod("com.baidu.tieba.flutter.base.view.FlutterNewCategoryDelegateStatic", sClassLoader, "isAvailable", XC_MethodReplacement.returnConstant(false));
+                XposedHelpers.findAndHookMethod("com.baidu.tieba.flutter.base.view.FlutterNewCategoryDelegateStatic", sClassLoader,
+                        "isAvailable", XC_MethodReplacement.returnConstant(false));
                 break;
             case "my_message":
                 if (!(Boolean) entry.getValue()) break;
-                XposedHelpers.findAndHookMethod("com.baidu.tieba.imMessageCenter.im.chat.notify.ImMessageCenterDelegateStatic", sClassLoader, "isAvailable", XC_MethodReplacement.returnConstant(false));
+                XposedHelpers.findAndHookMethod("com.baidu.tieba.imMessageCenter.im.chat.notify.ImMessageCenterDelegateStatic", sClassLoader,
+                        "isAvailable", XC_MethodReplacement.returnConstant(false));
                 break;
             case "switch_manager":
                 new SwitchManager().hook();
@@ -136,12 +140,14 @@ public class BaseHooker {
                 break;
             case "agree_num":
                 if (!(Boolean) entry.getValue()) break;
-                XposedHelpers.findAndHookMethod("tbclient.Agree$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
-                    @Override
-                    public void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                        XposedHelpers.setObjectField(param.thisObject, "agree_num", XposedHelpers.getObjectField(param.thisObject, "diff_agree_num"));
-                    }
-                });
+                XposedHelpers.findAndHookMethod("tbclient.Agree$Builder", sClassLoader,
+                        "build", boolean.class, new XC_MethodHook() {
+                            @Override
+                            public void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                                XposedHelpers.setObjectField(param.thisObject, "agree_num",
+                                        XposedHelpers.getObjectField(param.thisObject, "diff_agree_num"));
+                            }
+                        });
                 break;
             case "frs_tab":
                 if ((Boolean) entry.getValue()) new FrsTab().hook();

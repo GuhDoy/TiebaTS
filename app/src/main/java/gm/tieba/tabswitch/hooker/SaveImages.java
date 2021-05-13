@@ -30,6 +30,7 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.util.IO;
+import gm.tieba.tabswitch.util.Reflect;
 import gm.tieba.tabswitch.widget.TbToast;
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -41,7 +42,8 @@ public class SaveImages extends BaseHooker implements IHooker {
     private String mTitle;
 
     public void hook() throws Throwable {
-        for (Method method : sClassLoader.loadClass("com.baidu.tbadk.coreExtra.view.ImagePagerAdapter").getDeclaredMethods()) {
+        for (Method method : sClassLoader.loadClass(
+                "com.baidu.tbadk.coreExtra.view.ImagePagerAdapter").getDeclaredMethods()) {
             if (Arrays.toString(method.getParameterTypes()).equals("[class java.util.ArrayList]")) {
                 XposedBridge.hookMethod(method, new XC_MethodHook() {
                     @Override
@@ -51,42 +53,44 @@ public class SaveImages extends BaseHooker implements IHooker {
                 });
             }
         }
-        XposedHelpers.findAndHookMethod("com.baidu.tbadk.widget.richText.TbRichText", sClassLoader, "toString", new XC_MethodHook() {
-            @Override
-            protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-                if (param.getResult() != null) mTitle = (String) param.getResult();
-            }
-        });
-        XposedHelpers.findAndHookConstructor("com.baidu.tbadk.coreExtra.view.ImageViewerBottomLayout", sClassLoader, Context.class, new XC_MethodHook() {
-            @Override
-            protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-                for (Field field : param.thisObject.getClass().getDeclaredFields()) {
-                    field.setAccessible(true);
-                    if (field.get(param.thisObject) instanceof ImageView) {
-                        ImageView downloadIcon = (ImageView) field.get(param.thisObject);
-                        if (downloadIcon.getId() != sClassLoader.loadClass("com.baidu.tieba.R$id").getField("download_icon").getInt(null)) {
-                            continue;
-                        }
-                        Context context = ((Context) param.args[0]).getApplicationContext();
-                        downloadIcon.setOnLongClickListener((v -> {
-                            for (int i = 0; i < mArrayList.size(); i++) {
-                                String url = mArrayList.get(i);
-                                try {
-                                    url = "http://tiebapic.baidu.com/forum/pic/item/" + url.substring(url.lastIndexOf("/") + 1);
-                                    url = url.substring(0, url.lastIndexOf("*"));
-                                } catch (StringIndexOutOfBoundsException ignored) {
-                                }
-                                saveImage(url, i, context);
-                            }
-                            TbToast.showTbToast(sClassLoader, context, sRes, String.format(Locale.CHINA,
-                                    "已保存%d张图片至手机相册", mArrayList.size()), TbToast.LENGTH_SHORT);
-                            return true;
-                        }));
-                        return;
+        XposedHelpers.findAndHookMethod("com.baidu.tbadk.widget.richText.TbRichText",
+                sClassLoader, "toString", new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+                        if (param.getResult() != null) mTitle = (String) param.getResult();
                     }
-                }
-            }
-        });
+                });
+        XposedHelpers.findAndHookConstructor("com.baidu.tbadk.coreExtra.view.ImageViewerBottomLayout",
+                sClassLoader, Context.class, new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+                        for (Field field : param.thisObject.getClass().getDeclaredFields()) {
+                            field.setAccessible(true);
+                            if (field.get(param.thisObject) instanceof ImageView) {
+                                ImageView downloadIcon = (ImageView) field.get(param.thisObject);
+                                if (downloadIcon.getId() != Reflect.getId("download_icon")) {
+                                    continue;
+                                }
+                                Context context = ((Context) param.args[0]).getApplicationContext();
+                                downloadIcon.setOnLongClickListener((v -> {
+                                    for (int i = 0; i < mArrayList.size(); i++) {
+                                        String url = mArrayList.get(i);
+                                        try {
+                                            url = "http://tiebapic.baidu.com/forum/pic/item/" + url.substring(url.lastIndexOf("/") + 1);
+                                            url = url.substring(0, url.lastIndexOf("*"));
+                                        } catch (StringIndexOutOfBoundsException ignored) {
+                                        }
+                                        saveImage(url, i, context);
+                                    }
+                                    TbToast.showTbToast(String.format(Locale.CHINA,
+                                            "已保存%d张图片至手机相册", mArrayList.size()), TbToast.LENGTH_SHORT);
+                                    return true;
+                                }));
+                                return;
+                            }
+                        }
+                    }
+                });
     }
 
     private void saveImage(String url, int i, Context context) {
@@ -107,7 +111,8 @@ public class SaveImages extends BaseHooker implements IHooker {
                 in = new ByteArrayInputStream(baos.toByteArray());
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     ContentValues newImageDetails = new ContentValues();
-                    newImageDetails.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + File.separator + "tieba" + File.separator + mTitle);
+                    newImageDetails.put(MediaStore.MediaColumns.RELATIVE_PATH,
+                            Environment.DIRECTORY_PICTURES + File.separator + "tieba" + File.separator + mTitle);
                     newImageDetails.put(MediaStore.MediaColumns.DISPLAY_NAME, String.valueOf(i));
                     newImageDetails.put(MediaStore.MediaColumns.MIME_TYPE, "image/" + extension);
                     ContentResolver resolver = context.getContentResolver();
@@ -115,7 +120,8 @@ public class SaveImages extends BaseHooker implements IHooker {
                     ParcelFileDescriptor descriptor = resolver.openFileDescriptor(imageUri, "w");
                     IO.copy(in, descriptor.getFileDescriptor());
                 } else {
-                    File imageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + File.separator + "tieba" + File.separator + mTitle);
+                    File imageDir = new File(Environment.getExternalStoragePublicDirectory(
+                            Environment.DIRECTORY_PICTURES) + File.separator + "tieba" + File.separator + mTitle);
                     imageDir.mkdirs();
                     IO.copy(in, new File(imageDir.getPath(), i + "." + extension));
 

@@ -20,7 +20,8 @@ import gm.tieba.tabswitch.util.Reflect;
 
 public class PurifyMy extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.flutter.base.view.FlutterDelegateStatic", sClassLoader, "createFragmentTabStructure", XC_MethodReplacement.returnConstant(null));
+        XposedHelpers.findAndHookMethod("com.baidu.tieba.flutter.base.view.FlutterDelegateStatic", sClassLoader,
+                "createFragmentTabStructure", XC_MethodReplacement.returnConstant(null));
         Rule.findRule(sRes.getStringArray(R.array.PurifyMy), new Rule.Callback() {
             @Override
             public void onRuleFound(String rule, String clazz, String method) throws Throwable {
@@ -33,7 +34,7 @@ public class PurifyMy extends BaseHooker implements IHooker {
                                     field.setAccessible(true);
                                     if (field.get(param.thisObject) instanceof ImageView) {
                                         ImageView imageView = (ImageView) field.get(param.thisObject);
-                                        if (imageView.getId() == sClassLoader.loadClass("com.baidu.tieba.R$id").getField("person_navigation_dressup_img").getInt(null)) {
+                                        if (imageView.getId() == Reflect.getId("person_navigation_dressup_img")) {
                                             imageView.setVisibility(View.GONE);
                                             return;
                                         }
@@ -44,7 +45,8 @@ public class PurifyMy extends BaseHooker implements IHooker {
                         break;
                     case "Lcom/baidu/tieba/R$id;->function_item_bottom_divider:I"://分割线
                         for (Method md : sClassLoader.loadClass(clazz).getDeclaredMethods()) {
-                            if (Arrays.toString(md.getParameterTypes()).equals("[interface com.baidu.tbadk.TbPageContext, int]") && !md.getName().equals(method)) {
+                            if (Arrays.toString(md.getParameterTypes()).equals("[interface com.baidu.tbadk.TbPageContext, int]")
+                                    && !md.getName().equals(method)) {
                                 XposedBridge.hookMethod(md, new XC_MethodHook() {
                                     @Override
                                     protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
@@ -53,7 +55,7 @@ public class PurifyMy extends BaseHooker implements IHooker {
                                             field.setAccessible(true);
                                             if (field.get(param.thisObject) instanceof View) {
                                                 View view = (View) field.get(param.thisObject);
-                                                if (view.getId() == sClassLoader.loadClass("com.baidu.tieba.R$id").getField("function_item_bottom_divider").getInt(null)) {
+                                                if (view.getId() == Reflect.getId("function_item_bottom_divider")) {
                                                     view.setVisibility(View.GONE);
                                                     return;
                                                 }

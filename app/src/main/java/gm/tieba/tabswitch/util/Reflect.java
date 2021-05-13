@@ -5,8 +5,32 @@ import java.util.List;
 import java.util.Objects;
 
 import de.robv.android.xposed.XposedHelpers;
+import gm.tieba.tabswitch.BaseHooker;
 
-public class Reflect {
+public class Reflect extends BaseHooker {
+    public static int getId(String fieldName) throws Throwable {
+        return sClassLoader.loadClass("com.baidu.tieba.R$id").getField(fieldName).getInt(null);
+    }
+
+    public static int getColor(String fieldName) throws Throwable {
+        return sContextRef.get().getColor(sClassLoader.loadClass("com.baidu.tieba.R$color")
+                .getField(fieldName + DisplayHelper.getTbSkin(sContextRef.get())).getInt(null));
+    }
+
+    public static float getDimen(String fieldName) throws Throwable {
+        return sContextRef.get().getResources().getDimension(sClassLoader.loadClass(
+                "com.baidu.tieba.R$dimen").getField(fieldName).getInt(null));
+    }
+
+    public static float getDimenDip(String fieldName) throws Throwable {
+        return DisplayHelper.px2Dip(sContextRef.get(), Reflect.getDimen(fieldName));
+    }
+
+    public static int getDrawable(String fieldName) throws Throwable {
+        return sClassLoader.loadClass("com.baidu.tieba.R$drawable").getField(fieldName)
+                .getInt(null);
+    }
+
     public static Object getObjectField(Object instance, String className) throws Throwable {
         for (Field field : instance.getClass().getDeclaredFields()) {
             field.setAccessible(true);
@@ -18,7 +42,8 @@ public class Reflect {
         throw new NoSuchFieldException(className + " field not found");
     }
 
-    public static void setObjectField(Object instance, String className, Object value) throws Throwable {
+    public static void setObjectField(Object instance, String className, Object value)
+            throws Throwable {
         for (Field field : instance.getClass().getDeclaredFields()) {
             field.setAccessible(true);
             Object objField = field.get(instance);

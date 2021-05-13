@@ -12,6 +12,7 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.util.DisplayHelper;
+import gm.tieba.tabswitch.util.Reflect;
 import gm.tieba.tabswitch.widget.Switch;
 
 public class EyeshieldMode extends BaseHooker implements IHooker {
@@ -29,7 +30,8 @@ public class EyeshieldMode extends BaseHooker implements IHooker {
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                         Activity activity = (Activity) param.thisObject;
                         if (sSavedUiMode != DisplayHelper.isLightMode(activity)) {
-                            Intent intent = new Intent().setClassName(activity, "com.baidu.tieba.setting.more.MoreActivity");
+                            Intent intent = new Intent().setClassName(activity,
+                                    "com.baidu.tieba.setting.more.MoreActivity");
                             activity.startActivity(intent);
                         }
                     }
@@ -41,8 +43,8 @@ public class EyeshieldMode extends BaseHooker implements IHooker {
                         Activity activity = (Activity) param.thisObject;
                         if (sSavedUiMode != DisplayHelper.isLightMode(activity)) {
                             sSavedUiMode = DisplayHelper.isLightMode(activity);
-                            Switch bdSwitch = new Switch(sClassLoader, activity.findViewById(sClassLoader.loadClass(
-                                    "com.baidu.tieba.R$id").getField("item_switch").getInt(null)));
+                            Switch bdSwitch = new Switch(activity.findViewById(
+                                    Reflect.getId("item_switch")));
                             if (DisplayHelper.isLightMode(activity)) bdSwitch.turnOff();
                             else bdSwitch.turnOn();
                             activity.finish();

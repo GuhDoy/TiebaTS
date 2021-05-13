@@ -14,6 +14,7 @@ import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.Rule;
+import gm.tieba.tabswitch.util.Reflect;
 
 public class Ripple extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
@@ -24,8 +25,8 @@ public class Ripple extends BaseHooker implements IHooker {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                         View newSubPbListItem = (View) param.getResult();
-                        View view = newSubPbListItem.findViewById(sClassLoader.loadClass("com.baidu.tieba.R$id")
-                                .getField("new_sub_pb_list_richText").getInt(null));
+                        View view = newSubPbListItem.findViewById(
+                                Reflect.getId("new_sub_pb_list_richText"));
                         view.setBackground(sRes.getDrawable(R.drawable.item_background_button, null));
                     }
                 });
@@ -53,8 +54,7 @@ public class Ripple extends BaseHooker implements IHooker {
                             field.setAccessible(true);
                             if (field.get(param.thisObject) instanceof LinearLayout) {
                                 View view = (View) field.get(param.thisObject);
-                                if (view.getId() == sClassLoader.loadClass("com.baidu.tieba.R$id")
-                                        .getField("all_content").getInt(null)) {
+                                if (view.getId() == Reflect.getId("all_content")) {
                                     view.setBackground(sRes.getDrawable(R.drawable.item_background_button, null));
                                     return;
                                 }

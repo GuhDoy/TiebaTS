@@ -61,9 +61,9 @@ public class MyAttention extends BaseHooker implements IHooker {
 
     @SuppressLint("ApplySharedPref")
     private void showNoteDialog(Activity activity, String key) {
-        EditText editText = new TbEditText(sClassLoader, activity, sRes);
+        EditText editText = new TbEditText(activity);
         editText.setHint(Preferences.getNote(key));
-        TbDialog bdAlert = new TbDialog(sClassLoader, activity, sRes, null, null, true, editText);
+        TbDialog bdAlert = new TbDialog(activity, null, null, true, editText);
         bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
         bdAlert.setOnYesButtonClickListener(v -> {
             SharedPreferences.Editor editor = Preferences.getTsNotesEditor();
