@@ -20,7 +20,7 @@ public class TbToast extends BaseHooker {
                     for (Method md : sClassLoader.loadClass(clazz).getDeclaredMethods()) {
                         if (Arrays.toString(md.getParameterTypes()).equals(
                                 "[class android.content.Context, class java.lang.String, int]")) {
-                            md.invoke(null, sContextRef.get(), text, duration);
+                            md.invoke(null, getContext(), text, duration);
                         }
                     }
                 }

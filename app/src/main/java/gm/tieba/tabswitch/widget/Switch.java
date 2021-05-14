@@ -17,7 +17,7 @@ public class Switch extends BaseHooker {
     public Switch() {
         try {
             mClass = sClassLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView");
-            bdSwitch = (View) mClass.getConstructor(Context.class).newInstance(sContextRef.get());
+            bdSwitch = (View) mClass.getConstructor(Context.class).newInstance(getContext());
         } catch (Throwable e) {
             XposedBridge.log(e);
         }
@@ -32,7 +32,7 @@ public class Switch extends BaseHooker {
         }
     }
 
-    public void setOnSwitchStateChangeListener(InvocationHandler onSwitchStateChange) {
+    public void setOnSwitchStateChangeListener(InvocationHandler l) {
         try {
             Class<?> clazz;
             try {
@@ -40,9 +40,8 @@ public class Switch extends BaseHooker {
             } catch (ClassNotFoundException e) {
                 clazz = sClassLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView$a");
             }
-            Object proxy = Proxy.newProxyInstance(sClassLoader, new Class<?>[]{clazz}, onSwitchStateChange);
-            mClass.getDeclaredMethod("setOnSwitchStateChangeListener",
-                    clazz).invoke(bdSwitch, proxy);
+            Object proxy = Proxy.newProxyInstance(sClassLoader, new Class<?>[]{clazz}, l);
+            mClass.getDeclaredMethod("setOnSwitchStateChangeListener", clazz).invoke(bdSwitch, proxy);
         } catch (Throwable e) {
             XposedBridge.log(e);
         }

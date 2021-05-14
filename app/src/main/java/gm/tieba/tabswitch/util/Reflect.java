@@ -13,17 +13,17 @@ public class Reflect extends BaseHooker {
     }
 
     public static int getColor(String fieldName) throws Throwable {
-        return sContextRef.get().getColor(sClassLoader.loadClass("com.baidu.tieba.R$color")
-                .getField(fieldName + DisplayHelper.getTbSkin(sContextRef.get())).getInt(null));
+        return getContext().getColor(sClassLoader.loadClass("com.baidu.tieba.R$color")
+                .getField(fieldName + DisplayHelper.getTbSkin(getContext())).getInt(null));
     }
 
     public static float getDimen(String fieldName) throws Throwable {
-        return sContextRef.get().getResources().getDimension(sClassLoader.loadClass(
+        return getContext().getResources().getDimension(sClassLoader.loadClass(
                 "com.baidu.tieba.R$dimen").getField(fieldName).getInt(null));
     }
 
     public static float getDimenDip(String fieldName) throws Throwable {
-        return DisplayHelper.px2Dip(sContextRef.get(), Reflect.getDimen(fieldName));
+        return DisplayHelper.px2Dip(getContext(), Reflect.getDimen(fieldName));
     }
 
     public static int getDrawable(String fieldName) throws Throwable {

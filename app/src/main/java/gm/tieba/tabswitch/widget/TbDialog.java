@@ -70,27 +70,29 @@ public class TbDialog extends BaseHooker {
         }
     }
 
-    public void setOnNoButtonClickListener(View.OnClickListener onClickListener) {
+    public void setOnNoButtonClickListener(View.OnClickListener l) {
         try {
+            String cancel = getContext().getString(android.R.string.cancel);
             try {
-                XposedHelpers.setObjectField(mBdAlert, "mNegativeButtonTip", "取消");
+                XposedHelpers.setObjectField(mBdAlert, "mNegativeButtonTip", cancel);
             } catch (NoSuchFieldError e) {
-                XposedHelpers.setObjectField(mBdAlert, "m", "取消");
+                XposedHelpers.setObjectField(mBdAlert, "m", cancel);
             }
-            mRootView.findViewById(Reflect.getId("no")).setOnClickListener(onClickListener);
+            mRootView.findViewById(Reflect.getId("no")).setOnClickListener(l);
         } catch (Throwable e) {
             XposedBridge.log(e);
         }
     }
 
-    public void setOnYesButtonClickListener(View.OnClickListener onClickListener) {
+    public void setOnYesButtonClickListener(View.OnClickListener l) {
         try {
+            String ok = getContext().getString(android.R.string.ok);
             try {
-                XposedHelpers.setObjectField(mBdAlert, "mPositiveButtonTip", "确定");
+                XposedHelpers.setObjectField(mBdAlert, "mPositiveButtonTip", ok);
             } catch (NoSuchFieldError e) {
-                XposedHelpers.setObjectField(mBdAlert, "l", "确定");
+                XposedHelpers.setObjectField(mBdAlert, "l", ok);
             }
-            getYesButton().setOnClickListener(onClickListener);
+            getYesButton().setOnClickListener(l);
         } catch (Throwable e) {
             XposedBridge.log(e);
         }

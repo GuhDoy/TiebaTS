@@ -11,10 +11,10 @@ public class NavigationBar extends BaseHooker {
     public Class<?> mClass;
     private Object mNavigationBar;
 
-    public NavigationBar(Object instanceInClass) {
+    public NavigationBar(Object thisObject) {
         try {
             mClass = sClassLoader.loadClass("com.baidu.tbadk.core.view.NavigationBar");
-            mNavigationBar = Reflect.getObjectField(instanceInClass,
+            mNavigationBar = Reflect.getObjectField(thisObject,
                     "com.baidu.tbadk.core.view.NavigationBar");
         } catch (Throwable e) {
             e.printStackTrace();

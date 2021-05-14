@@ -40,7 +40,7 @@ import gm.tieba.tabswitch.widget.TbToast;
 
 @SuppressLint({"PrivateApi", "DiscouragedPrivateApi"})
 public class StorageRedirect extends BaseHooker implements IHooker {
-    private final File mTarget = sContextRef.get().getExternalCacheDir();
+    private final File mTarget = getContext().getExternalCacheDir();
 
     public void hook() throws Throwable {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

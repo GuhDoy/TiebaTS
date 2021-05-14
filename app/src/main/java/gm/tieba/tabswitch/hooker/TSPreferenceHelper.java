@@ -46,7 +46,7 @@ public class TSPreferenceHelper extends BaseHooker {
 
     static TextView createTextView(String text) {
         try {
-            TextView textView = new TextView(sContextRef.get());
+            TextView textView = new TextView(getContext());
             textView.setText(text);
             textView.setTextColor(Reflect.getColor("CAM_X0108"));
             textView.setTextSize(Reflect.getDimenDip("fontsize28"));
@@ -70,11 +70,11 @@ public class TSPreferenceHelper extends BaseHooker {
     }
 
     @SuppressLint("UseCompatLoadingForDrawables")
-    static LinearLayout createButton(String text, String tip, View.OnClickListener onClick) {
+    static LinearLayout createButton(String text, String tip, View.OnClickListener l) {
         try {
             Class<?> TbSettingTextTipView = sClassLoader.loadClass(
                     "com.baidu.tbadk.coreExtra.view.TbSettingTextTipView");
-            Object instance = TbSettingTextTipView.getConstructor(Context.class).newInstance(sContextRef.get());
+            Object instance = TbSettingTextTipView.getConstructor(Context.class).newInstance(getContext());
             TbSettingTextTipView.getDeclaredMethod("setText", String.class).invoke(instance, text);
             TbSettingTextTipView.getDeclaredMethod("setTip", String.class).invoke(instance, tip);
             for (Field field : instance.getClass().getDeclaredFields()) {
@@ -82,7 +82,7 @@ public class TSPreferenceHelper extends BaseHooker {
                 if (field.get(instance) instanceof LinearLayout) {
                     LinearLayout newButton = (LinearLayout) field.get(instance);
                     ((ViewGroup) Objects.requireNonNull(newButton).getParent()).removeView(newButton);
-                    if (onClick != null) newButton.setOnClickListener(onClick);
+                    if (l != null) newButton.setOnClickListener(l);
                     return newButton;
                 }
             }
@@ -137,8 +137,8 @@ public class TSPreferenceHelper extends BaseHooker {
             }
         }
 
-        void setOnButtonClickListener(View.OnClickListener onClick) {
-            switchButton.setOnClickListener(onClick);
+        void setOnButtonClickListener(View.OnClickListener l) {
+            switchButton.setOnClickListener(l);
             bdSwitch.bdSwitch.setOnTouchListener((View v, MotionEvent event) -> false);
         }
 
@@ -159,7 +159,7 @@ public class TSPreferenceHelper extends BaseHooker {
         }
 
         private void showRegexDialog(Activity activity) {
-            EditText editText = new TbEditText(sContextRef.get());
+            EditText editText = new TbEditText(getContext());
             editText.setHint("请输入正则表达式，如.*");
             editText.setText(Preferences.getString(mKey));
             TbDialog bdAlert = new TbDialog(activity, null, null, true, editText);
