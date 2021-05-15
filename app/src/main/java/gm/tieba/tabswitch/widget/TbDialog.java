@@ -21,7 +21,7 @@ import gm.tieba.tabswitch.dao.Rule;
 import gm.tieba.tabswitch.util.Reflect;
 
 public class TbDialog extends BaseHooker {
-    private Class<?> mTbDialog;
+    private Class<?> mClass;
     private Object mBdAlert;
     private Object mPageContext;
     private ViewGroup mRootView;
@@ -40,8 +40,8 @@ public class TbDialog extends BaseHooker {
                 @Override
                 public void onRuleFound(String rule, String clazz, String method) {
                     try {
-                        mTbDialog = sClassLoader.loadClass(clazz);
-                        mBdAlert = mTbDialog.getConstructor(Activity.class).newInstance((Activity) activity);
+                        mClass = sClassLoader.loadClass(clazz);
+                        mBdAlert = mClass.getConstructor(Activity.class).newInstance((Activity) activity);
                         try {
                             mRootView = (ViewGroup) XposedHelpers.getObjectField(mBdAlert, "mRootView");
                             XposedHelpers.setObjectField(mBdAlert, "mTitle", title);
@@ -109,7 +109,7 @@ public class TbDialog extends BaseHooker {
 
     public void show() {
         try {
-            for (Method method : mTbDialog.getDeclaredMethods()) {
+            for (Method method : mClass.getDeclaredMethods()) {
                 if (Arrays.toString(method.getParameterTypes()).startsWith("[interface")
                         && !Arrays.toString(method.getParameterTypes()).contains("$")) {
                     method.invoke(mBdAlert, mPageContext);// create
@@ -125,9 +125,9 @@ public class TbDialog extends BaseHooker {
                     }
                 }
             }
-            for (Method method : mTbDialog.getDeclaredMethods()) {
+            for (Method method : mClass.getDeclaredMethods()) {
                 if (Arrays.toString(method.getParameterTypes()).equals("[]")
-                        && Objects.equals(method.getReturnType(), mTbDialog)) {
+                        && Objects.equals(method.getReturnType(), mClass)) {
                     method.invoke(mBdAlert);// show
                     break;
                 }
@@ -149,9 +149,9 @@ public class TbDialog extends BaseHooker {
     public void dismiss() {
         try {
             try {
-                mTbDialog.getDeclaredMethod("dismiss").invoke(mBdAlert);
+                mClass.getDeclaredMethod("dismiss").invoke(mBdAlert);
             } catch (NoSuchMethodException e) {
-                mTbDialog.getDeclaredMethod("k").invoke(mBdAlert);
+                mClass.getDeclaredMethod("k").invoke(mBdAlert);
             }
         } catch (Throwable e) {
             XposedBridge.log(e);

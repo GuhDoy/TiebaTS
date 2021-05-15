@@ -35,7 +35,7 @@ import gm.tieba.tabswitch.hooker.ThreadStore;
 
 public abstract class BaseHooker {
     protected static ClassLoader sClassLoader;
-    protected static WeakReference<Context> sContextRef;
+    private static WeakReference<Context> sContextRef;
     protected static Resources sRes;
 
     public static Context getContext() {

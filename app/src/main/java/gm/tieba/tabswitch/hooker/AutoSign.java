@@ -25,7 +25,7 @@ public class AutoSign extends BaseHooker implements IHooker {
         XposedHelpers.findAndHookMethod("com.baidu.tbadk.core.data.AccountData", sClassLoader, "getBDUSS", new XC_MethodHook() {
             @Override
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                mBDUSS = String.valueOf(param.getResult());
+                mBDUSS = (String) param.getResult();
             }
         });
         XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
