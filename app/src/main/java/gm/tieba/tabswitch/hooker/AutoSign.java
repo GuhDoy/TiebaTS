@@ -30,7 +30,7 @@ public class AutoSign extends BaseHooker implements IHooker {
         });
         XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
             @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 if (Preferences.getIsSigned()) return;
                 new Thread(() -> {
                     Looper.prepare();
@@ -119,6 +119,7 @@ public class AutoSign extends BaseHooker implements IHooker {
                         success.add(s);
                         XposedBridge.log(s + ": " + "签到成功");
                     } else XposedBridge.log(s + ": " + "签到失败");
+                    Thread.sleep(500);
                 }
                 if (success.size() != followNum) {
                     Thread.sleep(1000);
