@@ -88,7 +88,6 @@ public class Purify extends BaseHooker implements IHooker {
             }
         });
         //启动广告
-        XposedHelpers.findAndHookMethod("com.baidu.tbadk.core.TbadkCoreApplication", sClassLoader, "getIsFirstUse", XC_MethodReplacement.returnConstant(true));
         XposedHelpers.findAndHookMethod("com.baidu.adp.framework.MessageManager", sClassLoader, "findTask", int.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {

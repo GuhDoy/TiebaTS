@@ -38,16 +38,16 @@ public abstract class BaseHooker {
     private static WeakReference<Context> sContextRef;
     protected static Resources sRes;
 
-    public static Context getContext() {
-        return sContextRef.get();
-    }
-
     protected BaseHooker() {
     }
 
     protected BaseHooker(ClassLoader classLoader, Resources res) {
         sClassLoader = classLoader;
         sRes = res;
+    }
+
+    protected static Context getContext() {
+        return sContextRef.get();
     }
 
     public static void init(ClassLoader classLoader, Context context, Resources res,
