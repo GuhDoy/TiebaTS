@@ -122,7 +122,7 @@ public class AutoSign extends BaseHooker implements IHooker {
                     Thread.sleep(500);
                 }
                 if (success.size() != followNum) {
-                    Thread.sleep(1000);
+                    Thread.sleep(2500);
                     getTbs();
                 }
                 flag--;

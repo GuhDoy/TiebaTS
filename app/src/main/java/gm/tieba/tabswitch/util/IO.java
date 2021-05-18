@@ -55,6 +55,7 @@ public class IO {
         return baos;
     }
 
+    // TODO: use ByteBuffer
     public static String getExtension(ByteArrayOutputStream baos) throws IOException {
         InputStream inputStream = new ByteArrayInputStream(baos.toByteArray());
         byte[] bytes = new byte[6];

@@ -50,6 +50,11 @@ public class AntiConfusion extends BaseHooker implements IHooker {
                     @Override
                     protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
                         Activity activity = (Activity) param.thisObject;
+                        if (Preferences.getBoolean("purify")) {
+                            SharedPreferences.Editor editor = activity.getSharedPreferences("settings", Context.MODE_PRIVATE).edit();
+                            editor.putString("key_location_request_dialog_last_show_version", AntiConfusionHelper.getTbVersion(activity));
+                            editor.commit();
+                        }
                         if (AntiConfusionHelper.isDexChanged(activity)) {
                             activity.deleteDatabase("Rules.db");
                         } else if (AntiConfusionHelper.getRulesLost().size() != 0) {
@@ -184,11 +189,6 @@ public class AntiConfusion extends BaseHooker implements IHooker {
                                     IO.deleteRecursively(new File(activity.getCacheDir().getAbsolutePath() + "image"));
                                     IO.deleteRecursively(new File(activity.getFilesDir().getAbsolutePath() + File.separator + "newStat" + File.separator + "notUpload"));
                                 } else IO.deleteRecursively(dexDir);
-                                if (Preferences.getBoolean("purify")) {
-                                    SharedPreferences.Editor editor = activity.getSharedPreferences("settings", Context.MODE_PRIVATE).edit();
-                                    editor.putString("key_location_request_dialog_last_show_version", AntiConfusionHelper.getTbVersion(activity));
-                                    editor.commit();
-                                }
                                 XposedBridge.log("anti-confusion accomplished, current version: " + AntiConfusionHelper.getTbVersion(activity));
                                 AntiConfusionHelper.saveAndRestart(activity, AntiConfusionHelper.getTbVersion(activity), sClassLoader.loadClass(SPRINGBOARD_ACTIVITY));
                             } catch (Throwable throwable) {
