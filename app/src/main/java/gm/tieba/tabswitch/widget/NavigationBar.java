@@ -21,7 +21,7 @@ public class NavigationBar extends BaseHooker {
         }
     }
 
-    public void addTextButton(String text, View.OnClickListener onClick) {
+    public void addTextButton(String text, View.OnClickListener l) {
         try {
             Class<?> ControlAlign = sClassLoader.loadClass(
                     "com.baidu.tbadk.core.view.NavigationBar$ControlAlign");
@@ -29,7 +29,7 @@ public class NavigationBar extends BaseHooker {
                 if (HORIZONTAL_RIGHT.toString().equals("HORIZONTAL_RIGHT")) {
                     TextView textView = (TextView) mClass.getDeclaredMethod("addTextButton",
                             ControlAlign, String.class, View.OnClickListener.class)
-                            .invoke(mNavigationBar, HORIZONTAL_RIGHT, text, onClick);
+                            .invoke(mNavigationBar, HORIZONTAL_RIGHT, text, l);
                     textView.setTextColor(Reflect.getColor("CAM_X0105"));
                     break;
                 }

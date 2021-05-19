@@ -143,6 +143,7 @@ public class TSPreferenceHelper extends BaseHooker {
         }
 
         private static class SwitchStatusChangeHandler implements InvocationHandler {
+            @SuppressWarnings("SuspiciousInvocationHandlerImplementation")
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) {
                 View view = (View) args[0];

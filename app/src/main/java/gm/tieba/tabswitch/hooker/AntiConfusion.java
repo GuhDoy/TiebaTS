@@ -183,12 +183,7 @@ public class AntiConfusion extends BaseHooker implements IHooker {
                                 new FileInputStream(fs[0]).read(bytes);
                                 DexFile.calcSignature(bytes);
                                 Preferences.putSignature(Arrays.hashCode(bytes));
-                                if (Preferences.getBoolean("clean_dir")) {
-                                    IO.deleteRecursively(activity.getExternalCacheDir());
-                                    IO.deleteRecursively(activity.getCacheDir());
-                                    IO.deleteRecursively(new File(activity.getCacheDir().getAbsolutePath() + "image"));
-                                    IO.deleteRecursively(new File(activity.getFilesDir().getAbsolutePath() + File.separator + "newStat" + File.separator + "notUpload"));
-                                } else IO.deleteRecursively(dexDir);
+                                IO.deleteRecursively(dexDir);
                                 XposedBridge.log("anti-confusion accomplished, current version: " + AntiConfusionHelper.getTbVersion(activity));
                                 AntiConfusionHelper.saveAndRestart(activity, AntiConfusionHelper.getTbVersion(activity), sClassLoader.loadClass(SPRINGBOARD_ACTIVITY));
                             } catch (Throwable throwable) {

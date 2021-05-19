@@ -22,32 +22,34 @@ public class AutoSign extends BaseHooker implements IHooker {
     private String mBDUSS;
 
     public void hook() throws Throwable {
-        XposedHelpers.findAndHookMethod("com.baidu.tbadk.core.data.AccountData", sClassLoader, "getBDUSS", new XC_MethodHook() {
-            @Override
-            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                mBDUSS = (String) param.getResult();
-            }
-        });
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
-            @Override
-            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                if (Preferences.getIsSigned()) return;
-                new Thread(() -> {
-                    Looper.prepare();
-                    if (mBDUSS == null) {
-                        TbToast.showTbToast("暂未获取到 BDUSS", TbToast.LENGTH_LONG);
-                    } else {
-                        String result = main(mBDUSS);
-                        TbToast.showTbToast(result, TbToast.LENGTH_SHORT);
-                        if (result.endsWith("全部签到成功")) {
-                            Preferences.putSignDate();
-                            Preferences.putFollow(success);
-                        }
+        XposedHelpers.findAndHookMethod("com.baidu.tbadk.core.data.AccountData", sClassLoader,
+                "getBDUSS", new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        mBDUSS = (String) param.getResult();
                     }
-                    Looper.loop();
-                }).start();
-            }
-        });
+                });
+        XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader,
+                "onCreate", Bundle.class, new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        if (Preferences.getIsSigned()) return;
+                        new Thread(() -> {
+                            Looper.prepare();
+                            if (mBDUSS == null) {
+                                TbToast.showTbToast("暂未获取到 BDUSS", TbToast.LENGTH_LONG);
+                            } else {
+                                String result = main(mBDUSS);
+                                TbToast.showTbToast(result, TbToast.LENGTH_SHORT);
+                                if (result.endsWith("全部签到成功")) {
+                                    Preferences.putSignDate();
+                                    Preferences.putFollow(success);
+                                }
+                            }
+                            Looper.loop();
+                        }).start();
+                    }
+                });
     }
 
     //获取用户所有关注贴吧
@@ -93,12 +95,13 @@ public class AutoSign extends BaseHooker implements IHooker {
             JSONArray jsonArray = jsonObject.getJSONObject("data").getJSONArray("like_forum");
             followNum = jsonArray.length();
             // 获取用户所有关注的贴吧
-            for (int i = 0; i < jsonArray.length(); i++)
+            for (int i = 0; i < jsonArray.length(); i++) {
                 if ("0".equals(jsonArray.optJSONObject(i).getString("is_sign"))) {
                     follow.add(jsonArray.optJSONObject(i).getString("forum_name"));
                 } else {
                     success.add(jsonArray.optJSONObject(i).getString("forum_name"));
                 }
+            }
         } catch (Exception e) {
             XposedBridge.log("获取贴吧列表部分出现错误 -- " + e);
         }
@@ -112,14 +115,14 @@ public class AutoSign extends BaseHooker implements IHooker {
                 Iterator<String> iterator = follow.iterator();
                 while (iterator.hasNext()) {
                     String s = iterator.next();
-                    String body = "kw=" + s + "&tbs=" + tbs + "&sign=" + AutoSignHelper.enCodeMd5("kw=" + s + "tbs=" + tbs + "tiebaclient!!!");
+                    String body = "kw=" + s + "&tbs=" + tbs + "&sign=" + AutoSignHelper.enCodeMd5(
+                            "kw=" + s + "tbs=" + tbs + "tiebaclient!!!");
                     JSONObject post = AutoSignHelper.post(SIGN_URL, body);
                     if ("0".equals(post.getString("error_code"))) {
                         iterator.remove();
                         success.add(s);
                         XposedBridge.log(s + ": " + "签到成功");
                     } else XposedBridge.log(s + ": " + "签到失败");
-                    Thread.sleep(500);
                 }
                 if (success.size() != followNum) {
                     Thread.sleep(2500);

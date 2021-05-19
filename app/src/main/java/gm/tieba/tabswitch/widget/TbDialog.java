@@ -41,7 +41,7 @@ public class TbDialog extends BaseHooker {
                 public void onRuleFound(String rule, String clazz, String method) {
                     try {
                         mClass = sClassLoader.loadClass(clazz);
-                        mBdAlert = mClass.getConstructor(Activity.class).newInstance((Activity) activity);
+                        mBdAlert = mClass.getConstructor(Activity.class).newInstance(activity);
                         try {
                             mRootView = (ViewGroup) XposedHelpers.getObjectField(mBdAlert, "mRootView");
                             XposedHelpers.setObjectField(mBdAlert, "mTitle", title);
