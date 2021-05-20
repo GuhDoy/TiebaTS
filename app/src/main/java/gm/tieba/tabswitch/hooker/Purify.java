@@ -139,8 +139,8 @@ public class Purify extends BaseHooker implements IHooker {
                         continue;
                     }
 
-                    Object author = XposedHelpers.getObjectField(threadList.get(i), "author");
-                    if (XposedHelpers.getObjectField(author, "baijiahao_info") != null) {
+                    Object worksInfo = XposedHelpers.getObjectField(threadList.get(i), "works_info");
+                    if (worksInfo != null && (Integer) XposedHelpers.getObjectField(worksInfo, "is_works") == 1) {
                         threadList.remove(i);
                         i--;
                     }

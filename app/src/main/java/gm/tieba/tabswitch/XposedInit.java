@@ -127,6 +127,8 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
                         XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(true));
                     }
                 }
+
+                // "performInitVideoInfo"
                 break;
             case "com.coolapk.market":
                 XposedHelpers.findAndHookMethod(String.class, "format", String.class, Object[].class, new XC_MethodHook() {
@@ -160,6 +162,10 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
                     });
                 } catch (XposedHelpers.ClassNotFoundError ignored) {
                 }
+                break;
+            case "com.jianshu.haruki":
+                XposedHelpers.findAndHookMethod("com.baiji.jianshu.core.http.models.CommonUser", classLoader,
+                        "isMember", XC_MethodReplacement.returnConstant(true));
                 break;
         }
     }
