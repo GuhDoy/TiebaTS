@@ -81,10 +81,10 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
                                                     .saveAndRestart(activity, "unknown", null));
                                             bdAlert.show();
                                         } else {
-                                            AlertDialog alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_HOLO_LIGHT)
+                                            AlertDialog alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_DEVICE_DEFAULT_LIGHT)
                                                     .setTitle("警告").setMessage(message).setCancelable(false)
-                                                    .setNegativeButton("取消", (dialogInterface, i) -> {
-                                                    }).setPositiveButton("确定", (dialogInterface, i) -> AntiConfusionHelper
+                                                    .setNegativeButton(activity.getString(android.R.string.cancel), (dialogInterface, i) -> {
+                                                    }).setPositiveButton(activity.getString(android.R.string.ok), (dialogInterface, i) -> AntiConfusionHelper
                                                             .saveAndRestart(activity, "unknown", null)).create();
                                             alertDialog.show();
                                         }

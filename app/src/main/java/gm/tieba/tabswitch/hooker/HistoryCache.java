@@ -20,6 +20,7 @@ import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
+import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.widget.NavigationBar;
 import gm.tieba.tabswitch.widget.TbDialog;
 import gm.tieba.tabswitch.widget.TbEditText;
@@ -73,7 +74,7 @@ public class HistoryCache extends BaseHooker implements IHooker {
 
     private void showRegexDialog(Activity activity) {
         EditText editText = new TbEditText(activity);
-        editText.setHint("请输入正则表达式，如.*");
+        editText.setHint(sRes.getString(R.string.regex_hint));
         editText.setText(mRegex);
         editText.addTextChangedListener(new TextWatcher() {
             @Override

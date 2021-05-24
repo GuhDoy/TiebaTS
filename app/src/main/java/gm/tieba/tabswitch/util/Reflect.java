@@ -23,7 +23,7 @@ public class Reflect extends BaseHooker {
     }
 
     public static float getDimenDip(String fieldName) throws Throwable {
-        return DisplayHelper.px2Dip(getContext(), Reflect.getDimen(fieldName));
+        return DisplayHelper.pxToDip(getContext(), Reflect.getDimen(fieldName));
     }
 
     public static int getDrawable(String fieldName) throws Throwable {

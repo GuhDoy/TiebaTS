@@ -24,6 +24,7 @@ import java.util.regex.PatternSyntaxException;
 
 import de.robv.android.xposed.XposedBridge;
 import gm.tieba.tabswitch.BaseHooker;
+import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.util.Reflect;
 import gm.tieba.tabswitch.widget.Switch;
@@ -161,7 +162,7 @@ public class TSPreferenceHelper extends BaseHooker {
 
         private void showRegexDialog(Activity activity) {
             EditText editText = new TbEditText(getContext());
-            editText.setHint("请输入正则表达式，如.*");
+            editText.setHint(sRes.getString(R.string.regex_hint));
             editText.setText(Preferences.getString(mKey));
             TbDialog bdAlert = new TbDialog(activity, null, null, true, editText);
             bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
@@ -208,7 +209,7 @@ public class TSPreferenceHelper extends BaseHooker {
             case 4:
                 return "点个小星星吧:)";
             default:
-                return "搞个大新闻";
+                return "";
         }
     }
 }

@@ -44,7 +44,7 @@ public class ThreadStore extends BaseHooker implements IHooker {
                                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                         layoutParams.setMargins(60, 0, 20, 0);
                         textView.setLayoutParams(layoutParams);
-                        textView.setTextSize(DisplayHelper.px2Dip(activity, edit.getTextSize()));
+                        textView.setTextSize(DisplayHelper.pxToDip(activity, edit.getTextSize()));
                         textView.setTextColor(edit.getTextColors());
                         textView.setText("搜索");
                         LinearLayout naviRightButton = activity.findViewById(
@@ -95,7 +95,7 @@ public class ThreadStore extends BaseHooker implements IHooker {
 
     private void showRegexDialog(Activity activity) {
         EditText editText = new TbEditText(activity);
-        editText.setHint("请输入正则表达式，如.*");
+        editText.setHint(sRes.getString(R.string.regex_hint));
         editText.setText(mRegex);
         editText.addTextChangedListener(new TextWatcher() {
             @Override

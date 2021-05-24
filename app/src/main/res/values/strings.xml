@@ -7,6 +7,7 @@
         ③本模块主要用于学习和交流技术，任何人不得将本模块用于商业或非法用途。</string>
     <string name="dev_tip">提示：您当前安装的是非正式版本，可能含有较多错误，如果您希望得到更稳定的使用体验，建议您安装正式版本。</string>
     <string name="rules_incomplete">规则异常，建议您执行反混淆。若执行完后仍出现此对话框则应更新模块，若模块已是最新版本则应向作者反馈。</string>
+    <string name="regex_hint">请输入正则表达式，如.*</string>
 
     <string name="TSPreference">Lcom/baidu/tieba/R$id;->black_address_list:I</string>
     <string name="TbDialog">Lcom/baidu/tieba/R$layout;->dialog_bdalert:I</string>
