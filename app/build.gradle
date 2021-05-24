@@ -10,8 +10,8 @@ android {
         applicationId 'gm.tieba.tabswitch'
         minSdkVersion 23
         targetSdkVersion 30
-        versionCode 11
-        versionName "2.6-beta"
+        versionCode 12
+        versionName "2.5.1"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         multiDexEnabled false
     }
