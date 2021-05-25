@@ -27,9 +27,9 @@ import gm.tieba.tabswitch.hooker.Purify;
 import gm.tieba.tabswitch.hooker.PurifyEnter;
 import gm.tieba.tabswitch.hooker.PurifyMy;
 import gm.tieba.tabswitch.hooker.RedTip;
+import gm.tieba.tabswitch.hooker.RedirectImage;
 import gm.tieba.tabswitch.hooker.Ripple;
 import gm.tieba.tabswitch.hooker.SaveImages;
-import gm.tieba.tabswitch.hooker.RedirectImage;
 import gm.tieba.tabswitch.hooker.SwitchManager;
 import gm.tieba.tabswitch.hooker.ThreadStore;
 
@@ -41,8 +41,9 @@ public abstract class BaseHooker {
     protected BaseHooker() {
     }
 
-    protected BaseHooker(ClassLoader classLoader, Resources res) {
+    protected BaseHooker(ClassLoader classLoader, Context context, Resources res) {
         sClassLoader = classLoader;
+        sContextRef = new WeakReference<>(context);
         sRes = res;
     }
 

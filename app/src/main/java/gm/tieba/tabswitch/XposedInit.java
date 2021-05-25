@@ -92,11 +92,11 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
                                 });
                     }
                     if (AntiConfusionHelper.isVersionChanged(context)) {
-                        new AntiConfusion(classLoader, mRes).hook();
+                        new AntiConfusion(classLoader, context, mRes).hook();
                         return;
                     }
 
-                    new TSPreference(classLoader, mRes).hook();
+                    new TSPreference(classLoader, context, mRes).hook();
                     for (Map.Entry<String, ?> entry : Preferences.getAll().entrySet()) {
                         BaseHooker.init(classLoader, context, mRes, entry);
                     }

@@ -17,7 +17,6 @@ import android.widget.TextView;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.util.Objects;
 import java.util.Random;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;

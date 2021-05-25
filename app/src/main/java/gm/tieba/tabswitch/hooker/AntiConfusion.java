@@ -38,8 +38,8 @@ import gm.tieba.tabswitch.util.IO;
 public class AntiConfusion extends BaseHooker implements IHooker {
     private static final String SPRINGBOARD_ACTIVITY = "com.baidu.tieba.tblauncher.MainTabActivity";
 
-    public AntiConfusion(ClassLoader classLoader, Resources res) {
-        super(classLoader, res);
+    public AntiConfusion(ClassLoader classLoader, Context context, Resources res) {
+        super(classLoader, context, res);
     }
 
     public void hook() throws Throwable {

@@ -3,6 +3,7 @@ package gm.tieba.tabswitch.hooker;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.net.Uri;
@@ -36,8 +37,8 @@ public class TSPreference extends BaseHooker implements IHooker {
     private final static String SETTINGS_MAIN = "贴吧TS设置";
     private final static String SETTINGS_MODIFY_TAB = "修改页面";
 
-    public TSPreference(ClassLoader classLoader, Resources res) {
-        super(classLoader, res);
+    public TSPreference(ClassLoader classLoader, Context context, Resources res) {
+        super(classLoader, context, res);
     }
 
     public void hook() throws Throwable {
