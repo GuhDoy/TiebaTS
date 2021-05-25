@@ -201,7 +201,7 @@ public class TSPreference extends BaseHooker implements IHooker {
         } else {
             preferenceLayout.addView(TSPreferenceHelper.createTextView("其它"));
         }
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "存储重定向", "storage_redirect", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(activity, "保存图片重定向", "redirect_image", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "禁用帖子手势", "forbid_gesture", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "用赞踩差数代替赞数", "agree_num", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "交换吧热门与最新", "frs_tab", SwitchButtonHolder.TYPE_SWITCH));

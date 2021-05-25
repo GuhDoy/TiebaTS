@@ -82,7 +82,7 @@ public class TSPreferenceHelper extends BaseHooker {
                 field.setAccessible(true);
                 if (field.get(instance) instanceof LinearLayout) {
                     LinearLayout newButton = (LinearLayout) field.get(instance);
-                    ((ViewGroup) Objects.requireNonNull(newButton).getParent()).removeView(newButton);
+                    ((ViewGroup) newButton.getParent()).removeView(newButton);
                     if (l != null) newButton.setOnClickListener(l);
                     return newButton;
                 }

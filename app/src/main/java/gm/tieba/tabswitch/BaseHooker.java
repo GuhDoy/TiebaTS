@@ -29,7 +29,7 @@ import gm.tieba.tabswitch.hooker.PurifyMy;
 import gm.tieba.tabswitch.hooker.RedTip;
 import gm.tieba.tabswitch.hooker.Ripple;
 import gm.tieba.tabswitch.hooker.SaveImages;
-import gm.tieba.tabswitch.hooker.StorageRedirect;
+import gm.tieba.tabswitch.hooker.RedirectImage;
 import gm.tieba.tabswitch.hooker.SwitchManager;
 import gm.tieba.tabswitch.hooker.ThreadStore;
 
@@ -136,8 +136,8 @@ public abstract class BaseHooker {
             case "origin_src":
                 if ((Boolean) entry.getValue()) new OriginSrc().hook();
                 break;
-            case "storage_redirect":
-                if ((Boolean) entry.getValue()) new StorageRedirect().hook();
+            case "redirect_image":
+                if ((Boolean) entry.getValue()) new RedirectImage().hook();
                 break;
             case "forbid_gesture":
                 if ((Boolean) entry.getValue()) new ForbidGesture().hook();
