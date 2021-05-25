@@ -98,7 +98,7 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
 
                     new TSPreference(classLoader, context, mRes).hook();
                     for (Map.Entry<String, ?> entry : Preferences.getAll().entrySet()) {
-                        BaseHooker.init(classLoader, context, mRes, entry);
+                        BaseHooker.init(entry);
                     }
                 }
             });

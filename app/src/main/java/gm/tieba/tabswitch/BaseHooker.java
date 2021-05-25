@@ -51,11 +51,7 @@ public abstract class BaseHooker {
         return sContextRef.get();
     }
 
-    public static void init(ClassLoader classLoader, Context context, Resources res,
-                            Map.Entry<String, ?> entry) throws Throwable {
-        sClassLoader = classLoader;
-        sContextRef = new WeakReference<>(context);
-        sRes = res;
+    public static void init(Map.Entry<String, ?> entry) throws Throwable {
         switch (entry.getKey()) {
             case "home_recommend":
                 if ((Boolean) entry.getValue()) new HomeRecommend().hook();
