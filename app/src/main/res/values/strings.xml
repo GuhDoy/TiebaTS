@@ -8,34 +8,4 @@
     <string name="dev_tip">提示：您当前安装的是非正式版本，可能含有较多错误，如果您希望得到更稳定的使用体验，建议您安装正式版本。</string>
     <string name="rules_incomplete">规则异常，建议您执行反混淆。若执行完后仍出现此对话框则应更新模块，若模块已是最新版本则应向作者反馈。</string>
     <string name="regex_hint">请输入正则表达式，如.*</string>
-
-    <string name="TSPreference">Lcom/baidu/tieba/R$id;->black_address_list:I</string>
-    <string name="TbDialog">Lcom/baidu/tieba/R$layout;->dialog_bdalert:I</string>
-    <string name="TbToast">\"can not be call not thread! trace = \"</string>
-    <string-array name="Purify">
-        <item>\"c/s/splashSchedule\"</item>
-        <item>Lcom/baidu/tieba/recapp/lego/model/AdCard;-&gt;&lt;init&gt;(Lorg/json/JSONObject;)V</item>
-        <item>\"pic_amount\"</item>
-        <item>\"key_frs_dialog_ad_last_show_time\"</item>
-        <item>Lcom/baidu/tieba/R$id;->frs_ad_banner:I</item>
-        <item>Lcom/baidu/tieba/R$layout;->pb_child_title:I</item>
-    </string-array>
-    <string-array name="PurifyEnter">
-        <item>Lcom/baidu/tieba/R$id;->square_background:I</item>
-        <item>Lcom/baidu/tieba/R$id;->create_bar_container:I</item>
-    </string-array>
-    <string-array name="PurifyMy">
-        <item>Lcom/baidu/tieba/R$drawable;->icon_pure_topbar_store44_svg:I</item>
-        <item>Lcom/baidu/tieba/R$id;->function_item_bottom_divider:I</item>
-        <item>\"https://tieba.baidu.com/mo/q/duxiaoman/index?noshare=1\"</item>
-    </string-array>
-    <string name="CreateView">Lcom/baidu/tieba/R$id;->navigationBarGoSignall:I</string>
-    <string name="Ripple">Lcom/baidu/tieba/R$layout;->new_sub_pb_list_item:I</string>
-    <string name="ThreadStore">\"c/f/post/threadstore\"</string>
-    <string name="NewSub">Lcom/baidu/tieba/R$id;->subpb_head_user_info_root:I</string>
-    <!--
-    <string name="MyAttention">Lcom/baidu/tieba/R$layout;->person_list_item:I</string>
-    -->
-    <string name="StorageRedirect">0x4197d783fc000000L</string>
-    <string name="ForbidGesture">Lcom/baidu/tieba/R$id;->new_pb_list:I</string>
 </resources>
