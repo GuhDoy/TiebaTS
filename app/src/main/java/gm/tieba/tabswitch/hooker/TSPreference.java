@@ -100,8 +100,7 @@ public class TSPreference extends BaseHooker implements IHooker {
             activity.finishAffinity();
             System.exit(0);
         });
-        LinearLayout containerView = activity.findViewById(
-                Reflect.getId("container_view"));
+        LinearLayout containerView = activity.findViewById(Reflect.getId("container_view"));
         containerView.removeAllViews();
         containerView.addView(preferenceLayout);
     }

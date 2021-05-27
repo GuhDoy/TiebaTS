@@ -190,7 +190,7 @@ public class Purify extends BaseHooker implements IHooker {
                 List<?> list = (List<?>) XposedHelpers.getObjectField(param.thisObject, "tab");
                 if (list == null) return;
                 for (int i = 0; i < list.size(); i++) {
-                    if ((int) XposedHelpers.getObjectField(list.get(i), "tab_type") == 92) {
+                    if ((Integer) XposedHelpers.getObjectField(list.get(i), "tab_type") == 92) {
                         list.remove(i);
                         return;
                     }

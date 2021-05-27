@@ -1,6 +1,7 @@
 package gm.tieba.tabswitch.hooker;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Looper;
 
 import org.json.JSONArray;
@@ -35,18 +36,13 @@ public class AutoSign extends BaseHooker implements IHooker {
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                         if (Preferences.getIsSigned()) return;
                         new Thread(() -> {
-                            Looper.prepare();
-                            if (mBDUSS == null) {
-                                TbToast.showTbToast("暂未获取到 BDUSS", TbToast.LENGTH_LONG);
-                            } else {
-                                String result = main(mBDUSS);
-                                TbToast.showTbToast(result, TbToast.LENGTH_SHORT);
-                                if (result.endsWith("全部签到成功")) {
-                                    Preferences.putSignDate();
-                                    Preferences.putFollow(success);
-                                }
+                            String result = main(mBDUSS);
+                            if (result.endsWith("成功")) {
+                                Preferences.putSignDate();
+                                Preferences.putFollow(success);
                             }
-                            Looper.loop();
+                            new Handler(Looper.getMainLooper()).post(() -> TbToast.showTbToast(
+                                    result, TbToast.LENGTH_SHORT));
                         }).start();
                     }
                 });
@@ -64,8 +60,9 @@ public class AutoSign extends BaseHooker implements IHooker {
     private String tbs = "";
     private Integer followNum = 201;
 
-    private String main(String arg) {
-        AutoSignHelper.setCookie(arg);
+    private String main(String BDUSS) {
+        if (BDUSS == null) return "暂未获取到 BDUSS";
+        AutoSignHelper.setCookie(BDUSS);
         getTbs();
         getFollow();
         runSign();

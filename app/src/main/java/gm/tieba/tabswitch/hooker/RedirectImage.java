@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
-import android.os.Looper;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 
@@ -28,7 +27,6 @@ import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.Rule;
 import gm.tieba.tabswitch.util.IO;
-import gm.tieba.tabswitch.widget.TbToast;
 
 public class RedirectImage extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
@@ -62,7 +60,7 @@ public class RedirectImage extends BaseHooker implements IHooker {
     }
 
     private int saveImage(String url, InputStream in, Context context) {
-        Context applicationContext = context.getApplicationContext();
+        Context appContext = context.getApplicationContext();
         String fileName = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("."));
         try {
             ByteArrayOutputStream baos = IO.cloneInputStream(in);
@@ -74,7 +72,7 @@ public class RedirectImage extends BaseHooker implements IHooker {
                         Environment.DIRECTORY_PICTURES + File.separator + "tieba");
                 newImageDetails.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
                 newImageDetails.put(MediaStore.MediaColumns.MIME_TYPE, "image/" + extension);
-                ContentResolver resolver = applicationContext.getContentResolver();
+                ContentResolver resolver = appContext.getContentResolver();
                 Uri imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, newImageDetails);
                 ParcelFileDescriptor descriptor = resolver.openFileDescriptor(imageUri, "w");
                 IO.copy(in, descriptor.getFileDescriptor());
@@ -86,16 +84,12 @@ public class RedirectImage extends BaseHooker implements IHooker {
 
                 Intent scanIntent = new Intent("android.intent.action.MEDIA_SCANNER_SCAN_DIR");
                 scanIntent.setData(Uri.fromFile(imageDir));
-                applicationContext.sendBroadcast(scanIntent);
+                appContext.sendBroadcast(scanIntent);
             }
-            Looper.prepare();
-            TbToast.showTbToast(
-                    fileName + "." + extension, TbToast.LENGTH_SHORT);
-            Looper.loop();
+            return 0;
         } catch (IOException e) {
             XposedBridge.log(e);
             return -1;
         }
-        return 0;
     }
 }

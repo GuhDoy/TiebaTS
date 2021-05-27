@@ -16,7 +16,7 @@ public class FrsTab extends BaseHooker implements IHooker {
                 List<?> list = (List<?>) XposedHelpers.getObjectField(param.thisObject, "tab");
                 if (list == null) return;
                 for (int i = 0; i < list.size(); i++) {
-                    if ((int) XposedHelpers.getObjectField(list.get(i), "tab_type") == 13) {
+                    if ((Integer) XposedHelpers.getObjectField(list.get(i), "tab_type") == 13) {
                         Collections.swap(list, i, i + 1);
                         return;
                     }

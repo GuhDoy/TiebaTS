@@ -76,7 +76,8 @@ public class SaveImages extends BaseHooker implements IHooker {
                                     for (int i = 0; i < mArrayList.size(); i++) {
                                         String url = mArrayList.get(i);
                                         try {
-                                            url = "http://tiebapic.baidu.com/forum/pic/item/" + url.substring(url.lastIndexOf("/") + 1);
+                                            url = "http://tiebapic.baidu.com/forum/pic/item/"
+                                                    + url.substring(url.lastIndexOf("/") + 1);
                                             url = url.substring(0, url.lastIndexOf("*"));
                                         } catch (StringIndexOutOfBoundsException ignored) {
                                         }
