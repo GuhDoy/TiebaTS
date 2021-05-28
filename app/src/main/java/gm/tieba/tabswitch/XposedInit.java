@@ -62,8 +62,8 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
                         Rule.init(context);
                         List<String> lostList = AntiConfusionHelper.getRulesLost();
                         if (lostList.size() != 0) {
-                            throw new SQLiteException("rules incomplete, current version: " + AntiConfusionHelper.getTbVersion(context) +
-                                    ", lost " + lostList.size() + " rule(s): " + lostList.toString());
+                            throw new SQLiteException("rules incomplete, current version: " + AntiConfusionHelper.getTbVersion(context)
+                                    + ", lost " + lostList.size() + " rule(s): " + lostList.toString());
                         }
                     } catch (SQLiteException e) {
                         XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", classLoader,
@@ -106,8 +106,8 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
             case "com.baidu.netdisk":
                 XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.Navigate", classLoader,
                         "initFlashFragment", XC_MethodReplacement.returnConstant(null));
-                XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.advertise.FlashAdvertiseActivity", classLoader,
-                        "initFlashFragment", XC_MethodReplacement.returnConstant(null));
+                // XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.advertise.FlashAdvertiseActivity", classLoader,
+                //         "initFlashFragment", XC_MethodReplacement.returnConstant(null));
                 XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.transfer.TransferListTabActivity", classLoader,
                         "initYouaGuideView", XC_MethodReplacement.returnConstant(null));
                 // "show or close "

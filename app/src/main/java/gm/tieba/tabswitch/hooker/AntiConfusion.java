@@ -24,8 +24,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
-import bin.zip.ZipEntry;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import gm.tieba.tabswitch.BaseHooker;
@@ -37,6 +38,11 @@ import gm.tieba.tabswitch.util.IO;
 
 public class AntiConfusion extends BaseHooker implements IHooker {
     private static final String SPRINGBOARD_ACTIVITY = "com.baidu.tieba.tblauncher.MainTabActivity";
+    private Activity mActivity;
+    private TextView mMessage;
+    private TextView mProgress;
+    private RelativeLayout mProgressContainer;
+    private LinearLayout mContentView;
 
     public AntiConfusion(ClassLoader classLoader, Context context, Resources res) {
         super(classLoader, context, res);
@@ -44,71 +50,46 @@ public class AntiConfusion extends BaseHooker implements IHooker {
 
     public void hook() throws Throwable {
         for (Method method : sClassLoader.loadClass("com.baidu.tieba.LogoActivity").getDeclaredMethods()) {
-            if (!method.getName().startsWith("on") && Arrays.toString(method.getParameterTypes()).equals("[class android.os.Bundle]")) {
+            if (!method.getName().startsWith("on") && Arrays.toString(method.getParameterTypes())
+                    .equals("[class android.os.Bundle]")) {
                 XposedBridge.hookMethod(method, new XC_MethodReplacement() {
-                    @SuppressLint({"ApplySharedPref", "SetTextI18n"})
+                    @SuppressLint("ApplySharedPref")
                     @Override
                     protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
-                        Activity activity = (Activity) param.thisObject;
+                        mActivity = (Activity) param.thisObject;
                         if (Preferences.getBoolean("purify")) {
-                            SharedPreferences.Editor editor = activity.getSharedPreferences("settings", Context.MODE_PRIVATE).edit();
-                            editor.putString("key_location_request_dialog_last_show_version", AntiConfusionHelper.getTbVersion(activity));
+                            SharedPreferences.Editor editor = mActivity.getSharedPreferences(
+                                    "settings", Context.MODE_PRIVATE).edit();
+                            editor.putString("key_location_request_dialog_last_show_version",
+                                    AntiConfusionHelper.getTbVersion(mActivity));
                             editor.commit();
                         }
-                        if (AntiConfusionHelper.isDexChanged(activity)) {
-                            activity.deleteDatabase("Rules.db");
+
+                        if (AntiConfusionHelper.isDexChanged(mActivity)) {
+                            mActivity.deleteDatabase("Rules.db");
                         } else if (AntiConfusionHelper.getRulesLost().size() != 0) {
                             AntiConfusionHelper.matcherList = AntiConfusionHelper.getRulesLost();
                         } else {
-                            AntiConfusionHelper.saveAndRestart(activity, AntiConfusionHelper.getTbVersion(activity), sClassLoader.loadClass(SPRINGBOARD_ACTIVITY));
+                            AntiConfusionHelper.saveAndRestart(mActivity, AntiConfusionHelper
+                                    .getTbVersion(mActivity), sClassLoader.loadClass(SPRINGBOARD_ACTIVITY));
                         }
-                        new RulesDbHelper(activity.getApplicationContext()).getReadableDatabase();
+                        new RulesDbHelper(mActivity.getApplicationContext()).getReadableDatabase();
 
-                        TextView title = new TextView(activity);
-                        title.setTextSize(16);
-                        title.setPadding(0, 0, 0, 20);
-                        title.setGravity(Gravity.CENTER);
-                        title.setTextColor(sRes.getColor(R.color.colorPrimaryDark, null));
-                        title.setText("贴吧TS正在定位被混淆的类和方法，请耐心等待");
-                        TextView textView = new TextView(activity);
-                        textView.setTextSize(16);
-                        textView.setTextColor(sRes.getColor(R.color.colorPrimaryDark, null));
-                        textView.setText("读取ZipEntry");
-                        TextView progressBackground = new TextView(activity);
-                        progressBackground.setBackgroundColor(sRes.getColor(R.color.colorProgress, null));
-                        RelativeLayout progressContainer = new RelativeLayout(activity);
-                        progressContainer.addView(progressBackground);
-                        progressContainer.addView(textView);
-                        RelativeLayout.LayoutParams tvLp = (RelativeLayout.LayoutParams) textView.getLayoutParams();
-                        tvLp.addRule(RelativeLayout.CENTER_IN_PARENT);
-                        textView.setLayoutParams(tvLp);
-                        RelativeLayout.LayoutParams rlLp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-                        progressContainer.setLayoutParams(rlLp);
-                        LinearLayout linearLayout = new LinearLayout(activity);
-                        linearLayout.setOrientation(LinearLayout.VERTICAL);
-                        linearLayout.setGravity(Gravity.CENTER);
-                        linearLayout.addView(title);
-                        linearLayout.addView(progressContainer);
-                        activity.setContentView(linearLayout);
+                        initProgressIndicator();
+                        mActivity.setContentView(mContentView);
                         new Thread(() -> {
-                            File dexDir = new File(activity.getCacheDir().getAbsolutePath(), "dex");
+                            File dexDir = new File(mActivity.getCacheDir().getAbsolutePath(), "app_dex");
                             try {
                                 IO.deleteRecursively(dexDir);
                                 dexDir.mkdirs();
-                                bin.zip.ZipFile zipFile = new bin.zip.ZipFile(new File(activity.getPackageResourcePath()));
-                                Enumeration<ZipEntry> enumeration = zipFile.getEntries();
+                                ZipFile zipFile = new ZipFile(new File(mActivity.getPackageResourcePath()));
+                                Enumeration<? extends ZipEntry> enumeration = zipFile.entries();
                                 int entryCount = 0;
-                                int entrySize = zipFile.getEntrySize();
+                                int entrySize = zipFile.size();
                                 while (enumeration.hasMoreElements()) {
                                     entryCount++;
-                                    float progress = (float) entryCount / entrySize;
-                                    activity.runOnUiThread(() -> {
-                                        textView.setText("解压");
-                                        ViewGroup.LayoutParams lp = progressBackground.getLayoutParams();
-                                        lp.height = textView.getHeight();
-                                        lp.width = (int) (progressContainer.getWidth() * progress);
-                                        progressBackground.setLayoutParams(lp);
-                                    });
+                                    setProgress("解压", (float) entryCount / entrySize);
+
                                     ZipEntry ze = enumeration.nextElement();
                                     if (ze.getName().matches("classes[0-9]*?\\.dex")) {
                                         IO.copy(zipFile.getInputStream(ze), new File(dexDir, ze.getName()));
@@ -117,8 +98,7 @@ public class AntiConfusion extends BaseHooker implements IHooker {
                                 File[] fs = dexDir.listFiles();
                                 if (fs == null) throw new FileNotFoundException("解压失败");
                                 Arrays.sort(fs, (o1, o2) -> {
-                                    int i1;
-                                    int i2;
+                                    int i1, i2;
                                     try {
                                         i1 = Integer.parseInt(o1.getName().replaceAll("[a-z.]", ""));
                                     } catch (NumberFormatException e) {
@@ -139,19 +119,15 @@ public class AntiConfusion extends BaseHooker implements IHooker {
                                     List<ClassDefItem> classes = dex.ClassDefsSection.getItems();
                                     List<Integer> arrayList = new ArrayList<>();
                                     for (int j = 0; j < classes.size(); j++) {
-                                        float progress = (float) j / fs.length / classes.size() + (float) i / fs.length;
-                                        activity.runOnUiThread(() -> {
-                                            textView.setText("读取类签名");
-                                            ViewGroup.LayoutParams lp = progressBackground.getLayoutParams();
-                                            lp.height = textView.getHeight();
-                                            lp.width = (int) (progressContainer.getWidth() * progress);
-                                            progressBackground.setLayoutParams(lp);
-                                        });
+                                        setProgress("读取类签名", (float)
+                                                j / fs.length / classes.size() + (float) i / fs.length);
+
                                         String signature = classes.get(j).getClassType().getTypeDescriptor();
                                         if (signature.matches("Ld/[a-b]/.*")) {
                                             arrayList.add(classes.get(j).getIndex());
                                             isSkip = true;
-                                        } else if (signature.startsWith("Lcom/baidu/tbadk") || !isSkip && (signature.startsWith("Lcom/baidu/tieba"))) {
+                                        } else if (signature.startsWith("Lcom/baidu/tbadk")
+                                                || !isSkip && (signature.startsWith("Lcom/baidu/tieba"))) {
                                             arrayList.add(classes.get(j).getIndex());
                                         }
                                     }
@@ -159,35 +135,33 @@ public class AntiConfusion extends BaseHooker implements IHooker {
                                     itemList.add(arrayList);
                                 }
                                 int itemCount = 0;
-                                SQLiteDatabase db = activity.openOrCreateDatabase("Rules.db", Context.MODE_PRIVATE, null);
+                                SQLiteDatabase db = mActivity.openOrCreateDatabase("Rules.db",
+                                        Context.MODE_PRIVATE, null);
                                 for (int i = 0; i < fs.length; i++) {
                                     DexFile dex = new DexFile(fs[i]);
                                     List<Integer> arrayList = itemList.get(i);
                                     for (int j = 0; j < arrayList.size(); j++) {
                                         itemCount++;
-                                        float progress = (float) itemCount / totalItemCount;
-                                        activity.runOnUiThread(() -> {
-                                            textView.setText("搜索");
-                                            ViewGroup.LayoutParams lp = progressBackground.getLayoutParams();
-                                            lp.height = textView.getHeight();
-                                            lp.width = (int) (progressContainer.getWidth() * progress);
-                                            progressBackground.setLayoutParams(lp);
-                                        });
-                                        ClassDefItem classItem = dex.ClassDefsSection.getItemByIndex(arrayList.get(j));
+                                        setProgress("搜索", (float) itemCount / totalItemCount);
+
+                                        ClassDefItem classItem = dex.ClassDefsSection
+                                                .getItemByIndex(arrayList.get(j));
                                         AntiConfusionHelper.searchAndSave(classItem, 0, db);
                                         AntiConfusionHelper.searchAndSave(classItem, 1, db);
                                     }
                                 }
-                                activity.runOnUiThread(() -> textView.setText("保存反混淆信息"));
+                                mActivity.runOnUiThread(() -> mMessage.setText("保存反混淆信息"));
                                 byte[] bytes = new byte[32];
                                 new FileInputStream(fs[0]).read(bytes);
                                 DexFile.calcSignature(bytes);
                                 Preferences.putSignature(Arrays.hashCode(bytes));
-                                IO.deleteRecursively(dexDir);
-                                XposedBridge.log("anti-confusion accomplished, current version: " + AntiConfusionHelper.getTbVersion(activity));
-                                AntiConfusionHelper.saveAndRestart(activity, AntiConfusionHelper.getTbVersion(activity), sClassLoader.loadClass(SPRINGBOARD_ACTIVITY));
+                                XposedBridge.log("anti-confusion accomplished, current version: "
+                                        + AntiConfusionHelper.getTbVersion(mActivity));
+                                AntiConfusionHelper.saveAndRestart(mActivity, AntiConfusionHelper
+                                        .getTbVersion(mActivity), sClassLoader.loadClass(SPRINGBOARD_ACTIVITY));
                             } catch (Throwable throwable) {
-                                activity.runOnUiThread(() -> textView.setText(String.format("处理失败\n%s", Log.getStackTraceString(throwable))));
+                                mActivity.runOnUiThread(() -> mMessage.setText(String.format(
+                                        "处理失败\n%s", Log.getStackTraceString(throwable))));
                                 XposedBridge.log(throwable);
                             }
                         }).start();
@@ -196,5 +170,45 @@ public class AntiConfusion extends BaseHooker implements IHooker {
                 });
             }
         }
+    }
+
+    @SuppressLint({"SetTextI18n"})
+    private void initProgressIndicator() {
+        TextView title = new TextView(mActivity);
+        title.setTextSize(16);
+        title.setPadding(0, 0, 0, 20);
+        title.setGravity(Gravity.CENTER);
+        title.setTextColor(sRes.getColor(R.color.colorPrimaryDark, null));
+        title.setText("贴吧TS正在定位被混淆的类和方法，请耐心等待");
+        mMessage = new TextView(mActivity);
+        mMessage.setTextSize(16);
+        mMessage.setTextColor(sRes.getColor(R.color.colorPrimaryDark, null));
+        mMessage.setText("读取ZipEntry");
+        mProgress = new TextView(mActivity);
+        mProgress.setBackgroundColor(sRes.getColor(R.color.colorProgress, null));
+        mProgressContainer = new RelativeLayout(mActivity);
+        mProgressContainer.addView(mProgress);
+        mProgressContainer.addView(mMessage);
+        RelativeLayout.LayoutParams tvLp = (RelativeLayout.LayoutParams) mMessage.getLayoutParams();
+        tvLp.addRule(RelativeLayout.CENTER_IN_PARENT);
+        mMessage.setLayoutParams(tvLp);
+        RelativeLayout.LayoutParams rlLp = new RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        mProgressContainer.setLayoutParams(rlLp);
+        mContentView = new LinearLayout(mActivity);
+        mContentView.setOrientation(LinearLayout.VERTICAL);
+        mContentView.setGravity(Gravity.CENTER);
+        mContentView.addView(title);
+        mContentView.addView(mProgressContainer);
+    }
+
+    private void setProgress(String message, float progress) {
+        mActivity.runOnUiThread(() -> {
+            mMessage.setText(message);
+            ViewGroup.LayoutParams lp = mProgress.getLayoutParams();
+            lp.height = mMessage.getHeight();
+            lp.width = (int) (mProgressContainer.getWidth() * progress);
+            mProgress.setLayoutParams(lp);
+        });
     }
 }

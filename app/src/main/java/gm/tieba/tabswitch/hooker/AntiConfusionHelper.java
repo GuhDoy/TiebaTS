@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.zip.ZipFile;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
@@ -68,7 +69,7 @@ public class AntiConfusionHelper {
 
     public static boolean isDexChanged(Context context) {
         try {
-            bin.zip.ZipFile zipFile = new bin.zip.ZipFile(new File(context.getPackageResourcePath()));
+            ZipFile zipFile = new ZipFile(new File(context.getPackageResourcePath()));
             byte[] bytes = new byte[32];
             zipFile.getInputStream(zipFile.getEntry("classes.dex")).read(bytes);
             DexFile.calcSignature(bytes);
