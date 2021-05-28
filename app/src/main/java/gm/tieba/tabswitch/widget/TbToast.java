@@ -1,5 +1,7 @@
 package gm.tieba.tabswitch.widget;
 
+import androidx.annotation.MainThread;
+
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
@@ -12,6 +14,7 @@ public class TbToast extends BaseHooker {
     public static int LENGTH_SHORT = 2000;
     public static int LENGTH_LONG = 3500;
 
+    @MainThread
     public static void showTbToast(String text, int duration) {
         try {
             Rule.findRule(sRes.getString(R.string.TbToast), new Rule.Callback() {
