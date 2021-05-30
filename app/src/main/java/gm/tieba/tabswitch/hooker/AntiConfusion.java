@@ -78,7 +78,7 @@ public class AntiConfusion extends BaseHooker implements IHooker {
                         initProgressIndicator();
                         mActivity.setContentView(mContentView);
                         new Thread(() -> {
-                            File dexDir = new File(mActivity.getCacheDir().getAbsolutePath(), "app_dex");
+                            File dexDir = new File(mActivity.getCacheDir(), "app_dex");
                             try {
                                 IO.deleteRecursively(dexDir);
                                 dexDir.mkdirs();
@@ -111,41 +111,41 @@ public class AntiConfusion extends BaseHooker implements IHooker {
                                     }
                                     return i1 - i2;
                                 });
-                                List<List<Integer>> itemList = new ArrayList<>();
+                                List<List<Integer>> totalIndexes = new ArrayList<>();
                                 int totalItemCount = 0;
                                 boolean isSkip = false;
                                 for (int i = 0; i < fs.length; i++) {
                                     DexFile dex = new DexFile(fs[i]);
                                     List<ClassDefItem> classes = dex.ClassDefsSection.getItems();
-                                    List<Integer> arrayList = new ArrayList<>();
+                                    List<Integer> indexes = new ArrayList<>();
                                     for (int j = 0; j < classes.size(); j++) {
                                         setProgress("读取类签名", (float)
                                                 j / fs.length / classes.size() + (float) i / fs.length);
 
                                         String signature = classes.get(j).getClassType().getTypeDescriptor();
                                         if (signature.matches("Ld/[a-b]/.*")) {
-                                            arrayList.add(classes.get(j).getIndex());
+                                            indexes.add(classes.get(j).getIndex());
                                             isSkip = true;
                                         } else if (signature.startsWith("Lcom/baidu/tbadk")
                                                 || !isSkip && (signature.startsWith("Lcom/baidu/tieba"))) {
-                                            arrayList.add(classes.get(j).getIndex());
+                                            indexes.add(classes.get(j).getIndex());
                                         }
                                     }
-                                    totalItemCount += arrayList.size();
-                                    itemList.add(arrayList);
+                                    totalItemCount += indexes.size();
+                                    totalIndexes.add(indexes);
                                 }
                                 int itemCount = 0;
                                 SQLiteDatabase db = mActivity.openOrCreateDatabase("Rules.db",
                                         Context.MODE_PRIVATE, null);
                                 for (int i = 0; i < fs.length; i++) {
                                     DexFile dex = new DexFile(fs[i]);
-                                    List<Integer> arrayList = itemList.get(i);
-                                    for (int j = 0; j < arrayList.size(); j++) {
+                                    List<Integer> indexes = totalIndexes.get(i);
+                                    for (int j = 0; j < indexes.size(); j++) {
                                         itemCount++;
                                         setProgress("搜索", (float) itemCount / totalItemCount);
 
                                         ClassDefItem classItem = dex.ClassDefsSection
-                                                .getItemByIndex(arrayList.get(j));
+                                                .getItemByIndex(indexes.get(j));
                                         AntiConfusionHelper.searchAndSave(classItem, 0, db);
                                         AntiConfusionHelper.searchAndSave(classItem, 1, db);
                                     }
@@ -159,10 +159,10 @@ public class AntiConfusion extends BaseHooker implements IHooker {
                                         + AntiConfusionHelper.getTbVersion(mActivity));
                                 AntiConfusionHelper.saveAndRestart(mActivity, AntiConfusionHelper
                                         .getTbVersion(mActivity), sClassLoader.loadClass(SPRINGBOARD_ACTIVITY));
-                            } catch (Throwable throwable) {
+                            } catch (Throwable e) {
+                                XposedBridge.log(e);
                                 mActivity.runOnUiThread(() -> mMessage.setText(String.format(
-                                        "处理失败\n%s", Log.getStackTraceString(throwable))));
-                                XposedBridge.log(throwable);
+                                        "处理失败\n%s", Log.getStackTraceString(e))));
                             }
                         }).start();
                         return null;

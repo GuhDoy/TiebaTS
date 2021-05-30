@@ -25,7 +25,8 @@ public class ContentFilter extends BaseHooker implements IHooker {
                 initIdList(param.thisObject, pattern);
 
                 for (int i = 0; i < postList.size(); i++) {
-                    if ((int) XposedHelpers.getObjectField(postList.get(i), "floor") == 1) continue;
+                    if ((Integer) XposedHelpers.getObjectField(postList.get(i), "floor")
+                            == 1) continue;
                     if (pattern.matcher(Reflect.parsePbContent(postList.get(i), "content")).find()) {
                         postList.remove(i);
                         i--;
