@@ -66,6 +66,11 @@ public class IO {
         return "jpg";
     }
 
+    public static String getParent(String path) {
+        int index = path.lastIndexOf(File.separatorChar);
+        return path.substring(0, index);
+    }
+
     public static void deleteRecursively(File file) {
         if (file.isDirectory()) {
             File[] files = file.listFiles();

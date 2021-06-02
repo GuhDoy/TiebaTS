@@ -32,19 +32,18 @@ import gm.tieba.tabswitch.widget.TbEditText;
 import gm.tieba.tabswitch.widget.TbToast;
 
 public class TSPreferenceHelper extends BaseHooker {
-    static class PreferenceLayout extends LinearLayout {
+    public static class PreferenceLayout extends LinearLayout {
         PreferenceLayout(Context context) {
             super(context);
             setOrientation(LinearLayout.VERTICAL);
         }
 
-        void addView(Object view) {
-            if (view instanceof View) addView((View) view);
-            else addView(((SwitchButtonHolder) view).switchButton);
+        void addView(SwitchButtonHolder view) {
+            addView(view.switchButton);
         }
     }
 
-    static TextView createTextView(String text) {
+    public static TextView createTextView(String text) {
         try {
             TextView textView = new TextView(getContext());
             textView.setText(text);

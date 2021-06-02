@@ -66,30 +66,29 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
                                     + ", lost " + lostList.size() + " rule(s): " + lostList.toString());
                         }
                     } catch (SQLiteException e) {
-                        XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", classLoader,
-                                "onCreate", Bundle.class, new XC_MethodHook() {
-                                    @Override
-                                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                                        XposedBridge.log(e.toString());
-                                        if (!Preferences.getIsEULAAccepted()) return;
-                                        Activity activity = (Activity) param.thisObject;
-                                        String message = mRes.getString(R.string.rules_incomplete) + "\n" + e.getMessage();
-                                        if (Rule.isRuleFound(mRes.getString(R.string.TbDialog))) {
-                                            TbDialog bdAlert = new TbDialog(activity, "警告", message, false, null);
-                                            bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
-                                            bdAlert.setOnYesButtonClickListener(v -> AntiConfusionHelper
-                                                    .saveAndRestart(activity, "unknown", null));
-                                            bdAlert.show();
-                                        } else {
-                                            AlertDialog alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_DEVICE_DEFAULT_LIGHT)
-                                                    .setTitle("警告").setMessage(message).setCancelable(false)
-                                                    .setNegativeButton(activity.getString(android.R.string.cancel), (dialogInterface, i) -> {
-                                                    }).setPositiveButton(activity.getString(android.R.string.ok), (dialogInterface, i) -> AntiConfusionHelper
-                                                            .saveAndRestart(activity, "unknown", null)).create();
-                                            alertDialog.show();
-                                        }
-                                    }
-                                });
+                        XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
+                            @Override
+                            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                                XposedBridge.log(e.toString());
+                                if (!Preferences.getIsEULAAccepted()) return;
+                                Activity activity = (Activity) param.thisObject;
+                                String message = mRes.getString(R.string.rules_incomplete) + "\n" + e.getMessage();
+                                if (Rule.isRuleFound(mRes.getString(R.string.TbDialog))) {
+                                    TbDialog bdAlert = new TbDialog(activity, "警告", message, false, null);
+                                    bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
+                                    bdAlert.setOnYesButtonClickListener(v -> AntiConfusionHelper
+                                            .saveAndRestart(activity, "unknown", null));
+                                    bdAlert.show();
+                                } else {
+                                    AlertDialog alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_DEVICE_DEFAULT_LIGHT)
+                                            .setTitle("警告").setMessage(message).setCancelable(false)
+                                            .setNegativeButton(activity.getString(android.R.string.cancel), (dialogInterface, i) -> {
+                                            }).setPositiveButton(activity.getString(android.R.string.ok), (dialogInterface, i) -> AntiConfusionHelper
+                                                    .saveAndRestart(activity, "unknown", null)).create();
+                                    alertDialog.show();
+                                }
+                            }
+                        });
                     }
                     if (AntiConfusionHelper.isVersionChanged(context)) {
                         new AntiConfusion(classLoader, context, mRes).hook();
@@ -151,13 +150,21 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
                     }
                 });
                 try {
-                    XposedHelpers.findAndHookMethod("com.coolapk.market.model.$$AutoValue_Feed", classLoader,
-                            "getDetailSponsorCard", XC_MethodReplacement.returnConstant(null));
-                    XposedBridge.hookAllConstructors(XposedHelpers.findClass(
-                            "com.coolapk.market.model.AutoValue_Feed", classLoader), new XC_MethodHook() {
+                    XposedHelpers.findAndHookMethod("com.stub.StubApp", classLoader, "a", Context.class, new XC_MethodHook() {
                         @Override
-                        protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                            param.args[142] = null;
+                        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                            super.afterHookedMethod(param);
+                            Context context = (Context) param.args[0];
+                            ClassLoader classLoader = context.getClassLoader();
+                            XposedHelpers.findAndHookMethod("com.coolapk.market.model.$$AutoValue_Feed", classLoader,
+                                    "getDetailSponsorCard", XC_MethodReplacement.returnConstant(null));
+                            XposedBridge.hookAllConstructors(XposedHelpers.findClass(
+                                    "com.coolapk.market.model.AutoValue_Feed", classLoader), new XC_MethodHook() {
+                                @Override
+                                protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                                    param.args[142] = null;
+                                }
+                            });
                         }
                     });
                 } catch (XposedHelpers.ClassNotFoundError ignored) {

@@ -7,9 +7,8 @@ import java.lang.reflect.Method;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
-import gm.tieba.tabswitch.XposedInit;
 
-public class Development extends XposedInit {
+public class Development {
     public static void logJSONObject() throws Throwable {
         XposedBridge.hookAllConstructors(JSONObject.class, new XC_MethodHook() {
             @Override
