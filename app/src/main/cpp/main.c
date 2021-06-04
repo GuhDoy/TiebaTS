@@ -1,12 +1,12 @@
 #include <jni.h>
 #include <string.h>
-#include "access.h"
+#include "native.h"
 #include <android/log.h>
 
 #define APPLICATION_ID "gm.tieba.tabswitch"
 #define LOGE(...) ((void)__android_log_print(ANDROID_LOG_ERROR, APPLICATION_ID, __VA_ARGS__))
 
-char *getNativeClassName() {
+static inline char *getNativeClassName() {
     // gm/tieba/tabswitch/util/Native
     char v[] = "`e&~bioo dpp`c|bci-vplj(Fh~bzh";
     static unsigned int m = 0;
@@ -23,7 +23,7 @@ char *getNativeClassName() {
     return strdup(v);
 }
 
-char *getAccess() {
+static inline char *getAccess() {
     // access
     char v[] = "`a`asr";
     static unsigned int m = 0;
@@ -40,7 +40,7 @@ char *getAccess() {
     return strdup(v);
 }
 
-char *getSysaccess() {
+static inline char *getSysaccess() {
     // sysaccess
     char v[] = "qzwdecdqp";
     static unsigned int m = 0;
@@ -57,7 +57,7 @@ char *getSysaccess() {
     return strdup(v);
 }
 
-char *getFindXposed() {
+static inline char *getFindXposed() {
     // findXposed
     char v[] = "emkbXqmpaa";
     static unsigned int m = 0;
@@ -74,7 +74,7 @@ char *getFindXposed() {
     return strdup(v);
 }
 
-char *getAccessSignature() {
+static inline char *getAccessSignature() {
     // (Ljava/lang/String;)I
     char v[] = "*Ondpf'ekek\"]{bx|g:+J";
     static unsigned int m = 0;
@@ -91,7 +91,7 @@ char *getAccessSignature() {
     return strdup(v);
 }
 
-char *getFindXposedSignature() {
+static inline char *getFindXposedSignature() {
     // ()Z
     char v[] = "))[";
     static unsigned int m = 0;

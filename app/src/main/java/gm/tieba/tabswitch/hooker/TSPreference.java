@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Process;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.FrameLayout;
@@ -31,8 +32,8 @@ import gm.tieba.tabswitch.XposedInit;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.dao.Rule;
 import gm.tieba.tabswitch.hooker.TSPreferenceHelper.SwitchButtonHolder;
-import gm.tieba.tabswitch.util.TraceChecker;
 import gm.tieba.tabswitch.util.Reflect;
+import gm.tieba.tabswitch.util.TraceChecker;
 import gm.tieba.tabswitch.widget.NavigationBar;
 import gm.tieba.tabswitch.widget.TbDialog;
 import gm.tieba.tabswitch.widget.TbToast;
@@ -105,29 +106,29 @@ public class TSPreference extends BaseHooker implements IHooker {
                 });
             }
         });
-        if (!Preferences.getBoolean("hide") || BuildConfig.DEBUG) {
-            for (Method method : sClassLoader.loadClass("com.baidu.tieba.LogoActivity").getDeclaredMethods()) {
-                XposedBridge.hookMethod(method, new XC_MethodHook() {
-                    @Override
-                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                        List<String> sts = new ArrayList<>();
-                        StackTraceElement[] stes = Thread.currentThread().getStackTrace();
-                        boolean isXposedStackTrace = false;
-                        for (StackTraceElement ste : stes) {
-                            String name = ste.getClassName();
-                            if (name.contains("Activity")
-                                    || name.equals("android.app.Instrumentation")) break;
-                            if (isXposedStackTrace) sts.add(name);
-                            if (name.equals("java.lang.Thread")) isXposedStackTrace = true;
-                        }
-
-                        for (String st : sts) {
-                            if (!sStes.contains(st)) sStes.add(st);
-                        }
+        // if (!Preferences.getBoolean("hide") || BuildConfig.DEBUG) {
+        for (Method method : sClassLoader.loadClass("com.baidu.tieba.LogoActivity").getDeclaredMethods()) {
+            XposedBridge.hookMethod(method, new XC_MethodHook() {
+                @Override
+                protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                    List<String> sts = new ArrayList<>();
+                    StackTraceElement[] stes = Thread.currentThread().getStackTrace();
+                    boolean isXposedStackTrace = false;
+                    for (StackTraceElement ste : stes) {
+                        String name = ste.getClassName();
+                        if (name.contains("Activity")
+                                || name.equals("android.app.Instrumentation")) break;
+                        if (isXposedStackTrace) sts.add(name);
+                        if (name.equals("java.lang.Thread")) isXposedStackTrace = true;
                     }
-                });
-            }
+
+                    for (String st : sts) {
+                        if (!sStes.contains(st)) sStes.add(st);
+                    }
+                }
+            });
         }
+        // }
     }
 
     private void proxyPage(Activity activity, NavigationBar navigationBar, String title,
@@ -288,7 +289,8 @@ public class TSPreference extends BaseHooker implements IHooker {
         TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
         preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurifyEnabled ? "尾巴是藏不住的（" : null));
         preferenceLayout.addView(new SwitchButtonHolder(activity, isPurifyEnabled ? "藏起尾巴" : "隐藏模块", "hide", SwitchButtonHolder.TYPE_SWITCH));
-        preferenceLayout.addView(TSPreferenceHelper.createButton(isPurifyEnabled ? "捏捏尾巴" : "检测模块", null, v -> new TraceChecker(preferenceLayout).checkAll()));
+        preferenceLayout.addView(TSPreferenceHelper.createButton(isPurifyEnabled ? "捏捏尾巴" : "检测模块", String.valueOf(Process.myPid()), v ->
+                new TraceChecker(preferenceLayout).checkAll()));
         return preferenceLayout;
     }
 }

@@ -17,6 +17,7 @@ import gm.tieba.tabswitch.hooker.FollowFilter;
 import gm.tieba.tabswitch.hooker.ForbidGesture;
 import gm.tieba.tabswitch.hooker.FrsPageFilter;
 import gm.tieba.tabswitch.hooker.FrsTab;
+import gm.tieba.tabswitch.hooker.Hide;
 import gm.tieba.tabswitch.hooker.HistoryCache;
 import gm.tieba.tabswitch.hooker.HomeRecommend;
 import gm.tieba.tabswitch.hooker.NewSub;
@@ -152,6 +153,9 @@ public abstract class BaseHooker {
                 break;
             case "frs_tab":
                 if ((Boolean) entry.getValue()) new FrsTab().hook();
+                break;
+            case "hide":
+                if ((Boolean) entry.getValue()) new Hide().hook();
                 break;
         }
     }

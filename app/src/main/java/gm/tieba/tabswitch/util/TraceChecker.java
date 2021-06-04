@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.os.Build;
 import android.os.Environment;
+import android.os.IBinder;
 import android.os.Process;
 
 import java.io.BufferedReader;
@@ -20,7 +21,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
+import dalvik.system.PathClassLoader;
 import de.robv.android.xposed.XposedBridge;
+import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.BuildConfig;
 import gm.tieba.tabswitch.dao.Preferences;
@@ -34,6 +37,7 @@ public class TraceChecker extends BaseHooker {
     private final String JAVA = "java";
     private final String C = "c";
     private final String S = "syscall";
+    private final String FAKE = "fake";
 
     public TraceChecker(TSPreferenceHelper.PreferenceLayout preferenceLayout) {
         mPreferenceLayout = preferenceLayout;
@@ -104,16 +108,16 @@ public class TraceChecker extends BaseHooker {
             String line;
             do {
                 line = br.readLine();
-                if (line != null && (line.contains(BuildConfig.APPLICATION_ID)
-                        || line.contains("/data/app") && !line.contains("com.google.android")
+                if (line != null && (line.contains("/data/app") && !line.contains("com.google.android")
                         && !line.contains(getContext().getPackageName()))) {
                     result.addTrace(JAVA, line);
                 }
             } while (line != null);
         } catch (IOException e) {
             XposedBridge.log(e);
-            result.addTrace(JAVA, e.getMessage());
+            result.addTrace(FAKE, e.getMessage());
         }
+        //TODO syscall check
         result.show();
     }
 
@@ -134,20 +138,20 @@ public class TraceChecker extends BaseHooker {
                 line = br.readLine();
                 for (String path : paths) {
                     if (line != null && line.contains(String.format(" %s ", path))) {
-                        result.addTrace(JAVA, line);
+                        result.addTrace(FAKE, line);
                     }
                 }
             } while (line != null);
         } catch (IOException e) {
             XposedBridge.log(e);
-            result.addTrace(JAVA, e.getMessage());
+            result.addTrace(FAKE, e.getMessage());
         }
 
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             try {
                 for (File f : getContext().getExternalFilesDir(null).getParentFile()
                         .getParentFile().listFiles()) {
-                    result.addTrace(JAVA, f.getPath());
+                    result.addTrace(FAKE, f.getPath());
                 }
             } catch (NullPointerException ignored) {
             }
@@ -155,7 +159,7 @@ public class TraceChecker extends BaseHooker {
         result.show();
     }
 
-    @SuppressLint("QueryPermissionsNeeded")
+    @SuppressLint({"DiscouragedPrivateApi", "PrivateApi", "QueryPermissionsNeeded"})
     private void modules() {
         ResultBuilder result = new ResultBuilder("包管理器");
         List<String> modules = new ArrayList<>();
@@ -179,19 +183,30 @@ public class TraceChecker extends BaseHooker {
         if (modules.size() > 0) {
             result.addTrace(JAVA, modules.toString());
         }
+
+        try {
+            IBinder service = (IBinder) Class.forName("android.os.ServiceManager")
+                    .getDeclaredMethod("getService", String.class).invoke(null, "package");
+            Object iPackageManager = Class.forName("android.content.pm.IPackageManager$Stub")
+                    .getDeclaredMethod("asInterface", IBinder.class).invoke(null, service);
+            Class<?> mPMClass = XposedHelpers.getObjectField(pm, "mPM").getClass();
+            if (!mPMClass.equals(iPackageManager.getClass())) {
+                result.addTrace(FAKE, mPMClass.getName());
+            }
+        } catch (Throwable e) {
+            XposedBridge.log(e);
+            result.addTrace(FAKE, e.getMessage());
+        }
         result.show();
     }
 
     private void classloader() {
         ResultBuilder result = new ResultBuilder("类加载器");
-        String[] classes = new String[]{"de.robv.android.xposed.XposedBridge",
-                "gm.tieba.tabswitch.XposedInit", "gm.tieba.tabswitch.util.Native"};
-        for (String clazz : classes) {
-            try {
-                Class.forName(clazz);
-                result.addTrace(JAVA, clazz);
-            } catch (ClassNotFoundException ignored) {
-            }
+        try {
+            String clazz = "de.robv.android.xposed.XposedBridge";
+            PathClassLoader.getSystemClassLoader().loadClass(clazz);
+            result.addTrace(JAVA, clazz);
+        } catch (ClassNotFoundException ignored) {
         }
 
         if (Native.findXposed()) result.addTrace(C, "FOUND_XPOSED");

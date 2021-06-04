@@ -9,6 +9,7 @@ extern "C" {
 #endif
 
 void checkClassLoader(JNIEnv *env, int sdk);
+
 extern bool xposed_status;
 
 #ifdef __cplusplus
