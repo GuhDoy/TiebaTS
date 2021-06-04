@@ -2,6 +2,7 @@
     <string name="TSPreference">Lcom/baidu/tieba/R$id;->black_address_list:I</string>
     <string name="TbDialog">Lcom/baidu/tieba/R$layout;->dialog_bdalert:I</string>
     <string name="TbToast">\"can not be call not thread! trace = \"</string>
+    <string name="FragmentTab">\"has_show_message_tab_tips\"</string>
     <string-array name="Purify">
         <item>\"c/s/splashSchedule\"</item>
         <item>Lcom/baidu/tieba/recapp/lego/model/AdCard;-&gt;&lt;init&gt;(Lorg/json/JSONObject;)V</item>

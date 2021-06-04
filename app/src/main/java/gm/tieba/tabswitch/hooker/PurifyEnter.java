@@ -62,7 +62,7 @@ public class PurifyEnter extends BaseHooker implements IHooker {
                                         View view = (View) field.get(param.thisObject);
                                         view.setVisibility(View.INVISIBLE);
                                         ViewGroup.LayoutParams lp = view.getLayoutParams();
-                                        lp.height = DisplayHelper.dipToPx(activity, 3);
+                                        lp.height = DisplayHelper.dipToPx(activity, 7);
                                     }
                                 }
                             }

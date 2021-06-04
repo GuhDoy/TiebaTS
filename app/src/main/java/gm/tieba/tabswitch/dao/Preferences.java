@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-@SuppressLint("ApplySharedPref")
 public class Preferences {
     private static SharedPreferences sTsPreferences;
     private static SharedPreferences sTsConfig;
@@ -48,37 +47,35 @@ public class Preferences {
     public static void putBoolean(String key, boolean value) {
         SharedPreferences.Editor editor = sTsPreferences.edit();
         editor.putBoolean(key, value);
-        editor.commit();
+        editor.apply();
     }
 
-    public static boolean getBoolean(String s) {
-        return sTsPreferences.getBoolean(s, false);
+    public static boolean getBoolean(String key) {
+        return sTsPreferences.getBoolean(key, false);
     }
 
     public static void putString(String key, String value) {
         SharedPreferences.Editor editor = sTsPreferences.edit();
         editor.putString(key, value);
-        editor.commit();
+        editor.apply();
     }
 
-    public static String getString(String s) {
-        return sTsPreferences.getString(s, null);
+    public static String getString(String key) {
+        return sTsPreferences.getString(key, null);
     }
 
-    public static void putStringSet(String key, boolean value) {
-        List<String> list = new ArrayList<>(getStringSet());
-        if (!value) {
-            list.remove(key);
-        } else if (!list.contains(key)) {
-            list.add(key);
-        }
+    public static void putStringSet(String key, String value, boolean isContain) {
+        List<String> list = new ArrayList<>(getStringSet(key));
+        if (!isContain) list.remove(value);
+        else if (!list.contains(value)) list.add(value);
+
         SharedPreferences.Editor editor = sTsPreferences.edit();
-        editor.putStringSet("switch_manager", new HashSet<>(list));
-        editor.commit();
+        editor.putStringSet(key, new HashSet<>(list));
+        editor.apply();
     }
 
-    public static Set<String> getStringSet() {
-        return sTsPreferences.getStringSet("switch_manager", new HashSet<>());
+    public static Set<String> getStringSet(String key) {
+        return sTsPreferences.getStringSet(key, new HashSet<>());
     }
 
     // Config
@@ -112,6 +109,7 @@ public class Preferences {
         return sTsConfig.getBoolean("ze", false);
     }
 
+    @SuppressLint("ApplySharedPref")
     public static void putSignature(int i) {
         SharedPreferences.Editor editor = sTsConfig.edit();
         editor.putInt("signature", i);

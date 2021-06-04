@@ -75,26 +75,26 @@ public class PurifyMy extends BaseHooker implements IHooker {
                                         for (Field field : param.thisObject.getClass().getDeclaredFields()) {
                                             field.setAccessible(true);
                                             if (field.get(param.thisObject) instanceof ArrayList) {
-                                                ArrayList<?> arrayList = (ArrayList<?>) field.get(param.thisObject);
-                                                if (arrayList == null) continue;
-                                                for (int i = 0; i < arrayList.size(); i++) {
+                                                ArrayList<?> list = (ArrayList<?>) field.get(param.thisObject);
+                                                if (list == null) continue;
+                                                for (int i = 0; i < list.size(); i++) {
                                                     try {
-                                                        Reflect.getObjectField(arrayList.get(i), "com.baidu.tbadk.core.data.UserData");
+                                                        Reflect.getObjectField(list.get(i), "com.baidu.tbadk.core.data.UserData");
                                                     } catch (NoSuchFieldException e) {
-                                                        arrayList.remove(i);
+                                                        list.remove(i);
                                                         i--;
                                                         continue;
                                                     }
 
-                                                    for (Field field2 : arrayList.get(i).getClass().getDeclaredFields()) {
+                                                    for (Field field2 : list.get(i).getClass().getDeclaredFields()) {
                                                         field2.setAccessible(true);
-                                                        if (field2.get(arrayList.get(i)) instanceof String) {
-                                                            String type = (String) field2.get(arrayList.get(i));
+                                                        if (field2.get(list.get(i)) instanceof String) {
+                                                            String type = (String) field2.get(list.get(i));
                                                             if (type != null && !type.startsWith("http")
                                                                     && !type.equals("我的收藏")
                                                                     && !type.equals("浏览历史")
                                                                     && !type.equals("服务中心")) {
-                                                                arrayList.remove(i);
+                                                                list.remove(i);
                                                                 i--;
                                                             }
                                                         }

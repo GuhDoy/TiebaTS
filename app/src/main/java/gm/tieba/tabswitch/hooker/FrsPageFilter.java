@@ -9,7 +9,7 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.dao.Preferences;
-import gm.tieba.tabswitch.util.Reflect;
+import gm.tieba.tabswitch.util.Parser;
 
 public class FrsPageFilter extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
@@ -21,7 +21,7 @@ public class FrsPageFilter extends BaseHooker implements IHooker {
                 if (threadList == null) return;
                 label:
                 for (int i = 0; i < threadList.size(); i++) {
-                    if (pattern.matcher(Reflect.parsePbContent(threadList.get(i), "first_post_content")).find()) {
+                    if (pattern.matcher(Parser.parsePbContent(threadList.get(i), "first_post_content")).find()) {
                         threadList.remove(i);
                         i--;
                         continue;

@@ -95,7 +95,8 @@ public class TSPreferenceHelper extends BaseHooker {
     static class SwitchButtonHolder {
         public final static int TYPE_SWITCH = 0;
         public final static int TYPE_DIALOG = 1;
-        public final static int TYPE_SET = 2;
+        public final static int TYPE_SET_MAIN = 2;
+        public final static int TYPE_SET_FLUTTER = 3;
         private final String mKey;
         public Switch bdSwitch;
         public LinearLayout switchButton;
@@ -120,16 +121,22 @@ public class TSPreferenceHelper extends BaseHooker {
                     if (Preferences.getString(key) != null) bdSwitch.turnOn();
                     else bdSwitch.turnOff();
                     break;
-                case TYPE_SET:
+                case TYPE_SET_MAIN:
                     switchButton = createButton(text, null, v -> bdSwitch.changeState());
-                    bdSwitchView.setTag(TYPE_SET + key);
-                    if (Preferences.getStringSet().contains(key)) bdSwitch.turnOn();
+                    bdSwitchView.setTag(TYPE_SET_MAIN + key);
+                    if (Preferences.getStringSet("fragment_tab")
+                            .contains(key)) bdSwitch.turnOn();
+                    else bdSwitch.turnOff();
+                    break;
+                case TYPE_SET_FLUTTER:
+                    switchButton = createButton(text, null, v -> bdSwitch.changeState());
+                    bdSwitchView.setTag(TYPE_SET_FLUTTER + key);
+                    if (Preferences.getStringSet("switch_manager").contains(key)) bdSwitch.turnOn();
                     else bdSwitch.turnOff();
                     break;
             }
             try {
-                switchButton.findViewById(Reflect.getId("arrow2"))
-                        .setVisibility(View.GONE);
+                switchButton.findViewById(Reflect.getId("arrow2")).setVisibility(View.GONE);
                 switchButton.addView(bdSwitchView);
             } catch (Throwable e) {
                 XposedBridge.log(e);
@@ -148,10 +155,18 @@ public class TSPreferenceHelper extends BaseHooker {
                 View view = (View) args[0];
                 String key = (String) view.getTag();
                 if (key != null) {
-                    if (key.startsWith(String.valueOf(TYPE_SWITCH))) {
-                        Preferences.putBoolean(key.substring(1), args[1].toString().equals("ON"));
-                    } else if (key.startsWith(String.valueOf(TYPE_SET))) {
-                        Preferences.putStringSet(key.substring(1), args[1].toString().equals("ON"));
+                    switch (Integer.parseInt(key.substring(0, 1))) {
+                        case TYPE_SWITCH:
+                            Preferences.putBoolean(key.substring(1), args[1].toString().equals("ON"));
+                            break;
+                        case TYPE_SET_MAIN:
+                            Preferences.putStringSet("fragment_tab",
+                                    key.substring(1), args[1].toString().equals("ON"));
+                            break;
+                        case TYPE_SET_FLUTTER:
+                            Preferences.putStringSet("switch_manager",
+                                    key.substring(1), args[1].toString().equals("ON"));
+                            break;
                     }
                 }
                 return null;

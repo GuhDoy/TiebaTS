@@ -10,7 +10,7 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.dao.Preferences;
-import gm.tieba.tabswitch.util.Reflect;
+import gm.tieba.tabswitch.util.Parser;
 
 public class ContentFilter extends BaseHooker implements IHooker {
     private final List<Object> mIdList = new ArrayList<>();
@@ -27,7 +27,7 @@ public class ContentFilter extends BaseHooker implements IHooker {
                 for (int i = 0; i < postList.size(); i++) {
                     if ((Integer) XposedHelpers.getObjectField(postList.get(i), "floor")
                             == 1) continue;
-                    if (pattern.matcher(Reflect.parsePbContent(postList.get(i), "content")).find()) {
+                    if (pattern.matcher(Parser.parsePbContent(postList.get(i), "content")).find()) {
                         postList.remove(i);
                         i--;
                         continue;
@@ -46,7 +46,7 @@ public class ContentFilter extends BaseHooker implements IHooker {
                 List<?> subPostList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "sub_post_list");
                 if (subPostList == null) return;
                 for (int i = 0; i < subPostList.size(); i++) {
-                    if (pattern.matcher(Reflect.parsePbContent(subPostList.get(i), "content")).find()) {
+                    if (pattern.matcher(Parser.parsePbContent(subPostList.get(i), "content")).find()) {
                         subPostList.remove(i);
                         i--;
                         continue;
@@ -65,7 +65,7 @@ public class ContentFilter extends BaseHooker implements IHooker {
                 List<?> subpostList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "subpost_list");
                 if (subpostList == null) return;
                 for (int i = 0; i < subpostList.size(); i++) {
-                    if (pattern.matcher(Reflect.parsePbContent(subpostList.get(i), "content")).find()) {
+                    if (pattern.matcher(Parser.parsePbContent(subpostList.get(i), "content")).find()) {
                         subpostList.remove(i);
                         i--;
                         continue;

@@ -39,6 +39,7 @@ public class AntiConfusionHelper {
         matcherList.add(res.getString(R.string.TSPreference));
         matcherList.add(res.getString(R.string.TbDialog));
         matcherList.add(res.getString(R.string.TbToast));
+        matcherList.add(res.getString(R.string.FragmentTab));
         Collections.addAll(matcherList, res.getStringArray(R.array.Purify));
         Collections.addAll(matcherList, res.getStringArray(R.array.PurifyEnter));
         Collections.addAll(matcherList, res.getStringArray(R.array.PurifyMy));

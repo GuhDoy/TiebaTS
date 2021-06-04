@@ -32,6 +32,7 @@ import gm.tieba.tabswitch.XposedInit;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.dao.Rule;
 import gm.tieba.tabswitch.hooker.TSPreferenceHelper.SwitchButtonHolder;
+import gm.tieba.tabswitch.util.Parser;
 import gm.tieba.tabswitch.util.Reflect;
 import gm.tieba.tabswitch.util.TraceChecker;
 import gm.tieba.tabswitch.widget.NavigationBar;
@@ -89,9 +90,7 @@ public class TSPreference extends BaseHooker implements IHooker {
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                         Activity activity = (Activity) param.args[0];
                         NavigationBar navigationBar = new NavigationBar(param.thisObject);
-                        int proxyPage = activity.getIntent().getIntExtra("proxyPage", -1);
-                        if (proxyPage < 0) return; // don't inline proxyPage
-                        switch (proxyPage) {
+                        switch (activity.getIntent().getIntExtra("proxyPage", -1)) {
                             case SETTINGS_MAIN:
                                 proxyPage(activity, navigationBar, MAIN, createMainPreference(activity));
                                 break;
@@ -269,18 +268,19 @@ public class TSPreference extends BaseHooker implements IHooker {
 
     private LinearLayout createModifyTabPreference(Activity activity) {
         TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
-        preferenceLayout.addView(TSPreferenceHelper.createTextView("修改底栏"));
+        preferenceLayout.addView(TSPreferenceHelper.createTextView("主页"));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏首页", "home_recommend", SwitchButtonHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏进吧", "enter_forum", SwitchButtonHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏频道", "new_category", SwitchButtonHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏消息", "my_message", SwitchButtonHolder.TYPE_SWITCH));
+        for (String fieldName : Parser.parseMainTabActivityConfig()) {
+            preferenceLayout.addView(new SwitchButtonHolder(activity, fieldName.replace("_AVAIBLE", "")
+                    .replace("_AVAILABLE", ""), fieldName, SwitchButtonHolder.TYPE_SET_MAIN));
+        }
         preferenceLayout.addView(TSPreferenceHelper.createTextView("禁用 Flutter"));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "我关注的吧", "flutter_concern_forum_enable_android", SwitchButtonHolder.TYPE_SET));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "吧资料", "flutter_forum_detail_enable_android_112", SwitchButtonHolder.TYPE_SET));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "MyTab", "flutter_mytab_enable_android_112", SwitchButtonHolder.TYPE_SET));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "粉丝", "flutter_attention_enable_android_112", SwitchButtonHolder.TYPE_SET));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "个人中心", "flutter_person_center_enable_android_12", SwitchButtonHolder.TYPE_SET));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "一键签到", "flutter_signin_enable_android_119", SwitchButtonHolder.TYPE_SET));
+        preferenceLayout.addView(new SwitchButtonHolder(activity, "我关注的吧", "flutter_concern_forum_enable_android", SwitchButtonHolder.TYPE_SET_FLUTTER));
+        preferenceLayout.addView(new SwitchButtonHolder(activity, "吧资料", "flutter_forum_detail_enable_android_112", SwitchButtonHolder.TYPE_SET_FLUTTER));
+        preferenceLayout.addView(new SwitchButtonHolder(activity, "MyTab", "flutter_mytab_enable_android_112", SwitchButtonHolder.TYPE_SET_FLUTTER));
+        preferenceLayout.addView(new SwitchButtonHolder(activity, "粉丝", "flutter_attention_enable_android_112", SwitchButtonHolder.TYPE_SET_FLUTTER));
+        preferenceLayout.addView(new SwitchButtonHolder(activity, "个人中心", "flutter_person_center_enable_android_12", SwitchButtonHolder.TYPE_SET_FLUTTER));
+        preferenceLayout.addView(new SwitchButtonHolder(activity, "一键签到", "flutter_signin_enable_android_119", SwitchButtonHolder.TYPE_SET_FLUTTER));
         return preferenceLayout;
     }
 

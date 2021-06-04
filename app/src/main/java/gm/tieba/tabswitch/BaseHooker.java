@@ -7,7 +7,6 @@ import java.lang.ref.WeakReference;
 import java.util.Map;
 
 import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.hooker.AutoSign;
 import gm.tieba.tabswitch.hooker.ContentFilter;
@@ -15,6 +14,7 @@ import gm.tieba.tabswitch.hooker.CreateView;
 import gm.tieba.tabswitch.hooker.EyeshieldMode;
 import gm.tieba.tabswitch.hooker.FollowFilter;
 import gm.tieba.tabswitch.hooker.ForbidGesture;
+import gm.tieba.tabswitch.hooker.FragmentTab;
 import gm.tieba.tabswitch.hooker.FrsPageFilter;
 import gm.tieba.tabswitch.hooker.FrsTab;
 import gm.tieba.tabswitch.hooker.Hide;
@@ -57,23 +57,8 @@ public abstract class BaseHooker {
             case "home_recommend":
                 if ((Boolean) entry.getValue()) new HomeRecommend().hook();
                 break;
-            case "enter_forum":
-                if (!(Boolean) entry.getValue()) break;
-                XposedHelpers.findAndHookMethod("com.baidu.tieba.flutter.base.view.FlutterEnterForumDelegateStatic", sClassLoader,
-                        "createFragmentTabStructure", XC_MethodReplacement.returnConstant(null));
-                XposedHelpers.findAndHookMethod("com.baidu.tieba.enterForum.home.EnterForumDelegateStatic", sClassLoader,
-                        "isAvailable", XC_MethodReplacement.returnConstant(false));
-                break;
-            case "new_category":
-                if (!(Boolean) entry.getValue()) break;
-                XposedHelpers.findAndHookMethod("com.baidu.tieba.flutter.base.view.FlutterNewCategoryDelegateStatic", sClassLoader,
-                        "isAvailable", XC_MethodReplacement.returnConstant(false));
-                break;
-            case "my_message":
-                if (!(Boolean) entry.getValue()) break;
-                XposedHelpers.findAndHookMethod("com.baidu.tieba.imMessageCenter.im.chat.notify.ImMessageCenterDelegateStatic", sClassLoader,
-                        "isAvailable", XC_MethodReplacement.returnConstant(false));
-                break;
+            case "fragment_tab":
+                new FragmentTab().hook();
             case "switch_manager":
                 new SwitchManager().hook();
                 break;

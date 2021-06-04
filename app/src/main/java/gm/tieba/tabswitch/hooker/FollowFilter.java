@@ -24,7 +24,7 @@ public class FollowFilter extends BaseHooker implements IHooker {
                 List<?> list = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");
                 if (list == null) return;
                 for (int i = 0; i < list.size(); i++) {
-                    if (!Preferences.getFollow().contains(XposedHelpers.getObjectField(list.get(i), "fname"))) {
+                    if (!Preferences.getFollow().contains((String) XposedHelpers.getObjectField(list.get(i), "fname"))) {
                         list.remove(i);
                         i--;
                     }
