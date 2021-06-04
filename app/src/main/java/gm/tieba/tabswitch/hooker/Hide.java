@@ -22,7 +22,8 @@ public class Hide extends BaseHooker implements IHooker {
                     for (StackTraceElement ste : stes) {
                         String name = ste.getClassName();
                         if (!name.contains("posed") && !name.contains("Hooker")
-                                && !name.contains(BuildConfig.APPLICATION_ID)) {
+                                && !name.contains(BuildConfig.APPLICATION_ID)
+                                && !name.equals("java.lang.reflect.Method")) {
                             filtered.add(ste);
                         }
                     }

@@ -45,8 +45,8 @@ public class TraceChecker extends BaseHooker {
 
     public void checkAll() {
         mCount = 0;
-        while (mPreferenceLayout.getChildAt(3) != null) {
-            mPreferenceLayout.removeViewAt(3);
+        while (mPreferenceLayout.getChildAt(4) != null) {
+            mPreferenceLayout.removeViewAt(4);
         }
         getContext().getExternalFilesDir(null).mkdirs();
         files();
@@ -54,7 +54,7 @@ public class TraceChecker extends BaseHooker {
         mounts();
         modules();
         classloader();
-        stackTrace();
+        if (!Preferences.getBoolean("no_check_stack_trace") || BuildConfig.DEBUG) stackTrace();
         preferences();
         TbToast.showTbToast(mCount > 0 ? String.format(Locale.CHINA, "%s\n检测出%d处痕迹",
                 randomToast(), mCount) : "未检测出痕迹", TbToast.LENGTH_SHORT);
@@ -209,7 +209,7 @@ public class TraceChecker extends BaseHooker {
         } catch (ClassNotFoundException ignored) {
         }
 
-        if (Native.findXposed()) result.addTrace(C, "FOUND_XPOSED");
+        if (Native.findXposed()) result.addTrace(C, "de/robv/android/xposed/XposedBridge");
         result.show();
     }
 
@@ -218,7 +218,7 @@ public class TraceChecker extends BaseHooker {
         for (String st : TSPreference.sStes) {
             result.addTrace(JAVA, st);
         }
-        if (!Preferences.getBoolean("hide") || BuildConfig.DEBUG) result.show();
+        result.show();
     }
 
     private void preferences() {
