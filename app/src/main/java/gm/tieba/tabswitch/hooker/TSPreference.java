@@ -32,6 +32,7 @@ import gm.tieba.tabswitch.XposedInit;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.dao.Rule;
 import gm.tieba.tabswitch.hooker.TSPreferenceHelper.SwitchButtonHolder;
+import gm.tieba.tabswitch.util.DisplayHelper;
 import gm.tieba.tabswitch.util.Parser;
 import gm.tieba.tabswitch.util.Reflect;
 import gm.tieba.tabswitch.util.TraceChecker;
@@ -133,15 +134,7 @@ public class TSPreference extends BaseHooker implements IHooker {
     private void proxyPage(Activity activity, NavigationBar navigationBar, String title,
                            LinearLayout preferenceLayout) throws Throwable {
         navigationBar.setTitleText(title);
-        navigationBar.addTextButton("重启", v -> {
-            Intent intent = activity.getPackageManager().getLaunchIntentForPackage(activity.getPackageName());
-            if (intent != null) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                activity.startActivity(intent);
-            }
-            activity.finishAffinity();
-            System.exit(0);
-        });
+        navigationBar.addTextButton("重启", v -> DisplayHelper.restart(activity, sRes));
         LinearLayout containerView = activity.findViewById(Reflect.getId("container_view"));
         containerView.removeAllViews();
         containerView.addView(preferenceLayout);

@@ -31,6 +31,7 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.dao.Rule;
+import gm.tieba.tabswitch.util.DisplayHelper;
 
 public class AntiConfusionHelper {
     static List<String> matcherList = new ArrayList<>();
@@ -82,32 +83,21 @@ public class AntiConfusionHelper {
     }
 
     @SuppressLint("ApplySharedPref")
-    public static void saveAndRestart(Activity activity, String value, Class<?> springboardActivity) {
+    public static void saveAndRestart(Activity activity, String value, Class<?> springboardActivity, Resources res) {
         SharedPreferences.Editor editor = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE).edit();
         editor.putString("anti-confusion_version", value);
         editor.commit();
-        if (springboardActivity != null) {
+        if (springboardActivity == null) DisplayHelper.restart(activity, res);
+        else {
             XposedHelpers.findAndHookMethod(springboardActivity, "onCreate", Bundle.class, new XC_MethodHook() {
                 protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                     Activity activity = (Activity) param.thisObject;
-                    Intent intent = activity.getPackageManager().getLaunchIntentForPackage(activity.getPackageName());
-                    if (intent != null) {
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        activity.startActivity(intent);
-                    }
-                    System.exit(0);
+                    DisplayHelper.restart(activity, res);
                 }
             });
             Intent intent = new Intent(activity, springboardActivity);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
             activity.startActivity(intent);
-        } else {
-            Intent intent = activity.getPackageManager().getLaunchIntentForPackage(activity.getPackageName());
-            if (intent != null) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                activity.startActivity(intent);
-            }
-            System.exit(0);
         }
     }
 
@@ -127,7 +117,8 @@ public class AntiConfusionHelper {
                 if (writer.getString().contains(matcherList.get(i))) {
                     String clazz = classItem.getClassType().getTypeDescriptor();
                     clazz = clazz.substring(clazz.indexOf("L") + 1, clazz.indexOf(";")).replace("/", ".");
-                    db.execSQL("insert into rules(rule,class,method) values(?,?,?)", new Object[]{matcherList.get(i), clazz, method.method.methodName.getStringValue()});
+                    db.execSQL("insert into rules(rule,class,method) values(?,?,?)",
+                            new Object[]{matcherList.get(i), clazz, method.method.methodName.getStringValue()});
                     return;
                 }
             }

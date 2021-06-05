@@ -223,8 +223,7 @@ public class TraceChecker extends BaseHooker {
 
     private void preferences() {
         ResultBuilder result = new ResultBuilder("偏好");
-        String[] sps = new String[]{"TS_preferences", "TS_config"};
-        for (String sp : sps) {
+        for (String sp : new String[]{"TS_preferences", "TS_config"}) {
             if (getContext().getSharedPreferences(sp, Context.MODE_PRIVATE)
                     .getAll().keySet().size() != 0) result.addTrace(JAVA, sp);
         }

@@ -59,6 +59,7 @@ public abstract class BaseHooker {
                 break;
             case "fragment_tab":
                 new FragmentTab().hook();
+                break;
             case "switch_manager":
                 new SwitchManager().hook();
                 break;

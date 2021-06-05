@@ -71,7 +71,7 @@ public class AntiConfusion extends BaseHooker implements IHooker {
                             AntiConfusionHelper.matcherList = AntiConfusionHelper.getRulesLost();
                         } else {
                             AntiConfusionHelper.saveAndRestart(mActivity, AntiConfusionHelper
-                                    .getTbVersion(mActivity), sClassLoader.loadClass(SPRINGBOARD_ACTIVITY));
+                                    .getTbVersion(mActivity), sClassLoader.loadClass(SPRINGBOARD_ACTIVITY), sRes);
                         }
                         new RulesDbHelper(mActivity.getApplicationContext()).getReadableDatabase();
 
@@ -158,7 +158,7 @@ public class AntiConfusion extends BaseHooker implements IHooker {
                                 XposedBridge.log("anti-confusion accomplished, current version: "
                                         + AntiConfusionHelper.getTbVersion(mActivity));
                                 AntiConfusionHelper.saveAndRestart(mActivity, AntiConfusionHelper
-                                        .getTbVersion(mActivity), sClassLoader.loadClass(SPRINGBOARD_ACTIVITY));
+                                        .getTbVersion(mActivity), sClassLoader.loadClass(SPRINGBOARD_ACTIVITY), sRes);
                             } catch (Throwable e) {
                                 XposedBridge.log(e);
                                 mActivity.runOnUiThread(() -> mMessage.setText(String.format(

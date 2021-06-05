@@ -12,8 +12,7 @@ import gm.tieba.tabswitch.IHooker;
 public class Hide extends BaseHooker implements IHooker {
     @Override
     public void hook() throws Throwable {
-        Class<?>[] classes = new Class<?>[]{Throwable.class, Thread.class};
-        for (Class<?> clazz : classes) {
+        for (Class<?> clazz : new Class<?>[]{Throwable.class, Thread.class}) {
             XposedHelpers.findAndHookMethod(clazz, "getStackTrace", new XC_MethodHook() {
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
@@ -33,7 +32,6 @@ public class Hide extends BaseHooker implements IHooker {
                         result[i] = filtered.get(i);
                     }
                     param.setResult(result);
-                    super.afterHookedMethod(param);
                 }
             });
         }
