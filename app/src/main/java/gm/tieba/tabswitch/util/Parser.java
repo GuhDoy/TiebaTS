@@ -16,7 +16,8 @@ public class Parser extends BaseHooker {
                     "com.baidu.tbadk.core.atomData.MainTabActivityConfig").getDeclaredFields()) {
                 if (!field.getType().equals(boolean.class)) continue;
                 String name = field.getName();
-                if (!name.equals("PERSON_TAB_AVAIBLE") && !name.equals("IS_BACK_CLOSE_ALL_ACTIVITY")) {
+                if (!name.equals("PERSON_TAB_AVAIBLE")
+                        && !name.equals("IS_BACK_CLOSE_ALL_ACTIVITY")) {
                     mainTabActivityConfig.add(field.getName());
                 }
             }

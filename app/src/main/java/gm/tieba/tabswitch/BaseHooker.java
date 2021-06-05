@@ -8,6 +8,7 @@ import java.util.Map;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
+import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.AutoSign;
 import gm.tieba.tabswitch.hooker.ContentFilter;
 import gm.tieba.tabswitch.hooker.CreateView;
@@ -139,6 +140,9 @@ public abstract class BaseHooker {
                 break;
             case "hide":
                 if ((Boolean) entry.getValue()) new Hide().hook();
+                break;
+            default:
+                if (!BuildConfig.DEBUG) Preferences.remove(entry.getKey());
                 break;
         }
     }

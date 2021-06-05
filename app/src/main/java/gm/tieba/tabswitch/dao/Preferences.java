@@ -44,6 +44,12 @@ public class Preferences {
         return sTsPreferences.getAll();
     }
 
+    public static void remove(String key) {
+        SharedPreferences.Editor editor = sTsPreferences.edit();
+        editor.remove(key);
+        editor.apply();
+    }
+
     public static void putBoolean(String key, boolean value) {
         SharedPreferences.Editor editor = sTsPreferences.edit();
         editor.putBoolean(key, value);

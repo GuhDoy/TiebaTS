@@ -21,12 +21,14 @@ public class DisplayHelper {
     }
 
     public static void restart(Activity activity, Resources res) {
-        Intent intent = activity.getPackageManager().getLaunchIntentForPackage(activity.getPackageName());
+        Intent intent = activity.getPackageManager().getLaunchIntentForPackage(activity
+                .getPackageName());
         if (intent == null) {
+            String hint = "获取启动意图失败，请手动启动应用";
             if (Rule.isRuleFound(res.getString(R.string.TbToast))) {
-                TbToast.showTbToast("获取启动意图失败，请手动启动应用", TbToast.LENGTH_SHORT);
+                TbToast.showTbToast(hint, TbToast.LENGTH_SHORT);
             } else {
-                Toast.makeText(activity, "获取启动意图失败，请手动启动应用", Toast.LENGTH_SHORT).show();
+                Toast.makeText(activity, hint, Toast.LENGTH_SHORT).show();
             }
             new Handler(Looper.getMainLooper()).postDelayed(() -> System.exit(0), 1000);
         } else {

@@ -198,7 +198,7 @@ public class TSPreference extends BaseHooker implements IHooker {
         preferenceLayout.addView(new SwitchButtonHolder(activity, "我的收藏增加搜索、吧名", "thread_store", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "浏览历史增加搜索", "history_cache", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "楼层回复增加查看主题贴", "new_sub", SwitchButtonHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "楼层增加水波纹点按效果", "ripple", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(activity, "楼层增加点按效果", "ripple", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "长按下载保存全部图片", "save_images", SwitchButtonHolder.TYPE_SWITCH));
         // preferenceLayout.addView(new SwitchViewHolder(sClassLoader, activity, sRes, "长按关注的人设置备注名", "my_attention"));
 
@@ -264,8 +264,31 @@ public class TSPreference extends BaseHooker implements IHooker {
         preferenceLayout.addView(TSPreferenceHelper.createTextView("主页"));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏首页", "home_recommend", SwitchButtonHolder.TYPE_SWITCH));
         for (String fieldName : Parser.parseMainTabActivityConfig()) {
-            preferenceLayout.addView(new SwitchButtonHolder(activity, fieldName.replace("_AVAIBLE", "")
-                    .replace("_AVAILABLE", ""), fieldName, SwitchButtonHolder.TYPE_SET_MAIN));
+            String text;
+            switch (fieldName) {
+                case "ENTER_FORUM_DELEGATE_AVAILABLE":
+                    text = "隐藏进吧";
+                    break;
+                case "ENTER_FORUM_TAB_AVAIBLE":
+                    text = "隐藏进吧（Flutter）";
+                    break;
+                case "NEW_CATEGORY_TAB_AVAIBLE":
+                    text = "隐藏频道（Flutter）";
+                    break;
+                case "VIDEO_CHANNEL_TAB_AVAILABLE":
+                    text = "隐藏视频号";
+                    break;
+                case "IMMESSAGE_CENTER_DELEGATE_AVAIBLE":
+                    text = "隐藏消息";
+                    break;
+                case "MEMBER_CENTER_TAB_AVAILABLE":
+                    text = "隐藏会员中心";
+                    break;
+                default:
+                    text = fieldName;
+                    break;
+            }
+            preferenceLayout.addView(new SwitchButtonHolder(activity, text, fieldName, SwitchButtonHolder.TYPE_SET_MAIN));
         }
         preferenceLayout.addView(TSPreferenceHelper.createTextView("禁用 Flutter"));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "我关注的吧", "flutter_concern_forum_enable_android", SwitchButtonHolder.TYPE_SET_FLUTTER));

@@ -32,7 +32,7 @@ public class Ripple extends BaseHooker implements IHooker {
                         View newSubPbListItem = (View) param.getResult();
                         View view = newSubPbListItem.findViewById(
                                 Reflect.getId("new_sub_pb_list_richText"));
-                        view.setBackground(fixSubPbColor(createBackground()));
+                        view.setBackground(createSubPbBackground());
                     }
                 });
             }
@@ -46,7 +46,7 @@ public class Ripple extends BaseHooker implements IHooker {
                             field.setAccessible(true);
                             if (field.get(param.thisObject) instanceof RelativeLayout) {
                                 View view = (View) field.get(param.thisObject);
-                                view.setBackground(fixSubPbColor(createBackground()));
+                                view.setBackground(createSubPbBackground());
                                 return;
                             }
                         }
@@ -79,13 +79,15 @@ public class Ripple extends BaseHooker implements IHooker {
         return sld;
     }
 
-    private StateListDrawable fixSubPbColor(StateListDrawable sld) throws Throwable {
-        if (DisplayHelper.isLightMode(getContext())) {
+    private StateListDrawable createSubPbBackground() throws Throwable {
+        if (!DisplayHelper.getTbSkin(getContext()).equals("")) {
+            return createBackground();
+        } else {
             GradientDrawable gd = new GradientDrawable();
             gd.setColor(Color.WHITE);
-            sld = new StateListDrawable();
+            StateListDrawable sld = new StateListDrawable();
             sld.addState(new int[]{android.R.attr.state_pressed}, gd);
+            return sld;
         }
-        return sld;
     }
 }
