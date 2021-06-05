@@ -1,6 +1,7 @@
 package gm.tieba.tabswitch.hooker;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import de.robv.android.xposed.XC_MethodHook;
@@ -14,6 +15,8 @@ import gm.tieba.tabswitch.dao.Rule;
 import gm.tieba.tabswitch.util.Parser;
 
 public class FragmentTab extends BaseHooker implements IHooker {
+    private static boolean sIsFirstHook = true;
+
     public void hook() throws Throwable {
         Rule.findRule(sRes.getString(R.string.FragmentTab), new Rule.Callback() {
             @Override
@@ -23,7 +26,7 @@ public class FragmentTab extends BaseHooker implements IHooker {
                         XposedBridge.hookMethod(md, new XC_MethodHook() {
                             @Override
                             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                                // ArrayList<?> list = (ArrayList<?>) param.args[0];
+                                if (!sIsFirstHook) return;
                                 for (String fieldName : Parser.parseMainTabActivityConfig()) {
                                     if (Preferences.getStringSet("fragment_tab").contains(fieldName)) {
                                         Class<?> clazz = sClassLoader.loadClass(
@@ -32,6 +35,19 @@ public class FragmentTab extends BaseHooker implements IHooker {
                                                 !XposedHelpers.getStaticBooleanField(clazz, fieldName));
                                     }
                                 }
+
+                                if (Preferences.getBoolean("home_recommend")) {
+                                    ArrayList<?> list = (ArrayList<?>) param.args[0];
+                                    for (Object tab : list) {
+                                        if ("com.baidu.tieba.homepage.framework.RecommendFrsDelegateStatic"
+                                                .equals(tab.getClass().getName())) {
+                                            list.remove(tab);
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                sIsFirstHook = false;
                             }
                         });
                     }

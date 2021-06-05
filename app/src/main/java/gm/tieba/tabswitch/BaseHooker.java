@@ -19,7 +19,6 @@ import gm.tieba.tabswitch.hooker.FrsPageFilter;
 import gm.tieba.tabswitch.hooker.FrsTab;
 import gm.tieba.tabswitch.hooker.Hide;
 import gm.tieba.tabswitch.hooker.HistoryCache;
-import gm.tieba.tabswitch.hooker.HomeRecommend;
 import gm.tieba.tabswitch.hooker.NewSub;
 import gm.tieba.tabswitch.hooker.OpenSign;
 import gm.tieba.tabswitch.hooker.OriginSrc;
@@ -55,8 +54,6 @@ public abstract class BaseHooker {
     public static void init(Map.Entry<String, ?> entry) throws Throwable {
         switch (entry.getKey()) {
             case "home_recommend":
-                if ((Boolean) entry.getValue()) new HomeRecommend().hook();
-                break;
             case "fragment_tab":
                 new FragmentTab().hook();
                 break;
