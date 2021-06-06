@@ -101,7 +101,7 @@ public class TraceChecker extends BaseHooker {
     }
 
     private void maps() {
-        ResultBuilder result = new ResultBuilder(" /proc/self/maps");
+        ResultBuilder result = new ResultBuilder("内存映射");
         try {
             BufferedReader br = new BufferedReader(new FileReader(String.format(Locale.CHINA,
                     "/proc/%d/maps", Process.myPid())));

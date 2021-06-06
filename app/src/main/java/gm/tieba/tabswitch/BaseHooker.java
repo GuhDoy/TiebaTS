@@ -2,11 +2,13 @@ package gm.tieba.tabswitch;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.widget.LinearLayout;
 
 import java.lang.ref.WeakReference;
 import java.util.Map;
 
 import de.robv.android.xposed.XC_MethodHook;
+import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.AutoSign;
@@ -57,6 +59,16 @@ public abstract class BaseHooker {
             case "home_recommend":
             case "fragment_tab":
                 new FragmentTab().hook();
+                break;
+            case "alpha":
+                XposedBridge.hookAllConstructors(XposedHelpers.findClass(
+                        "com.baidu.tbadk.core.tabHost.FragmentTabWidget", sClassLoader), new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        LinearLayout ll = (LinearLayout) param.thisObject;
+                        ll.setAlpha(0.85f);
+                    }
+                });
                 break;
             case "switch_manager":
                 new SwitchManager().hook();
@@ -140,6 +152,9 @@ public abstract class BaseHooker {
                 break;
             case "hide":
                 if ((Boolean) entry.getValue()) new Hide().hook();
+                break;
+            case "no_check_stack_trace":
+                // prevent from being removed
                 break;
             default:
                 if (!BuildConfig.DEBUG) Preferences.remove(entry.getKey());

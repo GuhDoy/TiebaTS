@@ -263,6 +263,7 @@ public class TSPreference extends BaseHooker implements IHooker {
         TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
         preferenceLayout.addView(TSPreferenceHelper.createTextView("主页"));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏首页", "home_recommend", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(activity, "半透明导航栏", "alpha", SwitchButtonHolder.TYPE_SWITCH));
         for (String fieldName : Parser.parseMainTabActivityConfig()) {
             String text;
             switch (fieldName) {
@@ -283,6 +284,9 @@ public class TSPreference extends BaseHooker implements IHooker {
                     break;
                 case "MEMBER_CENTER_TAB_AVAILABLE":
                     text = "隐藏会员中心";
+                    break;
+                case "IS_INDICATOR_BOTTOM":
+                    text = "顶部导航栏";
                     break;
                 default:
                     text = fieldName;
