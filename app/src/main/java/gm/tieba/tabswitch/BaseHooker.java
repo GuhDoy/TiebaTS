@@ -60,16 +60,6 @@ public abstract class BaseHooker {
             case "fragment_tab":
                 new FragmentTab().hook();
                 break;
-            case "alpha":
-                XposedBridge.hookAllConstructors(XposedHelpers.findClass(
-                        "com.baidu.tbadk.core.tabHost.FragmentTabWidget", sClassLoader), new XC_MethodHook() {
-                    @Override
-                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        LinearLayout ll = (LinearLayout) param.thisObject;
-                        ll.setAlpha(0.85f);
-                    }
-                });
-                break;
             case "switch_manager":
                 new SwitchManager().hook();
                 break;
