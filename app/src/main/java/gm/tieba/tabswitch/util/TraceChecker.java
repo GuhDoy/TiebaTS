@@ -83,6 +83,9 @@ public class TraceChecker extends BaseHooker {
 
     private void files() {
         ResultBuilder result = new ResultBuilder("文件");
+        String symbol = "access";
+        if (Native.inline(symbol)) result.addTrace(FAKE, symbol + " is inline hooked");
+
         String[] paths = new String[]{getContext().getFilesDir().getParent()
                 .replace(getContext().getPackageName(), BuildConfig.APPLICATION_ID),
                 getContext().getExternalFilesDir(null).getParent()
@@ -102,13 +105,17 @@ public class TraceChecker extends BaseHooker {
 
     private void maps() {
         ResultBuilder result = new ResultBuilder("内存映射");
+        String symbol = "fopen";
+        if (Native.inline(symbol)) result.addTrace(FAKE, symbol + " is inline hooked");
+
+        String path = String.format(Locale.CHINA, "/proc/%d/maps", Process.myPid());
         try {
-            BufferedReader br = new BufferedReader(new FileReader(String.format(Locale.CHINA,
-                    "/proc/%d/maps", Process.myPid())));
+            BufferedReader br = new BufferedReader(new FileReader(path));
             String line;
             do {
                 line = br.readLine();
-                if (line != null && (line.contains("/data/app") && !line.contains("com.google.android")
+                if (line != null && (line.contains("/data/app")
+                        && !line.contains("com.google.android")
                         && !line.contains(getContext().getPackageName()))) {
                     result.addTrace(JAVA, line);
                 }
@@ -117,7 +124,9 @@ public class TraceChecker extends BaseHooker {
             XposedBridge.log(e);
             result.addTrace(FAKE, e.getMessage());
         }
-        //TODO syscall check
+
+        String nativeResult = Native.fopen(path);
+        if (!nativeResult.equals("")) result.addTrace(C, nativeResult);
         result.show();
     }
 

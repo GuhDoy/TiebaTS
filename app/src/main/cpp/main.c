@@ -23,6 +23,40 @@ static inline char *getNativeClassName() {
     return strdup(v);
 }
 
+static inline char *getInline() {
+    // inline
+    char v[] = "hlomnd";
+    static unsigned int m = 0;
+
+    if (m == 0) {
+        m = 5;
+    } else if (m == 7) {
+        m = 11;
+    }
+
+    for (unsigned int i = 0; i < 0x6; ++i) {
+        v[i] ^= ((i + 0x6) % m);
+    }
+    return strdup(v);
+}
+
+static inline char *getInlineSignature() {
+    // (Ljava/lang/String;)Z
+    char v[] = "*Ondpf'ekek\"]{bx|g:+Y";
+    static unsigned int m = 0;
+
+    if (m == 0) {
+        m = 19;
+    } else if (m == 23) {
+        m = 29;
+    }
+
+    for (unsigned int i = 0; i < 0x15; ++i) {
+        v[i] ^= ((i + 0x15) % m);
+    }
+    return strdup(v);
+}
+
 static inline char *getAccess() {
     // access
     char v[] = "`a`asr";
@@ -57,23 +91,6 @@ static inline char *getSysaccess() {
     return strdup(v);
 }
 
-static inline char *getFindXposed() {
-    // findXposed
-    char v[] = "emkbXqmpaa";
-    static unsigned int m = 0;
-
-    if (m == 0) {
-        m = 7;
-    } else if (m == 11) {
-        m = 13;
-    }
-
-    for (unsigned int i = 0; i < 0xa; ++i) {
-        v[i] ^= ((i + 0xa) % m);
-    }
-    return strdup(v);
-}
-
 static inline char *getAccessSignature() {
     // (Ljava/lang/String;)I
     char v[] = "*Ondpf'ekek\"]{bx|g:+J";
@@ -87,6 +104,57 @@ static inline char *getAccessSignature() {
 
     for (unsigned int i = 0; i < 0x15; ++i) {
         v[i] ^= ((i + 0x15) % m);
+    }
+    return strdup(v);
+}
+
+static inline char *getFopen() {
+    // fopen
+    char v[] = "fnrfj";
+    static unsigned int m = 0;
+
+    if (m == 0) {
+        m = 5;
+    } else if (m == 7) {
+        m = 11;
+    }
+
+    for (unsigned int i = 0; i < 0x5; ++i) {
+        v[i] ^= ((i + 0x5) % m);
+    }
+    return strdup(v);
+}
+
+static inline char *getFopenSignature() {
+    // (Ljava/lang/String;)Ljava/lang/String;
+    char v[] = "'\\{seu:zaoe,Wqtnfn1\"@goyq>~rzr9Supjjb=";
+    static unsigned int m = 0;
+
+    if (m == 0) {
+        m = 23;
+    } else if (m == 29) {
+        m = 31;
+    }
+
+    for (unsigned int i = 0; i < 0x26; ++i) {
+        v[i] ^= ((i + 0x26) % m);
+    }
+    return strdup(v);
+}
+
+static inline char *getFindXposed() {
+    // findXposed
+    char v[] = "emkbXqmpaa";
+    static unsigned int m = 0;
+
+    if (m == 0) {
+        m = 7;
+    } else if (m == 11) {
+        m = 13;
+    }
+
+    for (unsigned int i = 0; i < 0xa; ++i) {
+        v[i] ^= ((i + 0xa) % m);
     }
     return strdup(v);
 }
@@ -121,11 +189,13 @@ jint JNI_OnLoad(JavaVM *jvm, void *v __unused) {
     }
 
     JNINativeMethod methods[] = {
+            {getInline(),     getInlineSignature(),     _inline},
             {getAccess(),     getAccessSignature(),     _access},
             {getSysaccess(),  getAccessSignature(),     sysaccess},
+            {getFopen(),      getFopenSignature(),      _fopen},
             {getFindXposed(), getFindXposedSignature(), findXposed},
     };
-    if ((*env)->RegisterNatives(env, clazz, methods, 3) < 0) {
+    if ((*env)->RegisterNatives(env, clazz, methods, 5) < 0) {
         return JNI_ERR;
     }
 
