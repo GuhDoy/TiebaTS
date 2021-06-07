@@ -83,8 +83,9 @@ public class TraceChecker extends BaseHooker {
 
     private void files() {
         ResultBuilder result = new ResultBuilder("文件");
-        String symbol = "access";
-        if (Native.inline(symbol)) result.addTrace(FAKE, symbol + " is inline hooked");
+        for (String symbol : new String[]{"access", "faccessat"}) {
+            if (Native.inline(symbol)) result.addTrace(FAKE, symbol + " is inline hooked");
+        }
 
         String[] paths = new String[]{getContext().getFilesDir().getParent()
                 .replace(getContext().getPackageName(), BuildConfig.APPLICATION_ID),
@@ -105,8 +106,10 @@ public class TraceChecker extends BaseHooker {
 
     private void maps() {
         ResultBuilder result = new ResultBuilder("内存映射");
-        String symbol = "fopen";
-        if (Native.inline(symbol)) result.addTrace(FAKE, symbol + " is inline hooked");
+        for (String symbol : new String[]{"open", "open64", "openat", "openat64", "__openat",
+                "fopen", "fdopen"}) {
+            if (Native.inline(symbol)) result.addTrace(FAKE, symbol + " is inline hooked");
+        }
 
         String path = String.format(Locale.CHINA, "/proc/%d/maps", Process.myPid());
         try {
@@ -173,6 +176,19 @@ public class TraceChecker extends BaseHooker {
         ResultBuilder result = new ResultBuilder("包管理器");
         List<String> modules = new ArrayList<>();
         PackageManager pm = getContext().getPackageManager();
+        try {
+            IBinder service = (IBinder) Class.forName("android.os.ServiceManager")
+                    .getDeclaredMethod("getService", String.class).invoke(null, "package");
+            Object iPackageManager = Class.forName("android.content.pm.IPackageManager$Stub")
+                    .getDeclaredMethod("asInterface", IBinder.class).invoke(null, service);
+            Class<?> mPMClass = XposedHelpers.getObjectField(pm, "mPM").getClass();
+            if (!mPMClass.equals(iPackageManager.getClass())) {
+                result.addTrace(FAKE, mPMClass.getName());
+            }
+        } catch (Throwable e) {
+            XposedBridge.log(e);
+            result.addTrace(FAKE, e.getMessage());
+        }
 
         for (PackageInfo pkg : pm.getInstalledPackages(PackageManager.GET_META_DATA)) {
             ApplicationInfo app = pkg.applicationInfo;
@@ -191,20 +207,6 @@ public class TraceChecker extends BaseHooker {
 
         if (modules.size() > 0) {
             result.addTrace(JAVA, modules.toString());
-        }
-
-        try {
-            IBinder service = (IBinder) Class.forName("android.os.ServiceManager")
-                    .getDeclaredMethod("getService", String.class).invoke(null, "package");
-            Object iPackageManager = Class.forName("android.content.pm.IPackageManager$Stub")
-                    .getDeclaredMethod("asInterface", IBinder.class).invoke(null, service);
-            Class<?> mPMClass = XposedHelpers.getObjectField(pm, "mPM").getClass();
-            if (!mPMClass.equals(iPackageManager.getClass())) {
-                result.addTrace(FAKE, mPMClass.getName());
-            }
-        } catch (Throwable e) {
-            XposedBridge.log(e);
-            result.addTrace(FAKE, e.getMessage());
         }
         result.show();
     }
