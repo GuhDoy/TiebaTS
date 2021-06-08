@@ -127,6 +127,7 @@ jstring _fopen(JNIEnv *env, jclass clazz, jstring jpath) {
         if (strstr(line, getDataApp()) != NULL
             && strstr(line, getComGoogleAndroid()) == NULL
             && strstr(line, getComBaiduTieba()) == NULL) {
+            if (strlen(result) + strlen(line) > PATH_MAX) break;
             strcat(result, line);
         }
     }

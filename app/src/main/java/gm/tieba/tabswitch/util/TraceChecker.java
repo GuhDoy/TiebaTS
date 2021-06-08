@@ -16,6 +16,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -97,7 +98,6 @@ public class TraceChecker extends BaseHooker {
                 getContext().getFilesDir().getParent() + File.separator + "shared_prefs"
                         + File.separator + "TS_config.xml"};
         for (String path : paths) {
-            if (new File(path).exists()) result.addTrace(JAVA, path);
             if (Native.access(path) == 0) result.addTrace(C, path);
             if (Native.sysaccess(path) == 0) result.addTrace(S, path);
         }
@@ -112,24 +112,8 @@ public class TraceChecker extends BaseHooker {
         }
 
         String path = String.format(Locale.CHINA, "/proc/%d/maps", Process.myPid());
-        try {
-            BufferedReader br = new BufferedReader(new FileReader(path));
-            String line;
-            do {
-                line = br.readLine();
-                if (line != null && (line.contains("/data/app")
-                        && !line.contains("com.google.android")
-                        && !line.contains(getContext().getPackageName()))) {
-                    result.addTrace(JAVA, line);
-                }
-            } while (line != null);
-        } catch (IOException e) {
-            XposedBridge.log(e);
-            result.addTrace(FAKE, e.getMessage());
-        }
-
-        String nativeResult = Native.fopen(path);
-        if (!nativeResult.equals("")) result.addTrace(C, nativeResult);
+        String trace = Native.fopen(path);
+        if (!trace.equals("")) result.addTrace(C, trace.substring(0, trace.length() - 1));
         result.show();
     }
 

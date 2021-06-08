@@ -22,9 +22,7 @@ public class Development {
         XposedBridge.hookMethod(method, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) {
-                if (param.getResult() == null) return;
                 XposedBridge.log(method.getName());
-                XposedBridge.log(param.getResult().toString());
             }
         });
     }
