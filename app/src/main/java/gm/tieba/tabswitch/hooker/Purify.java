@@ -181,6 +181,15 @@ public class Purify extends BaseHooker implements IHooker {
                 activity.setIntent(intent);
             }
         });
+        // 热启动广告
+        XposedHelpers.findAndHookMethod("com.baidu.tieba.LogoActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                Activity activity = (Activity) param.thisObject;
+                Intent intent = activity.getIntent().putExtra("splash", false);
+                activity.setIntent(intent);
+            }
+        });
         // 吧小程序
         XposedBridge.hookAllMethods(XposedHelpers.findClass("com.baidu.tieba.frs.servicearea.ServiceAreaView", sClassLoader), "setData", XC_MethodReplacement.returnConstant(null));
         // 吧友直播
