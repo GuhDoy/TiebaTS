@@ -9,6 +9,10 @@
 #include "classloader.h"
 #include "inline.h"
 #include "plt.h"
+#include <android/log.h>
+
+#define APPLICATION_ID "gm.tieba.tabswitch"
+#define LOGE(...) ((void)__android_log_print(ANDROID_LOG_ERROR, APPLICATION_ID, __VA_ARGS__))
 
 static bool check_hook_function(void *handle, const char *name) {
     void *symbol = dlsym(handle, name);
@@ -29,6 +33,82 @@ jboolean _inline(JNIEnv *env, jclass clazz, jstring jname) {
     (*env)->ReleaseStringUTFChars(env, jname, name);
     return isInlineHooked;
 }
+
+static inline void fill_ro_build_version_sdk(char v[]) {
+    // ro.build.version.sdk
+    static unsigned int m = 0;
+
+    if (m == 0) {
+        m = 19;
+    } else if (m == 23) {
+        m = 29;
+    }
+
+    v[0x0] = 's';
+    v[0x1] = 'm';
+    v[0x2] = '-';
+    v[0x3] = 'f';
+    v[0x4] = 'p';
+    v[0x5] = 'o';
+    v[0x6] = 'k';
+    v[0x7] = 'l';
+    v[0x8] = '\'';
+    v[0x9] = '|';
+    v[0xa] = 'n';
+    v[0xb] = '~';
+    v[0xc] = '~';
+    v[0xd] = 'g';
+    v[0xe] = '`';
+    v[0xf] = '~';
+    v[0x10] = '?';
+    v[0x11] = 'a';
+    v[0x12] = 'd';
+    v[0x13] = 'j';
+    for (unsigned int i = 0; i < 0x14; ++i) {
+        v[i] ^= ((i + 0x14) % m);
+    }
+    v[0x14] = '\0';
+}
+
+bool xposed_status = false;
+
+jboolean findXposed(JNIEnv *env, jclass clazz) {
+    static int sdk = 0;
+    if (sdk == 0) {
+        char v1[0x20];
+        char prop[PROP_VALUE_MAX] = {0};
+        fill_ro_build_version_sdk(v1);
+        __system_property_get(v1, prop);
+        sdk = (int) strtol(prop, NULL, 10);
+    }
+
+    checkClassLoader(env, sdk);
+    return xposed_status;
+}
+
+static inline char *getDex2oat() {
+    // dalvik.vm.dex2oat-flags
+    char v[] = "`djqab$}a#jjh#}au/ehdat";
+    static unsigned int m = 0;
+
+    if (m == 0) {
+        m = 19;
+    } else if (m == 23) {
+        m = 29;
+    }
+
+    for (unsigned int i = 0; i < 0x17; ++i) {
+        v[i] ^= ((i + 0x17) % m);
+    }
+    return strdup(v);
+}
+
+jstring prop(JNIEnv *env, jclass clazz) {
+    char prop[PROP_VALUE_MAX];
+    __system_property_get(getDex2oat(), prop);
+    return (*env)->NewStringUTF(env, prop);
+}
+
 
 jint _access(JNIEnv *env, jclass clazz, jstring jpath) {
     const char *path = (*env)->GetStringUTFChars(env, jpath, NULL);
@@ -133,56 +213,4 @@ jstring _fopen(JNIEnv *env, jclass clazz, jstring jpath) {
     }
     fclose(f);
     return (*env)->NewStringUTF(env, result);
-}
-
-static inline void fill_ro_build_version_sdk(char v[]) {
-    // ro.build.version.sdk
-    static unsigned int m = 0;
-
-    if (m == 0) {
-        m = 19;
-    } else if (m == 23) {
-        m = 29;
-    }
-
-    v[0x0] = 's';
-    v[0x1] = 'm';
-    v[0x2] = '-';
-    v[0x3] = 'f';
-    v[0x4] = 'p';
-    v[0x5] = 'o';
-    v[0x6] = 'k';
-    v[0x7] = 'l';
-    v[0x8] = '\'';
-    v[0x9] = '|';
-    v[0xa] = 'n';
-    v[0xb] = '~';
-    v[0xc] = '~';
-    v[0xd] = 'g';
-    v[0xe] = '`';
-    v[0xf] = '~';
-    v[0x10] = '?';
-    v[0x11] = 'a';
-    v[0x12] = 'd';
-    v[0x13] = 'j';
-    for (unsigned int i = 0; i < 0x14; ++i) {
-        v[i] ^= ((i + 0x14) % m);
-    }
-    v[0x14] = '\0';
-}
-
-bool xposed_status = false;
-
-jboolean findXposed(JNIEnv *env, jclass clazz) {
-    static int sdk = 0;
-    if (sdk == 0) {
-        char v1[0x20];
-        char prop[PROP_VALUE_MAX] = {0};
-        fill_ro_build_version_sdk(v1);
-        __system_property_get(v1, prop);
-        sdk = (int) strtol(prop, NULL, 10);
-    }
-
-    checkClassLoader(env, sdk);
-    return xposed_status;
 }

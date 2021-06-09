@@ -57,6 +57,74 @@ static inline char *getInlineSignature() {
     return strdup(v);
 }
 
+static inline char *getFindXposed() {
+    // findXposed
+    char v[] = "emkbXqmpaa";
+    static unsigned int m = 0;
+
+    if (m == 0) {
+        m = 7;
+    } else if (m == 11) {
+        m = 13;
+    }
+
+    for (unsigned int i = 0; i < 0xa; ++i) {
+        v[i] ^= ((i + 0xa) % m);
+    }
+    return strdup(v);
+}
+
+static inline char *getFindXposedSignature() {
+    // ()Z
+    char v[] = "))[";
+    static unsigned int m = 0;
+
+    if (m == 0) {
+        m = 2;
+    } else if (m == 3) {
+        m = 5;
+    }
+
+    for (unsigned int i = 0; i < 0x3; ++i) {
+        v[i] ^= ((i + 0x3) % m);
+    }
+    return strdup(v);
+}
+
+static inline char *getProp() {
+    // prop
+    char v[] = "qpoq";
+    static unsigned int m = 0;
+
+    if (m == 0) {
+        m = 3;
+    } else if (m == 5) {
+        m = 7;
+    }
+
+    for (unsigned int i = 0; i < 0x4; ++i) {
+        v[i] ^= ((i + 0x4) % m);
+    }
+    return strdup(v);
+}
+
+static inline char *getPropSignature() {
+    // ()Ljava/lang/String;
+    char v[] = ")+Ondpf'ekek\"]{bx|g:";
+    static unsigned int m = 0;
+
+    if (m == 0) {
+        m = 19;
+    } else if (m == 23) {
+        m = 29;
+    }
+
+    for (unsigned int i = 0; i < 0x14; ++i) {
+        v[i] ^= ((i + 0x14) % m);
+    }
+    return strdup(v);
+}
+
 static inline char *getAccess() {
     // access
     char v[] = "`a`asr";
@@ -142,40 +210,6 @@ static inline char *getFopenSignature() {
     return strdup(v);
 }
 
-static inline char *getFindXposed() {
-    // findXposed
-    char v[] = "emkbXqmpaa";
-    static unsigned int m = 0;
-
-    if (m == 0) {
-        m = 7;
-    } else if (m == 11) {
-        m = 13;
-    }
-
-    for (unsigned int i = 0; i < 0xa; ++i) {
-        v[i] ^= ((i + 0xa) % m);
-    }
-    return strdup(v);
-}
-
-static inline char *getFindXposedSignature() {
-    // ()Z
-    char v[] = "))[";
-    static unsigned int m = 0;
-
-    if (m == 0) {
-        m = 2;
-    } else if (m == 3) {
-        m = 5;
-    }
-
-    for (unsigned int i = 0; i < 0x3; ++i) {
-        v[i] ^= ((i + 0x3) % m);
-    }
-    return strdup(v);
-}
-
 jint JNI_OnLoad(JavaVM *jvm, void *v __unused) {
     JNIEnv *env;
     jclass clazz;
@@ -190,12 +224,13 @@ jint JNI_OnLoad(JavaVM *jvm, void *v __unused) {
 
     JNINativeMethod methods[] = {
             {getInline(),     getInlineSignature(),     _inline},
+            {getFindXposed(), getFindXposedSignature(), findXposed},
+            {getProp(),       getPropSignature(),       prop},
             {getAccess(),     getAccessSignature(),     _access},
             {getSysaccess(),  getAccessSignature(),     sysaccess},
             {getFopen(),      getFopenSignature(),      _fopen},
-            {getFindXposed(), getFindXposedSignature(), findXposed},
     };
-    if ((*env)->RegisterNatives(env, clazz, methods, 5) < 0) {
+    if ((*env)->RegisterNatives(env, clazz, methods, 6) < 0) {
         return JNI_ERR;
     }
 

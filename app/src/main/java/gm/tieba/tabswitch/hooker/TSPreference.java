@@ -106,7 +106,7 @@ public class TSPreference extends BaseHooker implements IHooker {
                 });
             }
         });
-        if (!Preferences.getBoolean("no_check_stack_trace") || BuildConfig.DEBUG) {
+        if (Preferences.getBoolean("check_stack_trace") || BuildConfig.DEBUG) {
             for (Method method : sClassLoader.loadClass("com.baidu.tieba.LogoActivity").getDeclaredMethods()) {
                 XposedBridge.hookMethod(method, new XC_MethodHook() {
                     @Override
@@ -261,7 +261,7 @@ public class TSPreference extends BaseHooker implements IHooker {
 
     private LinearLayout createModifyTabPreference(Activity activity) {
         TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
-        preferenceLayout.addView(TSPreferenceHelper.createTextView("主页"));
+        preferenceLayout.addView(TSPreferenceHelper.createTextView("主页导航栏"));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏首页", "home_recommend", SwitchButtonHolder.TYPE_SWITCH));
         for (String fieldName : Parser.parseMainTabActivityConfig()) {
             String text;
@@ -308,9 +308,13 @@ public class TSPreference extends BaseHooker implements IHooker {
         TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
         preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurifyEnabled ? "尾巴是藏不住的（" : null));
         preferenceLayout.addView(new SwitchButtonHolder(activity, isPurifyEnabled ? "藏起尾巴" : "隐藏模块", "hide", SwitchButtonHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "不检查堆栈", "no_check_stack_trace", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(TSPreferenceHelper.createTextView("检测设置"));
+        preferenceLayout.addView(new SwitchButtonHolder(activity, "检测 Xposed", "check_xposed", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(activity, "检测模块", "check_module", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(activity, "检测堆栈（重启才能真正生效）", "check_stack_trace", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(TSPreferenceHelper.createButton(isPurifyEnabled ? "捏捏尾巴" : "检测模块", String.valueOf(Process.myPid()), v ->
                 new TraceChecker(preferenceLayout).checkAll()));
+        TraceChecker.sChildCount = preferenceLayout.getChildCount();
         return preferenceLayout;
     }
 }

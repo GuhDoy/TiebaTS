@@ -2,13 +2,11 @@ package gm.tieba.tabswitch;
 
 import android.content.Context;
 import android.content.res.Resources;
-import android.widget.LinearLayout;
 
 import java.lang.ref.WeakReference;
 import java.util.Map;
 
 import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.AutoSign;
@@ -143,7 +141,9 @@ public abstract class BaseHooker {
             case "hide":
                 if ((Boolean) entry.getValue()) new Hide().hook();
                 break;
-            case "no_check_stack_trace":
+            case "check_xposed":
+            case "check_module":
+            case "check_stack_trace":
                 // prevent from being removed
                 break;
             default:

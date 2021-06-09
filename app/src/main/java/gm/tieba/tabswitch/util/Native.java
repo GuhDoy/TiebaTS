@@ -22,11 +22,13 @@ public class Native {
 
     public static native boolean inline(String name);
 
+    public static native boolean findXposed();
+
+    public static native String prop();
+
     public static native int access(String path);
 
     public static native int sysaccess(String path);
 
     public static native String fopen(String path);
-
-    public static native boolean findXposed();
 }

@@ -97,6 +97,17 @@ public class Purify extends BaseHooker implements IHooker {
                 }
             }
         });
+        // 热启动闪屏
+        XposedBridge.hookAllMethods(XposedHelpers.findClass("com.baidu.adp.framework.MessageManager",
+                sClassLoader), "dispatchResponsedMessage", new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                Object responsedMessage = param.args[0];
+                if ((int) XposedHelpers.getObjectField(responsedMessage, "mCmd") == 2016520) {
+                    param.setResult(null);
+                }
+            }
+        });
         // 广告sdk
         try {
             for (Method method : sClassLoader.loadClass("com.fun.ad.sdk.FunAdSdk").getDeclaredMethods()) {
@@ -178,15 +189,6 @@ public class Purify extends BaseHooker implements IHooker {
                         intent.putExtra(key, (Parcelable) bundle.get(key));
                     }
                 }
-                activity.setIntent(intent);
-            }
-        });
-        // 热启动广告
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.LogoActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
-            @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                Activity activity = (Activity) param.thisObject;
-                Intent intent = activity.getIntent().putExtra("splash", false);
                 activity.setIntent(intent);
             }
         });

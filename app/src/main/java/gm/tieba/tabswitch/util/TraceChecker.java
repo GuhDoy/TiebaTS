@@ -16,7 +16,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -33,7 +32,8 @@ import gm.tieba.tabswitch.hooker.TSPreferenceHelper;
 import gm.tieba.tabswitch.widget.TbToast;
 
 public class TraceChecker extends BaseHooker {
-    private int mCount;
+    public static int sChildCount;
+    private int mTraceCount;
     private final TSPreferenceHelper.PreferenceLayout mPreferenceLayout;
     private final String JAVA = "java";
     private final String C = "c";
@@ -45,20 +45,25 @@ public class TraceChecker extends BaseHooker {
     }
 
     public void checkAll() {
-        mCount = 0;
-        while (mPreferenceLayout.getChildAt(4) != null) {
-            mPreferenceLayout.removeViewAt(4);
+        mTraceCount = 0;
+        while (mPreferenceLayout.getChildAt(sChildCount) != null) {
+            mPreferenceLayout.removeViewAt(sChildCount);
         }
         getContext().getExternalFilesDir(null).mkdirs();
-        files();
-        maps();
-        mounts();
-        modules();
-        classloader();
-        if (!Preferences.getBoolean("no_check_stack_trace") || BuildConfig.DEBUG) stackTrace();
-        preferences();
-        TbToast.showTbToast(mCount > 0 ? String.format(Locale.CHINA, "%s\n检测出%d处痕迹",
-                randomToast(), mCount) : "未检测出痕迹", TbToast.LENGTH_SHORT);
+        if (Preferences.getBoolean("check_xposed")) {
+            classloader();
+            prop();
+        }
+        if (Preferences.getBoolean("check_module")) {
+            files();
+            maps();
+            mounts();
+            pm();
+            preferences();
+        }
+        if (Preferences.getBoolean("check_stack_trace")) stackTrace();
+        TbToast.showTbToast(mTraceCount > 0 ? String.format(Locale.CHINA, "%s\n检测出%d处痕迹",
+                randomToast(), mTraceCount) : "未检测出痕迹", TbToast.LENGTH_SHORT);
     }
 
     private class ResultBuilder {
@@ -72,7 +77,7 @@ public class TraceChecker extends BaseHooker {
         private void addTrace(String tag, String msg) {
             if (msg == null) return;
             mResult.append("\n").append(INDENT).append(tag).append(": ").append(msg);
-            mCount++;
+            mTraceCount++;
         }
 
         private void show() {
@@ -80,6 +85,26 @@ public class TraceChecker extends BaseHooker {
             XposedBridge.log(result);
             mPreferenceLayout.addView(TSPreferenceHelper.createTextView(result));
         }
+    }
+
+    private void classloader() {
+        ResultBuilder result = new ResultBuilder("类加载器");
+        try {
+            String clazz = "de.robv.android.xposed.XposedBridge";
+            PathClassLoader.getSystemClassLoader().loadClass(clazz);
+            result.addTrace(JAVA, clazz);
+        } catch (ClassNotFoundException ignored) {
+        }
+
+        if (Native.findXposed()) result.addTrace(C, "de/robv/android/xposed/XposedBridge");
+        result.show();
+    }
+
+    private void prop() {
+        ResultBuilder result = new ResultBuilder("系统属性");
+        String trace = Native.prop();
+        if (!trace.equals("")) result.addTrace(C, trace);
+        result.show();
     }
 
     private void files() {
@@ -156,7 +181,7 @@ public class TraceChecker extends BaseHooker {
     }
 
     @SuppressLint({"DiscouragedPrivateApi", "PrivateApi", "QueryPermissionsNeeded"})
-    private void modules() {
+    private void pm() {
         ResultBuilder result = new ResultBuilder("包管理器");
         List<String> modules = new ArrayList<>();
         PackageManager pm = getContext().getPackageManager();
@@ -195,16 +220,12 @@ public class TraceChecker extends BaseHooker {
         result.show();
     }
 
-    private void classloader() {
-        ResultBuilder result = new ResultBuilder("类加载器");
-        try {
-            String clazz = "de.robv.android.xposed.XposedBridge";
-            PathClassLoader.getSystemClassLoader().loadClass(clazz);
-            result.addTrace(JAVA, clazz);
-        } catch (ClassNotFoundException ignored) {
+    private void preferences() {
+        ResultBuilder result = new ResultBuilder("偏好");
+        for (String sp : new String[]{"TS_preferences", "TS_config"}) {
+            if (getContext().getSharedPreferences(sp, Context.MODE_PRIVATE)
+                    .getAll().keySet().size() != 0) result.addTrace(JAVA, sp);
         }
-
-        if (Native.findXposed()) result.addTrace(C, "de/robv/android/xposed/XposedBridge");
         result.show();
     }
 
@@ -212,15 +233,6 @@ public class TraceChecker extends BaseHooker {
         ResultBuilder result = new ResultBuilder("堆栈");
         for (String st : TSPreference.sStes) {
             result.addTrace(JAVA, st);
-        }
-        result.show();
-    }
-
-    private void preferences() {
-        ResultBuilder result = new ResultBuilder("偏好");
-        for (String sp : new String[]{"TS_preferences", "TS_config"}) {
-            if (getContext().getSharedPreferences(sp, Context.MODE_PRIVATE)
-                    .getAll().keySet().size() != 0) result.addTrace(JAVA, sp);
         }
         result.show();
     }
