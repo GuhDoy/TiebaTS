@@ -150,11 +150,9 @@ public class TSPreference extends BaseHooker implements IHooker {
             bdAlert.setOnNoButtonClickListener(v -> {
                 Intent intent = new Intent();
                 intent.setAction(Intent.ACTION_DELETE);
-                if (XposedInit.sPath.contains(BuildConfig.APPLICATION_ID) && new File(XposedInit.sPath).exists()) {
-                    intent.setData(Uri.parse("package:" + BuildConfig.APPLICATION_ID));
-                } else {
-                    intent.setData(Uri.parse("package:" + activity.getPackageName()));
-                }
+                intent.setData(Uri.parse("package:" + (XposedInit.sPath.contains(BuildConfig.APPLICATION_ID)
+                        && new File(XposedInit.sPath).exists() ?
+                        BuildConfig.APPLICATION_ID : activity.getPackageName())));
                 activity.startActivity(intent);
             });
             bdAlert.setOnYesButtonClickListener(v -> {
@@ -306,8 +304,10 @@ public class TSPreference extends BaseHooker implements IHooker {
     private LinearLayout createHidePreference(Activity activity) {
         boolean isPurifyEnabled = Preferences.getIsPurifyEnabled();
         TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
-        preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurifyEnabled ? "尾巴是藏不住的（" : null));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, isPurifyEnabled ? "藏起尾巴" : "隐藏模块", "hide", SwitchButtonHolder.TYPE_SWITCH));
+        if (BuildConfig.DEBUG) {
+            preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurifyEnabled ? "尾巴是藏不住的（" : null));
+            preferenceLayout.addView(new SwitchButtonHolder(activity, isPurifyEnabled ? "藏起尾巴" : "隐藏模块", "hide", SwitchButtonHolder.TYPE_SWITCH));
+        }
         preferenceLayout.addView(TSPreferenceHelper.createTextView("检测设置"));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "检测 Xposed", "check_xposed", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "检测模块", "check_module", SwitchButtonHolder.TYPE_SWITCH));

@@ -62,7 +62,7 @@ public class TraceChecker extends BaseHooker {
             preferences();
         }
         if (Preferences.getBoolean("check_stack_trace")) stackTrace();
-        TbToast.showTbToast(mTraceCount > 0 ? String.format(Locale.CHINA, "%s\n检测出%d处痕迹",
+        TbToast.showTbToast(mTraceCount > 0 ? String.format(Locale.getDefault(), "%s\n检测出%d处痕迹",
                 randomToast(), mTraceCount) : "未检测出痕迹", TbToast.LENGTH_SHORT);
     }
 
@@ -136,7 +136,7 @@ public class TraceChecker extends BaseHooker {
             if (Native.inline(symbol)) result.addTrace(FAKE, symbol + " is inline hooked");
         }
 
-        String path = String.format(Locale.CHINA, "/proc/%d/maps", Process.myPid());
+        String path = String.format(Locale.getDefault(), "/proc/%d/maps", Process.myPid());
         String trace = Native.fopen(path);
         if (!trace.equals("")) result.addTrace(C, trace.substring(0, trace.length() - 1));
         result.show();
@@ -145,7 +145,7 @@ public class TraceChecker extends BaseHooker {
     private void mounts() {
         ResultBuilder result = new ResultBuilder("挂载");
         try {
-            BufferedReader br = new BufferedReader(new FileReader(String.format(Locale.CHINA,
+            BufferedReader br = new BufferedReader(new FileReader(String.format(Locale.getDefault(),
                     "/proc/%d/mountinfo", Process.myPid())));
             List<String> paths = new ArrayList<>();
             String lastPath = getContext().getExternalFilesDir(null).getPath();

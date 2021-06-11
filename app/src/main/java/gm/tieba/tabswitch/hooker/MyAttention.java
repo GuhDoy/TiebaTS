@@ -47,16 +47,17 @@ public class MyAttention extends BaseHooker implements IHooker {
             }
         });
         */
-        XposedHelpers.findAndHookMethod("tbclient.User$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
-            @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                String nameShow = (String) XposedHelpers.getObjectField(param.thisObject, "name_show");
-                if (Preferences.getNote(nameShow) != null) {
-                    XposedHelpers.setObjectField(param.thisObject, "name_show",
-                            String.format("%s(%s)", Preferences.getNote(nameShow), nameShow));
-                }
-            }
-        });
+        XposedHelpers.findAndHookMethod("tbclient.User$Builder", sClassLoader,
+                "build", boolean.class, new XC_MethodHook() {
+                    @Override
+                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                        String nameShow = (String) XposedHelpers.getObjectField(param.thisObject, "name_show");
+                        if (Preferences.getNote(nameShow) != null) {
+                            XposedHelpers.setObjectField(param.thisObject, "name_show",
+                                    String.format("%s(%s)", Preferences.getNote(nameShow), nameShow));
+                        }
+                    }
+                });
     }
 
     @SuppressLint("ApplySharedPref")
@@ -67,19 +68,19 @@ public class MyAttention extends BaseHooker implements IHooker {
         bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
         bdAlert.setOnYesButtonClickListener(v -> {
             SharedPreferences.Editor editor = Preferences.getTsNotesEditor();
-            if (TextUtils.isEmpty(editText.getText())) editor.putString(key, null);
+            if (TextUtils.isEmpty(editText.getText())) editor.remove(key);
             else editor.putString(key, editText.getText().toString());
             editor.commit();
-            activity.finish();
-            activity.startActivity(activity.getIntent());
             bdAlert.dismiss();
+            activity.recreate();
         });
         bdAlert.show();
         bdAlert.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         editText.setSingleLine();
         editText.setImeOptions(EditorInfo.IME_ACTION_DONE);
         editText.setOnEditorActionListener((v, actionId, event) -> {
-            if (actionId == EditorInfo.IME_ACTION_DONE || event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+            if (actionId == EditorInfo.IME_ACTION_DONE || event != null
+                    && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
                 bdAlert.getYesButton().performClick();
                 return true;
             }

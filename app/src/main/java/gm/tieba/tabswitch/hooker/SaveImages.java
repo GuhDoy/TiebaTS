@@ -83,7 +83,7 @@ public class SaveImages extends BaseHooker implements IHooker {
                                         }
                                         saveImage(url, i, context);
                                     }
-                                    TbToast.showTbToast(String.format(Locale.CHINA,
+                                    TbToast.showTbToast(String.format(Locale.getDefault(),
                                             "已保存%d张图片至手机相册", mArrayList.size()), TbToast.LENGTH_SHORT);
                                     return true;
                                 }));

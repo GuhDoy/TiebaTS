@@ -109,7 +109,6 @@ jstring prop(JNIEnv *env, jclass clazz) {
     return (*env)->NewStringUTF(env, prop);
 }
 
-
 jint _access(JNIEnv *env, jclass clazz, jstring jpath) {
     const char *path = (*env)->GetStringUTFChars(env, jpath, NULL);
     int i = access(path, F_OK);

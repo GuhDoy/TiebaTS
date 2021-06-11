@@ -80,7 +80,7 @@ tasks.whenTaskAdded { task ->
 
 dependencies {
     compileOnly files('libs/XposedBridgeApi-89.jar')
-    api "androidx.annotation:annotation:1.2.0"
-    implementation "com.squareup.okhttp3:okhttp:5.0.0-alpha.2"
+    api 'androidx.annotation:annotation:1.2.0'
+    implementation 'com.squareup.okhttp3:okhttp:5.0.0-alpha.2'
     implementation 'dev.rikka.ndk.thirdparty:cxx:1.1.0'
 }

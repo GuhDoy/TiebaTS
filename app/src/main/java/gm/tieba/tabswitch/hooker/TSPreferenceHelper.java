@@ -182,7 +182,7 @@ public class TSPreferenceHelper extends BaseHooker {
             bdAlert.setOnYesButtonClickListener(v -> {
                 try {
                     if (TextUtils.isEmpty(editText.getText())) {
-                        Preferences.putString(mKey, null);
+                        Preferences.remove(mKey);
                         bdSwitch.turnOff();
                     } else {
                         Pattern.compile(editText.getText().toString());

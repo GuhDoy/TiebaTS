@@ -116,9 +116,8 @@ public class ThreadStore extends BaseHooker implements IHooker {
         bdAlert.setOnYesButtonClickListener(v -> {
             try {
                 Pattern.compile(editText.getText().toString());
-                activity.finish();
-                activity.startActivity(activity.getIntent());
                 bdAlert.dismiss();
+                activity.recreate();
             } catch (PatternSyntaxException e) {
                 TbToast.showTbToast(e.getMessage(), TbToast.LENGTH_SHORT);
             }

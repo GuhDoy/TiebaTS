@@ -2,7 +2,7 @@ package gm.tieba.tabswitch.hooker;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.StateListDrawable;
 import android.util.AttributeSet;
 import android.view.View;
@@ -72,10 +72,9 @@ public class Ripple extends BaseHooker implements IHooker {
     }
 
     private StateListDrawable createBackground() throws Throwable {
-        GradientDrawable gd = new GradientDrawable();
-        gd.setColor(Reflect.getColor("CAM_X0204"));
         StateListDrawable sld = new StateListDrawable();
-        sld.addState(new int[]{android.R.attr.state_pressed}, gd);
+        sld.addState(new int[]{android.R.attr.state_pressed},
+                new ColorDrawable(Reflect.getColor("CAM_X0204")));
         return sld;
     }
 
@@ -83,10 +82,8 @@ public class Ripple extends BaseHooker implements IHooker {
         if (!DisplayHelper.getTbSkin(getContext()).equals("")) {
             return createBackground();
         } else {
-            GradientDrawable gd = new GradientDrawable();
-            gd.setColor(Color.WHITE);
             StateListDrawable sld = new StateListDrawable();
-            sld.addState(new int[]{android.R.attr.state_pressed}, gd);
+            sld.addState(new int[]{android.R.attr.state_pressed}, new ColorDrawable(Color.WHITE));
             return sld;
         }
     }
