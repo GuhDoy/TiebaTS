@@ -105,10 +105,11 @@ public class Preferences {
         return sTsConfig.getBoolean("auto_sign", false);
     }
 
+    @SuppressLint("ApplySharedPref")
     public static void putPurifyEnabled() {
         SharedPreferences.Editor editor = sTsConfig.edit();
         editor.putBoolean("ze", true);
-        editor.apply();
+        editor.commit();
     }
 
     public static boolean getIsPurifyEnabled() {
@@ -126,14 +127,14 @@ public class Preferences {
         return sTsConfig.getInt("signature", 0);
     }
 
-    public static void putFollow(List<String> follow) {
+    public static void putLikeForum(Set<String> follow) {
         SharedPreferences.Editor editor = sTsConfig.edit();
-        editor.putStringSet("follow", new HashSet<>(follow));
+        editor.putStringSet("like_forum", follow);
         editor.apply();
     }
 
-    public static Set<String> getFollow() {
-        return sTsConfig.getStringSet("follow", null);
+    public static Set<String> getLikeForum() {
+        return sTsConfig.getStringSet("like_forum", null);
     }
 
     public static void putSignDate() {
@@ -147,8 +148,12 @@ public class Preferences {
     }
 
     // Notes
-    public static String getNote(String s) {
-        return sTsNotes.getString(s, null);
+    public static Map<String, ?> getNotes() {
+        return sTsNotes.getAll();
+    }
+
+    public static String getNote(String name) {
+        return sTsNotes.getString(name, null);
     }
 
     public static SharedPreferences.Editor getTsNotesEditor() {

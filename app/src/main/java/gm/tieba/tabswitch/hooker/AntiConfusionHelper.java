@@ -29,8 +29,8 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.R;
+import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
-import gm.tieba.tabswitch.dao.Rule;
 import gm.tieba.tabswitch.util.DisplayHelper;
 
 public class AntiConfusionHelper {
@@ -48,7 +48,6 @@ public class AntiConfusionHelper {
         matcherList.add(res.getString(R.string.Ripple));
         matcherList.add(res.getString(R.string.ThreadStore));
         matcherList.add(res.getString(R.string.NewSub));
-        // matcherList.add(res.getString(R.string.MyAttention));
         matcherList.add(res.getString(R.string.StorageRedirect));
         matcherList.add(res.getString(R.string.ForbidGesture));
     }
@@ -56,7 +55,7 @@ public class AntiConfusionHelper {
     public static List<String> getRulesLost() {
         List<String> lostList = new ArrayList<>(matcherList);
         for (int i = 0; i < lostList.size(); i++) {
-            if (Rule.isRuleFound(lostList.get(i))) {
+            if (AcRules.isRuleFound(lostList.get(i))) {
                 lostList.remove(i);
                 i--;
             }
@@ -117,7 +116,7 @@ public class AntiConfusionHelper {
                 if (writer.getString().contains(matcherList.get(i))) {
                     String clazz = classItem.getClassType().getTypeDescriptor();
                     clazz = clazz.substring(clazz.indexOf("L") + 1, clazz.indexOf(";")).replace("/", ".");
-                    db.execSQL("insert into rules(rule,class,method) values(?,?,?)",
+                    db.execSQL("insert into rules(rule, class, method) values(?, ?, ?)",
                             new Object[]{matcherList.get(i), clazz, method.method.methodName.getStringValue()});
                     return;
                 }

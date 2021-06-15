@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hooker;
+package gm.tieba.tabswitch.hooker.extra;
 
 import java.util.ArrayList;
 import java.util.List;

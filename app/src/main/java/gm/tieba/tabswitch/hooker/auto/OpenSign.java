@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hooker;
+package gm.tieba.tabswitch.hooker.auto;
 
 import android.app.Activity;
 import android.content.Intent;

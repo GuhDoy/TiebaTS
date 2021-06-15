@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hooker;
+package gm.tieba.tabswitch.hooker.auto;
 
 import org.json.JSONException;
 import org.json.JSONObject;

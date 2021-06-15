@@ -8,7 +8,7 @@ import java.util.Arrays;
 import de.robv.android.xposed.XposedBridge;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.R;
-import gm.tieba.tabswitch.dao.Rule;
+import gm.tieba.tabswitch.dao.AcRules;
 
 public class TbToast extends BaseHooker {
     public static int LENGTH_SHORT = 2000;
@@ -17,7 +17,7 @@ public class TbToast extends BaseHooker {
     @MainThread
     public static void showTbToast(String text, int duration) {
         try {
-            Rule.findRule(sRes.getString(R.string.TbToast), new Rule.Callback() {
+            AcRules.findRule(sRes.getString(R.string.TbToast), new AcRules.Callback() {
                 @Override
                 public void onRuleFound(String rule, String clazz, String method) throws Throwable {
                     for (Method md : sClassLoader.loadClass(clazz).getDeclaredMethods()) {

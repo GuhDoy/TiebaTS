@@ -27,18 +27,18 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.BuildConfig;
 import gm.tieba.tabswitch.dao.Preferences;
-import gm.tieba.tabswitch.hooker.TSPreference;
 import gm.tieba.tabswitch.hooker.TSPreferenceHelper;
+import gm.tieba.tabswitch.hooker.extra.StackTrace;
 import gm.tieba.tabswitch.widget.TbToast;
 
 public class TraceChecker extends BaseHooker {
     public static int sChildCount;
-    private int mTraceCount;
     private final TSPreferenceHelper.PreferenceLayout mPreferenceLayout;
     private final String JAVA = "java";
     private final String C = "c";
     private final String S = "syscall";
     private final String FAKE = "fake";
+    private int mTraceCount;
 
     public TraceChecker(TSPreferenceHelper.PreferenceLayout preferenceLayout) {
         mPreferenceLayout = preferenceLayout;
@@ -64,27 +64,6 @@ public class TraceChecker extends BaseHooker {
         if (Preferences.getBoolean("check_stack_trace")) stackTrace();
         TbToast.showTbToast(mTraceCount > 0 ? String.format(Locale.getDefault(), "%s\n检测出%d处痕迹",
                 randomToast(), mTraceCount) : "未检测出痕迹", TbToast.LENGTH_SHORT);
-    }
-
-    private class ResultBuilder {
-        StringBuilder mResult;
-        private static final String INDENT = "　 ";
-
-        private ResultBuilder(String text) {
-            mResult = new StringBuilder("检测" + text + " -> ");
-        }
-
-        private void addTrace(String tag, String msg) {
-            if (msg == null) return;
-            mResult.append("\n").append(INDENT).append(tag).append(": ").append(msg);
-            mTraceCount++;
-        }
-
-        private void show() {
-            String result = mResult.toString();
-            XposedBridge.log(result);
-            mPreferenceLayout.addView(TSPreferenceHelper.createTextView(result));
-        }
     }
 
     private void classloader() {
@@ -121,7 +100,9 @@ public class TraceChecker extends BaseHooker {
                 getContext().getFilesDir().getParent() + File.separator + "shared_prefs"
                         + File.separator + "TS_preferences.xml",
                 getContext().getFilesDir().getParent() + File.separator + "shared_prefs"
-                        + File.separator + "TS_config.xml"};
+                        + File.separator + "TS_config.xml",
+                getContext().getFilesDir().getParent() + File.separator + "shared_prefs"
+                        + File.separator + "TS_notes.xml"};
         for (String path : paths) {
             if (Native.access(path) == 0) result.addTrace(C, path);
             if (Native.sysaccess(path) == 0) result.addTrace(S, path);
@@ -222,7 +203,7 @@ public class TraceChecker extends BaseHooker {
 
     private void preferences() {
         ResultBuilder result = new ResultBuilder("偏好");
-        for (String sp : new String[]{"TS_preferences", "TS_config"}) {
+        for (String sp : new String[]{"TS_preferences", "TS_config", "TS_notes"}) {
             if (getContext().getSharedPreferences(sp, Context.MODE_PRIVATE)
                     .getAll().keySet().size() != 0) result.addTrace(JAVA, sp);
         }
@@ -231,7 +212,7 @@ public class TraceChecker extends BaseHooker {
 
     private void stackTrace() {
         ResultBuilder result = new ResultBuilder("堆栈");
-        for (String st : TSPreference.sStes) {
+        for (String st : StackTrace.sStes) {
             result.addTrace(JAVA, st);
         }
         result.show();
@@ -259,6 +240,27 @@ public class TraceChecker extends BaseHooker {
                 return "Xposed 无处可逃";
             default:
                 return "";
+        }
+    }
+
+    private class ResultBuilder {
+        private static final String INDENT = "　 ";
+        StringBuilder mResult;
+
+        private ResultBuilder(String text) {
+            mResult = new StringBuilder("检测" + text + " -> ");
+        }
+
+        private void addTrace(String tag, String msg) {
+            if (msg == null) return;
+            mResult.append("\n").append(INDENT).append(tag).append(": ").append(msg);
+            mTraceCount++;
+        }
+
+        private void show() {
+            String result = mResult.toString();
+            XposedBridge.log(result);
+            mPreferenceLayout.addView(TSPreferenceHelper.createTextView(result));
         }
     }
 }

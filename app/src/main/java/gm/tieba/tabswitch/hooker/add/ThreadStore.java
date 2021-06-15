@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hooker;
+package gm.tieba.tabswitch.hooker.add;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -22,7 +22,7 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
-import gm.tieba.tabswitch.dao.Rule;
+import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.util.DisplayHelper;
 import gm.tieba.tabswitch.util.Reflect;
 import gm.tieba.tabswitch.widget.TbDialog;
@@ -53,7 +53,7 @@ public class ThreadStore extends BaseHooker implements IHooker {
                         textView.setOnClickListener(v -> showRegexDialog(activity));
                     }
                 });
-        Rule.findRule(sRes.getString(R.string.ThreadStore), new Rule.Callback() {
+        AcRules.findRule(sRes.getString(R.string.ThreadStore), new AcRules.Callback() {
             @Override
             public void onRuleFound(String rule, String clazz, String method) {
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, Boolean[].class, new XC_MethodHook() {

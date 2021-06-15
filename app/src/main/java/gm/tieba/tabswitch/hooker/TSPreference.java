@@ -1,6 +1,5 @@
 package gm.tieba.tabswitch.hooker;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
@@ -17,21 +16,18 @@ import android.widget.LinearLayout;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
 
 import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.BuildConfig;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.XposedInit;
+import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
-import gm.tieba.tabswitch.dao.Rule;
 import gm.tieba.tabswitch.hooker.TSPreferenceHelper.SwitchButtonHolder;
+import gm.tieba.tabswitch.hooker.add.MyAttention;
 import gm.tieba.tabswitch.util.DisplayHelper;
 import gm.tieba.tabswitch.util.Parser;
 import gm.tieba.tabswitch.util.Reflect;
@@ -41,15 +37,12 @@ import gm.tieba.tabswitch.widget.TbDialog;
 import gm.tieba.tabswitch.widget.TbToast;
 
 public class TSPreference extends BaseHooker implements IHooker {
-    public final static String PROXY_ACTIVITY = "com.baidu.tieba.setting.im.more.SecretSettingActivity";
-    private final static int SETTINGS_MAIN = 0;
+    public final static String MAIN = "贴吧TS设置";
+    public final static String MODIFY_TAB = "修改页面";
+    public final static String NOTES = "备注关注的人";
+    public final static String TRACE = "痕迹";
+    private final static String PROXY_ACTIVITY = "com.baidu.tieba.setting.im.more.SecretSettingActivity";
     private static int sCount = 0;
-    private final static int SETTINGS_MODIFY_TAB = 1;
-    private final static int SETTINGS_TRACE = 2;
-    private final static String MAIN = "贴吧TS设置";
-    private final static String MODIFY_TAB = "修改页面";
-    private final static String TRACE = Preferences.getIsPurifyEnabled() ? "尾巴" : "痕迹";
-    public static List<String> sStes = new ArrayList<>();
 
     public TSPreference(ClassLoader classLoader, Context context, Resources res) {
         super(classLoader, context, res);
@@ -82,7 +75,7 @@ public class TSPreference extends BaseHooker implements IHooker {
                                 v -> startMainPreferenceActivity(activity)), 11);
                     }
                 });
-        Rule.findRule(sRes.getString(R.string.TSPreference), new Rule.Callback() {
+        AcRules.findRule(sRes.getString(R.string.TSPreference), new AcRules.Callback() {
             @Override
             public void onRuleFound(String rule, String clazz, String method) {
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, XposedHelpers
@@ -91,14 +84,17 @@ public class TSPreference extends BaseHooker implements IHooker {
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                         Activity activity = (Activity) param.args[0];
                         NavigationBar navigationBar = new NavigationBar(param.thisObject);
-                        switch (activity.getIntent().getIntExtra("proxyPage", -1)) {
-                            case SETTINGS_MAIN:
+                        switch (activity.getIntent().getStringExtra("proxyPage")) {
+                            case MAIN:
                                 proxyPage(activity, navigationBar, MAIN, createMainPreference(activity));
                                 break;
-                            case SETTINGS_MODIFY_TAB:
+                            case MODIFY_TAB:
                                 proxyPage(activity, navigationBar, MODIFY_TAB, createModifyTabPreference(activity));
                                 break;
-                            case SETTINGS_TRACE:
+                            case NOTES:
+                                proxyPage(activity, navigationBar, NOTES, MyAttention.createNotesPreference(activity));
+                                break;
+                            case TRACE:
                                 proxyPage(activity, navigationBar, TRACE, createHidePreference(activity));
                                 break;
                         }
@@ -106,29 +102,6 @@ public class TSPreference extends BaseHooker implements IHooker {
                 });
             }
         });
-        if (Preferences.getBoolean("check_stack_trace") || BuildConfig.DEBUG) {
-            for (Method method : sClassLoader.loadClass("com.baidu.tieba.LogoActivity").getDeclaredMethods()) {
-                XposedBridge.hookMethod(method, new XC_MethodHook() {
-                    @Override
-                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                        List<String> sts = new ArrayList<>();
-                        StackTraceElement[] stes = Thread.currentThread().getStackTrace();
-                        boolean isXposedStackTrace = false;
-                        for (StackTraceElement ste : stes) {
-                            String name = ste.getClassName();
-                            if (name.contains("Activity")
-                                    || name.equals("android.app.Instrumentation")) break;
-                            if (isXposedStackTrace) sts.add(name);
-                            if (name.equals("java.lang.Thread")) isXposedStackTrace = true;
-                        }
-
-                        for (String st : sts) {
-                            if (!sStes.contains(st)) sStes.add(st);
-                        }
-                    }
-                });
-            }
-        }
     }
 
     private void proxyPage(Activity activity, NavigationBar navigationBar, String title,
@@ -163,12 +136,11 @@ public class TSPreference extends BaseHooker implements IHooker {
             bdAlert.show();
         } else {
             Intent intent = new Intent().setClassName(activity, PROXY_ACTIVITY);
-            intent.putExtra("proxyPage", SETTINGS_MAIN);
+            intent.putExtra("proxyPage", MAIN);
             activity.startActivity(intent);
         }
     }
 
-    @SuppressLint("ClickableViewAccessibility")
     @NotNull
     private LinearLayout createMainPreference(Activity activity) {
         boolean isPurifyEnabled = Preferences.getIsPurifyEnabled();
@@ -177,7 +149,7 @@ public class TSPreference extends BaseHooker implements IHooker {
         preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurifyEnabled ? "轻车简从" : "净化界面"));
         preferenceLayout.addView(TSPreferenceHelper.createButton(MODIFY_TAB, null, v -> {
             Intent intent = new Intent().setClassName(activity, PROXY_ACTIVITY);
-            intent.putExtra("proxyPage", SETTINGS_MODIFY_TAB);
+            intent.putExtra("proxyPage", MODIFY_TAB);
             activity.startActivity(intent);
         }));
         if (isPurifyEnabled) {
@@ -198,7 +170,11 @@ public class TSPreference extends BaseHooker implements IHooker {
         preferenceLayout.addView(new SwitchButtonHolder(activity, "楼层回复增加查看主题贴", "new_sub", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "楼层增加点按效果", "ripple", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "长按下载保存全部图片", "save_images", SwitchButtonHolder.TYPE_SWITCH));
-        // preferenceLayout.addView(new SwitchViewHolder(sClassLoader, activity, sRes, "长按关注的人设置备注名", "my_attention"));
+        preferenceLayout.addView(TSPreferenceHelper.createButton(NOTES, null, v -> {
+            Intent intent = new Intent().setClassName(activity, PROXY_ACTIVITY);
+            intent.putExtra("proxyPage", NOTES);
+            activity.startActivity(intent);
+        }));
 
         preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurifyEnabled ? "垂手可得" : "自动化"));
         SwitchButtonHolder autoSign = new SwitchButtonHolder(activity, "自动签到", "auto_sign", SwitchButtonHolder.TYPE_SWITCH);
@@ -227,7 +203,7 @@ public class TSPreference extends BaseHooker implements IHooker {
         preferenceLayout.addView(new SwitchButtonHolder(activity, "交换吧热门与最新", "frs_tab", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(TSPreferenceHelper.createButton(TRACE, "希望有一天不再需要贴吧TS", v -> {
             Intent intent = new Intent().setClassName(activity, PROXY_ACTIVITY);
-            intent.putExtra("proxyPage", SETTINGS_TRACE);
+            intent.putExtra("proxyPage", TRACE);
             activity.startActivity(intent);
         }));
 
@@ -252,6 +228,7 @@ public class TSPreference extends BaseHooker implements IHooker {
             }
             if (!isPurifyEnabled && sCount >= 10) {
                 Preferences.putPurifyEnabled();
+                activity.recreate();
             }
         }));
         return preferenceLayout;
@@ -274,7 +251,7 @@ public class TSPreference extends BaseHooker implements IHooker {
                     text = "隐藏频道（Flutter）";
                     break;
                 case "VIDEO_CHANNEL_TAB_AVAILABLE":
-                    text = "隐藏视频号";
+                    text = "隐藏视频";
                     break;
                 case "IMMESSAGE_CENTER_DELEGATE_AVAIBLE":
                     text = "隐藏消息";
@@ -304,7 +281,7 @@ public class TSPreference extends BaseHooker implements IHooker {
     private LinearLayout createHidePreference(Activity activity) {
         boolean isPurifyEnabled = Preferences.getIsPurifyEnabled();
         TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
-        if (BuildConfig.DEBUG) {
+        if (isPurifyEnabled || BuildConfig.DEBUG) {
             preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurifyEnabled ? "尾巴是藏不住的（" : null));
             preferenceLayout.addView(new SwitchButtonHolder(activity, isPurifyEnabled ? "藏起尾巴" : "隐藏模块", "hide", SwitchButtonHolder.TYPE_SWITCH));
         }

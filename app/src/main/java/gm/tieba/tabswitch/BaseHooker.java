@@ -9,35 +9,37 @@ import java.util.Map;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.dao.Preferences;
-import gm.tieba.tabswitch.hooker.AutoSign;
-import gm.tieba.tabswitch.hooker.ContentFilter;
-import gm.tieba.tabswitch.hooker.CreateView;
-import gm.tieba.tabswitch.hooker.EyeshieldMode;
-import gm.tieba.tabswitch.hooker.FollowFilter;
-import gm.tieba.tabswitch.hooker.ForbidGesture;
-import gm.tieba.tabswitch.hooker.FragmentTab;
-import gm.tieba.tabswitch.hooker.FrsPageFilter;
-import gm.tieba.tabswitch.hooker.FrsTab;
-import gm.tieba.tabswitch.hooker.Hide;
-import gm.tieba.tabswitch.hooker.HistoryCache;
-import gm.tieba.tabswitch.hooker.NewSub;
-import gm.tieba.tabswitch.hooker.OpenSign;
-import gm.tieba.tabswitch.hooker.OriginSrc;
-import gm.tieba.tabswitch.hooker.PersonalizedFilter;
-import gm.tieba.tabswitch.hooker.Purify;
-import gm.tieba.tabswitch.hooker.PurifyEnter;
-import gm.tieba.tabswitch.hooker.PurifyMy;
-import gm.tieba.tabswitch.hooker.RedTip;
-import gm.tieba.tabswitch.hooker.RedirectImage;
-import gm.tieba.tabswitch.hooker.Ripple;
-import gm.tieba.tabswitch.hooker.SaveImages;
-import gm.tieba.tabswitch.hooker.SwitchManager;
-import gm.tieba.tabswitch.hooker.ThreadStore;
+import gm.tieba.tabswitch.hooker.add.CreateView;
+import gm.tieba.tabswitch.hooker.add.HistoryCache;
+import gm.tieba.tabswitch.hooker.add.MyAttention;
+import gm.tieba.tabswitch.hooker.add.NewSub;
+import gm.tieba.tabswitch.hooker.add.Ripple;
+import gm.tieba.tabswitch.hooker.add.SaveImages;
+import gm.tieba.tabswitch.hooker.add.ThreadStore;
+import gm.tieba.tabswitch.hooker.auto.AutoSign;
+import gm.tieba.tabswitch.hooker.auto.EyeshieldMode;
+import gm.tieba.tabswitch.hooker.auto.OpenSign;
+import gm.tieba.tabswitch.hooker.auto.OriginSrc;
+import gm.tieba.tabswitch.hooker.extra.ForbidGesture;
+import gm.tieba.tabswitch.hooker.extra.FrsTab;
+import gm.tieba.tabswitch.hooker.extra.Hide;
+import gm.tieba.tabswitch.hooker.extra.RedirectImage;
+import gm.tieba.tabswitch.hooker.extra.StackTrace;
+import gm.tieba.tabswitch.hooker.minus.ContentFilter;
+import gm.tieba.tabswitch.hooker.minus.FollowFilter;
+import gm.tieba.tabswitch.hooker.minus.FragmentTab;
+import gm.tieba.tabswitch.hooker.minus.FrsPageFilter;
+import gm.tieba.tabswitch.hooker.minus.PersonalizedFilter;
+import gm.tieba.tabswitch.hooker.minus.Purify;
+import gm.tieba.tabswitch.hooker.minus.PurifyEnter;
+import gm.tieba.tabswitch.hooker.minus.PurifyMy;
+import gm.tieba.tabswitch.hooker.minus.RedTip;
+import gm.tieba.tabswitch.hooker.minus.SwitchManager;
 
 public abstract class BaseHooker {
     protected static ClassLoader sClassLoader;
-    private static WeakReference<Context> sContextRef;
     protected static Resources sRes;
+    private static WeakReference<Context> sContextRef;
 
     protected BaseHooker() {
     }
@@ -104,7 +106,7 @@ public abstract class BaseHooker {
                 if ((Boolean) entry.getValue()) new SaveImages().hook();
                 break;
             case "my_attention":
-                // if ((Boolean) entry.getValue()) new MyAttention().hook();
+                if ((Boolean) entry.getValue()) new MyAttention().hook();
                 break;
             case "auto_sign":
                 if ((Boolean) entry.getValue()) new AutoSign().hook();
@@ -141,9 +143,11 @@ public abstract class BaseHooker {
             case "hide":
                 if ((Boolean) entry.getValue()) new Hide().hook();
                 break;
+            case "check_stack_trace":
+                if ((Boolean) entry.getValue()) new StackTrace().hook();
+                break;
             case "check_xposed":
             case "check_module":
-            case "check_stack_trace":
                 // prevent from being removed
                 break;
             default:

@@ -25,8 +25,9 @@ import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
+import gm.tieba.tabswitch.dao.AcRules;
+import gm.tieba.tabswitch.dao.Adp;
 import gm.tieba.tabswitch.dao.Preferences;
-import gm.tieba.tabswitch.dao.Rule;
 import gm.tieba.tabswitch.hooker.AntiConfusion;
 import gm.tieba.tabswitch.hooker.AntiConfusionHelper;
 import gm.tieba.tabswitch.hooker.TSPreference;
@@ -59,7 +60,7 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
                     Preferences.init(context);
                     AntiConfusionHelper.initMatchers(mRes);
                     try {
-                        Rule.init(context);
+                        AcRules.init(context);
                         List<String> lostList = AntiConfusionHelper.getRulesLost();
                         if (lostList.size() != 0) {
                             throw new SQLiteException("rules incomplete, current version: " + AntiConfusionHelper.getTbVersion(context)
@@ -73,7 +74,7 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
                                 if (!Preferences.getIsEULAAccepted()) return;
                                 Activity activity = (Activity) param.thisObject;
                                 String message = mRes.getString(R.string.rules_incomplete) + "\n" + e.getMessage();
-                                if (Rule.isRuleFound(mRes.getString(R.string.TbDialog))) {
+                                if (AcRules.isRuleFound(mRes.getString(R.string.TbDialog))) {
                                     TbDialog bdAlert = new TbDialog(activity, "警告", message, false, null);
                                     bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
                                     bdAlert.setOnYesButtonClickListener(v -> AntiConfusionHelper
@@ -95,6 +96,7 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
                         return;
                     }
 
+                    new Adp(classLoader, context, mRes);
                     new TSPreference(classLoader, context, mRes).hook();
                     for (Map.Entry<String, ?> entry : Preferences.getAll().entrySet()) {
                         BaseHooker.init(entry);

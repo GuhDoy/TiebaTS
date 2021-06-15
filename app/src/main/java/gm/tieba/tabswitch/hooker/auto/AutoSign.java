@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hooker;
+package gm.tieba.tabswitch.hooker.auto;
 
 import android.os.Bundle;
 import android.os.Handler;
@@ -16,30 +16,21 @@ import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
+import gm.tieba.tabswitch.dao.Adp;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.widget.TbToast;
 
 public class AutoSign extends BaseHooker implements IHooker {
-    private String mBDUSS;
-
     public void hook() throws Throwable {
-        XposedHelpers.findAndHookMethod("com.baidu.tbadk.core.data.AccountData", sClassLoader,
-                "getBDUSS", new XC_MethodHook() {
-                    @Override
-                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        mBDUSS = (String) param.getResult();
-                    }
-                });
         XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader,
                 "onCreate", Bundle.class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                         if (Preferences.getIsSigned()) return;
                         new Thread(() -> {
-                            String result = main(mBDUSS);
-                            if (result.endsWith("成功")) {
+                            String result = main(Adp.getInstance().BDUSS);
+                            if (result.endsWith("全部签到成功")) {
                                 Preferences.putSignDate();
-                                Preferences.putFollow(success);
                             }
                             new Handler(Looper.getMainLooper()).post(() -> TbToast.showTbToast(
                                     result, TbToast.LENGTH_SHORT));
@@ -55,8 +46,8 @@ public class AutoSign extends BaseHooker implements IHooker {
     //贴吧签到接口
     private static final String SIGN_URL = "http://c.tieba.baidu.com/c/c/forum/sign";
 
-    private final List<String> follow = new ArrayList<>();
-    public final List<String> success = new ArrayList<>();
+    private final List<String> mFollow = new ArrayList<>();
+    private final List<String> mSuccess = new ArrayList<>();
     private String tbs = "";
     private Integer followNum = 201;
 
@@ -66,14 +57,16 @@ public class AutoSign extends BaseHooker implements IHooker {
         getTbs();
         getFollow();
         runSign();
-        int failNum = followNum - success.size();
-        String result = "共 {" + followNum + "} 个吧 - 成功: {" + success.size() + "} - 失败: {" + failNum + "}";
+        int failNum = followNum - mSuccess.size();
+        String result = "共 {" + followNum + "} 个吧 - 成功: {" + mSuccess.size() + "} - 失败: {" + failNum + "}";
         XposedBridge.log(result);
         if (failNum == 0) return "共 {" + followNum + "} 个吧 - 全部签到成功";
         else return result;
     }
 
     private void getTbs() {
+        tbs = Adp.getInstance().tbs;
+        if (tbs != null) return;
         try {
             JSONObject jsonObject = AutoSignHelper.get(TBS_URL);
             if ("1".equals(jsonObject.getString("is_login"))) {
@@ -94,9 +87,9 @@ public class AutoSign extends BaseHooker implements IHooker {
             // 获取用户所有关注的贴吧
             for (int i = 0; i < jsonArray.length(); i++) {
                 if ("0".equals(jsonArray.optJSONObject(i).getString("is_sign"))) {
-                    follow.add(jsonArray.optJSONObject(i).getString("forum_name"));
+                    mFollow.add(jsonArray.optJSONObject(i).getString("forum_name"));
                 } else {
-                    success.add(jsonArray.optJSONObject(i).getString("forum_name"));
+                    mSuccess.add(jsonArray.optJSONObject(i).getString("forum_name"));
                 }
             }
         } catch (Exception e) {
@@ -108,8 +101,8 @@ public class AutoSign extends BaseHooker implements IHooker {
         // 当执行 3 轮所有贴吧还未签到成功就结束操作
         int flag = 3;
         try {
-            while (success.size() < followNum && flag > 0) {
-                Iterator<String> iterator = follow.iterator();
+            while (mSuccess.size() < followNum && flag > 0) {
+                Iterator<String> iterator = mFollow.iterator();
                 while (iterator.hasNext()) {
                     String s = iterator.next();
                     String body = "kw=" + s + "&tbs=" + tbs + "&sign=" + AutoSignHelper.enCodeMd5(
@@ -117,11 +110,11 @@ public class AutoSign extends BaseHooker implements IHooker {
                     JSONObject post = AutoSignHelper.post(SIGN_URL, body);
                     if ("0".equals(post.getString("error_code"))) {
                         iterator.remove();
-                        success.add(s);
+                        mSuccess.add(s);
                         XposedBridge.log(s + ": " + "签到成功");
                     } else XposedBridge.log(s + ": " + "签到失败");
                 }
-                if (success.size() != followNum) {
+                if (mSuccess.size() != followNum) {
                     Thread.sleep(2500);
                     getTbs();
                 }

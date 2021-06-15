@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hooker;
+package gm.tieba.tabswitch.hooker.minus;
 
 
 import java.util.List;
@@ -11,10 +11,10 @@ import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.util.Parser;
 
-public class FrsPageFilter extends BaseHooker implements IHooker {
+public class PersonalizedFilter extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
-        final Pattern pattern = Pattern.compile(Preferences.getString("frs_page_filter"));
-        XposedHelpers.findAndHookMethod("tbclient.FrsPage.DataRes$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
+        final Pattern pattern = Pattern.compile(Preferences.getString("personalized_filter"));
+        XposedHelpers.findAndHookMethod("tbclient.Personalized.DataRes$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 List<?> threadList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");

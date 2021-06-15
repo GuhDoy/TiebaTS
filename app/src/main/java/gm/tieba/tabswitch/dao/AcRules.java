@@ -10,14 +10,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class Rule {
+public class AcRules {
     private static List<Map<String, String>> sRulesFromDb;
 
     public static void init(Context context) {
         sRulesFromDb = new ArrayList<>();
         SQLiteDatabase db = context.openOrCreateDatabase("Rules.db", Context.MODE_PRIVATE, null);
         Cursor c = db.query("rules", null, null, null, null, null, null);
-        for (int j = 0; j < c.getCount(); j++) {
+        for (int i = 0; i < c.getCount(); i++) {
             c.moveToNext();
             Map<String, String> map = new ArrayMap<>();
             map.put("rule", c.getString(1));
@@ -27,10 +27,6 @@ public class Rule {
         }
         c.close();
         db.close();
-    }
-
-    public interface Callback {
-        void onRuleFound(String rule, String clazz, String method) throws Throwable;
     }
 
     public static void findRule(Object... rulesAndCallback) throws Throwable {
@@ -66,5 +62,9 @@ public class Rule {
             }
         }
         return false;
+    }
+
+    public interface Callback {
+        void onRuleFound(String rule, String clazz, String method) throws Throwable;
     }
 }

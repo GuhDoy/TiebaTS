@@ -11,7 +11,7 @@ import android.os.Looper;
 import android.widget.Toast;
 
 import gm.tieba.tabswitch.R;
-import gm.tieba.tabswitch.dao.Rule;
+import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.widget.TbToast;
 
 public class DisplayHelper {
@@ -25,7 +25,7 @@ public class DisplayHelper {
                 .getPackageName());
         if (intent == null) {
             String hint = "获取启动意图失败，请手动启动应用";
-            if (Rule.isRuleFound(res.getString(R.string.TbToast))) {
+            if (AcRules.isRuleFound(res.getString(R.string.TbToast))) {
                 TbToast.showTbToast(hint, TbToast.LENGTH_SHORT);
             } else {
                 Toast.makeText(activity, hint, Toast.LENGTH_SHORT).show();

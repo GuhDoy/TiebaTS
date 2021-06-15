@@ -17,7 +17,7 @@ import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.R;
-import gm.tieba.tabswitch.dao.Rule;
+import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.util.Reflect;
 
 public class TbDialog extends BaseHooker {
@@ -36,7 +36,7 @@ public class TbDialog extends BaseHooker {
                     }
                 });
         try {
-            Rule.findRule(sRes.getString(R.string.TbDialog), new Rule.Callback() {
+            AcRules.findRule(sRes.getString(R.string.TbDialog), new AcRules.Callback() {
                 @Override
                 public void onRuleFound(String rule, String clazz, String method) {
                     try {

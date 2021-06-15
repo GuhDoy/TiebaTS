@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hooker;
+package gm.tieba.tabswitch.hooker.add;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -8,7 +8,7 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
-import gm.tieba.tabswitch.dao.Rule;
+import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.util.Reflect;
 import gm.tieba.tabswitch.widget.NavigationBar;
 
@@ -17,7 +17,7 @@ public class NewSub extends BaseHooker implements IHooker {
     private Object mPostId;
 
     public void hook() throws Throwable {
-        Rule.findRule(sRes.getString(R.string.NewSub), new Rule.Callback() {
+        AcRules.findRule(sRes.getString(R.string.NewSub), new AcRules.Callback() {
             @Override
             public void onRuleFound(String rule, String clazz, String method) {
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
@@ -33,14 +33,14 @@ public class NewSub extends BaseHooker implements IHooker {
         });
         XposedHelpers.findAndHookMethod("tbclient.PbFloor.DataRes$Builder", sClassLoader,
                 "build", boolean.class, new XC_MethodHook() {
-            @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                Object thread = XposedHelpers.getObjectField(param.thisObject, "thread");
-                mThreadId = XposedHelpers.getObjectField(thread, "id");
-                Object post = XposedHelpers.getObjectField(param.thisObject, "post");
-                mPostId = XposedHelpers.getObjectField(post, "id");
-            }
-        });
+                    @Override
+                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                        Object thread = XposedHelpers.getObjectField(param.thisObject, "thread");
+                        mThreadId = XposedHelpers.getObjectField(thread, "id");
+                        Object post = XposedHelpers.getObjectField(param.thisObject, "post");
+                        mPostId = XposedHelpers.getObjectField(post, "id");
+                    }
+                });
     }
 
     // "com.baidu.tieba.pb.pb.main.PbModel", "initWithIntent"

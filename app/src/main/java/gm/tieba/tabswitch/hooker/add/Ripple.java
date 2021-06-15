@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hooker;
+package gm.tieba.tabswitch.hooker.add;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -16,14 +16,14 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
-import gm.tieba.tabswitch.dao.Rule;
+import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.util.DisplayHelper;
 import gm.tieba.tabswitch.util.Reflect;
 
 public class Ripple extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
         // 楼中楼
-        Rule.findRule(sRes.getString(R.string.Ripple), new Rule.Callback() {
+        AcRules.findRule(sRes.getString(R.string.Ripple), new AcRules.Callback() {
             @Override
             public void onRuleFound(String rule, String clazz, String method) {
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {

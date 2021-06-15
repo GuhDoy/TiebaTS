@@ -32,17 +32,6 @@ import gm.tieba.tabswitch.widget.TbEditText;
 import gm.tieba.tabswitch.widget.TbToast;
 
 public class TSPreferenceHelper extends BaseHooker {
-    public static class PreferenceLayout extends LinearLayout {
-        PreferenceLayout(Context context) {
-            super(context);
-            setOrientation(LinearLayout.VERTICAL);
-        }
-
-        void addView(SwitchButtonHolder view) {
-            addView(view.switchButton);
-        }
-    }
-
     public static TextView createTextView(String text) {
         try {
             TextView textView = new TextView(getContext());
@@ -68,8 +57,7 @@ public class TSPreferenceHelper extends BaseHooker {
         throw new NullPointerException("create text view failed");
     }
 
-    @SuppressLint("UseCompatLoadingForDrawables")
-    static LinearLayout createButton(String text, String tip, View.OnClickListener l) {
+    public static LinearLayout createButton(String text, String tip, View.OnClickListener l) {
         try {
             Class<?> TbSettingTextTipView = sClassLoader.loadClass(
                     "com.baidu.tbadk.coreExtra.view.TbSettingTextTipView");
@@ -89,6 +77,34 @@ public class TSPreferenceHelper extends BaseHooker {
             XposedBridge.log(e);
         }
         throw new NullPointerException("create button failed");
+    }
+
+    static String randomToast() {
+        switch (new Random().nextInt(5)) {
+            case 0:
+                return "别点了，新版本在做了";
+            case 1:
+                return "别点了别点了T_T";
+            case 2:
+                return "再点人傻了>_<";
+            case 3:
+                return "点了也没用~";
+            case 4:
+                return "点个小星星吧:)";
+            default:
+                return "";
+        }
+    }
+
+    public static class PreferenceLayout extends LinearLayout {
+        public PreferenceLayout(Context context) {
+            super(context);
+            setOrientation(LinearLayout.VERTICAL);
+        }
+
+        public void addView(SwitchButtonHolder view) {
+            addView(view.switchButton);
+        }
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -148,31 +164,6 @@ public class TSPreferenceHelper extends BaseHooker {
             bdSwitch.bdSwitch.setOnTouchListener((View v, MotionEvent event) -> false);
         }
 
-        private static class SwitchStatusChangeHandler implements InvocationHandler {
-            @SuppressWarnings("SuspiciousInvocationHandlerImplementation")
-            @Override
-            public Object invoke(Object proxy, Method method, Object[] args) {
-                View view = (View) args[0];
-                String key = (String) view.getTag();
-                if (key != null) {
-                    switch (Integer.parseInt(key.substring(0, 1))) {
-                        case TYPE_SWITCH:
-                            Preferences.putBoolean(key.substring(1), args[1].toString().equals("ON"));
-                            break;
-                        case TYPE_SET_MAIN:
-                            Preferences.putStringSet("fragment_tab",
-                                    key.substring(1), args[1].toString().equals("ON"));
-                            break;
-                        case TYPE_SET_FLUTTER:
-                            Preferences.putStringSet("switch_manager",
-                                    key.substring(1), args[1].toString().equals("ON"));
-                            break;
-                    }
-                }
-                return null;
-            }
-        }
-
         private void showRegexDialog(Activity activity) {
             EditText editText = new TbEditText(getContext());
             editText.setHint(sRes.getString(R.string.regex_hint));
@@ -207,22 +198,30 @@ public class TSPreferenceHelper extends BaseHooker {
             });
             editText.requestFocus();
         }
-    }
 
-    static String randomToast() {
-        switch (new Random().nextInt(5)) {
-            case 0:
-                return "别点了，新版本在做了";
-            case 1:
-                return "别点了别点了T_T";
-            case 2:
-                return "再点人傻了>_<";
-            case 3:
-                return "点了也没用~";
-            case 4:
-                return "点个小星星吧:)";
-            default:
-                return "";
+        private static class SwitchStatusChangeHandler implements InvocationHandler {
+            @SuppressWarnings("SuspiciousInvocationHandlerImplementation")
+            @Override
+            public Object invoke(Object proxy, Method method, Object[] args) {
+                View view = (View) args[0];
+                String key = (String) view.getTag();
+                if (key != null) {
+                    switch (Integer.parseInt(key.substring(0, 1))) {
+                        case TYPE_SWITCH:
+                            Preferences.putBoolean(key.substring(1), args[1].toString().equals("ON"));
+                            break;
+                        case TYPE_SET_MAIN:
+                            Preferences.putStringSet("fragment_tab",
+                                    key.substring(1), args[1].toString().equals("ON"));
+                            break;
+                        case TYPE_SET_FLUTTER:
+                            Preferences.putStringSet("switch_manager",
+                                    key.substring(1), args[1].toString().equals("ON"));
+                            break;
+                    }
+                }
+                return null;
+            }
         }
     }
 }

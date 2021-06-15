@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hooker;
+package gm.tieba.tabswitch.hooker.minus;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -23,11 +23,11 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
-import gm.tieba.tabswitch.dao.Rule;
+import gm.tieba.tabswitch.dao.AcRules;
 
 public class Purify extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
-        Rule.findRule(sRes.getStringArray(R.array.Purify), new Rule.Callback() {
+        AcRules.findRule(sRes.getStringArray(R.array.Purify), new AcRules.Callback() {
             @Override
             public void onRuleFound(String rule, String clazz, String method) throws Throwable {
                 switch (rule) {
@@ -158,17 +158,42 @@ public class Purify extends BaseHooker implements IHooker {
                 }
             }
         });
-        // 欢迎页
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.launcherGuide.tblauncher.GuideActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
+        // 吧页面
+        XposedHelpers.findAndHookMethod("tbclient.FrsPage.DataRes$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                for (Field field : param.thisObject.getClass().getDeclaredFields()) {
-                    field.setAccessible(true);
-                    if (field.get(param.thisObject) instanceof int[]) {
-                        int[] ints = (int[]) field.get(param.thisObject);
-                        for (int i = 0; i < ints.length; i++) {
-                            ints[i] = 0;
-                        }
+                // 吧公告
+                XposedHelpers.setObjectField(param.thisObject, "star_enter", new ArrayList<>());
+
+                List<?> threadList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");
+                if (threadList == null) return;
+                for (int i = 0; i < threadList.size(); i++) {
+                    if (XposedHelpers.getObjectField(threadList.get(i), "ala_info") != null) {
+                        threadList.remove(i);
+                        i--;
+                        continue;
+                    }
+
+                    Object worksInfo = XposedHelpers.getObjectField(threadList.get(i), "works_info");
+                    if (worksInfo != null && (Integer) XposedHelpers.getObjectField(worksInfo, "is_works") == 1) {
+                        threadList.remove(i);
+                        i--;
+                    }
+                }
+            }
+        });
+        // 吧小程序
+        XposedBridge.hookAllMethods(XposedHelpers.findClass("com.baidu.tieba.frs.servicearea.ServiceAreaView", sClassLoader), "setData", XC_MethodReplacement.returnConstant(null));
+        // 吧友直播
+        XposedHelpers.findAndHookMethod("tbclient.FrsPage.NavTabInfo$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                List<?> list = (List<?>) XposedHelpers.getObjectField(param.thisObject, "tab");
+                if (list == null) return;
+                for (int i = 0; i < list.size(); i++) {
+                    if ((Integer) XposedHelpers.getObjectField(list.get(i), "tab_type") == 92) {
+                        list.remove(i);
+                        return;
                     }
                 }
             }
@@ -190,29 +215,6 @@ public class Purify extends BaseHooker implements IHooker {
                     }
                 }
                 activity.setIntent(intent);
-            }
-        });
-        // 吧小程序
-        XposedBridge.hookAllMethods(XposedHelpers.findClass("com.baidu.tieba.frs.servicearea.ServiceAreaView", sClassLoader), "setData", XC_MethodReplacement.returnConstant(null));
-        // 吧友直播
-        XposedHelpers.findAndHookMethod("tbclient.FrsPage.NavTabInfo$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
-            @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                List<?> list = (List<?>) XposedHelpers.getObjectField(param.thisObject, "tab");
-                if (list == null) return;
-                for (int i = 0; i < list.size(); i++) {
-                    if ((Integer) XposedHelpers.getObjectField(list.get(i), "tab_type") == 92) {
-                        list.remove(i);
-                        return;
-                    }
-                }
-            }
-        });
-        // 吧公告
-        XposedHelpers.findAndHookMethod("tbclient.FrsPage.DataRes$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
-            @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                XposedHelpers.setObjectField(param.thisObject, "star_enter", new ArrayList<>());
             }
         });
         // 你可能感兴趣的人：initUI()
@@ -253,6 +255,21 @@ public class Purify extends BaseHooker implements IHooker {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 Activity activity = (Activity) param.thisObject;
                 activity.finish();
+            }
+        });
+        // 欢迎页
+        XposedHelpers.findAndHookMethod("com.baidu.tieba.launcherGuide.tblauncher.GuideActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                for (Field field : param.thisObject.getClass().getDeclaredFields()) {
+                    field.setAccessible(true);
+                    if (field.get(param.thisObject) instanceof int[]) {
+                        int[] ints = (int[]) field.get(param.thisObject);
+                        for (int i = 0; i < ints.length; i++) {
+                            ints[i] = 0;
+                        }
+                    }
+                }
             }
         });
     }

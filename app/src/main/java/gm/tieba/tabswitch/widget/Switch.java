@@ -11,8 +11,8 @@ import de.robv.android.xposed.XposedBridge;
 import gm.tieba.tabswitch.BaseHooker;
 
 public class Switch extends BaseHooker {
-    private Class<?> mClass;
     public View bdSwitch;
+    private Class<?> mClass;
 
     public Switch() {
         try {
