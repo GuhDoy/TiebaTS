@@ -19,7 +19,7 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 
 public class Adp extends BaseHooker {
-    private static Adp adp;
+    private static Adp sAdp;
     public String BDUSS;
     public String tbs;
     public String account;
@@ -28,13 +28,13 @@ public class Adp extends BaseHooker {
 
     public Adp(ClassLoader classLoader, Context context, Resources res) {
         super(classLoader, context, res);
-        adp = this;
+        sAdp = this;
         getAccountData();
         refreshCache();
     }
 
     public static Adp getInstance() {
-        return adp;
+        return sAdp;
     }
 
     private void getAccountData() {
@@ -80,24 +80,24 @@ public class Adp extends BaseHooker {
         String myPagesTable = null;
         mDb = getContext().openOrCreateDatabase("baidu_adp.db", Context.MODE_PRIVATE,
                 null);
-        Cursor cacheMetaInfo = mDb.query("cache_meta_info", null, null, null, null, null, null);
-        for (int i = 0; i < cacheMetaInfo.getCount(); i++) {
-            cacheMetaInfo.moveToNext();
-            String nameSpace = cacheMetaInfo.getString(0);
+        Cursor c = mDb.query("cache_meta_info", null, null, null, null, null, null);
+        for (int i = 0; i < c.getCount(); i++) {
+            c.moveToNext();
+            String nameSpace = c.getString(0);
             if ("tb.my_pages".equals(nameSpace)) {
-                myPagesTable = cacheMetaInfo.getString(1);
+                myPagesTable = c.getString(1);
             }
         }
-        cacheMetaInfo.close();
+        c.close();
         parseMyPages(myPagesTable);
         mDb.close();
         return this;
     }
 
     private void parseMyPages(String tableName) {
-        Cursor myPages = mDb.query(tableName, null, null, null, null, null, null);
-        myPages.moveToNext();
-        String mValue = myPages.getString(4);
+        Cursor c = mDb.query(tableName, null, null, null, null, null, null);
+        c.moveToNext();
+        String mValue = c.getString(4);
         try {
             JSONObject jsonObject = new JSONObject(mValue);
             JSONArray followList = jsonObject.optJSONArray("follow_list");
@@ -109,6 +109,6 @@ public class Adp extends BaseHooker {
         } catch (JSONException e) {
             XposedBridge.log(e);
         }
-        myPages.close();
+        c.close();
     }
 }

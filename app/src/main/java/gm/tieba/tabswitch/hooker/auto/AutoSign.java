@@ -48,8 +48,8 @@ public class AutoSign extends BaseHooker implements IHooker {
 
     private final List<String> mFollow = new ArrayList<>();
     private final List<String> mSuccess = new ArrayList<>();
-    private String tbs = "";
-    private Integer followNum = 201;
+    private String mTbs;
+    private Integer mFollowNum = 201;
 
     private String main(String BDUSS) {
         if (BDUSS == null) return "暂未获取到 BDUSS";
@@ -57,21 +57,21 @@ public class AutoSign extends BaseHooker implements IHooker {
         getTbs();
         getFollow();
         runSign();
-        int failNum = followNum - mSuccess.size();
-        String result = "共 {" + followNum + "} 个吧 - 成功: {" + mSuccess.size() + "} - 失败: {" + failNum + "}";
+        int failNum = mFollowNum - mSuccess.size();
+        String result = "共 {" + mFollowNum + "} 个吧 - 成功: {" + mSuccess.size() + "} - 失败: {" + failNum + "}";
         XposedBridge.log(result);
-        if (failNum == 0) return "共 {" + followNum + "} 个吧 - 全部签到成功";
+        if (failNum == 0) return "共 {" + mFollowNum + "} 个吧 - 全部签到成功";
         else return result;
     }
 
     private void getTbs() {
-        tbs = Adp.getInstance().tbs;
-        if (tbs != null) return;
+        mTbs = Adp.getInstance().tbs;
+        if (mTbs != null) return;
         try {
             JSONObject jsonObject = AutoSignHelper.get(TBS_URL);
             if ("1".equals(jsonObject.getString("is_login"))) {
                 XposedBridge.log("获取tbs成功");
-                tbs = jsonObject.getString("tbs");
+                mTbs = jsonObject.getString("tbs");
             } else XposedBridge.log("获取tbs失败 -- " + jsonObject);
         } catch (Exception e) {
             XposedBridge.log("获取tbs部分出现错误 -- " + e);
@@ -83,7 +83,7 @@ public class AutoSign extends BaseHooker implements IHooker {
             JSONObject jsonObject = AutoSignHelper.get(LIKE_URL);
             XposedBridge.log("获取贴吧列表成功");
             JSONArray jsonArray = jsonObject.getJSONObject("data").getJSONArray("like_forum");
-            followNum = jsonArray.length();
+            mFollowNum = jsonArray.length();
             // 获取用户所有关注的贴吧
             for (int i = 0; i < jsonArray.length(); i++) {
                 if ("0".equals(jsonArray.optJSONObject(i).getString("is_sign"))) {
@@ -101,12 +101,12 @@ public class AutoSign extends BaseHooker implements IHooker {
         // 当执行 3 轮所有贴吧还未签到成功就结束操作
         int flag = 3;
         try {
-            while (mSuccess.size() < followNum && flag > 0) {
+            while (mSuccess.size() < mFollowNum && flag > 0) {
                 Iterator<String> iterator = mFollow.iterator();
                 while (iterator.hasNext()) {
                     String s = iterator.next();
-                    String body = "kw=" + s + "&tbs=" + tbs + "&sign=" + AutoSignHelper.enCodeMd5(
-                            "kw=" + s + "tbs=" + tbs + "tiebaclient!!!");
+                    String body = "kw=" + s + "&tbs=" + mTbs + "&sign=" + AutoSignHelper.enCodeMd5(
+                            "kw=" + s + "tbs=" + mTbs + "tiebaclient!!!");
                     JSONObject post = AutoSignHelper.post(SIGN_URL, body);
                     if ("0".equals(post.getString("error_code"))) {
                         iterator.remove();
@@ -114,7 +114,7 @@ public class AutoSign extends BaseHooker implements IHooker {
                         XposedBridge.log(s + ": " + "签到成功");
                     } else XposedBridge.log(s + ": " + "签到失败");
                 }
-                if (mSuccess.size() != followNum) {
+                if (mSuccess.size() != mFollowNum) {
                     Thread.sleep(2500);
                     getTbs();
                 }

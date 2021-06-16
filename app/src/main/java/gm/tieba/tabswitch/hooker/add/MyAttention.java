@@ -3,12 +3,14 @@ package gm.tieba.tabswitch.hooker.add;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
+import java.util.Collections;
 import java.util.Set;
 
 import de.robv.android.xposed.XC_MethodHook;
@@ -25,12 +27,19 @@ public class MyAttention extends BaseHooker implements IHooker {
     public static LinearLayout createNotesPreference(Activity activity) {
         Preferences.putBoolean("my_attention", !Preferences.getNotes().isEmpty());
         TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
-        preferenceLayout.addView(TSPreferenceHelper.createTextView(null));
-        Set<String> follows = Adp.getInstance().parseDatabase().follows;
+        Set<String> follows = Collections.emptySet();
+        try {
+            follows = Adp.getInstance().parseDatabase().follows;
+            preferenceLayout.addView(TSPreferenceHelper.createTextView(null));
+        } catch (Throwable e) {
+            preferenceLayout.addView(TSPreferenceHelper.createTextView("读取数据库缓存失败\n"
+                    + Log.getStackTraceString(e)));
+        }
         for (String follow : follows) {
             preferenceLayout.addView(TSPreferenceHelper.createButton(follow, Preferences.getNote(follow),
                     v -> showNoteDialog(activity, follow)));
         }
+
         boolean isAdd = true;
         for (String follow : Preferences.getNotes().keySet()) {
             if (follows.contains(follow)) continue;
