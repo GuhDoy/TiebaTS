@@ -8,6 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -31,6 +32,7 @@ public class AutoSign extends BaseHooker implements IHooker {
                             String result = main(Adp.getInstance().BDUSS);
                             if (result.endsWith("全部签到成功")) {
                                 Preferences.putSignDate();
+                                Preferences.putLikeForum(new HashSet<>(mSuccess));
                             }
                             new Handler(Looper.getMainLooper()).post(() -> TbToast.showTbToast(
                                     result, TbToast.LENGTH_SHORT));

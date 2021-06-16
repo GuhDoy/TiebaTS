@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.Set;
 
 import de.robv.android.xposed.XC_MethodHook;
+import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
@@ -32,6 +33,7 @@ public class MyAttention extends BaseHooker implements IHooker {
             follows = Adp.getInstance().parseDatabase().follows;
             preferenceLayout.addView(TSPreferenceHelper.createTextView(null));
         } catch (Throwable e) {
+            XposedBridge.log(e);
             preferenceLayout.addView(TSPreferenceHelper.createTextView("读取数据库缓存失败\n"
                     + Log.getStackTraceString(e)));
         }
