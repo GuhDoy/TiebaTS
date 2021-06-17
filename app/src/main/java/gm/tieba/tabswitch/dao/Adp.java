@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Set;
 
 import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 
@@ -76,7 +75,7 @@ public class Adp extends BaseHooker {
         });
     }
 
-    public synchronized Adp parseDatabase() {
+    public synchronized Adp parseDatabase() throws JSONException {
         String myPagesTable = null;
         mDb = getContext().openOrCreateDatabase("baidu_adp.db", Context.MODE_PRIVATE,
                 null);
@@ -94,20 +93,16 @@ public class Adp extends BaseHooker {
         return this;
     }
 
-    private void parseMyPages(String tableName) {
+    private void parseMyPages(String tableName) throws JSONException {
         Cursor c = mDb.query(tableName, null, null, null, null, null, null);
         c.moveToNext();
         String mValue = c.getString(4);
-        try {
-            JSONObject jsonObject = new JSONObject(mValue);
-            JSONArray followList = jsonObject.optJSONArray("follow_list");
-            for (int i = 0; i < followList.length(); i++) {
-                JSONObject follow = followList.optJSONObject(i);
-                String name = follow.getString("name_show");
-                follows.add(name);
-            }
-        } catch (JSONException e) {
-            XposedBridge.log(e);
+        JSONObject jsonObject = new JSONObject(mValue);
+        JSONArray followList = jsonObject.optJSONArray("follow_list");
+        for (int i = 0; i < followList.length(); i++) {
+            JSONObject follow = followList.optJSONObject(i);
+            String name = follow.getString("name_show");
+            follows.add(name);
         }
         c.close();
     }
