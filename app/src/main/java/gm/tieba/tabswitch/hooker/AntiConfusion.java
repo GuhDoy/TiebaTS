@@ -67,7 +67,7 @@ public class AntiConfusion extends BaseHooker implements IHooker {
 
                         if (AntiConfusionHelper.isDexChanged(mActivity)) {
                             mActivity.deleteDatabase("Rules.db");
-                        } else if (AntiConfusionHelper.getRulesLost().size() != 0) {
+                        } else if (!AntiConfusionHelper.getRulesLost().isEmpty()) {
                             AntiConfusionHelper.matcherList = AntiConfusionHelper.getRulesLost();
                         } else {
                             AntiConfusionHelper.saveAndRestart(mActivity, AntiConfusionHelper

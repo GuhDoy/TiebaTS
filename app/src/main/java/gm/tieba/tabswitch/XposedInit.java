@@ -15,6 +15,7 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -62,9 +63,10 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
                     try {
                         AcRules.init(context);
                         List<String> lostList = AntiConfusionHelper.getRulesLost();
-                        if (lostList.size() != 0) {
-                            throw new SQLiteException("rules incomplete, current version: " + AntiConfusionHelper.getTbVersion(context)
-                                    + ", lost " + lostList.size() + " rule(s): " + lostList.toString());
+                        if (!lostList.isEmpty()) {
+                            throw new SQLiteException(String.format(Locale.getDefault(),
+                                    "rules incomplete, tbversion: %s, module version: %d, lost %d rule(s): %s",
+                                    AntiConfusionHelper.getTbVersion(context), BuildConfig.VERSION_CODE, lostList.size(), lostList.toString()));
                         }
                     } catch (SQLiteException e) {
                         XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
