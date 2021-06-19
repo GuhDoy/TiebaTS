@@ -84,7 +84,9 @@ public class TSPreference extends BaseHooker implements IHooker {
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                         Activity activity = (Activity) param.args[0];
                         NavigationBar navigationBar = new NavigationBar(param.thisObject);
-                        switch (activity.getIntent().getStringExtra("proxyPage")) {
+                        String proxyPage = activity.getIntent().getStringExtra("proxyPage");
+                        if (proxyPage == null) return;
+                        switch (proxyPage) {
                             case MAIN:
                                 proxyPage(activity, navigationBar, MAIN, createMainPreference(activity));
                                 break;
