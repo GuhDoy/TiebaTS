@@ -49,15 +49,9 @@ public class ForbidGesture extends BaseHooker implements IHooker {
                 "onCreateView", LayoutInflater.class, ViewGroup.class, Bundle.class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        for (Field field : param.thisObject.getClass().getDeclaredFields()) {
-                            field.setAccessible(true);
-                            if (field.get(param.thisObject).getClass().getName().equals(
-                                    "com.baidu.adp.widget.ListView.BdTypeRecyclerView")) {
-                                ViewGroup recyclerView = (ViewGroup) field.get(param.thisObject);
-                                recyclerView.setOnTouchListener((v, event) -> false);
-                                return;
-                            }
-                        }
+                        ViewGroup recyclerView = (ViewGroup) Reflect.getObjectField(param.thisObject,
+                                "com.baidu.adp.widget.ListView.BdTypeRecyclerView");
+                        recyclerView.setOnTouchListener((v, event) -> false);
                     }
                 });
         XposedHelpers.findAndHookMethod("com.baidu.tieba.pb.pb.main.PbLandscapeListView", sClassLoader,
