@@ -16,7 +16,7 @@ import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.AcRules;
-import gm.tieba.tabswitch.util.Reflect;
+import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class PurifyMy extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
@@ -24,7 +24,7 @@ public class PurifyMy extends BaseHooker implements IHooker {
                 "createFragmentTabStructure", XC_MethodReplacement.returnConstant(null));
         AcRules.findRule(sRes.getStringArray(R.array.PurifyMy), new AcRules.Callback() {
             @Override
-            public void onRuleFound(String rule, String clazz, String method) throws Throwable {
+            public void onRuleFound(String rule, String clazz, String method) {
                 switch (rule) {
                     case "Lcom/baidu/tieba/R$drawable;->icon_pure_topbar_store44_svg:I"://商店
                         XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, int.class, new XC_MethodHook() {
@@ -34,7 +34,7 @@ public class PurifyMy extends BaseHooker implements IHooker {
                                     field.setAccessible(true);
                                     if (field.get(param.thisObject) instanceof ImageView) {
                                         ImageView imageView = (ImageView) field.get(param.thisObject);
-                                        if (imageView.getId() == Reflect.getId("person_navigation_dressup_img")) {
+                                        if (imageView.getId() == ReflectUtils.getId("person_navigation_dressup_img")) {
                                             imageView.setVisibility(View.GONE);
                                             return;
                                         }
@@ -44,7 +44,7 @@ public class PurifyMy extends BaseHooker implements IHooker {
                         });
                         break;
                     case "Lcom/baidu/tieba/R$id;->function_item_bottom_divider:I"://分割线
-                        for (Method md : sClassLoader.loadClass(clazz).getDeclaredMethods()) {
+                        for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
                             if (Arrays.toString(md.getParameterTypes()).equals("[interface com.baidu.tbadk.TbPageContext, int]")
                                     && !md.getName().equals(method)) {
                                 XposedBridge.hookMethod(md, new XC_MethodHook() {
@@ -55,7 +55,7 @@ public class PurifyMy extends BaseHooker implements IHooker {
                                             field.setAccessible(true);
                                             if (field.get(param.thisObject) instanceof View) {
                                                 View view = (View) field.get(param.thisObject);
-                                                if (view.getId() == Reflect.getId("function_item_bottom_divider")) {
+                                                if (view.getId() == ReflectUtils.getId("function_item_bottom_divider")) {
                                                     view.setVisibility(View.GONE);
                                                     return;
                                                 }
@@ -67,7 +67,7 @@ public class PurifyMy extends BaseHooker implements IHooker {
                         }
                         break;
                     case "\"https://tieba.baidu.com/mo/q/duxiaoman/index?noshare=1\""://我的ArrayList
-                        for (Method md : sClassLoader.loadClass(clazz).getDeclaredMethods()) {
+                        for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
                             if (Arrays.toString(md.getParameterTypes()).equals("[class tbclient.Profile.ProfileResIdl]")) {
                                 XposedBridge.hookMethod(md, new XC_MethodHook() {
                                     @Override
@@ -79,8 +79,8 @@ public class PurifyMy extends BaseHooker implements IHooker {
                                                 if (list == null) continue;
                                                 for (int i = 0; i < list.size(); i++) {
                                                     try {
-                                                        Reflect.getObjectField(list.get(i), "com.baidu.tbadk.core.data.UserData");
-                                                    } catch (NoSuchFieldException e) {
+                                                        ReflectUtils.getObjectField(list.get(i), "com.baidu.tbadk.core.data.UserData");
+                                                    } catch (NoSuchFieldError e) {
                                                         list.remove(i);
                                                         i--;
                                                         continue;

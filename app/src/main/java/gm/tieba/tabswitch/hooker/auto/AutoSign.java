@@ -22,6 +22,17 @@ import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.widget.TbToast;
 
 public class AutoSign extends BaseHooker implements IHooker {
+    //获取用户所有关注贴吧
+    private static final String LIKE_URL = "https://tieba.baidu.com/mo/q/newmoindex";
+    //获取用户的tbs
+    private static final String TBS_URL = "http://tieba.baidu.com/dc/common/tbs";
+    //贴吧签到接口
+    private static final String SIGN_URL = "http://c.tieba.baidu.com/c/c/forum/sign";
+    private final List<String> mFollow = new ArrayList<>();
+    private final List<String> mSuccess = new ArrayList<>();
+    private String mTbs;
+    private Integer mFollowNum = 201;
+
     public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader,
                 "onCreate", Bundle.class, new XC_MethodHook() {
@@ -40,18 +51,6 @@ public class AutoSign extends BaseHooker implements IHooker {
                     }
                 });
     }
-
-    //获取用户所有关注贴吧
-    private static final String LIKE_URL = "https://tieba.baidu.com/mo/q/newmoindex";
-    //获取用户的tbs
-    private static final String TBS_URL = "http://tieba.baidu.com/dc/common/tbs";
-    //贴吧签到接口
-    private static final String SIGN_URL = "http://c.tieba.baidu.com/c/c/forum/sign";
-
-    private final List<String> mFollow = new ArrayList<>();
-    private final List<String> mSuccess = new ArrayList<>();
-    private String mTbs;
-    private Integer mFollowNum = 201;
 
     private String main(String BDUSS) {
         if (BDUSS == null) return "暂未获取到 BDUSS";

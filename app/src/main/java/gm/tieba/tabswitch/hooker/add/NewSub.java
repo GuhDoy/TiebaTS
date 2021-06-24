@@ -9,7 +9,7 @@ import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.AcRules;
-import gm.tieba.tabswitch.util.Reflect;
+import gm.tieba.tabswitch.util.ReflectUtils;
 import gm.tieba.tabswitch.widget.NavigationBar;
 
 public class NewSub extends BaseHooker implements IHooker {
@@ -23,7 +23,7 @@ public class NewSub extends BaseHooker implements IHooker {
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        Activity activity = (Activity) Reflect.getObjectField(param.thisObject,
+                        Activity activity = (Activity) ReflectUtils.getObjectField(param.thisObject,
                                 "com.baidu.tieba.pb.pb.sub.NewSubPbActivity");
                         new NavigationBar(param.thisObject)
                                 .addTextButton("查看主题贴", v -> startPbActivity(activity));

@@ -22,6 +22,7 @@ import java.util.Arrays;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
+import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
@@ -32,8 +33,8 @@ public class RedirectImage extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
         AcRules.findRule(sRes.getString(R.string.StorageRedirect), new AcRules.Callback() {
             @Override
-            public void onRuleFound(String rule, String clazz, String method) throws ClassNotFoundException {
-                for (Method md : sClassLoader.loadClass(clazz).getDeclaredMethods()) {
+            public void onRuleFound(String rule, String clazz, String method) {
+                for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
                     switch (Arrays.toString(md.getParameterTypes())) {
                         case "[class java.lang.String, class [B, class android.content.Context]":
                             XposedBridge.hookMethod(md, new XC_MethodReplacement() {

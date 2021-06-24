@@ -30,7 +30,7 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.util.IO;
-import gm.tieba.tabswitch.util.Reflect;
+import gm.tieba.tabswitch.util.ReflectUtils;
 import gm.tieba.tabswitch.widget.TbToast;
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -42,8 +42,8 @@ public class SaveImages extends BaseHooker implements IHooker {
     private String mTitle;
 
     public void hook() throws Throwable {
-        for (Method method : sClassLoader.loadClass(
-                "com.baidu.tbadk.coreExtra.view.ImagePagerAdapter").getDeclaredMethods()) {
+        for (Method method : XposedHelpers.findClass("com.baidu.tbadk.coreExtra.view.ImagePagerAdapter",
+                sClassLoader).getDeclaredMethods()) {
             if (Arrays.toString(method.getParameterTypes()).equals("[class java.util.ArrayList]")) {
                 XposedBridge.hookMethod(method, new XC_MethodHook() {
                     @Override
@@ -68,7 +68,7 @@ public class SaveImages extends BaseHooker implements IHooker {
                             field.setAccessible(true);
                             if (field.get(param.thisObject) instanceof ImageView) {
                                 ImageView downloadIcon = (ImageView) field.get(param.thisObject);
-                                if (downloadIcon.getId() != Reflect.getId("download_icon")) {
+                                if (downloadIcon.getId() != ReflectUtils.getId("download_icon")) {
                                     continue;
                                 }
                                 Context context = ((Context) param.args[0]).getApplicationContext();

@@ -1,101 +1,65 @@
 package gm.tieba.tabswitch.widget;
 
-import android.content.Context;
 import android.view.View;
 
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
-import de.robv.android.xposed.XposedBridge;
+import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 
 public class Switch extends BaseHooker {
     public View bdSwitch;
-    private Class<?> mClass;
 
     public Switch() {
-        try {
-            mClass = sClassLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView");
-            bdSwitch = (View) mClass.getConstructor(Context.class).newInstance(getContext());
-        } catch (Throwable e) {
-            XposedBridge.log(e);
-        }
+        bdSwitch = (View) XposedHelpers.newInstance(XposedHelpers.findClass(
+                "com.baidu.adp.widget.BdSwitchView.BdSwitchView", sClassLoader), getContext());
     }
 
     public Switch(View bdSwitch) {
-        try {
-            mClass = sClassLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView");
-            this.bdSwitch = bdSwitch;
-        } catch (Throwable e) {
-            XposedBridge.log(e);
-        }
+        this.bdSwitch = bdSwitch;
     }
 
     public void setOnSwitchStateChangeListener(InvocationHandler l) {
+        Class<?> clazz;
         try {
-            Class<?> clazz;
-            try {
-                clazz = sClassLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView$b");
-            } catch (ClassNotFoundException e) {
-                clazz = sClassLoader.loadClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView$a");
-            }
-            Object proxy = Proxy.newProxyInstance(sClassLoader, new Class<?>[]{clazz}, l);
-            mClass.getDeclaredMethod("setOnSwitchStateChangeListener", clazz).invoke(bdSwitch, proxy);
-        } catch (Throwable e) {
-            XposedBridge.log(e);
+            clazz = XposedHelpers.findClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView$b", sClassLoader);
+        } catch (XposedHelpers.ClassNotFoundError e) {
+            clazz = XposedHelpers.findClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView$a", sClassLoader);
         }
+        Object proxy = Proxy.newProxyInstance(sClassLoader, new Class<?>[]{clazz}, l);
+        XposedHelpers.callMethod(bdSwitch, "setOnSwitchStateChangeListener", proxy);
     }
 
     public boolean isOn() {
         try {
-            try {
-                return (Boolean) mClass.getDeclaredMethod("isOn").invoke(bdSwitch);
-            } catch (NoSuchMethodException e) {
-                return (Boolean) mClass.getDeclaredMethod("d").invoke(bdSwitch);
-            }
-        } catch (Throwable e) {
-            XposedBridge.log(e);
+            return (Boolean) XposedHelpers.callMethod(bdSwitch, "isOn");
+        } catch (NoSuchMethodError e) {
+            return (Boolean) XposedHelpers.callMethod(bdSwitch, "d");
         }
-        return false;
     }
 
     public void changeState() {
         try {
-            Method changeState;
-            try {
-                changeState = mClass.getDeclaredMethod("changeState");
-            } catch (NoSuchMethodException e) {
-                changeState = mClass.getDeclaredMethod("b");
-            }
-            changeState.setAccessible(true);
-            changeState.invoke(bdSwitch);
-        } catch (Throwable e) {
-            XposedBridge.log(e);
+            XposedHelpers.callMethod(bdSwitch, "changeState");
+        } catch (NoSuchMethodError e) {
+            XposedHelpers.callMethod(bdSwitch, "b");
         }
     }
 
     public void turnOn() {
         try {
-            try {
-                mClass.getDeclaredMethod("turnOn").invoke(bdSwitch);
-            } catch (NoSuchMethodException e) {
-                mClass.getDeclaredMethod("i").invoke(bdSwitch);
-            }
-        } catch (Throwable e) {
-            XposedBridge.log(e);
+            XposedHelpers.callMethod(bdSwitch, "turnOn");
+        } catch (NoSuchMethodError e) {
+            XposedHelpers.callMethod(bdSwitch, "i");
         }
     }
 
     public void turnOff() {
         try {
-            try {
-                mClass.getDeclaredMethod("turnOff").invoke(bdSwitch);
-            } catch (NoSuchMethodException e) {
-                mClass.getDeclaredMethod("f").invoke(bdSwitch);
-            }
-        } catch (Throwable e) {
-            XposedBridge.log(e);
+            XposedHelpers.callMethod(bdSwitch, "turnOff");
+        } catch (NoSuchMethodError e) {
+            XposedHelpers.callMethod(bdSwitch, "f");
         }
     }
 }

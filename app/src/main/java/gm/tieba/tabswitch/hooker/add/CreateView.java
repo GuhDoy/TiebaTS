@@ -15,7 +15,7 @@ import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.AcRules;
-import gm.tieba.tabswitch.util.Reflect;
+import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class CreateView extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
@@ -38,7 +38,7 @@ public class CreateView extends BaseHooker implements IHooker {
                                 //historyButton
                                 final ImageView historyDrawable = new ImageView(activity);
                                 historyDrawable.setImageResource(
-                                        Reflect.getDrawable("icon_mask_wo_list_history24_svg"));
+                                        ReflectUtils.getDrawableId("icon_mask_wo_list_history24_svg"));
                                 final RelativeLayout historyButton = new RelativeLayout(activity);
                                 RelativeLayout.LayoutParams historyLayoutParams =
                                         new RelativeLayout.LayoutParams(signButtonLayoutParams.height,
@@ -60,7 +60,7 @@ public class CreateView extends BaseHooker implements IHooker {
                                 //collectButton
                                 final ImageView collectDrawable = new ImageView(activity);
                                 collectDrawable.setImageResource(
-                                        Reflect.getDrawable("icon_mask_wo_list_collect24_svg"));
+                                        ReflectUtils.getDrawableId("icon_mask_wo_list_collect24_svg"));
                                 final RelativeLayout collectButton = new RelativeLayout(activity);
                                 RelativeLayout.LayoutParams collectButtonLayoutParams =
                                         new RelativeLayout.LayoutParams(signButtonLayoutParams.height,

@@ -19,7 +19,7 @@ import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.AcRules;
-import gm.tieba.tabswitch.util.Reflect;
+import gm.tieba.tabswitch.util.ReflectUtils;
 
 @SuppressLint("ClickableViewAccessibility")
 public class ForbidGesture extends BaseHooker implements IHooker {
@@ -34,8 +34,7 @@ public class ForbidGesture extends BaseHooker implements IHooker {
                             field.setAccessible(true);
                             if (field.get(param.thisObject) instanceof RelativeLayout) {
                                 RelativeLayout relativeLayout = (RelativeLayout) field.get(param.thisObject);
-                                ListView listView = relativeLayout.findViewById(
-                                        Reflect.getId("new_pb_list"));
+                                ListView listView = relativeLayout.findViewById(ReflectUtils.getId("new_pb_list"));
                                 if (listView == null) continue;
                                 listView.setOnTouchListener((v, event) -> false);
                                 return;
@@ -49,7 +48,7 @@ public class ForbidGesture extends BaseHooker implements IHooker {
                 "onCreateView", LayoutInflater.class, ViewGroup.class, Bundle.class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        ViewGroup recyclerView = (ViewGroup) Reflect.getObjectField(param.thisObject,
+                        ViewGroup recyclerView = (ViewGroup) ReflectUtils.getObjectField(param.thisObject,
                                 "com.baidu.adp.widget.ListView.BdTypeRecyclerView");
                         recyclerView.setOnTouchListener((v, event) -> false);
                     }
@@ -58,18 +57,15 @@ public class ForbidGesture extends BaseHooker implements IHooker {
                 "dispatchTouchEvent", MotionEvent.class, new XC_MethodHook() {
                     @Override
                     protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-                        sClassLoader.loadClass("com.baidu.tieba.pb.pb.main.PbLandscapeListView")
-                                .getDeclaredMethod("setForbidDragListener", boolean.class)
-                                .invoke(param.thisObject, true);
+                        XposedHelpers.callMethod(param.thisObject, "setForbidDragListener", true);
                     }
                 });
+        Class<?> clazz = XposedHelpers.findClass("com.baidu.tbadk.widget.DragImageView", sClassLoader);
         Method method;
         try {
-            method = sClassLoader.loadClass("com.baidu.tbadk.widget.DragImageView")
-                    .getDeclaredMethod("getMaxScaleValue", Bitmap.class);
+            method = clazz.getDeclaredMethod("getMaxScaleValue", Bitmap.class);
         } catch (NoSuchMethodException e) {
-            method = sClassLoader.loadClass("com.baidu.tbadk.widget.DragImageView")
-                    .getDeclaredMethod("U", Bitmap.class);
+            method = clazz.getDeclaredMethod("U", Bitmap.class);
         }
         XposedBridge.hookMethod(method, new XC_MethodHook() {
             @Override

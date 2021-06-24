@@ -20,8 +20,8 @@ public class FragmentTab extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
         AcRules.findRule(sRes.getString(R.string.FragmentTab), new AcRules.Callback() {
             @Override
-            public void onRuleFound(String rule, String clazz, String method) throws Throwable {
-                for (Method md : sClassLoader.loadClass(clazz).getDeclaredMethods()) {
+            public void onRuleFound(String rule, String clazz, String method) {
+                for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
                     if (Arrays.toString(md.getParameterTypes()).equals("[class java.util.ArrayList]")) {
                         XposedBridge.hookMethod(md, new XC_MethodHook() {
                             @Override
@@ -29,8 +29,8 @@ public class FragmentTab extends BaseHooker implements IHooker {
                                 if (!sIsFirstHook) return;
                                 for (String fieldName : Parser.parseMainTabActivityConfig()) {
                                     if (Preferences.getStringSet("fragment_tab").contains(fieldName)) {
-                                        Class<?> clazz = sClassLoader.loadClass(
-                                                "com.baidu.tbadk.core.atomData.MainTabActivityConfig");
+                                        Class<?> clazz = XposedHelpers.findClass(
+                                                "com.baidu.tbadk.core.atomData.MainTabActivityConfig", sClassLoader);
                                         XposedHelpers.setStaticBooleanField(clazz, fieldName,
                                                 !XposedHelpers.getStaticBooleanField(clazz, fieldName));
                                     }

@@ -31,7 +31,7 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
-import gm.tieba.tabswitch.util.DisplayHelper;
+import gm.tieba.tabswitch.util.DisplayUtils;
 
 public class AntiConfusionHelper {
     static List<String> matcherList = new ArrayList<>();
@@ -86,12 +86,12 @@ public class AntiConfusionHelper {
         SharedPreferences.Editor editor = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE).edit();
         editor.putString("anti-confusion_version", value);
         editor.commit();
-        if (springboardActivity == null) DisplayHelper.restart(activity, res);
+        if (springboardActivity == null) DisplayUtils.restart(activity, res);
         else {
             XposedHelpers.findAndHookMethod(springboardActivity, "onCreate", Bundle.class, new XC_MethodHook() {
                 protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                     Activity activity = (Activity) param.thisObject;
-                    DisplayHelper.restart(activity, res);
+                    DisplayUtils.restart(activity, res);
                 }
             });
             Intent intent = new Intent(activity, springboardActivity);

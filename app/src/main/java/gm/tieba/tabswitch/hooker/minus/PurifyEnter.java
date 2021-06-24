@@ -16,7 +16,7 @@ import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.AcRules;
-import gm.tieba.tabswitch.util.DisplayHelper;
+import gm.tieba.tabswitch.util.DisplayUtils;
 
 public class PurifyEnter extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
@@ -45,13 +45,12 @@ public class PurifyEnter extends BaseHooker implements IHooker {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                         Activity activity = (Activity) param.thisObject;
+                        Class<?> clazz = XposedHelpers.findClass("com.baidu.card.view.RecommendForumLayout", sClassLoader);
                         Method method;
                         try {
-                            method = sClassLoader.loadClass("com.baidu.card.view.RecommendForumLayout")
-                                    .getDeclaredMethod("initUI");
+                            method = clazz.getDeclaredMethod("initUI");
                         } catch (NoSuchMethodException e) {
-                            method = sClassLoader.loadClass("com.baidu.card.view.RecommendForumLayout")
-                                    .getDeclaredMethod("b");
+                            method = clazz.getDeclaredMethod("b");
                         }
                         XposedBridge.hookMethod(method, new XC_MethodHook() {
                             @Override
@@ -62,7 +61,7 @@ public class PurifyEnter extends BaseHooker implements IHooker {
                                         View view = (View) field.get(param.thisObject);
                                         view.setVisibility(View.INVISIBLE);
                                         ViewGroup.LayoutParams lp = view.getLayoutParams();
-                                        lp.height = DisplayHelper.dipToPx(activity, 7);
+                                        lp.height = DisplayUtils.dipToPx(activity, 7);
                                     }
                                 }
                             }

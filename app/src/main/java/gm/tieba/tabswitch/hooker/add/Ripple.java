@@ -17,8 +17,8 @@ import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.AcRules;
-import gm.tieba.tabswitch.util.DisplayHelper;
-import gm.tieba.tabswitch.util.Reflect;
+import gm.tieba.tabswitch.util.DisplayUtils;
+import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class Ripple extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
@@ -31,7 +31,7 @@ public class Ripple extends BaseHooker implements IHooker {
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                         View newSubPbListItem = (View) param.getResult();
                         View view = newSubPbListItem.findViewById(
-                                Reflect.getId("new_sub_pb_list_richText"));
+                                ReflectUtils.getId("new_sub_pb_list_richText"));
                         view.setBackground(createSubPbBackground());
                     }
                 });
@@ -61,7 +61,7 @@ public class Ripple extends BaseHooker implements IHooker {
                             field.setAccessible(true);
                             if (field.get(param.thisObject) instanceof LinearLayout) {
                                 View view = (View) field.get(param.thisObject);
-                                if (view.getId() == Reflect.getId("all_content")) {
+                                if (view.getId() == ReflectUtils.getId("all_content")) {
                                     view.setBackground(createBackground());
                                     return;
                                 }
@@ -74,12 +74,12 @@ public class Ripple extends BaseHooker implements IHooker {
     private StateListDrawable createBackground() throws Throwable {
         StateListDrawable sld = new StateListDrawable();
         sld.addState(new int[]{android.R.attr.state_pressed},
-                new ColorDrawable(Reflect.getColor("CAM_X0204")));
+                new ColorDrawable(ReflectUtils.getColor("CAM_X0204")));
         return sld;
     }
 
     private StateListDrawable createSubPbBackground() throws Throwable {
-        if (!DisplayHelper.getTbSkin(getContext()).equals("")) {
+        if (!DisplayUtils.getTbSkin(getContext()).equals("")) {
             return createBackground();
         } else {
             StateListDrawable sld = new StateListDrawable();

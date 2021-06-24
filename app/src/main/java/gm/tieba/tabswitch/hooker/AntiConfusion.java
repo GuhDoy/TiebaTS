@@ -29,6 +29,7 @@ import java.util.zip.ZipFile;
 
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
+import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
@@ -49,7 +50,7 @@ public class AntiConfusion extends BaseHooker implements IHooker {
     }
 
     public void hook() throws Throwable {
-        for (Method method : sClassLoader.loadClass("com.baidu.tieba.LogoActivity").getDeclaredMethods()) {
+        for (Method method : XposedHelpers.findClass("com.baidu.tieba.LogoActivity", sClassLoader).getDeclaredMethods()) {
             if (!method.getName().startsWith("on") && Arrays.toString(method.getParameterTypes())
                     .equals("[class android.os.Bundle]")) {
                 XposedBridge.hookMethod(method, new XC_MethodReplacement() {
@@ -70,8 +71,8 @@ public class AntiConfusion extends BaseHooker implements IHooker {
                         } else if (!AntiConfusionHelper.getRulesLost().isEmpty()) {
                             AntiConfusionHelper.matcherList = AntiConfusionHelper.getRulesLost();
                         } else {
-                            AntiConfusionHelper.saveAndRestart(mActivity, AntiConfusionHelper
-                                    .getTbVersion(mActivity), sClassLoader.loadClass(SPRINGBOARD_ACTIVITY), sRes);
+                            AntiConfusionHelper.saveAndRestart(mActivity, AntiConfusionHelper.getTbVersion(mActivity),
+                                    XposedHelpers.findClass(SPRINGBOARD_ACTIVITY, sClassLoader), sRes);
                         }
                         new RulesDbHelper(mActivity.getApplicationContext()).getReadableDatabase();
 
@@ -144,8 +145,7 @@ public class AntiConfusion extends BaseHooker implements IHooker {
                                         itemCount++;
                                         setProgress("搜索", (float) itemCount / totalItemCount);
 
-                                        ClassDefItem classItem = dex.ClassDefsSection
-                                                .getItemByIndex(indexes.get(j));
+                                        ClassDefItem classItem = dex.ClassDefsSection.getItemByIndex(indexes.get(j));
                                         AntiConfusionHelper.searchAndSave(classItem, 0, db);
                                         AntiConfusionHelper.searchAndSave(classItem, 1, db);
                                     }
@@ -157,8 +157,8 @@ public class AntiConfusion extends BaseHooker implements IHooker {
                                 Preferences.putSignature(Arrays.hashCode(bytes));
                                 XposedBridge.log("anti-confusion accomplished, current version: "
                                         + AntiConfusionHelper.getTbVersion(mActivity));
-                                AntiConfusionHelper.saveAndRestart(mActivity, AntiConfusionHelper
-                                        .getTbVersion(mActivity), sClassLoader.loadClass(SPRINGBOARD_ACTIVITY), sRes);
+                                AntiConfusionHelper.saveAndRestart(mActivity, AntiConfusionHelper.getTbVersion(mActivity),
+                                        XposedHelpers.findClass(SPRINGBOARD_ACTIVITY, sClassLoader), sRes);
                             } catch (Throwable e) {
                                 XposedBridge.log(e);
                                 mActivity.runOnUiThread(() -> mMessage.setText(String.format(

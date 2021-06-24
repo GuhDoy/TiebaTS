@@ -16,6 +16,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -23,7 +24,6 @@ import java.util.Random;
 
 import dalvik.system.PathClassLoader;
 import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.BuildConfig;
 import gm.tieba.tabswitch.dao.Preferences;
@@ -171,7 +171,9 @@ public class TraceChecker extends BaseHooker {
                     .getDeclaredMethod("getService", String.class).invoke(null, "package");
             Object iPackageManager = Class.forName("android.content.pm.IPackageManager$Stub")
                     .getDeclaredMethod("asInterface", IBinder.class).invoke(null, service);
-            Class<?> mPMClass = XposedHelpers.getObjectField(pm, "mPM").getClass();
+            Field field = pm.getClass().getDeclaredField("mPM");
+            field.setAccessible(true);
+            Class<?> mPMClass = field.get(pm).getClass();
             if (!mPMClass.equals(iPackageManager.getClass())) {
                 result.addTrace(FAKE, mPMClass.getName());
             }

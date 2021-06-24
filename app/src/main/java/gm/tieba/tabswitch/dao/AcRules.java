@@ -29,7 +29,7 @@ public class AcRules {
         db.close();
     }
 
-    public static void findRule(Object... rulesAndCallback) throws Throwable {
+    public static void findRule(Object... rulesAndCallback) {
         if (rulesAndCallback.length != 0
                 && rulesAndCallback[rulesAndCallback.length - 1] instanceof Callback) {
             Callback callback = (Callback) rulesAndCallback[rulesAndCallback.length - 1];
@@ -65,6 +65,6 @@ public class AcRules {
     }
 
     public interface Callback {
-        void onRuleFound(String rule, String clazz, String method) throws Throwable;
+        void onRuleFound(String rule, String clazz, String method);
     }
 }

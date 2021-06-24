@@ -14,7 +14,7 @@ import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.widget.TbToast;
 
-public class DisplayHelper {
+public class DisplayUtils {
     public static boolean isLightMode(Context context) {
         return (context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
                 == Configuration.UI_MODE_NIGHT_NO;

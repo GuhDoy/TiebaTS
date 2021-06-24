@@ -12,8 +12,8 @@ public class Parser extends BaseHooker {
     public static List<String> parseMainTabActivityConfig() {
         List<String> mainTabActivityConfig = new ArrayList<>();
         try {
-            for (Field field : sClassLoader.loadClass(
-                    "com.baidu.tbadk.core.atomData.MainTabActivityConfig").getDeclaredFields()) {
+            for (Field field : XposedHelpers.findClass("com.baidu.tbadk.core.atomData.MainTabActivityConfig",
+                    sClassLoader).getDeclaredFields()) {
                 if (!field.getType().equals(boolean.class)) continue;
                 String name = field.getName();
                 if (!name.equals("PERSON_TAB_AVAIBLE")

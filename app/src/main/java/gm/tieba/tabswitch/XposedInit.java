@@ -38,13 +38,12 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
     public static String sPath;
     private Resources mRes;
 
-    @SuppressWarnings("JavaReflectionMemberAccess")
     @SuppressLint("DiscouragedPrivateApi")
     @Override
     public void initZygote(IXposedHookZygoteInit.StartupParam startupParam) throws Throwable {
         sPath = startupParam.modulePath;
         AssetManager assetManager = AssetManager.class.newInstance();
-        AssetManager.class.getDeclaredMethod("addAssetPath", String.class).invoke(assetManager, sPath);
+        XposedHelpers.callMethod(assetManager, "addAssetPath", sPath);
         mRes = new Resources(assetManager, null, null);
     }
 
@@ -114,7 +113,7 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
                 XposedHelpers.findAndHookMethod("com.baidu.netdisk.ui.transfer.TransferListTabActivity", classLoader,
                         "initYouaGuideView", XC_MethodReplacement.returnConstant(null));
                 // "show or close "
-                for (Method method : classLoader.loadClass("com.baidu.netdisk.homepage.ui.card.____").getDeclaredMethods()) {
+                for (Method method : XposedHelpers.findClass("com.baidu.netdisk.homepage.ui.card.____", classLoader).getDeclaredMethods()) {
                     if (Arrays.toString(method.getParameterTypes()).equals("[boolean]")) {
                         XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(null));
                     }
@@ -125,7 +124,7 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
                 XposedHelpers.findAndHookMethod("com.baidu.netdisk.preview.video.model._", classLoader,
                         "getAdTime", XC_MethodReplacement.returnConstant(0));
 
-                for (Method method : classLoader.loadClass("com.baidu.netdisk.media.speedup.SpeedUpModle").getDeclaredMethods()) {
+                for (Method method : XposedHelpers.findClass("com.baidu.netdisk.media.speedup.SpeedUpModle", classLoader).getDeclaredMethods()) {
                     if (method.getReturnType().equals(boolean.class)) {
                         XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(true));
                     }

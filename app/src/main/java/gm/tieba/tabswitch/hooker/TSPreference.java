@@ -28,9 +28,9 @@ import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.TSPreferenceHelper.SwitchButtonHolder;
 import gm.tieba.tabswitch.hooker.add.MyAttention;
-import gm.tieba.tabswitch.util.DisplayHelper;
+import gm.tieba.tabswitch.util.DisplayUtils;
 import gm.tieba.tabswitch.util.Parser;
-import gm.tieba.tabswitch.util.Reflect;
+import gm.tieba.tabswitch.util.ReflectUtils;
 import gm.tieba.tabswitch.util.TraceChecker;
 import gm.tieba.tabswitch.widget.NavigationBar;
 import gm.tieba.tabswitch.widget.TbDialog;
@@ -69,7 +69,7 @@ public class TSPreference extends BaseHooker implements IHooker {
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                         Activity activity = (Activity) param.thisObject;
                         FrameLayout browseSetting = activity.findViewById(
-                                Reflect.getId("browseSetting"));
+                                ReflectUtils.getId("browseSetting"));
                         LinearLayout parent = (LinearLayout) browseSetting.getParent();
                         parent.addView(TSPreferenceHelper.createButton(MAIN, null,
                                 v -> startMainPreferenceActivity(activity)), 11);
@@ -109,8 +109,8 @@ public class TSPreference extends BaseHooker implements IHooker {
     private void proxyPage(Activity activity, NavigationBar navigationBar, String title,
                            LinearLayout preferenceLayout) throws Throwable {
         navigationBar.setTitleText(title);
-        navigationBar.addTextButton("重启", v -> DisplayHelper.restart(activity, sRes));
-        LinearLayout containerView = activity.findViewById(Reflect.getId("container_view"));
+        navigationBar.addTextButton("重启", v -> DisplayUtils.restart(activity, sRes));
+        LinearLayout containerView = activity.findViewById(ReflectUtils.getId("container_view"));
         containerView.removeAllViews();
         containerView.addView(preferenceLayout);
     }
@@ -202,7 +202,7 @@ public class TSPreference extends BaseHooker implements IHooker {
         preferenceLayout.addView(new SwitchButtonHolder(activity, "保存图片重定向", "redirect_image", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "禁用帖子手势", "forbid_gesture", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "用赞踩差数代替赞数", "agree_num", SwitchButtonHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "交换吧热门与最新", "frs_tab", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(activity, "吧页面起始页面改为最新", "frs_tab", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(TSPreferenceHelper.createButton(TRACE, "希望有一天不再需要贴吧TS", v -> {
             Intent intent = new Intent().setClassName(activity, PROXY_ACTIVITY);
             intent.putExtra("proxyPage", TRACE);

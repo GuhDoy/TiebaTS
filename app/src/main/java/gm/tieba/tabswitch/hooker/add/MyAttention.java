@@ -77,7 +77,7 @@ public class MyAttention extends BaseHooker implements IHooker {
         editText.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE || event != null
                     && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-                bdAlert.getYesButton().performClick();
+                bdAlert.findYesButton().performClick();
                 return true;
             }
             return false;

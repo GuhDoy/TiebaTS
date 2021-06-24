@@ -23,8 +23,8 @@ import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.AcRules;
-import gm.tieba.tabswitch.util.DisplayHelper;
-import gm.tieba.tabswitch.util.Reflect;
+import gm.tieba.tabswitch.util.DisplayUtils;
+import gm.tieba.tabswitch.util.ReflectUtils;
 import gm.tieba.tabswitch.widget.TbDialog;
 import gm.tieba.tabswitch.widget.TbEditText;
 import gm.tieba.tabswitch.widget.TbToast;
@@ -38,17 +38,17 @@ public class ThreadStore extends BaseHooker implements IHooker {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                         Activity activity = (Activity) param.thisObject;
-                        TextView edit = activity.findViewById(Reflect.getId("right_textview"));
+                        TextView edit = activity.findViewById(ReflectUtils.getId("right_textview"));
                         TextView textView = new TextView(activity);
                         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
                                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                         layoutParams.setMargins(60, 0, 20, 0);
                         textView.setLayoutParams(layoutParams);
-                        textView.setTextSize(DisplayHelper.pxToDip(activity, edit.getTextSize()));
+                        textView.setTextSize(DisplayUtils.pxToDip(activity, edit.getTextSize()));
                         textView.setTextColor(edit.getTextColors());
                         textView.setText("搜索");
                         LinearLayout naviRightButton = activity.findViewById(
-                                Reflect.getId("navi_right_button"));
+                                ReflectUtils.getId("navi_right_button"));
                         naviRightButton.addView(textView);
                         textView.setOnClickListener(v -> showRegexDialog(activity));
                     }
@@ -129,7 +129,7 @@ public class ThreadStore extends BaseHooker implements IHooker {
         editText.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH || event != null
                     && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-                bdAlert.getYesButton().performClick();
+                bdAlert.findYesButton().performClick();
                 return true;
             }
             return false;

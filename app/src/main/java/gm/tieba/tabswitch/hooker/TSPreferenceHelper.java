@@ -22,10 +22,11 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import de.robv.android.xposed.XposedBridge;
+import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.Preferences;
-import gm.tieba.tabswitch.util.Reflect;
+import gm.tieba.tabswitch.util.ReflectUtils;
 import gm.tieba.tabswitch.widget.Switch;
 import gm.tieba.tabswitch.widget.TbDialog;
 import gm.tieba.tabswitch.widget.TbEditText;
@@ -33,41 +34,35 @@ import gm.tieba.tabswitch.widget.TbToast;
 
 public class TSPreferenceHelper extends BaseHooker {
     public static TextView createTextView(String text) {
-        try {
-            TextView textView = new TextView(getContext());
-            textView.setText(text);
-            textView.setTextColor(Reflect.getColor("CAM_X0108"));
-            textView.setTextSize(Reflect.getDimenDip("fontsize28"));
-            LinearLayout.LayoutParams layoutParams;
-            if (text != null) {
-                textView.setPadding((int) Reflect.getDimen("ds30"),
-                        (int) Reflect.getDimen("ds32"), 0,
-                        (int) Reflect.getDimen("ds10"));
-                layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT);
-            } else {
-                layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                        (int) Reflect.getDimen("ds32"));
-            }
-            textView.setLayoutParams(layoutParams);
-            return textView;
-        } catch (Throwable e) {
-            XposedBridge.log(e);
+        TextView textView = new TextView(getContext());
+        textView.setText(text);
+        textView.setTextColor(ReflectUtils.getColor("CAM_X0108"));
+        textView.setTextSize(ReflectUtils.getDimenDip("fontsize28"));
+        LinearLayout.LayoutParams layoutParams;
+        if (text != null) {
+            textView.setPadding((int) ReflectUtils.getDimen("ds30"),
+                    (int) ReflectUtils.getDimen("ds32"), 0,
+                    (int) ReflectUtils.getDimen("ds10"));
+            layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT);
+        } else {
+            layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                    (int) ReflectUtils.getDimen("ds32"));
         }
-        throw new NullPointerException("create text view failed");
+        textView.setLayoutParams(layoutParams);
+        return textView;
     }
 
     public static LinearLayout createButton(String text, String tip, View.OnClickListener l) {
+        Object textTipView = XposedHelpers.newInstance(XposedHelpers.findClass(
+                "com.baidu.tbadk.coreExtra.view.TbSettingTextTipView", sClassLoader), getContext());
+        XposedHelpers.callMethod(textTipView, "setText", text);
+        XposedHelpers.callMethod(textTipView, "setTip", tip);
         try {
-            Class<?> TbSettingTextTipView = sClassLoader.loadClass(
-                    "com.baidu.tbadk.coreExtra.view.TbSettingTextTipView");
-            Object instance = TbSettingTextTipView.getConstructor(Context.class).newInstance(getContext());
-            TbSettingTextTipView.getDeclaredMethod("setText", String.class).invoke(instance, text);
-            TbSettingTextTipView.getDeclaredMethod("setTip", String.class).invoke(instance, tip);
-            for (Field field : instance.getClass().getDeclaredFields()) {
+            for (Field field : textTipView.getClass().getDeclaredFields()) {
                 field.setAccessible(true);
-                if (field.get(instance) instanceof LinearLayout) {
-                    LinearLayout newButton = (LinearLayout) field.get(instance);
+                if (field.get(textTipView) instanceof LinearLayout) {
+                    LinearLayout newButton = (LinearLayout) field.get(textTipView);
                     ((ViewGroup) newButton.getParent()).removeView(newButton);
                     if (l != null) newButton.setOnClickListener(l);
                     return newButton;
@@ -152,7 +147,7 @@ public class TSPreferenceHelper extends BaseHooker {
                     break;
             }
             try {
-                switchButton.findViewById(Reflect.getId("arrow2")).setVisibility(View.GONE);
+                switchButton.findViewById(ReflectUtils.getId("arrow2")).setVisibility(View.GONE);
                 switchButton.addView(bdSwitchView);
             } catch (Throwable e) {
                 XposedBridge.log(e);
@@ -191,7 +186,7 @@ public class TSPreferenceHelper extends BaseHooker {
             editText.setOnEditorActionListener((v, actionId, event) -> {
                 if (actionId == EditorInfo.IME_ACTION_DONE || event != null
                         && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-                    bdAlert.getYesButton().performClick();
+                    bdAlert.findYesButton().performClick();
                     return true;
                 }
                 return false;

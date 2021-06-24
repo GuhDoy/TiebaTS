@@ -19,30 +19,6 @@ import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.dao.AcRules;
 
 public class OriginSrc extends BaseHooker implements IHooker {
-    @SuppressLint("MissingPermission")
-    public void hook() throws Throwable {
-        NetworkCallbackImpl networkCallback = new NetworkCallbackImpl();
-        NetworkRequest.Builder builder = new NetworkRequest.Builder();
-        NetworkRequest request = builder.build();
-        ConnectivityManager connMgr = (ConnectivityManager) getContext().getSystemService(
-                Context.CONNECTIVITY_SERVICE);
-        if (connMgr != null) connMgr.registerNetworkCallback(request, networkCallback);
-    }
-
-    private static class NetworkCallbackImpl extends ConnectivityManager.NetworkCallback {
-        NetworkCallbackImpl() {
-        }
-
-        @Override
-        public void onCapabilitiesChanged(Network network, NetworkCapabilities networkCapabilities) {
-            super.onCapabilitiesChanged(network, networkCapabilities);
-            if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-                    && networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
-                doHook();
-            }
-        }
-    }
-
     private static void doHook() {
         try {
             AcRules.findRule("\"pic_amount\"", new AcRules.Callback() {
@@ -93,5 +69,29 @@ public class OriginSrc extends BaseHooker implements IHooker {
                 }
             }
         });
+    }
+
+    @SuppressLint("MissingPermission")
+    public void hook() throws Throwable {
+        NetworkCallbackImpl networkCallback = new NetworkCallbackImpl();
+        NetworkRequest.Builder builder = new NetworkRequest.Builder();
+        NetworkRequest request = builder.build();
+        ConnectivityManager connMgr = (ConnectivityManager) getContext().getSystemService(
+                Context.CONNECTIVITY_SERVICE);
+        if (connMgr != null) connMgr.registerNetworkCallback(request, networkCallback);
+    }
+
+    private static class NetworkCallbackImpl extends ConnectivityManager.NetworkCallback {
+        NetworkCallbackImpl() {
+        }
+
+        @Override
+        public void onCapabilitiesChanged(Network network, NetworkCapabilities networkCapabilities) {
+            super.onCapabilitiesChanged(network, networkCapabilities);
+            if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+                    && networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                doHook();
+            }
+        }
     }
 }

@@ -39,7 +39,7 @@ public class HistoryCache extends BaseHooker implements IHooker {
                                 .addTextButton("搜索", v -> showRegexDialog(activity));
                     }
                 });
-        for (Method method : sClassLoader.loadClass("com.baidu.tieba.myCollection.history.PbHistoryActivity").getDeclaredMethods()) {
+        for (Method method : XposedHelpers.findClass("com.baidu.tieba.myCollection.history.PbHistoryActivity", sClassLoader).getDeclaredMethods()) {
             if (Arrays.toString(method.getParameterTypes()).equals("[interface java.util.List]")) {
                 XposedBridge.hookMethod(method, new XC_MethodHook() {
                     @Override
@@ -108,7 +108,7 @@ public class HistoryCache extends BaseHooker implements IHooker {
         editText.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH || event != null
                     && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-                bdAlert.getYesButton().performClick();
+                bdAlert.findYesButton().performClick();
                 return true;
             }
             return false;

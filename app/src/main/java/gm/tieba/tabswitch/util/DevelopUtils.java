@@ -7,18 +7,20 @@ import java.lang.reflect.Method;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
+import de.robv.android.xposed.XposedHelpers;
+import gm.tieba.tabswitch.BaseHooker;
 
-public class Development {
-    public static void logJSONObject() throws Throwable {
+public class DevelopUtils extends BaseHooker {
+    public static void logJSONObject() {
         XposedBridge.hookAllConstructors(JSONObject.class, new XC_MethodHook() {
             @Override
-            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+            protected void afterHookedMethod(MethodHookParam param) {
                 XposedBridge.log(String.valueOf(param.args[0]));
             }
         });
     }
 
-    private static void logMethod(Method method) throws Throwable {
+    private static void logMethod(Method method) {
         XposedBridge.hookMethod(method, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) {
@@ -27,35 +29,35 @@ public class Development {
         });
     }
 
-    public static void logMethods(String className, ClassLoader classLoader) throws Throwable {
-        for (Method method : classLoader.loadClass(className).getDeclaredMethods()) {
+    public static void logMethods(String className) {
+        for (Method method : XposedHelpers.findClass(className, sClassLoader).getDeclaredMethods()) {
             logMethod(method);
         }
     }
 
-    public static void logMethods(String className, ClassLoader classLoader, String methodName) throws Throwable {
-        for (Method method : classLoader.loadClass(className).getDeclaredMethods()) {
+    public static void logMethods(String className, String methodName) {
+        for (Method method : XposedHelpers.findClass(className, sClassLoader).getDeclaredMethods()) {
             if (method.getName().equals(methodName)) {
                 logMethod(method);
             }
         }
     }
 
-    public static void disableMethods(String className, ClassLoader classLoader) throws Throwable {
-        for (Method method : classLoader.loadClass(className).getDeclaredMethods()) {
+    public static void disableMethods(String className) {
+        for (Method method : XposedHelpers.findClass(className, sClassLoader).getDeclaredMethods()) {
             disableMethod(method);
         }
     }
 
-    public static void disableMethods(String className, ClassLoader classLoader, String methodName) throws Throwable {
-        for (Method method : classLoader.loadClass(className).getDeclaredMethods()) {
+    public static void disableMethods(String className, String methodName) {
+        for (Method method : XposedHelpers.findClass(className, sClassLoader).getDeclaredMethods()) {
             if (method.getName().equals(methodName)) {
                 disableMethod(method);
             }
         }
     }
 
-    private static void disableMethod(Method method) throws Throwable {
+    private static void disableMethod(Method method) {
         if (method.getReturnType().equals(boolean.class)) {
             XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(true));
         } else {
