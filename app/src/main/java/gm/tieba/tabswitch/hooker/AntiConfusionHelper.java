@@ -48,8 +48,9 @@ public class AntiConfusionHelper {
         matcherList.add(res.getString(R.string.Ripple));
         matcherList.add(res.getString(R.string.ThreadStore));
         matcherList.add(res.getString(R.string.NewSub));
-        matcherList.add(res.getString(R.string.StorageRedirect));
+        matcherList.add(res.getString(R.string.RedirectImage));
         matcherList.add(res.getString(R.string.ForbidGesture));
+        matcherList.add(res.getString(R.string.FrsTab));
     }
 
     public static List<String> getRulesLost() {

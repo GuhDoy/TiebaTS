@@ -31,7 +31,7 @@ import gm.tieba.tabswitch.util.IO;
 
 public class RedirectImage extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
-        AcRules.findRule(sRes.getString(R.string.StorageRedirect), new AcRules.Callback() {
+        AcRules.findRule(sRes.getString(R.string.RedirectImage), new AcRules.Callback() {
             @Override
             public void onRuleFound(String rule, String clazz, String method) {
                 for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {

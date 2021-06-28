@@ -24,6 +24,7 @@
     <string name="Ripple">Lcom/baidu/tieba/R$layout;->new_sub_pb_list_item:I</string>
     <string name="ThreadStore">\"c/f/post/threadstore\"</string>
     <string name="NewSub">Lcom/baidu/tieba/R$id;->subpb_head_user_info_root:I</string>
-    <string name="StorageRedirect">0x4197d783fc000000L</string>
+    <string name="RedirectImage">0x4197d783fc000000L</string>
     <string name="ForbidGesture">Lcom/baidu/tieba/R$id;->new_pb_list:I</string>
+    <string name="FrsTab">\"from_pb_or_person\"</string>
 </resources>
