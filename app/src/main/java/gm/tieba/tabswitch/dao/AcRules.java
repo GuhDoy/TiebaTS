@@ -15,18 +15,18 @@ public class AcRules {
 
     public static void init(Context context) {
         sRulesFromDb = new ArrayList<>();
-        SQLiteDatabase db = context.openOrCreateDatabase("Rules.db", Context.MODE_PRIVATE, null);
-        Cursor c = db.query("rules", null, null, null, null, null, null);
-        for (int i = 0; i < c.getCount(); i++) {
-            c.moveToNext();
-            Map<String, String> map = new ArrayMap<>();
-            map.put("rule", c.getString(1));
-            map.put("class", c.getString(2));
-            map.put("method", c.getString(3));
-            sRulesFromDb.add(map);
+        try (SQLiteDatabase db = context.openOrCreateDatabase("Rules.db", Context.MODE_PRIVATE, null)) {
+            try (Cursor c = db.query("rules", null, null, null, null, null, null)) {
+                for (int i = 0; i < c.getCount(); i++) {
+                    c.moveToNext();
+                    Map<String, String> map = new ArrayMap<>();
+                    map.put("rule", c.getString(1));
+                    map.put("class", c.getString(2));
+                    map.put("method", c.getString(3));
+                    sRulesFromDb.add(map);
+                }
+            }
         }
-        c.close();
-        db.close();
     }
 
     public static void findRule(Object... rulesAndCallback) {

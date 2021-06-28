@@ -88,7 +88,7 @@ public class RedirectImage extends BaseHooker implements IHooker {
                 appContext.sendBroadcast(scanIntent);
             }
             return 0;
-        } catch (IOException e) {
+        } catch (IOException | NullPointerException e) {
             XposedBridge.log(e);
             return -1;
         }

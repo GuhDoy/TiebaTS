@@ -10,6 +10,10 @@ import gm.tieba.tabswitch.BuildConfig;
 import gm.tieba.tabswitch.IHooker;
 
 public class Hide extends BaseHooker implements IHooker {
+    /**
+     * @deprecated hook VMStack_getThreadStackTrace instead.
+     */
+    @Deprecated
     @Override
     public void hook() throws Throwable {
         for (Class<?> clazz : new Class<?>[]{Throwable.class, Thread.class}) {

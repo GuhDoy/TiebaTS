@@ -97,8 +97,8 @@ public class XposedInit implements IXposedHookLoadPackage, IXposedHookZygoteInit
                         return;
                     }
 
-                    new Adp(classLoader, context, mRes);
                     new TSPreference(classLoader, context, mRes).hook();
+                    new Adp();
                     for (Map.Entry<String, ?> entry : Preferences.getAll().entrySet()) {
                         BaseHooker.init(entry);
                     }

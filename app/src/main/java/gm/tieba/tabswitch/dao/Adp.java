@@ -1,7 +1,6 @@
 package gm.tieba.tabswitch.dao;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
@@ -25,8 +24,7 @@ public class Adp extends BaseHooker {
     public Set<String> follows = new HashSet<>();
     private SQLiteDatabase mDb;
 
-    public Adp(ClassLoader classLoader, Context context, Resources res) {
-        super(classLoader, context, res);
+    public Adp() {
         sAdp = this;
         getAccountData();
         refreshCache();
@@ -77,33 +75,32 @@ public class Adp extends BaseHooker {
 
     public synchronized Adp parseDatabase() throws JSONException {
         String myPagesTable = null;
-        mDb = getContext().openOrCreateDatabase("baidu_adp.db", Context.MODE_PRIVATE,
-                null);
-        Cursor c = mDb.query("cache_meta_info", null, null, null, null, null, null);
-        for (int i = 0; i < c.getCount(); i++) {
-            c.moveToNext();
-            String nameSpace = c.getString(0);
-            if ("tb.my_pages".equals(nameSpace)) {
-                myPagesTable = c.getString(1);
+        mDb = getContext().openOrCreateDatabase("baidu_adp.db", Context.MODE_PRIVATE, null);
+        try (Cursor c = mDb.query("cache_meta_info", null, null, null, null, null, null)) {
+            for (int i = 0; i < c.getCount(); i++) {
+                c.moveToNext();
+                String nameSpace = c.getString(0);
+                if ("tb.my_pages".equals(nameSpace)) {
+                    myPagesTable = c.getString(1);
+                }
             }
         }
-        c.close();
         parseMyPages(myPagesTable);
         mDb.close();
         return this;
     }
 
     private void parseMyPages(String tableName) throws JSONException {
-        Cursor c = mDb.query(tableName, null, null, null, null, null, null);
-        c.moveToNext();
-        String mValue = c.getString(4);
-        JSONObject jsonObject = new JSONObject(mValue);
-        JSONArray followList = jsonObject.optJSONArray("follow_list");
-        for (int i = 0; i < followList.length(); i++) {
-            JSONObject follow = followList.optJSONObject(i);
-            String name = follow.getString("name_show");
-            follows.add(name);
+        try (Cursor c = mDb.query(tableName, null, null, null, null, null, null)) {
+            c.moveToNext();
+            String mValue = c.getString(4);
+            JSONObject jsonObject = new JSONObject(mValue);
+            JSONArray followList = jsonObject.optJSONArray("follow_list");
+            for (int i = 0; i < followList.length(); i++) {
+                JSONObject follow = followList.optJSONObject(i);
+                String name = follow.getString("name_show");
+                follows.add(name);
+            }
         }
-        c.close();
     }
 }
