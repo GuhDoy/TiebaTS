@@ -21,7 +21,7 @@ import gm.tieba.tabswitch.hooker.auto.EyeshieldMode;
 import gm.tieba.tabswitch.hooker.auto.OpenSign;
 import gm.tieba.tabswitch.hooker.auto.OriginSrc;
 import gm.tieba.tabswitch.hooker.extra.ForbidGesture;
-import gm.tieba.tabswitch.hooker.extra.FrsTab;
+import gm.tieba.tabswitch.hooker.auto.FrsTab;
 import gm.tieba.tabswitch.hooker.extra.Hide;
 import gm.tieba.tabswitch.hooker.extra.RedirectImage;
 import gm.tieba.tabswitch.hooker.extra.StackTrace;

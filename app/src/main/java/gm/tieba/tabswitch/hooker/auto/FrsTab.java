@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hooker.extra;
+package gm.tieba.tabswitch.hooker.auto;
 
 import java.util.List;
 
@@ -27,18 +27,15 @@ public class FrsTab extends BaseHooker implements IHooker {
                 }
             }
         });
-        AcRules.findRule(sRes.getString(R.string.FrsTab), new AcRules.Callback() {
-            @Override
-            public void onRuleFound(String rule, String clazz, String method) {
-                if (!"com.baidu.tieba.frs.vc.FrsTabViewController".equals(clazz)) return;
-                XposedHelpers.findAndHookMethod("com.baidu.tieba.frs.vc.FrsTabViewController", sClassLoader, method, new XC_MethodHook() {
-                    @Override
-                    public void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        Object viewPager = ReflectUtils.getObjectField(param.thisObject, "com.baidu.tieba.frs.FrsTabViewPager");
-                        XposedHelpers.callMethod(viewPager, "setCurrentItem", mPosition, false);
-                    }
-                });
-            }
+        AcRules.findRule(sRes.getString(R.string.FrsTab), (AcRules.Callback) (rule, clazz, method) -> {
+            if (!"com.baidu.tieba.frs.vc.FrsTabViewController".equals(clazz)) return;
+            XposedHelpers.findAndHookMethod("com.baidu.tieba.frs.vc.FrsTabViewController", sClassLoader, method, new XC_MethodHook() {
+                @Override
+                public void afterHookedMethod(MethodHookParam param) throws Throwable {
+                    Object viewPager = ReflectUtils.getObjectField(param.thisObject, "com.baidu.tieba.frs.FrsTabViewPager");
+                    XposedHelpers.callMethod(viewPager, "setCurrentItem", mPosition, false);
+                }
+            });
         });
     }
 }

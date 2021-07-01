@@ -24,9 +24,7 @@ import gm.tieba.tabswitch.util.ReflectUtils;
 @SuppressLint("ClickableViewAccessibility")
 public class ForbidGesture extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
-        AcRules.findRule(sRes.getString(R.string.ForbidGesture), new AcRules.Callback() {
-            @Override
-            public void onRuleFound(String rule, String clazz, String method) {
+        AcRules.findRule(sRes.getString(R.string.ForbidGesture), (AcRules.Callback) (rule, clazz, method) ->
                 XposedBridge.hookAllConstructors(XposedHelpers.findClass(clazz, sClassLoader), new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
@@ -41,9 +39,7 @@ public class ForbidGesture extends BaseHooker implements IHooker {
                             }
                         }
                     }
-                });
-            }
-        });
+                }));
         XposedHelpers.findAndHookMethod("com.baidu.tieba.pb.videopb.fragment.DetailInfoAndReplyFragment", sClassLoader,
                 "onCreateView", LayoutInflater.class, ViewGroup.class, Bundle.class, new XC_MethodHook() {
                     @Override

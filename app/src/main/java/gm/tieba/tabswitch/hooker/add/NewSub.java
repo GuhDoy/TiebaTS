@@ -17,9 +17,7 @@ public class NewSub extends BaseHooker implements IHooker {
     private Object mPostId;
 
     public void hook() throws Throwable {
-        AcRules.findRule(sRes.getString(R.string.NewSub), new AcRules.Callback() {
-            @Override
-            public void onRuleFound(String rule, String clazz, String method) {
+        AcRules.findRule(sRes.getString(R.string.NewSub), (AcRules.Callback) (rule, clazz, method) ->
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
@@ -30,9 +28,7 @@ public class NewSub extends BaseHooker implements IHooker {
                                     .addTextButton("查看主题贴", v -> startPbActivity(activity));
                         }
                     }
-                });
-            }
-        });
+                }));
         XposedHelpers.findAndHookMethod("tbclient.PbFloor.DataRes$Builder", sClassLoader,
                 "build", boolean.class, new XC_MethodHook() {
                     @Override

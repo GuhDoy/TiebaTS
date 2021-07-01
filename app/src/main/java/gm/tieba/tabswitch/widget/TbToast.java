@@ -17,14 +17,11 @@ public class TbToast extends BaseHooker {
 
     @MainThread
     public static void showTbToast(String text, int duration) {
-        AcRules.findRule(sRes.getString(R.string.TbToast), new AcRules.Callback() {
-            @Override
-            public void onRuleFound(String rule, String clazz, String method) {
-                for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
-                    if (Arrays.toString(md.getParameterTypes()).equals(
-                            "[class android.content.Context, class java.lang.String, int]")) {
-                        ReflectUtils.callStaticMethod(md, getContext(), text, duration);
-                    }
+        AcRules.findRule(sRes.getString(R.string.TbToast), (AcRules.Callback) (rule, clazz, method) -> {
+            for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
+                if (Arrays.toString(md.getParameterTypes()).equals(
+                        "[class android.content.Context, class java.lang.String, int]")) {
+                    ReflectUtils.callStaticMethod(md, getContext(), text, duration);
                 }
             }
         });

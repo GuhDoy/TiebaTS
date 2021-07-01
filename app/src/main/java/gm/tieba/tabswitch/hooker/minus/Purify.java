@@ -27,69 +27,66 @@ import gm.tieba.tabswitch.dao.AcRules;
 
 public class Purify extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
-        AcRules.findRule(sRes.getStringArray(R.array.Purify), new AcRules.Callback() {
-            @Override
-            public void onRuleFound(String rule, String clazz, String method) {
-                switch (rule) {
-                    case "\"c/s/splashSchedule\"":// 旧启动广告
-                    case "Lcom/baidu/tieba/recapp/lego/model/AdCard;-><init>(Lorg/json/JSONObject;)V":// 卡片广告
-                        XposedBridge.hookAllMethods(XposedHelpers.findClass(clazz, sClassLoader), method, XC_MethodReplacement.returnConstant(null));
-                        break;
-                    case "\"pic_amount\"":// 图片广告：必须"recom_ala_info", "app", 可选"goods_info"
-                        for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
-                            if (Arrays.toString(md.getParameterTypes()).contains("JSONObject") && !md.getName().equals(method)) {
-                                XposedBridge.hookMethod(md, XC_MethodReplacement.returnConstant(null));
-                            }
+        AcRules.findRule(sRes.getStringArray(R.array.Purify), (AcRules.Callback) (rule, clazz, method) -> {
+            switch (rule) {
+                case "\"c/s/splashSchedule\"":// 旧启动广告
+                case "Lcom/baidu/tieba/recapp/lego/model/AdCard;-><init>(Lorg/json/JSONObject;)V":// 卡片广告
+                    XposedBridge.hookAllMethods(XposedHelpers.findClass(clazz, sClassLoader), method, XC_MethodReplacement.returnConstant(null));
+                    break;
+                case "\"pic_amount\"":// 图片广告：必须"recom_ala_info", "app", 可选"goods_info"
+                    for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
+                        if (Arrays.toString(md.getParameterTypes()).contains("JSONObject") && !md.getName().equals(method)) {
+                            XposedBridge.hookMethod(md, XC_MethodReplacement.returnConstant(null));
                         }
-                        break;
-                    case "\"key_frs_dialog_ad_last_show_time\"":// 吧推广弹窗
-                        for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
-                            if (md.getName().equals(method) && md.getReturnType().toString().equals("boolean")) {
-                                XposedBridge.hookMethod(md, XC_MethodReplacement.returnConstant(true));
-                            }
+                    }
+                    break;
+                case "\"key_frs_dialog_ad_last_show_time\"":// 吧推广弹窗
+                    for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
+                        if (md.getName().equals(method) && md.getReturnType().toString().equals("boolean")) {
+                            XposedBridge.hookMethod(md, XC_MethodReplacement.returnConstant(true));
                         }
-                        break;
-                    case "Lcom/baidu/tieba/R$id;->frs_ad_banner:I":// 吧推广横幅
-                        for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
-                            if (Arrays.toString(md.getParameterTypes()).startsWith("[interface java.util.List, class ")) {
-                                XposedBridge.hookMethod(md, new XC_MethodHook() {
-                                    @Override
-                                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                                        param.args[1] = null;
-                                    }
-                                });
-                            }
-                        }
-                        break;
-                    case "Lcom/baidu/tieba/R$layout;->pb_child_title:I":// 视频相关推荐
-                        if (!("com.baidu.tieba.pb.videopb.fragment.DetailInfoAndReplyFragment").equals(clazz)) {
-                            Class<?> clazz2 = XposedHelpers.findClass("com.baidu.adp.widget.ListView.BdTypeRecyclerView", sClassLoader);
-                            try {
-                                Method md;
-                                try {
-                                    md = clazz2.getDeclaredMethod("addAdapters", List.class);
-                                } catch (NoSuchMethodException e) {
-                                    md = clazz2.getDeclaredMethod("a", List.class);
+                    }
+                    break;
+                case "Lcom/baidu/tieba/R$id;->frs_ad_banner:I":// 吧推广横幅
+                    for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
+                        if (Arrays.toString(md.getParameterTypes()).startsWith("[interface java.util.List, class ")) {
+                            XposedBridge.hookMethod(md, new XC_MethodHook() {
+                                @Override
+                                protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                                    param.args[1] = null;
                                 }
-                                XposedBridge.hookMethod(md, new XC_MethodHook() {
-                                    @Override
-                                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                                        List<?> list = (List<?>) param.args[0];
-                                        for (int i = 0; i < list.size(); i++) {
-                                            if (list.get(i) != null && Objects.equals(clazz, list.get(i).getClass().getName())) {
-                                                list.remove(i);
-                                                list.remove(i);
-                                                return;
-                                            }
+                            });
+                        }
+                    }
+                    break;
+                case "Lcom/baidu/tieba/R$layout;->pb_child_title:I":// 视频相关推荐
+                    if (!("com.baidu.tieba.pb.videopb.fragment.DetailInfoAndReplyFragment").equals(clazz)) {
+                        Class<?> clazz2 = XposedHelpers.findClass("com.baidu.adp.widget.ListView.BdTypeRecyclerView", sClassLoader);
+                        try {
+                            Method md;
+                            try {
+                                md = clazz2.getDeclaredMethod("addAdapters", List.class);
+                            } catch (NoSuchMethodException e) {
+                                md = clazz2.getDeclaredMethod("a", List.class);
+                            }
+                            XposedBridge.hookMethod(md, new XC_MethodHook() {
+                                @Override
+                                protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                                    List<?> list = (List<?>) param.args[0];
+                                    for (int i = 0; i < list.size(); i++) {
+                                        if (list.get(i) != null && Objects.equals(clazz, list.get(i).getClass().getName())) {
+                                            list.remove(i);
+                                            list.remove(i);
+                                            return;
                                         }
                                     }
-                                });
-                            } catch (NoSuchMethodException e) {
-                                XposedBridge.log(e);
-                            }
+                                }
+                            });
+                        } catch (NoSuchMethodException e) {
+                            XposedBridge.log(e);
                         }
-                        break;
-                }
+                    }
+                    break;
             }
         });
         // 启动广告

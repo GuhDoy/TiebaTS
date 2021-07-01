@@ -23,9 +23,7 @@ import gm.tieba.tabswitch.util.ReflectUtils;
 public class Ripple extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
         // 楼中楼
-        AcRules.findRule(sRes.getString(R.string.Ripple), new AcRules.Callback() {
-            @Override
-            public void onRuleFound(String rule, String clazz, String method) {
+        AcRules.findRule(sRes.getString(R.string.Ripple), (AcRules.Callback) (rule, clazz, method) ->
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
@@ -34,9 +32,7 @@ public class Ripple extends BaseHooker implements IHooker {
                                 ReflectUtils.getId("new_sub_pb_list_richText"));
                         view.setBackground(createSubPbBackground());
                     }
-                });
-            }
-        });
+                }));
         // 查看全部回复
         XposedHelpers.findAndHookConstructor("com.baidu.tieba.pb.pb.sub.SubPbLayout", sClassLoader,
                 Context.class, AttributeSet.class, new XC_MethodHook() {

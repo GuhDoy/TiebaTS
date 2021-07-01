@@ -53,9 +53,7 @@ public class ThreadStore extends BaseHooker implements IHooker {
                         textView.setOnClickListener(v -> showRegexDialog(activity));
                     }
                 });
-        AcRules.findRule(sRes.getString(R.string.ThreadStore), new AcRules.Callback() {
-            @Override
-            public void onRuleFound(String rule, String clazz, String method) {
+        AcRules.findRule(sRes.getString(R.string.ThreadStore), (AcRules.Callback) (rule, clazz, method) ->
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, Boolean[].class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
@@ -88,9 +86,7 @@ public class ThreadStore extends BaseHooker implements IHooker {
                             }
                         }
                     }
-                });
-            }
-        });
+                }));
     }
 
     private void showRegexDialog(Activity activity) {

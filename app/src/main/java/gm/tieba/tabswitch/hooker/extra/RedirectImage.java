@@ -19,7 +19,6 @@ import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
-import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
@@ -31,30 +30,27 @@ import gm.tieba.tabswitch.util.IO;
 
 public class RedirectImage extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
-        AcRules.findRule(sRes.getString(R.string.RedirectImage), new AcRules.Callback() {
-            @Override
-            public void onRuleFound(String rule, String clazz, String method) {
-                for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
-                    switch (Arrays.toString(md.getParameterTypes())) {
-                        case "[class java.lang.String, class [B, class android.content.Context]":
-                            XposedBridge.hookMethod(md, new XC_MethodReplacement() {
-                                @Override
-                                protected Object replaceHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-                                    return saveImage((String) param.args[0], new ByteArrayInputStream(
-                                            (byte[]) param.args[1]), (Context) param.args[2]);
-                                }
-                            });
-                            break;
-                        case "[class java.lang.String, class java.lang.String, class android.content.Context]":
-                            XposedBridge.hookMethod(md, new XC_MethodReplacement() {
-                                @Override
-                                protected Object replaceHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-                                    return saveImage((String) param.args[1], new FileInputStream(
-                                            (String) param.args[0]), (Context) param.args[2]);
-                                }
-                            });
-                            break;
-                    }
+        AcRules.findRule(sRes.getString(R.string.RedirectImage), (AcRules.Callback) (rule, clazz, method) -> {
+            for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
+                switch (Arrays.toString(md.getParameterTypes())) {
+                    case "[class java.lang.String, class [B, class android.content.Context]":
+                        XposedBridge.hookMethod(md, new XC_MethodReplacement() {
+                            @Override
+                            protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
+                                return saveImage((String) param.args[0], new ByteArrayInputStream(
+                                        (byte[]) param.args[1]), (Context) param.args[2]);
+                            }
+                        });
+                        break;
+                    case "[class java.lang.String, class java.lang.String, class android.content.Context]":
+                        XposedBridge.hookMethod(md, new XC_MethodReplacement() {
+                            @Override
+                            protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
+                                return saveImage((String) param.args[1], new FileInputStream(
+                                        (String) param.args[0]), (Context) param.args[2]);
+                            }
+                        });
+                        break;
                 }
             }
         });

@@ -18,39 +18,36 @@ public class FragmentTab extends BaseHooker implements IHooker {
     private static boolean sIsFirstHook = true;
 
     public void hook() throws Throwable {
-        AcRules.findRule(sRes.getString(R.string.FragmentTab), new AcRules.Callback() {
-            @Override
-            public void onRuleFound(String rule, String clazz, String method) {
-                for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
-                    if (Arrays.toString(md.getParameterTypes()).equals("[class java.util.ArrayList]")) {
-                        XposedBridge.hookMethod(md, new XC_MethodHook() {
-                            @Override
-                            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                                if (!sIsFirstHook) return;
-                                for (String fieldName : Parser.parseMainTabActivityConfig()) {
-                                    if (Preferences.getStringSet("fragment_tab").contains(fieldName)) {
-                                        Class<?> clazz = XposedHelpers.findClass(
-                                                "com.baidu.tbadk.core.atomData.MainTabActivityConfig", sClassLoader);
-                                        XposedHelpers.setStaticBooleanField(clazz, fieldName,
-                                                !XposedHelpers.getStaticBooleanField(clazz, fieldName));
-                                    }
+        AcRules.findRule(sRes.getString(R.string.FragmentTab), (AcRules.Callback) (rule, clazz, method) -> {
+            for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
+                if (Arrays.toString(md.getParameterTypes()).equals("[class java.util.ArrayList]")) {
+                    XposedBridge.hookMethod(md, new XC_MethodHook() {
+                        @Override
+                        protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                            if (!sIsFirstHook) return;
+                            for (String fieldName : Parser.parseMainTabActivityConfig()) {
+                                if (Preferences.getStringSet("fragment_tab").contains(fieldName)) {
+                                    Class<?> clazz = XposedHelpers.findClass(
+                                            "com.baidu.tbadk.core.atomData.MainTabActivityConfig", sClassLoader);
+                                    XposedHelpers.setStaticBooleanField(clazz, fieldName,
+                                            !XposedHelpers.getStaticBooleanField(clazz, fieldName));
                                 }
-
-                                if (Preferences.getBoolean("home_recommend")) {
-                                    ArrayList<?> list = (ArrayList<?>) param.args[0];
-                                    for (Object tab : list) {
-                                        if ("com.baidu.tieba.homepage.framework.RecommendFrsDelegateStatic"
-                                                .equals(tab.getClass().getName())) {
-                                            list.remove(tab);
-                                            break;
-                                        }
-                                    }
-                                }
-
-                                sIsFirstHook = false;
                             }
-                        });
-                    }
+
+                            if (Preferences.getBoolean("home_recommend")) {
+                                ArrayList<?> list = (ArrayList<?>) param.args[0];
+                                for (Object tab : list) {
+                                    if ("com.baidu.tieba.homepage.framework.RecommendFrsDelegateStatic"
+                                            .equals(tab.getClass().getName())) {
+                                        list.remove(tab);
+                                        break;
+                                    }
+                                }
+                            }
+
+                            sIsFirstHook = false;
+                        }
+                    });
                 }
             }
         });

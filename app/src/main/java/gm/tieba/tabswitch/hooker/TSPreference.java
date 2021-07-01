@@ -75,9 +75,7 @@ public class TSPreference extends BaseHooker implements IHooker {
                                 v -> startMainPreferenceActivity(activity)), 11);
                     }
                 });
-        AcRules.findRule(sRes.getString(R.string.TSPreference), new AcRules.Callback() {
-            @Override
-            public void onRuleFound(String rule, String clazz, String method) {
+        AcRules.findRule(sRes.getString(R.string.TSPreference), (AcRules.Callback) (rule, clazz, method) ->
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, XposedHelpers
                         .findClass(PROXY_ACTIVITY, sClassLoader), new XC_MethodHook() {
                     @Override
@@ -101,9 +99,7 @@ public class TSPreference extends BaseHooker implements IHooker {
                                 break;
                         }
                     }
-                });
-            }
-        });
+                }));
     }
 
     private void proxyPage(Activity activity, NavigationBar navigationBar, String title,
@@ -196,13 +192,13 @@ public class TSPreference extends BaseHooker implements IHooker {
         preferenceLayout.addView(autoSign);
         preferenceLayout.addView(new SwitchButtonHolder(activity, "自动打开一键签到", "open_sign", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "自动切换夜间模式", "eyeshield_mode", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(activity, "吧页面起始页面改为最新", "frs_tab", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "自动查看原图", "origin_src", SwitchButtonHolder.TYPE_SWITCH));
 
         preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurifyEnabled ? "奇怪怪" : "其它"));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "保存图片重定向", "redirect_image", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "禁用帖子手势", "forbid_gesture", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "用赞踩差数代替赞数", "agree_num", SwitchButtonHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "吧页面起始页面改为最新", "frs_tab", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(TSPreferenceHelper.createButton(TRACE, "希望有一天不再需要贴吧TS", v -> {
             Intent intent = new Intent().setClassName(activity, PROXY_ACTIVITY);
             intent.putExtra("proxyPage", TRACE);

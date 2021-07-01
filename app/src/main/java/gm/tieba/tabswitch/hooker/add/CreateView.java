@@ -19,9 +19,7 @@ import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class CreateView extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
-        AcRules.findRule(sRes.getString(R.string.CreateView), new AcRules.Callback() {
-            @Override
-            public void onRuleFound(String rule, String clazz, String method) {
+        AcRules.findRule(sRes.getString(R.string.CreateView), (AcRules.Callback) (rule, clazz, method) ->
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, Bundle.class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
@@ -79,8 +77,6 @@ public class CreateView extends BaseHooker implements IHooker {
                             }
                         }
                     }
-                });
-            }
-        });
+                }));
     }
 }

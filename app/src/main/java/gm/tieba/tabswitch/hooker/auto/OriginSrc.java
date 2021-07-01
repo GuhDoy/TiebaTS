@@ -21,9 +21,7 @@ import gm.tieba.tabswitch.dao.AcRules;
 public class OriginSrc extends BaseHooker implements IHooker {
     private static void doHook() {
         try {
-            AcRules.findRule("\"pic_amount\"", new AcRules.Callback() {
-                @Override
-                public void onRuleFound(String rule, String clazz, String method) {
+            AcRules.findRule("\"pic_amount\"", (AcRules.Callback) (rule, clazz, method) ->
                     XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, JSONObject.class, Boolean.class, new XC_MethodHook() {
                         @Override
                         protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
@@ -41,9 +39,7 @@ public class OriginSrc extends BaseHooker implements IHooker {
                             }
                             jsonObject.put("pic_list", picList);
                         }
-                    });
-                }
-            });
+                    }));
         } catch (Throwable throwable) {
             XposedBridge.log(throwable);
         }

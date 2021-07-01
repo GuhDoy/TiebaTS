@@ -34,30 +34,27 @@ public class TbDialog extends BaseHooker {
                         mPageContext = param.getResult();
                     }
                 });
-        AcRules.findRule(sRes.getString(R.string.TbDialog), new AcRules.Callback() {
-            @Override
-            public void onRuleFound(String rule, String clazz, String method) {
-                mClass = XposedHelpers.findClass(clazz, sClassLoader);
-                mBdAlert = XposedHelpers.newInstance(mClass, activity);
-                try {
-                    mRootView = (ViewGroup) XposedHelpers.getObjectField(mBdAlert, "mRootView");
-                    XposedHelpers.setObjectField(mBdAlert, "mTitle", title);
-                    XposedHelpers.setObjectField(mBdAlert, "mMessage", message);
-                    XposedHelpers.setObjectField(mBdAlert, "mCancelable", cancelable);
-                    XposedHelpers.setObjectField(mBdAlert, "mContentView", contentView);
-                } catch (NoSuchFieldError e) {
-                    mRootView = (ViewGroup) XposedHelpers.getObjectField(mBdAlert, "y");
-                    XposedHelpers.setObjectField(mBdAlert, "f", title);
-                    XposedHelpers.setObjectField(mBdAlert, "h", message);
-                    XposedHelpers.setObjectField(mBdAlert, "C", cancelable);
-                    XposedHelpers.setObjectField(mBdAlert, "g", contentView);
-                }
-                int color = ReflectUtils.getColor("CAM_X0204");
-                mRootView.findViewById(ReflectUtils.getId("bdDialog_divider_line"))
-                        .setBackgroundColor(color);
-                mRootView.findViewById(ReflectUtils.getId("divider_yes_no_button"))
-                        .setBackgroundColor(color);
+        AcRules.findRule(sRes.getString(R.string.TbDialog), (AcRules.Callback) (rule, clazz, method) -> {
+            mClass = XposedHelpers.findClass(clazz, sClassLoader);
+            mBdAlert = XposedHelpers.newInstance(mClass, activity);
+            try {
+                mRootView = (ViewGroup) XposedHelpers.getObjectField(mBdAlert, "mRootView");
+                XposedHelpers.setObjectField(mBdAlert, "mTitle", title);
+                XposedHelpers.setObjectField(mBdAlert, "mMessage", message);
+                XposedHelpers.setObjectField(mBdAlert, "mCancelable", cancelable);
+                XposedHelpers.setObjectField(mBdAlert, "mContentView", contentView);
+            } catch (NoSuchFieldError e) {
+                mRootView = (ViewGroup) XposedHelpers.getObjectField(mBdAlert, "y");
+                XposedHelpers.setObjectField(mBdAlert, "f", title);
+                XposedHelpers.setObjectField(mBdAlert, "h", message);
+                XposedHelpers.setObjectField(mBdAlert, "C", cancelable);
+                XposedHelpers.setObjectField(mBdAlert, "g", contentView);
             }
+            int color = ReflectUtils.getColor("CAM_X0204");
+            mRootView.findViewById(ReflectUtils.getId("bdDialog_divider_line"))
+                    .setBackgroundColor(color);
+            mRootView.findViewById(ReflectUtils.getId("divider_yes_no_button"))
+                    .setBackgroundColor(color);
         });
     }
 

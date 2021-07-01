@@ -22,9 +22,7 @@ public class PurifyEnter extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.flutter.base.view.FlutterEnterForumDelegateStatic", sClassLoader,
                 "createFragmentTabStructure", XC_MethodReplacement.returnConstant(null));
-        AcRules.findRule(sRes.getStringArray(R.array.PurifyEnter), new AcRules.Callback() {
-            @Override
-            public void onRuleFound(String rule, String clazz, String method) {
+        AcRules.findRule(sRes.getStringArray(R.array.PurifyEnter), (AcRules.Callback) (rule, clazz, method) ->
                 XposedBridge.hookAllConstructors(XposedHelpers.findClass(clazz, sClassLoader), new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
@@ -36,9 +34,7 @@ public class PurifyEnter extends BaseHooker implements IHooker {
                             }
                         }
                     }
-                });
-            }
-        });
+                }));
         //可能感兴趣的吧
         XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader,
                 "onCreate", Bundle.class, new XC_MethodHook() {
