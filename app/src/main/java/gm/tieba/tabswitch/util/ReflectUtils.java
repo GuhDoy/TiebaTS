@@ -33,7 +33,7 @@ public class ReflectUtils extends BaseHooker {
     }
 
     public static float getDimenDip(String fieldName) {
-        return DisplayUtils.pxToDip(getContext(), ReflectUtils.getDimen(fieldName));
+        return DisplayUtils.pxToDip(getContext(), getDimen(fieldName));
     }
 
     public static int getDrawableId(String fieldName) {

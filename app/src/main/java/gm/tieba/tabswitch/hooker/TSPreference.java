@@ -169,7 +169,7 @@ public class TSPreference extends BaseHooker implements IHooker {
         preferenceLayout.addView(new SwitchButtonHolder(activity, "进吧增加收藏、历史", "create_view", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "我的收藏增加搜索、吧名", "thread_store", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "浏览历史增加搜索", "history_cache", SwitchButtonHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "楼层回复增加查看主题贴", "new_sub", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(activity, "搜索楼中楼增加查看主题贴", "new_sub", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "楼层增加点按效果", "ripple", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "长按下载保存全部图片", "save_images", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(TSPreferenceHelper.createButton(NOTES, null, v -> {

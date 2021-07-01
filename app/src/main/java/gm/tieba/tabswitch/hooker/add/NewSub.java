@@ -25,8 +25,10 @@ public class NewSub extends BaseHooker implements IHooker {
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                         Activity activity = (Activity) ReflectUtils.getObjectField(param.thisObject,
                                 "com.baidu.tieba.pb.pb.sub.NewSubPbActivity");
-                        new NavigationBar(param.thisObject)
-                                .addTextButton("查看主题贴", v -> startPbActivity(activity));
+                        if (activity.getIntent().getStringExtra("st_type").equals("search_post")) {
+                            new NavigationBar(param.thisObject)
+                                    .addTextButton("查看主题贴", v -> startPbActivity(activity));
+                        }
                     }
                 });
             }

@@ -58,10 +58,7 @@ public class DevelopUtils extends BaseHooker {
     }
 
     private static void disableMethod(Method method) {
-        if (method.getReturnType().equals(boolean.class)) {
-            XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(true));
-        } else {
-            XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(null));
-        }
+        XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(
+                method.getReturnType().equals(boolean.class) ? true : null));
     }
 }

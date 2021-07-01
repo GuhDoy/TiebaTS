@@ -74,7 +74,6 @@ public class AntiConfusion extends BaseHooker implements IHooker {
                             AntiConfusionHelper.saveAndRestart(mActivity, AntiConfusionHelper.getTbVersion(mActivity),
                                     XposedHelpers.findClass(SPRINGBOARD_ACTIVITY, sClassLoader), sRes);
                         }
-                        new RulesDbHelper(mActivity.getApplicationContext()).getReadableDatabase();
 
                         initProgressIndicator();
                         mActivity.setContentView(mContentView);
@@ -136,21 +135,20 @@ public class AntiConfusion extends BaseHooker implements IHooker {
                                     totalIndexes.add(indexes);
                                 }
                                 int itemCount = 0;
-                                SQLiteDatabase db = mActivity.openOrCreateDatabase("Rules.db",
-                                        Context.MODE_PRIVATE, null);
-                                for (int i = 0; i < fs.length; i++) {
-                                    DexFile dex = new DexFile(fs[i]);
-                                    List<Integer> indexes = totalIndexes.get(i);
-                                    for (int j = 0; j < indexes.size(); j++) {
-                                        itemCount++;
-                                        setProgress("搜索", (float) itemCount / totalItemCount);
+                                try (SQLiteDatabase db = new RulesDbHelper(mActivity).getReadableDatabase()) {
+                                    for (int i = 0; i < fs.length; i++) {
+                                        DexFile dex = new DexFile(fs[i]);
+                                        List<Integer> indexes = totalIndexes.get(i);
+                                        for (int j = 0; j < indexes.size(); j++) {
+                                            itemCount++;
+                                            setProgress("搜索", (float) itemCount / totalItemCount);
 
-                                        ClassDefItem classItem = dex.ClassDefsSection.getItemByIndex(indexes.get(j));
-                                        AntiConfusionHelper.searchAndSave(classItem, 0, db);
-                                        AntiConfusionHelper.searchAndSave(classItem, 1, db);
+                                            ClassDefItem classItem = dex.ClassDefsSection.getItemByIndex(indexes.get(j));
+                                            AntiConfusionHelper.searchAndSave(classItem, 0, db);
+                                            AntiConfusionHelper.searchAndSave(classItem, 1, db);
+                                        }
                                     }
                                 }
-                                mActivity.runOnUiThread(() -> mMessage.setText("保存反混淆信息"));
                                 byte[] bytes = new byte[32];
                                 new FileInputStream(fs[0]).read(bytes);
                                 DexFile.calcSignature(bytes);
@@ -183,7 +181,6 @@ public class AntiConfusion extends BaseHooker implements IHooker {
         mMessage = new TextView(mActivity);
         mMessage.setTextSize(16);
         mMessage.setTextColor(sRes.getColor(R.color.colorPrimaryDark, null));
-        mMessage.setText("读取ZipEntry");
         mProgress = new TextView(mActivity);
         mProgress.setBackgroundColor(sRes.getColor(R.color.colorProgress, null));
         mProgressContainer = new RelativeLayout(mActivity);

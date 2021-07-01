@@ -116,11 +116,8 @@ public class Purify extends BaseHooker implements IHooker {
         // 广告sdk
         for (Method method : XposedHelpers.findClass("com.fun.ad.sdk.FunAdSdk", sClassLoader).getDeclaredMethods()) {
             if (method.getName().equals("init")) {
-                if (method.getReturnType().equals(boolean.class)) {
-                    XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(true));
-                } else {
-                    XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(null));
-                }
+                XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(
+                        method.getReturnType().equals(boolean.class) ? true : null));
             }
         }
         // 帖子底部推荐
@@ -137,10 +134,13 @@ public class Purify extends BaseHooker implements IHooker {
                     } else if /* 浏览器打开热门推荐 */ (key.equals("key_uri")) {
                         Uri uri = (Uri) bundle.get(key);
                         intent.putExtra("thread_id", uri.getQueryParameter("tid"));
-                    } else if (bundle.get(key) instanceof Serializable) {
-                        intent.putExtra(key, (Serializable) bundle.get(key));
                     } else {
-                        intent.putExtra(key, (Parcelable) bundle.get(key));
+                        Object value = bundle.get(key);
+                        if (value instanceof Serializable) {
+                            intent.putExtra(key, (Serializable) value);
+                        } else {
+                            intent.putExtra(key, (Parcelable) value);
+                        }
                     }
                 }
                 activity.setIntent(intent);

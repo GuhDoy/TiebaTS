@@ -135,15 +135,13 @@ public class TraceChecker extends BaseHooker {
                 if (!lastPath.endsWith("/data")) paths.add(lastPath);
             }
 
-            String line;
-            do {
-                line = br.readLine();
+            for (String line = br.readLine(); line != null; line = br.readLine()) {
                 for (String path : paths) {
-                    if (line != null && line.contains(String.format(" %s ", path))) {
+                    if (line.contains(String.format(" %s ", path))) {
                         result.addTrace(FAKE, line);
                     }
                 }
-            } while (line != null);
+            }
         } catch (IOException e) {
             XposedBridge.log(e);
             result.addTrace(FAKE, e.getMessage());

@@ -30,17 +30,14 @@ android {
             }
         }
     }
-
     applicationVariants.all { variant ->
         variant.outputs.all { output ->
             outputFileName = "TS_${defaultConfig.versionName}-${variant.buildType.name}.apk"
         }
     }
-
     buildFeatures {
         prefab true
     }
-
     buildTypes {
         release {
             minifyEnabled true
@@ -48,19 +45,16 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-
     externalNativeBuild {
         cmake {
             path 'src/main/cpp/CMakeLists.txt'
             version "3.10.2"
         }
     }
-
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-
     packagingOptions {
         exclude '/META-INF/**'
         exclude '/kotlin/**'
