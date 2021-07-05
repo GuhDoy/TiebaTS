@@ -3,7 +3,6 @@ package gm.tieba.tabswitch.widget;
 import android.view.View;
 import android.widget.TextView;
 
-import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.util.ReflectUtils;
@@ -12,12 +11,8 @@ public class NavigationBar extends BaseHooker {
     private Object mNavigationBar;
 
     public NavigationBar(Object thisObject) {
-        try {
-            mNavigationBar = ReflectUtils.getObjectField(thisObject,
-                    "com.baidu.tbadk.core.view.NavigationBar");
-        } catch (Throwable e) {
-            XposedBridge.log(e);
-        }
+        mNavigationBar = ReflectUtils.getObjectField(thisObject,
+                "com.baidu.tbadk.core.view.NavigationBar");
     }
 
     public void addTextButton(String text, View.OnClickListener l) {
