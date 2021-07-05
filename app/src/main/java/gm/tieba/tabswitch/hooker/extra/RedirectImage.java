@@ -26,7 +26,7 @@ import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.AcRules;
-import gm.tieba.tabswitch.util.IO;
+import gm.tieba.tabswitch.util.FileUtils;
 
 public class RedirectImage extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
@@ -60,8 +60,8 @@ public class RedirectImage extends BaseHooker implements IHooker {
         Context appContext = context.getApplicationContext();
         String fileName = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("."));
         try {
-            ByteArrayOutputStream baos = IO.cloneInputStream(in);
-            String extension = IO.getExtension(baos);
+            ByteArrayOutputStream baos = FileUtils.cloneInputStream(in);
+            String extension = FileUtils.getExtension(baos);
             in = new ByteArrayInputStream(baos.toByteArray());
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 ContentValues newImageDetails = new ContentValues();
@@ -72,12 +72,12 @@ public class RedirectImage extends BaseHooker implements IHooker {
                 ContentResolver resolver = appContext.getContentResolver();
                 Uri imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, newImageDetails);
                 ParcelFileDescriptor descriptor = resolver.openFileDescriptor(imageUri, "w");
-                IO.copy(in, descriptor.getFileDescriptor());
+                FileUtils.copy(in, descriptor.getFileDescriptor());
             } else {
                 File imageDir = new File(Environment.getExternalStoragePublicDirectory(
                         Environment.DIRECTORY_PICTURES), "tieba");
                 imageDir.mkdirs();
-                IO.copy(in, new File(imageDir.getPath(), fileName + "." + extension));
+                FileUtils.copy(in, new File(imageDir.getPath(), fileName + "." + extension));
 
                 Intent scanIntent = new Intent("android.intent.action.MEDIA_SCANNER_SCAN_DIR");
                 scanIntent.setData(Uri.fromFile(imageDir));

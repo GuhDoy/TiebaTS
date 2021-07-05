@@ -35,7 +35,7 @@ import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.dao.RulesDbHelper;
-import gm.tieba.tabswitch.util.IO;
+import gm.tieba.tabswitch.util.FileUtils;
 
 public class AntiConfusion extends BaseHooker implements IHooker {
     private static final String SPRINGBOARD_ACTIVITY = "com.baidu.tieba.tblauncher.MainTabActivity";
@@ -80,7 +80,7 @@ public class AntiConfusion extends BaseHooker implements IHooker {
                         new Thread(() -> {
                             File dexDir = new File(mActivity.getCacheDir(), "app_dex");
                             try {
-                                IO.deleteRecursively(dexDir);
+                                FileUtils.deleteRecursively(dexDir);
                                 dexDir.mkdirs();
                                 ZipFile zipFile = new ZipFile(new File(mActivity.getPackageResourcePath()));
                                 Enumeration<? extends ZipEntry> enumeration = zipFile.entries();
@@ -92,7 +92,7 @@ public class AntiConfusion extends BaseHooker implements IHooker {
 
                                     ZipEntry ze = enumeration.nextElement();
                                     if (ze.getName().matches("classes[0-9]*?\\.dex")) {
-                                        IO.copy(zipFile.getInputStream(ze), new File(dexDir, ze.getName()));
+                                        FileUtils.copy(zipFile.getInputStream(ze), new File(dexDir, ze.getName()));
                                     }
                                 }
                                 File[] fs = dexDir.listFiles();

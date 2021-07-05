@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import de.robv.android.xposed.XC_MethodHook;
@@ -24,22 +23,23 @@ import gm.tieba.tabswitch.util.ReflectUtils;
 @SuppressLint("ClickableViewAccessibility")
 public class ForbidGesture extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
+        // 帖子字号
         AcRules.findRule(sRes.getString(R.string.ForbidGesture), (AcRules.Callback) (rule, clazz, method) ->
                 XposedBridge.hookAllConstructors(XposedHelpers.findClass(clazz, sClassLoader), new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        for (Field field : param.thisObject.getClass().getDeclaredFields()) {
-                            field.setAccessible(true);
-                            if (field.get(param.thisObject) instanceof RelativeLayout) {
-                                RelativeLayout relativeLayout = (RelativeLayout) field.get(param.thisObject);
-                                ListView listView = relativeLayout.findViewById(ReflectUtils.getId("new_pb_list"));
-                                if (listView == null) continue;
-                                listView.setOnTouchListener((v, event) -> false);
-                                return;
+                        ReflectUtils.handleObjectFields(param.thisObject, RelativeLayout.class, objField -> {
+                            RelativeLayout rl = (RelativeLayout) ReflectUtils.getObjectField(param.thisObject, RelativeLayout.class);
+                            ListView list = rl.findViewById(ReflectUtils.getId("new_pb_list"));
+                            if (list != null) {
+                                list.setOnTouchListener((v, event) -> false);
+                                return true;
                             }
-                        }
+                            return false;
+                        });
                     }
                 }));
+        // 视频帖字号
         XposedHelpers.findAndHookMethod("com.baidu.tieba.pb.videopb.fragment.DetailInfoAndReplyFragment", sClassLoader,
                 "onCreateView", LayoutInflater.class, ViewGroup.class, Bundle.class, new XC_MethodHook() {
                     @Override
@@ -49,6 +49,7 @@ public class ForbidGesture extends BaseHooker implements IHooker {
                         recyclerView.setOnTouchListener((v, event) -> false);
                     }
                 });
+        // 帖子进吧
         XposedHelpers.findAndHookMethod("com.baidu.tieba.pb.pb.main.PbLandscapeListView", sClassLoader,
                 "dispatchTouchEvent", MotionEvent.class, new XC_MethodHook() {
                     @Override
@@ -56,6 +57,7 @@ public class ForbidGesture extends BaseHooker implements IHooker {
                         XposedHelpers.callMethod(param.thisObject, "setForbidDragListener", true);
                     }
                 });
+        // 图片缩放倍数
         Class<?> clazz = XposedHelpers.findClass("com.baidu.tbadk.widget.DragImageView", sClassLoader);
         Method method;
         try {

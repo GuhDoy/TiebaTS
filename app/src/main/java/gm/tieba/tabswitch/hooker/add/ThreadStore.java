@@ -12,7 +12,6 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -57,33 +56,27 @@ public class ThreadStore extends BaseHooker implements IHooker {
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, Boolean[].class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        for (Field field : param.getResult().getClass().getDeclaredFields()) {
-                            field.setAccessible(true);
-                            if (field.get(param.getResult()) instanceof ArrayList) {
-                                ArrayList<?> arrayList = (ArrayList<?>) field.get(param.getResult());
-                                if (arrayList == null) return;
-                                final Pattern pattern = Pattern.compile(mRegex);
-                                label:
-                                for (int j = 0; j < arrayList.size(); j++) {
-                                    // com.baidu.tbadk.baseEditMark.MarkData
-                                    String[] strings = new String[]{(String) XposedHelpers.getObjectField(arrayList.get(j), "mTitle"),
-                                            (String) XposedHelpers.getObjectField(arrayList.get(j), "mForumName"),
-                                            (String) XposedHelpers.getObjectField(arrayList.get(j), "mAuthorName")};
-                                    for (String string : strings) {
-                                        if (pattern.matcher(string).find()) {
-                                            continue label;
-                                        }
-                                    }
-                                    arrayList.remove(j);
-                                    j--;
+                        ArrayList<?> arrayList = (ArrayList<?>) ReflectUtils.getObjectField(param.getResult(), ArrayList.class);
+                        if (arrayList == null) return;
+                        final Pattern pattern = Pattern.compile(mRegex);
+                        label:
+                        for (int j = 0; j < arrayList.size(); j++) {
+                            // com.baidu.tbadk.baseEditMark.MarkData
+                            String[] strings = new String[]{(String) XposedHelpers.getObjectField(arrayList.get(j), "mTitle"),
+                                    (String) XposedHelpers.getObjectField(arrayList.get(j), "mForumName"),
+                                    (String) XposedHelpers.getObjectField(arrayList.get(j), "mAuthorName")};
+                            for (String string : strings) {
+                                if (pattern.matcher(string).find()) {
+                                    continue label;
                                 }
-                                for (int j = 0; j < arrayList.size(); j++) {
-                                    XposedHelpers.setObjectField(arrayList.get(j), "mAuthorName", String.format("%s-%s",
-                                            XposedHelpers.getObjectField(arrayList.get(j), "mForumName"),
-                                            XposedHelpers.getObjectField(arrayList.get(j), "mAuthorName")));
-                                }
-                                return;
                             }
+                            arrayList.remove(j);
+                            j--;
+                        }
+                        for (int j = 0; j < arrayList.size(); j++) {
+                            XposedHelpers.setObjectField(arrayList.get(j), "mAuthorName", String.format("%s - %s",
+                                    XposedHelpers.getObjectField(arrayList.get(j), "mForumName"),
+                                    XposedHelpers.getObjectField(arrayList.get(j), "mAuthorName")));
                         }
                     }
                 }));

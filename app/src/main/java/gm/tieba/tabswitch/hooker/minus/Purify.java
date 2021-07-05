@@ -9,7 +9,6 @@ import android.view.View;
 import android.widget.ImageView;
 
 import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,6 +23,7 @@ import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.AcRules;
+import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class Purify extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
@@ -223,18 +223,15 @@ public class Purify extends BaseHooker implements IHooker {
                 XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(null));
             }
         }
-        // 首页任务中心：R.id.task
+        // 首页任务中心：R.id.task TbImageView
         XposedHelpers.findAndHookMethod("com.baidu.tieba.homepage.framework.indicator.NestedScrollHeader", sClassLoader, "onAttachedToWindow", new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                for (Field field : param.thisObject.getClass().getDeclaredFields()) {
-                    field.setAccessible(true);
-                    if (field.get(param.thisObject) instanceof ImageView) {
-                        ImageView imageView = (ImageView) field.get(param.thisObject);
-                        imageView.setVisibility(View.GONE);
-                        return;
-                    }
-                }
+                ReflectUtils.handleObjectFields(param.thisObject, ImageView.class, objField -> {
+                    ImageView iv = (ImageView) objField;
+                    iv.setVisibility(View.GONE);
+                    return false;
+                });
             }
         });
         // 首页大家都在搜
@@ -261,15 +258,13 @@ public class Purify extends BaseHooker implements IHooker {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.launcherGuide.tblauncher.GuideActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                for (Field field : param.thisObject.getClass().getDeclaredFields()) {
-                    field.setAccessible(true);
-                    if (field.get(param.thisObject) instanceof int[]) {
-                        int[] ints = (int[]) field.get(param.thisObject);
-                        for (int i = 0; i < ints.length; i++) {
-                            ints[i] = 0;
-                        }
+                ReflectUtils.handleObjectFields(param.thisObject, int[].class, objField -> {
+                    int[] ints = (int[]) objField;
+                    for (int i = 0; i < ints.length; i++) {
+                        ints[i] = 0;
                     }
-                }
+                    return false;
+                });
             }
         });
     }

@@ -11,7 +11,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
-public class IO {
+public class FileUtils {
     public static void copy(Object input, Object output) throws IOException {
         InputStream is;
         if (input instanceof InputStream) {

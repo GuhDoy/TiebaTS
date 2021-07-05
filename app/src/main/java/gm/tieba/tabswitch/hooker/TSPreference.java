@@ -219,7 +219,7 @@ public class TSPreference extends BaseHooker implements IHooker {
             intent.setData(Uri.parse("https://t.me/TabSwitch"));
             activity.startActivity(intent);
         }));
-        preferenceLayout.addView(TSPreferenceHelper.createButton("作者", "developed by GM", v -> {
+        preferenceLayout.addView(TSPreferenceHelper.createButton("作者", "GM", v -> {
             sCount++;
             if (sCount % 3 == 0) {
                 TbToast.showTbToast(TSPreferenceHelper.randomToast(), TbToast.LENGTH_SHORT);

@@ -4,8 +4,8 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import de.robv.android.xposed.XC_MethodHook;
@@ -17,6 +17,7 @@ import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.util.DisplayUtils;
+import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class PurifyEnter extends BaseHooker implements IHooker {
     public void hook() throws Throwable {
@@ -26,16 +27,14 @@ public class PurifyEnter extends BaseHooker implements IHooker {
                 XposedBridge.hookAllConstructors(XposedHelpers.findClass(clazz, sClassLoader), new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        for (Field field : param.thisObject.getClass().getDeclaredFields()) {
-                            field.setAccessible(true);
-                            if (field.get(param.thisObject) instanceof View) {
-                                View view = (View) field.get(param.thisObject);
-                                view.setVisibility(View.GONE);
-                            }
-                        }
+                        ReflectUtils.handleObjectFields(param.thisObject, View.class, objField -> {
+                            View view = (View) objField;
+                            view.setVisibility(View.GONE);
+                            return false;
+                        });
                     }
                 }));
-        //可能感兴趣的吧
+        // 可能感兴趣的吧
         XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader,
                 "onCreate", Bundle.class, new XC_MethodHook() {
                     @Override
@@ -51,15 +50,13 @@ public class PurifyEnter extends BaseHooker implements IHooker {
                         XposedBridge.hookMethod(method, new XC_MethodHook() {
                             @Override
                             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                                for (Field field : param.thisObject.getClass().getDeclaredFields()) {
-                                    field.setAccessible(true);
-                                    if (field.get(param.thisObject) instanceof View) {
-                                        View view = (View) field.get(param.thisObject);
-                                        view.setVisibility(View.INVISIBLE);
-                                        ViewGroup.LayoutParams lp = view.getLayoutParams();
-                                        lp.height = DisplayUtils.dipToPx(activity, 7);
-                                    }
-                                }
+                                ReflectUtils.handleObjectFields(param.thisObject, View.class, objField -> {
+                                    View view = (View) objField;
+                                    view.setVisibility(View.INVISIBLE);
+                                    ViewGroup.LayoutParams lp = view.getLayoutParams();
+                                    lp.height = DisplayUtils.dipToPx(activity, 9);
+                                    return false;
+                                });
                             }
                         });
                     }

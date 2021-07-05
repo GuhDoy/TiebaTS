@@ -11,6 +11,10 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 
 public class DevelopUtils extends BaseHooker {
+    public static void log(Object o) {
+        XposedBridge.log(String.valueOf(o));
+    }
+
     public static void logJSONObject() {
         XposedBridge.hookAllConstructors(JSONObject.class, new XC_MethodHook() {
             @Override

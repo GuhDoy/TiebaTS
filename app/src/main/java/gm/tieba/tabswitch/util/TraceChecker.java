@@ -131,7 +131,7 @@ public class TraceChecker extends BaseHooker {
             List<String> paths = new ArrayList<>();
             String lastPath = getContext().getExternalFilesDir(null).getPath();
             while (!paths.contains(Environment.getExternalStorageDirectory().getPath())) {
-                lastPath = IO.getParent(lastPath);
+                lastPath = FileUtils.getParent(lastPath);
                 if (!lastPath.endsWith("/data")) paths.add(lastPath);
             }
 

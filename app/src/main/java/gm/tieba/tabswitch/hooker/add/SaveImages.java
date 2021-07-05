@@ -18,10 +18,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 import de.robv.android.xposed.XC_MethodHook;
@@ -29,7 +29,7 @@ import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
-import gm.tieba.tabswitch.util.IO;
+import gm.tieba.tabswitch.util.FileUtils;
 import gm.tieba.tabswitch.util.ReflectUtils;
 import gm.tieba.tabswitch.widget.TbToast;
 import okhttp3.Call;
@@ -37,7 +37,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Response;
 
 public class SaveImages extends BaseHooker implements IHooker {
-    private ArrayList<String> mArrayList;
+    private List<String> mList;
     private String mTitle;
 
     public void hook() throws Throwable {
@@ -47,7 +47,7 @@ public class SaveImages extends BaseHooker implements IHooker {
                 XposedBridge.hookMethod(method, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        mArrayList = (ArrayList<String>) param.args[0];
+                        mList = (ArrayList<String>) param.args[0];
                     }
                 });
             }
@@ -63,21 +63,17 @@ public class SaveImages extends BaseHooker implements IHooker {
                 sClassLoader, Context.class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-                        for (Field field : param.thisObject.getClass().getDeclaredFields()) {
-                            field.setAccessible(true);
-                            if (field.get(param.thisObject) instanceof ImageView) {
-                                ImageView downloadIcon = (ImageView) field.get(param.thisObject);
-                                if (downloadIcon.getId() != ReflectUtils.getId("download_icon")) {
-                                    continue;
-                                }
+                        ReflectUtils.handleObjectFields(param.thisObject, ImageView.class, objField -> {
+                            ImageView iv = (ImageView) objField;
+                            if (iv.getId() == ReflectUtils.getId("download_icon")) {
                                 Context context = ((Context) param.args[0]).getApplicationContext();
-                                downloadIcon.setOnLongClickListener((v -> {
+                                iv.setOnLongClickListener((v -> {
                                     TbToast.showTbToast(String.format(Locale.getDefault(),
-                                            "开始下载%d张图片", mArrayList.size()), TbToast.LENGTH_SHORT);
+                                            "开始下载%d张图片", mList.size()), TbToast.LENGTH_SHORT);
                                     new Thread(() -> {
                                         try {
-                                            for (int i = 0; i < mArrayList.size(); i++) {
-                                                String url = mArrayList.get(i);
+                                            for (int i = 0; i < mList.size(); i++) {
+                                                String url = mList.get(i);
                                                 try {
                                                     url = "http://tiebapic.baidu.com/forum/pic/item/"
                                                             + url.substring(url.lastIndexOf("/") + 1);
@@ -88,7 +84,7 @@ public class SaveImages extends BaseHooker implements IHooker {
                                             }
                                             new Handler(Looper.getMainLooper()).post(() ->
                                                     TbToast.showTbToast(String.format(Locale.getDefault(),
-                                                            "已保存%d张图片至手机相册", mArrayList.size()),
+                                                            "已保存%d张图片至手机相册", mList.size()),
                                                             TbToast.LENGTH_SHORT));
                                         } catch (IOException | NullPointerException e) {
                                             new Handler(Looper.getMainLooper()).post(() ->
@@ -97,9 +93,10 @@ public class SaveImages extends BaseHooker implements IHooker {
                                     }).start();
                                     return true;
                                 }));
-                                return;
+                                return true;
                             }
-                        }
+                            return false;
+                        });
                     }
                 });
     }
@@ -110,8 +107,8 @@ public class SaveImages extends BaseHooker implements IHooker {
         Call call = okHttpClient.newCall(request);
         Response response = call.execute();
         InputStream in = response.body().byteStream();
-        ByteArrayOutputStream baos = IO.cloneInputStream(in);
-        String extension = IO.getExtension(baos);
+        ByteArrayOutputStream baos = FileUtils.cloneInputStream(in);
+        String extension = FileUtils.getExtension(baos);
         in = new ByteArrayInputStream(baos.toByteArray());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             ContentValues newImageDetails = new ContentValues();
@@ -122,12 +119,12 @@ public class SaveImages extends BaseHooker implements IHooker {
             ContentResolver resolver = context.getContentResolver();
             Uri imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, newImageDetails);
             ParcelFileDescriptor descriptor = resolver.openFileDescriptor(imageUri, "w");
-            IO.copy(in, descriptor.getFileDescriptor());
+            FileUtils.copy(in, descriptor.getFileDescriptor());
         } else {
             File imageDir = new File(Environment.getExternalStoragePublicDirectory(
                     Environment.DIRECTORY_PICTURES) + File.separator + "tieba" + File.separator + mTitle);
             imageDir.mkdirs();
-            IO.copy(in, new File(imageDir.getPath(), i + "." + extension));
+            FileUtils.copy(in, new File(imageDir.getPath(), i + "." + extension));
 
             Intent scanIntent = new Intent("android.intent.action.MEDIA_SCANNER_SCAN_DIR");
             scanIntent.setData(Uri.fromFile(imageDir));

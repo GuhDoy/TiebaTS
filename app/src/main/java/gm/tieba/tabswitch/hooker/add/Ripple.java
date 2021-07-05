@@ -9,8 +9,6 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
-import java.lang.reflect.Field;
-
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BaseHooker;
@@ -38,14 +36,8 @@ public class Ripple extends BaseHooker implements IHooker {
                 Context.class, AttributeSet.class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        for (Field field : param.thisObject.getClass().getDeclaredFields()) {
-                            field.setAccessible(true);
-                            if (field.get(param.thisObject) instanceof RelativeLayout) {
-                                View view = (View) field.get(param.thisObject);
-                                view.setBackground(createSubPbBackground());
-                                return;
-                            }
-                        }
+                        View view = (View) ReflectUtils.getObjectField(param.thisObject, RelativeLayout.class);
+                        view.setBackground(createSubPbBackground());
                     }
                 });
         // 楼层
@@ -53,28 +45,26 @@ public class Ripple extends BaseHooker implements IHooker {
                 XposedHelpers.findClass("com.baidu.tbadk.TbPageContext", sClassLoader), View.class, int.class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        for (Field field : param.thisObject.getClass().getDeclaredFields()) {
-                            field.setAccessible(true);
-                            if (field.get(param.thisObject) instanceof LinearLayout) {
-                                View view = (View) field.get(param.thisObject);
-                                if (view.getId() == ReflectUtils.getId("all_content")) {
-                                    view.setBackground(createBackground());
-                                    return;
-                                }
+                        ReflectUtils.handleObjectFields(param.thisObject, LinearLayout.class, objField -> {
+                            LinearLayout ll = (LinearLayout) objField;
+                            if (ll.getId() == ReflectUtils.getId("all_content")) {
+                                ll.setBackground(createBackground());
+                                return true;
                             }
-                        }
+                            return false;
+                        });
                     }
                 });
     }
 
-    private StateListDrawable createBackground() throws Throwable {
+    private StateListDrawable createBackground() {
         StateListDrawable sld = new StateListDrawable();
         sld.addState(new int[]{android.R.attr.state_pressed},
                 new ColorDrawable(ReflectUtils.getColor("CAM_X0204")));
         return sld;
     }
 
-    private StateListDrawable createSubPbBackground() throws Throwable {
+    private StateListDrawable createSubPbBackground() {
         if (!DisplayUtils.getTbSkin(getContext()).equals("")) {
             return createBackground();
         } else {

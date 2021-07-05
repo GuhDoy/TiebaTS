@@ -14,7 +14,6 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.Random;
@@ -58,20 +57,11 @@ public class TSPreferenceHelper extends BaseHooker {
                 "com.baidu.tbadk.coreExtra.view.TbSettingTextTipView", sClassLoader), getContext());
         XposedHelpers.callMethod(textTipView, "setText", text);
         XposedHelpers.callMethod(textTipView, "setTip", tip);
-        try {
-            for (Field field : textTipView.getClass().getDeclaredFields()) {
-                field.setAccessible(true);
-                if (field.get(textTipView) instanceof LinearLayout) {
-                    LinearLayout newButton = (LinearLayout) field.get(textTipView);
-                    ((ViewGroup) newButton.getParent()).removeView(newButton);
-                    if (l != null) newButton.setOnClickListener(l);
-                    return newButton;
-                }
-            }
-        } catch (Throwable e) {
-            XposedBridge.log(e);
-        }
-        throw new NullPointerException("create button failed");
+
+        LinearLayout newButton = (LinearLayout) ReflectUtils.getObjectField(textTipView, LinearLayout.class);
+        ((ViewGroup) newButton.getParent()).removeView(newButton);
+        if (l != null) newButton.setOnClickListener(l);
+        return newButton;
     }
 
     static String randomToast() {
