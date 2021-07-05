@@ -54,14 +54,9 @@ public class AntiConfusionHelper {
     }
 
     public static List<String> getRulesLost() {
-        List<String> lostList = new ArrayList<>(matcherList);
-        for (int i = 0; i < lostList.size(); i++) {
-            if (AcRules.isRuleFound(lostList.get(i))) {
-                lostList.remove(i);
-                i--;
-            }
-        }
-        return lostList;
+        List<String> list = new ArrayList<>(matcherList);
+        list.removeIf(AcRules::isRuleFound);
+        return list;
     }
 
     public static boolean isVersionChanged(Context context) {

@@ -13,6 +13,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -56,27 +57,25 @@ public class ThreadStore extends BaseHooker implements IHooker {
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, Boolean[].class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        ArrayList<?> arrayList = (ArrayList<?>) ReflectUtils.getObjectField(param.getResult(), ArrayList.class);
-                        if (arrayList == null) return;
+                        ArrayList<?> list = (ArrayList<?>) ReflectUtils.getObjectField(param.getResult(), ArrayList.class);
+                        if (list == null) return;
                         final Pattern pattern = Pattern.compile(mRegex);
-                        label:
-                        for (int j = 0; j < arrayList.size(); j++) {
+                        list.removeIf((Predicate<Object>) o -> {
                             // com.baidu.tbadk.baseEditMark.MarkData
-                            String[] strings = new String[]{(String) XposedHelpers.getObjectField(arrayList.get(j), "mTitle"),
-                                    (String) XposedHelpers.getObjectField(arrayList.get(j), "mForumName"),
-                                    (String) XposedHelpers.getObjectField(arrayList.get(j), "mAuthorName")};
+                            String[] strings = new String[]{(String) XposedHelpers.getObjectField(o, "mTitle"),
+                                    (String) XposedHelpers.getObjectField(o, "mForumName"),
+                                    (String) XposedHelpers.getObjectField(o, "mAuthorName")};
                             for (String string : strings) {
                                 if (pattern.matcher(string).find()) {
-                                    continue label;
+                                    return false;
                                 }
                             }
-                            arrayList.remove(j);
-                            j--;
-                        }
-                        for (int j = 0; j < arrayList.size(); j++) {
-                            XposedHelpers.setObjectField(arrayList.get(j), "mAuthorName", String.format("%s - %s",
-                                    XposedHelpers.getObjectField(arrayList.get(j), "mForumName"),
-                                    XposedHelpers.getObjectField(arrayList.get(j), "mAuthorName")));
+                            return true;
+                        });
+                        for (int j = 0; j < list.size(); j++) {
+                            XposedHelpers.setObjectField(list.get(j), "mAuthorName", String.format("%s - %s",
+                                    XposedHelpers.getObjectField(list.get(j), "mForumName"),
+                                    XposedHelpers.getObjectField(list.get(j), "mAuthorName")));
                         }
                     }
                 }));

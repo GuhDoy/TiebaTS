@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.ArrayMap;
+import android.util.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.Objects;
 
 public class AcRules {
     private static List<Map<String, String>> sRulesFromDb;
+    // TODO: private static Map<String, Pair<String, String>> sRulesFromDb;
 
     public static void init(Context context) {
         sRulesFromDb = new ArrayList<>();

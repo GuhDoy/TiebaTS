@@ -1,8 +1,10 @@
 package gm.tieba.tabswitch.hooker.minus;
 
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import de.robv.android.xposed.XC_MethodHook;
@@ -13,10 +15,11 @@ import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.util.Parser;
 
 public class ContentFilter extends BaseHooker implements IHooker {
-    private final List<Object> mIdList = new ArrayList<>();
+    private final Set<Object> mIds = new HashSet<>();
 
     public void hook() throws Throwable {
         final Pattern pattern = Pattern.compile(Preferences.getString("content_filter"));
+        // 楼层
         XposedHelpers.findAndHookMethod("tbclient.PbPage.DataRes$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
@@ -24,64 +27,42 @@ public class ContentFilter extends BaseHooker implements IHooker {
                 if (postList == null) return;
                 initIdList(param.thisObject, pattern);
 
-                for (int i = 0; i < postList.size(); i++) {
-                    if ((Integer) XposedHelpers.getObjectField(postList.get(i), "floor")
-                            == 1) continue;
-                    if (pattern.matcher(Parser.parsePbContent(postList.get(i), "content")).find()) {
-                        postList.remove(i);
-                        i--;
-                        continue;
-                    }
-                    if (mIdList.contains(XposedHelpers.getObjectField(postList.get(i), "author_id"))) {
-                        postList.remove(i);
-                        i--;
-                    }
-                }
+                postList.removeIf((Predicate<Object>) o -> !((Integer) XposedHelpers.getObjectField(o, "floor") == 1)
+                        && (pattern.matcher(Parser.parsePbContent(o, "content")).find()
+                        || mIds.contains(XposedHelpers.getObjectField(o, "author_id"))));
             }
         });
-        //楼中楼：[\u202e|\ud83c\udd10-\ud83c\udd89]
+        // 楼中楼：[\u202e|\ud83c\udd10-\ud83c\udd89]
         XposedHelpers.findAndHookMethod("tbclient.SubPost$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 List<?> subPostList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "sub_post_list");
                 if (subPostList == null) return;
-                for (int i = 0; i < subPostList.size(); i++) {
-                    if (pattern.matcher(Parser.parsePbContent(subPostList.get(i), "content")).find()) {
-                        subPostList.remove(i);
-                        i--;
-                        continue;
-                    }
-                    if (mIdList.contains(XposedHelpers.getObjectField(subPostList.get(i), "author_id"))) {
-                        subPostList.remove(i);
-                        i--;
-                    }
-                }
+                subPostList.removeIf((Predicate<Object>) o -> pattern.matcher(Parser.parsePbContent(o, "content")).find()
+                        || mIds.contains(XposedHelpers.getObjectField(o, "author_id")));
             }
         });
-        //楼层回复
+        // 楼层回复
         XposedHelpers.findAndHookMethod("tbclient.PbFloor.DataRes$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 List<?> subpostList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "subpost_list");
                 if (subpostList == null) return;
-                for (int i = 0; i < subpostList.size(); i++) {
-                    if (pattern.matcher(Parser.parsePbContent(subpostList.get(i), "content")).find()) {
-                        subpostList.remove(i);
-                        i--;
-                        continue;
+                subpostList.removeIf((Predicate<Object>) o -> {
+                    if (pattern.matcher(Parser.parsePbContent(o, "content")).find()) {
+                        return true;
                     }
 
-                    Object author = XposedHelpers.getObjectField(subpostList.get(i), "author");
+                    Object author = XposedHelpers.getObjectField(o, "author");
                     String[] authors = new String[]{(String) XposedHelpers.getObjectField(author, "name"),
                             (String) XposedHelpers.getObjectField(author, "name_show")};
                     for (String string : authors) {
                         if (pattern.matcher(string).find()) {
-                            subpostList.remove(i);
-                            i--;
-                            break;
+                            return true;
                         }
                     }
-                }
+                    return false;
+                });
             }
         });
     }
@@ -93,7 +74,7 @@ public class ContentFilter extends BaseHooker implements IHooker {
                     (String) XposedHelpers.getObjectField(userList.get(i), "name_show")};
             for (String string : authors) {
                 if (pattern.matcher(string).find()) {
-                    mIdList.add(XposedHelpers.getObjectField(userList.get(i), "id"));
+                    mIds.add(XposedHelpers.getObjectField(userList.get(i), "id"));
                     break;
                 }
             }

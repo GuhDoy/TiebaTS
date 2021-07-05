@@ -7,6 +7,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.function.Predicate;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
@@ -66,29 +67,30 @@ public class PurifyMy extends BaseHooker implements IHooker {
                                 @Override
                                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                                     ArrayList<?> list = (ArrayList<?>) ReflectUtils.getObjectField(param.thisObject, ArrayList.class);
-                                    for (int i = 0; i < list.size(); i++) {
+                                    list.removeIf((Predicate<Object>) o -> {
                                         try {
-                                            ReflectUtils.getObjectField(list.get(i), "com.baidu.tbadk.core.data.UserData");
+                                            ReflectUtils.getObjectField(o, "com.baidu.tbadk.core.data.UserData");
                                         } catch (NoSuchFieldError e) {
-                                            list.remove(i);
-                                            i--;
-                                            continue;
+                                            return true;
                                         }
-
-                                        for (Field field : list.get(i).getClass().getDeclaredFields()) {
-                                            field.setAccessible(true);
-                                            if (field.get(list.get(i)) instanceof String) {
-                                                String type = (String) field.get(list.get(i));
-                                                if (type != null && !type.startsWith("http")
-                                                        && !type.equals("我的收藏")
-                                                        && !type.equals("浏览历史")
-                                                        && !type.equals("服务中心")) {
-                                                    list.remove(i);
-                                                    i--;
+                                        try {
+                                            for (Field field : o.getClass().getDeclaredFields()) {
+                                                field.setAccessible(true);
+                                                if (field.get(o) instanceof String) {
+                                                    String type = (String) field.get(o);
+                                                    if (type != null && !type.startsWith("http")
+                                                            && !type.equals("我的收藏")
+                                                            && !type.equals("浏览历史")
+                                                            && !type.equals("服务中心")) {
+                                                        return true;
+                                                    }
                                                 }
                                             }
+                                        } catch (Throwable e) {
+                                            XposedBridge.log(e);
                                         }
-                                    }
+                                        return false;
+                                    });
                                 }
                             });
                         }

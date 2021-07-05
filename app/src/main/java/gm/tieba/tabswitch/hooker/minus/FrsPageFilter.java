@@ -2,6 +2,7 @@ package gm.tieba.tabswitch.hooker.minus;
 
 
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import de.robv.android.xposed.XC_MethodHook;
@@ -19,35 +20,29 @@ public class FrsPageFilter extends BaseHooker implements IHooker {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 List<?> threadList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");
                 if (threadList == null) return;
-                label:
-                for (int i = 0; i < threadList.size(); i++) {
-                    if (pattern.matcher(Parser.parsePbContent(threadList.get(i), "first_post_content")).find()) {
-                        threadList.remove(i);
-                        i--;
-                        continue;
+                threadList.removeIf((Predicate<Object>) o -> {
+                    if (pattern.matcher(Parser.parsePbContent(o, "first_post_content")).find()) {
+                        return true;
                     }
 
-                    String[] strings = new String[]{(String) XposedHelpers.getObjectField(threadList.get(i), "title"),
-                            (String) XposedHelpers.getObjectField(threadList.get(i), "fname")};
+                    String[] strings = new String[]{(String) XposedHelpers.getObjectField(o, "title"),
+                            (String) XposedHelpers.getObjectField(o, "fname")};
                     for (String string : strings) {
                         if (pattern.matcher(string).find()) {
-                            threadList.remove(i);
-                            i--;
-                            continue label;
+                            return true;
                         }
                     }
 
-                    Object author = XposedHelpers.getObjectField(threadList.get(i), "author");
+                    Object author = XposedHelpers.getObjectField(o, "author");
                     String[] authors = new String[]{(String) XposedHelpers.getObjectField(author, "name"),
                             (String) XposedHelpers.getObjectField(author, "name_show")};
                     for (String string : authors) {
                         if (pattern.matcher(string).find()) {
-                            threadList.remove(i);
-                            i--;
-                            break;
+                            return true;
                         }
                     }
-                }
+                    return false;
+                });
             }
         });
     }

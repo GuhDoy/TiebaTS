@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
@@ -162,19 +163,14 @@ public class Purify extends BaseHooker implements IHooker {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 List<?> threadList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");
                 if (threadList == null) return;
-                for (int i = 0; i < threadList.size(); i++) {
-                    if (XposedHelpers.getObjectField(threadList.get(i), "forum_info") == null) {
-                        threadList.remove(i);
-                        i--;
-                        continue;
+                threadList.removeIf((Predicate<Object>) o -> {
+                    if (XposedHelpers.getObjectField(o, "forum_info") == null) {
+                        return true;
                     }
 
-                    Object worksInfo = XposedHelpers.getObjectField(threadList.get(i), "works_info");
-                    if (worksInfo != null && (Integer) XposedHelpers.getObjectField(worksInfo, "is_works") == 1) {
-                        threadList.remove(i);
-                        i--;
-                    }
-                }
+                    Object worksInfo = XposedHelpers.getObjectField(o, "works_info");
+                    return worksInfo != null && (Integer) XposedHelpers.getObjectField(worksInfo, "is_works") == 1;
+                });
             }
         });
         // 吧页面
@@ -186,19 +182,14 @@ public class Purify extends BaseHooker implements IHooker {
 
                 List<?> threadList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");
                 if (threadList == null) return;
-                for (int i = 0; i < threadList.size(); i++) {
-                    if (XposedHelpers.getObjectField(threadList.get(i), "ala_info") != null) {
-                        threadList.remove(i);
-                        i--;
-                        continue;
+                threadList.removeIf((Predicate<Object>) o -> {
+                    if (XposedHelpers.getObjectField(o, "ala_info") != null) {
+                        return true;
                     }
 
-                    Object worksInfo = XposedHelpers.getObjectField(threadList.get(i), "works_info");
-                    if (worksInfo != null && (Integer) XposedHelpers.getObjectField(worksInfo, "is_works") == 1) {
-                        threadList.remove(i);
-                        i--;
-                    }
-                }
+                    Object worksInfo = XposedHelpers.getObjectField(o, "works_info");
+                    return worksInfo != null && (Integer) XposedHelpers.getObjectField(worksInfo, "is_works") == 1;
+                });
             }
         });
         // 吧小程序
@@ -209,12 +200,7 @@ public class Purify extends BaseHooker implements IHooker {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 List<?> list = (List<?>) XposedHelpers.getObjectField(param.thisObject, "tab");
                 if (list == null) return;
-                for (int i = 0; i < list.size(); i++) {
-                    if ((Integer) XposedHelpers.getObjectField(list.get(i), "tab_type") == 92) {
-                        list.remove(i);
-                        return;
-                    }
-                }
+                list.removeIf((Predicate<Object>) o -> (Integer) XposedHelpers.getObjectField(o, "tab_type") == 92);
             }
         });
         // 你可能感兴趣的人：initUI()

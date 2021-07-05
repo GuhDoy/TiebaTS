@@ -12,6 +12,7 @@ import android.widget.EditText;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -47,25 +48,23 @@ public class HistoryCache extends BaseHooker implements IHooker {
                         List<?> list = (List<?>) param.args[0];
                         if (list == null) return;
                         final Pattern pattern = Pattern.compile(mRegex);
-                        label:
-                        for (int j = 0; j < list.size(); j++) {
+                        list.removeIf((Predicate<Object>) o -> {
                             String[] strings;
                             try {
                                 // com.baidu.tieba.myCollection.baseHistory.a
-                                strings = new String[]{(String) XposedHelpers.getObjectField(list.get(j), "forumName"),
-                                        (String) XposedHelpers.getObjectField(list.get(j), "threadName")};
+                                strings = new String[]{(String) XposedHelpers.getObjectField(o, "forumName"),
+                                        (String) XposedHelpers.getObjectField(o, "threadName")};
                             } catch (NoSuchFieldError e) {
-                                strings = new String[]{(String) XposedHelpers.getObjectField(list.get(j), "g"),
-                                        (String) XposedHelpers.getObjectField(list.get(j), "f")};
+                                strings = new String[]{(String) XposedHelpers.getObjectField(o, "g"),
+                                        (String) XposedHelpers.getObjectField(o, "f")};
                             }
                             for (String string : strings) {
                                 if (pattern.matcher(string).find()) {
-                                    continue label;
+                                    return false;
                                 }
                             }
-                            list.remove(j);
-                            j--;
-                        }
+                            return true;
+                        });
                     }
                 });
             }
