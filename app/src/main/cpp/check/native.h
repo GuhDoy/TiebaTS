@@ -6,8 +6,6 @@ jboolean _inline(JNIEnv *env, jclass clazz, jstring jname);
 
 jboolean findXposed(JNIEnv *env, jclass clazz);
 
-jstring prop(JNIEnv *env, jclass clazz);
-
 jint _access(JNIEnv *env, jclass clazz, jstring path);
 
 jint sysaccess(JNIEnv *env, jclass clazz, jstring jpath);

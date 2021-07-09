@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.util;
+package gm.tieba.tabswitch.hooker.extra;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -28,7 +28,7 @@ import gm.tieba.tabswitch.BuildConfig;
 import gm.tieba.tabswitch.XposedWrapper;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.TSPreferenceHelper;
-import gm.tieba.tabswitch.hooker.extra.StackTrace;
+import gm.tieba.tabswitch.util.FileUtils;
 import gm.tieba.tabswitch.widget.TbToast;
 
 public class TraceChecker extends XposedWrapper {

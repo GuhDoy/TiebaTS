@@ -86,29 +86,6 @@ jboolean findXposed(JNIEnv *env, jclass clazz) {
     return xposed_status;
 }
 
-static inline char *getDex2oat() {
-    // dalvik.vm.dex2oat-flags
-    char v[] = "`djqab$}a#jjh#}au/ehdat";
-    static unsigned int m = 0;
-
-    if (m == 0) {
-        m = 19;
-    } else if (m == 23) {
-        m = 29;
-    }
-
-    for (unsigned int i = 0; i < 0x17; ++i) {
-        v[i] ^= ((i + 0x17) % m);
-    }
-    return strdup(v);
-}
-
-jstring prop(JNIEnv *env, jclass clazz) {
-    char prop[PROP_VALUE_MAX];
-    __system_property_get(getDex2oat(), prop);
-    return (*env)->NewStringUTF(env, prop);
-}
-
 jint _access(JNIEnv *env, jclass clazz, jstring jpath) {
     const char *path = (*env)->GetStringUTFChars(env, jpath, NULL);
     int i = access(path, F_OK);

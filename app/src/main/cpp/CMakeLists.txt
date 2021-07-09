@@ -28,3 +28,7 @@ include_directories(check check)
 add_library(tshide SHARED main.c ${CHECK})
 find_library(log-lib log)
 target_link_libraries(tshide ${log-lib} cxx::cxx)
+if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_custom_command(TARGET tshide POST_BUILD
+            COMMAND ${CMAKE_STRIP} --remove-section=.comment "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libtshide.so")
+endif ()

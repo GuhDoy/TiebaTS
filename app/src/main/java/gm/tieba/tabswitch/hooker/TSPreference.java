@@ -28,7 +28,7 @@ import gm.tieba.tabswitch.hooker.add.MyAttention;
 import gm.tieba.tabswitch.util.DisplayUtils;
 import gm.tieba.tabswitch.util.Parser;
 import gm.tieba.tabswitch.util.ReflectUtils;
-import gm.tieba.tabswitch.util.TraceChecker;
+import gm.tieba.tabswitch.hooker.extra.TraceChecker;
 import gm.tieba.tabswitch.widget.NavigationBar;
 import gm.tieba.tabswitch.widget.TbDialog;
 import gm.tieba.tabswitch.widget.TbToast;

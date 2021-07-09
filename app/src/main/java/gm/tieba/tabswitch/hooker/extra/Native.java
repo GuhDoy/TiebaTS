@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.util;
+package gm.tieba.tabswitch.hooker.extra;
 
 import android.annotation.SuppressLint;
 
@@ -23,8 +23,6 @@ public class Native extends XposedWrapper {
     public static native boolean inline(String name);
 
     public static native boolean findXposed();
-
-    public static native String prop(); // TODO: remove
 
     public static native int access(String path);
 
