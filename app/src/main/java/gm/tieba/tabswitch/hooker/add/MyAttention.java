@@ -16,7 +16,7 @@ import java.util.Set;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.BaseHooker;
+import gm.tieba.tabswitch.XposedWrapper;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.dao.Adp;
 import gm.tieba.tabswitch.dao.Preferences;
@@ -24,7 +24,7 @@ import gm.tieba.tabswitch.hooker.TSPreferenceHelper;
 import gm.tieba.tabswitch.widget.TbDialog;
 import gm.tieba.tabswitch.widget.TbEditText;
 
-public class MyAttention extends BaseHooker implements IHooker {
+public class MyAttention extends XposedWrapper implements IHooker {
     public static LinearLayout createNotesPreference(Activity activity) {
         Preferences.putBoolean("my_attention", !Preferences.getNotes().isEmpty());
         TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);

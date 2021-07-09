@@ -7,10 +7,10 @@ import java.util.List;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.BaseHooker;
+import gm.tieba.tabswitch.XposedWrapper;
 import gm.tieba.tabswitch.IHooker;
 
-public class StackTrace extends BaseHooker implements IHooker {
+public class StackTrace extends XposedWrapper implements IHooker {
     public static List<String> sStes = new ArrayList<>();
 
     public void hook() throws Throwable {

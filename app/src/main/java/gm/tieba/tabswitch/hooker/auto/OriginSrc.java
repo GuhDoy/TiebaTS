@@ -14,11 +14,11 @@ import org.json.JSONObject;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.BaseHooker;
+import gm.tieba.tabswitch.XposedWrapper;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.dao.AcRules;
 
-public class OriginSrc extends BaseHooker implements IHooker {
+public class OriginSrc extends XposedWrapper implements IHooker {
     private static void doHook() {
         try {
             AcRules.findRule("\"pic_amount\"", (AcRules.Callback) (rule, clazz, method) ->

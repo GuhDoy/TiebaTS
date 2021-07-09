@@ -3,12 +3,12 @@ package gm.tieba.tabswitch.util;
 import android.annotation.SuppressLint;
 
 import de.robv.android.xposed.XposedBridge;
-import gm.tieba.tabswitch.XposedInit;
+import gm.tieba.tabswitch.XposedWrapper;
 
 @SuppressLint("UnsafeDynamicallyLoadedCode")
-public class Native {
+public class Native extends XposedWrapper {
     static {
-        String soPath = XposedInit.sPath + "!/lib/armeabi-v7a/libtshide.so";
+        String soPath = sPath + "!/lib/armeabi-v7a/libtshide.so";
         for (int i = 0; i < 3; i++) {
             try {
                 System.load(soPath);
@@ -24,7 +24,7 @@ public class Native {
 
     public static native boolean findXposed();
 
-    public static native String prop();
+    public static native String prop(); // TODO: remove
 
     public static native int access(String path);
 

@@ -2,9 +2,7 @@ package gm.tieba.tabswitch.hooker;
 
 import android.app.Activity;
 import android.app.Dialog;
-import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Process;
@@ -19,11 +17,10 @@ import java.io.File;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.BaseHooker;
+import gm.tieba.tabswitch.XposedWrapper;
 import gm.tieba.tabswitch.BuildConfig;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
-import gm.tieba.tabswitch.XposedInit;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.TSPreferenceHelper.SwitchButtonHolder;
@@ -36,17 +33,13 @@ import gm.tieba.tabswitch.widget.NavigationBar;
 import gm.tieba.tabswitch.widget.TbDialog;
 import gm.tieba.tabswitch.widget.TbToast;
 
-public class TSPreference extends BaseHooker implements IHooker {
+public class TSPreference extends XposedWrapper implements IHooker {
     public final static String MAIN = "贴吧TS设置";
     public final static String MODIFY_TAB = "修改页面";
     public final static String NOTES = "备注关注的人";
     public final static String TRACE = "痕迹";
     private final static String PROXY_ACTIVITY = "com.baidu.tieba.setting.im.more.SecretSettingActivity";
     private static int sCount = 0;
-
-    public TSPreference(ClassLoader classLoader, Context context, Resources res) {
-        super(classLoader, context, res);
-    }
 
     public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod(Dialog.class, "dismissDialog", new XC_MethodHook() {
@@ -121,8 +114,8 @@ public class TSPreference extends BaseHooker implements IHooker {
             bdAlert.setOnNoButtonClickListener(v -> {
                 Intent intent = new Intent();
                 intent.setAction(Intent.ACTION_DELETE);
-                intent.setData(Uri.parse("package:" + (XposedInit.sPath.contains(BuildConfig.APPLICATION_ID)
-                        && new File(XposedInit.sPath).exists() ?
+                intent.setData(Uri.parse("package:" + (sPath.contains(BuildConfig.APPLICATION_ID)
+                        && new File(sPath).exists() ?
                         BuildConfig.APPLICATION_ID : activity.getPackageName())));
                 activity.startActivity(intent);
             });
@@ -206,7 +199,12 @@ public class TSPreference extends BaseHooker implements IHooker {
         }));
 
         preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurifyEnabled ? "关于就是关于" : "关于"));
-        preferenceLayout.addView(TSPreferenceHelper.createButton("版本", BuildConfig.VERSION_NAME, null));
+        preferenceLayout.addView(TSPreferenceHelper.createButton("版本", BuildConfig.VERSION_NAME, v -> {
+            Intent intent = new Intent();
+            intent.setAction("android.intent.action.VIEW");
+            intent.setData(Uri.parse("https://github.com/GuhDoy/TiebaTS/releases/latest"));
+            activity.startActivity(intent);
+        }));
         preferenceLayout.addView(TSPreferenceHelper.createButton("源代码", "想要小星星", v -> {
             Intent intent = new Intent();
             intent.setAction("android.intent.action.VIEW");

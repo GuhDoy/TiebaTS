@@ -9,13 +9,13 @@ import android.os.Bundle;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.BaseHooker;
+import gm.tieba.tabswitch.XposedWrapper;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.util.DisplayUtils;
 import gm.tieba.tabswitch.util.ReflectUtils;
 import gm.tieba.tabswitch.widget.Switch;
 
-public class EyeshieldMode extends BaseHooker implements IHooker {
+public class EyeshieldMode extends XposedWrapper implements IHooker {
     private static boolean sSavedUiMode;
 
     public void hook() throws Throwable {

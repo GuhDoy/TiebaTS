@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.Resources;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 import android.view.Gravity;
@@ -44,10 +43,6 @@ public class AntiConfusion extends BaseHooker implements IHooker {
     private TextView mProgress;
     private RelativeLayout mProgressContainer;
     private LinearLayout mContentView;
-
-    public AntiConfusion(ClassLoader classLoader, Context context, Resources res) {
-        super(classLoader, context, res);
-    }
 
     public void hook() throws Throwable {
         for (Method method : XposedHelpers.findClass("com.baidu.tieba.LogoActivity", sClassLoader).getDeclaredMethods()) {

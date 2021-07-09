@@ -7,14 +7,14 @@ import java.util.Arrays;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.BaseHooker;
+import gm.tieba.tabswitch.XposedWrapper;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.util.Parser;
 
-public class FragmentTab extends BaseHooker implements IHooker {
+public class FragmentTab extends XposedWrapper implements IHooker {
     private static boolean sIsFirstHook = true;
 
     public void hook() throws Throwable {

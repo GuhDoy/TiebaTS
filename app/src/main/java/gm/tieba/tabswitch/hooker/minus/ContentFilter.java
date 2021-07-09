@@ -9,12 +9,12 @@ import java.util.regex.Pattern;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.BaseHooker;
+import gm.tieba.tabswitch.XposedWrapper;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.util.Parser;
 
-public class ContentFilter extends BaseHooker implements IHooker {
+public class ContentFilter extends XposedWrapper implements IHooker {
     private final Set<Object> mIds = new HashSet<>();
 
     public void hook() throws Throwable {

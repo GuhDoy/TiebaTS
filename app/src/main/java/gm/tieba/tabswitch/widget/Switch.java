@@ -6,9 +6,9 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.BaseHooker;
+import gm.tieba.tabswitch.XposedWrapper;
 
-public class Switch extends BaseHooker {
+public class Switch extends XposedWrapper {
     public View bdSwitch;
 
     public Switch() {

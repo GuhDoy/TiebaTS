@@ -24,14 +24,14 @@ import java.util.Random;
 
 import dalvik.system.PathClassLoader;
 import de.robv.android.xposed.XposedBridge;
-import gm.tieba.tabswitch.BaseHooker;
+import gm.tieba.tabswitch.XposedWrapper;
 import gm.tieba.tabswitch.BuildConfig;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.TSPreferenceHelper;
 import gm.tieba.tabswitch.hooker.extra.StackTrace;
 import gm.tieba.tabswitch.widget.TbToast;
 
-public class TraceChecker extends BaseHooker {
+public class TraceChecker extends XposedWrapper {
     public static int sChildCount;
     private final TSPreferenceHelper.PreferenceLayout mPreferenceLayout;
     private final String JAVA = "java";
@@ -52,7 +52,6 @@ public class TraceChecker extends BaseHooker {
         getContext().getExternalFilesDir(null).mkdirs();
         if (Preferences.getBoolean("check_xposed")) {
             classloader();
-            prop();
         }
         if (Preferences.getBoolean("check_module")) {
             files();
@@ -76,13 +75,6 @@ public class TraceChecker extends BaseHooker {
         }
 
         if (Native.findXposed()) result.addTrace(C, "de/robv/android/xposed/XposedBridge");
-        result.show();
-    }
-
-    private void prop() {
-        ResultBuilder result = new ResultBuilder("系统属性");
-        String trace = Native.prop();
-        if (!trace.equals("")) result.addTrace(C, trace);
         result.show();
     }
 

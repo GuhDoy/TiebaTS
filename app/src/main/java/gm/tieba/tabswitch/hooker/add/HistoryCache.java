@@ -19,7 +19,7 @@ import java.util.regex.PatternSyntaxException;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.BaseHooker;
+import gm.tieba.tabswitch.XposedWrapper;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.widget.NavigationBar;
@@ -27,7 +27,7 @@ import gm.tieba.tabswitch.widget.TbDialog;
 import gm.tieba.tabswitch.widget.TbEditText;
 import gm.tieba.tabswitch.widget.TbToast;
 
-public class HistoryCache extends BaseHooker implements IHooker {
+public class HistoryCache extends XposedWrapper implements IHooker {
     private String mRegex = "";
 
     public void hook() throws Throwable {

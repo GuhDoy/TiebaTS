@@ -15,13 +15,13 @@ import java.util.List;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.BaseHooker;
+import gm.tieba.tabswitch.XposedWrapper;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.dao.Adp;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.widget.TbToast;
 
-public class AutoSign extends BaseHooker implements IHooker {
+public class AutoSign extends XposedWrapper implements IHooker {
     //获取用户所有关注贴吧
     private static final String LIKE_URL = "https://tieba.baidu.com/mo/q/newmoindex";
     //获取用户的tbs
@@ -118,6 +118,11 @@ public class AutoSign extends BaseHooker implements IHooker {
                 if (mSuccess.size() != mFollowNum) {
                     Thread.sleep(2500);
                     getTbs();
+                    if (flag == 2) {
+                        mFollow.clear();
+                        mSuccess.clear();
+                        getFollow();
+                    }
                 }
                 flag--;
             }

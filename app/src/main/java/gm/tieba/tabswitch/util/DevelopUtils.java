@@ -8,9 +8,9 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.BaseHooker;
+import gm.tieba.tabswitch.XposedWrapper;
 
-public class DevelopUtils extends BaseHooker {
+public class DevelopUtils extends XposedWrapper {
     public static void log(Object o) {
         XposedBridge.log(String.valueOf(o));
     }

@@ -14,9 +14,9 @@ import java.util.Set;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.BaseHooker;
+import gm.tieba.tabswitch.XposedWrapper;
 
-public class Adp extends BaseHooker {
+public class Adp extends XposedWrapper {
     private static Adp sAdp;
     public String BDUSS;
     public String tbs;
@@ -28,10 +28,6 @@ public class Adp extends BaseHooker {
         sAdp = this;
         getAccountData();
         refreshCache();
-    }
-
-    public static Adp getInstance() {
-        return sAdp;
     }
 
     private void getAccountData() {
@@ -71,6 +67,11 @@ public class Adp extends BaseHooker {
                 Preferences.putLikeForum(forums);
             }
         });
+    }
+
+    // lazy init
+    public static Adp getInstance() {
+        return sAdp;
     }
 
     public synchronized Adp parseDatabase() throws JSONException {

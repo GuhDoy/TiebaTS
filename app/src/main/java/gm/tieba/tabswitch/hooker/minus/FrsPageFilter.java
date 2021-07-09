@@ -7,12 +7,12 @@ import java.util.regex.Pattern;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.BaseHooker;
+import gm.tieba.tabswitch.XposedWrapper;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.util.Parser;
 
-public class FrsPageFilter extends BaseHooker implements IHooker {
+public class FrsPageFilter extends XposedWrapper implements IHooker {
     public void hook() throws Throwable {
         final Pattern pattern = Pattern.compile(Preferences.getString("frs_page_filter"));
         XposedHelpers.findAndHookMethod("tbclient.FrsPage.DataRes$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
