@@ -22,8 +22,8 @@ import java.util.regex.PatternSyntaxException;
 
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.XposedWrapper;
 import gm.tieba.tabswitch.R;
+import gm.tieba.tabswitch.XposedWrapper;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.util.ReflectUtils;
 import gm.tieba.tabswitch.widget.Switch;

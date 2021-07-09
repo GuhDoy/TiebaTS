@@ -8,7 +8,7 @@ import gm.tieba.tabswitch.XposedWrapper;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class NavigationBar extends XposedWrapper {
-    private Object mNavigationBar;
+    private final Object mNavigationBar;
 
     public NavigationBar(Object thisObject) {
         mNavigationBar = ReflectUtils.getObjectField(thisObject,

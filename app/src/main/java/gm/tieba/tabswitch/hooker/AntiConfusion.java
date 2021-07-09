@@ -29,14 +29,14 @@ import java.util.zip.ZipFile;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.BaseHooker;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
+import gm.tieba.tabswitch.XposedWrapper;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.dao.RulesDbHelper;
 import gm.tieba.tabswitch.util.FileUtils;
 
-public class AntiConfusion extends BaseHooker implements IHooker {
+public class AntiConfusion extends XposedWrapper implements IHooker {
     private static final String SPRINGBOARD_ACTIVITY = "com.baidu.tieba.tblauncher.MainTabActivity";
     private Activity mActivity;
     private TextView mMessage;

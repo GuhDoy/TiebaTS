@@ -3,8 +3,8 @@ package gm.tieba.tabswitch.hooker.minus;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.XposedWrapper;
 import gm.tieba.tabswitch.IHooker;
+import gm.tieba.tabswitch.XposedWrapper;
 import gm.tieba.tabswitch.dao.AcRules;
 
 public class RedTip extends XposedWrapper implements IHooker {

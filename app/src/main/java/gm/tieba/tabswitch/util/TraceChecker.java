@@ -24,8 +24,8 @@ import java.util.Random;
 
 import dalvik.system.PathClassLoader;
 import de.robv.android.xposed.XposedBridge;
-import gm.tieba.tabswitch.XposedWrapper;
 import gm.tieba.tabswitch.BuildConfig;
+import gm.tieba.tabswitch.XposedWrapper;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.TSPreferenceHelper;
 import gm.tieba.tabswitch.hooker.extra.StackTrace;
