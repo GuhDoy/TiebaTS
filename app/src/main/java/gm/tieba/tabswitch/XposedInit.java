@@ -55,7 +55,7 @@ import gm.tieba.tabswitch.hooker.minus.RedTip;
 import gm.tieba.tabswitch.hooker.minus.SwitchManager;
 import gm.tieba.tabswitch.widget.TbDialog;
 
-public class XposedInit extends XposedWrapper implements IXposedHookLoadPackage, IXposedHookZygoteInit {
+public class XposedInit extends XposedContext implements IXposedHookLoadPackage, IXposedHookZygoteInit {
     @SuppressLint("DiscouragedPrivateApi")
     @Override
     public void initZygote(IXposedHookZygoteInit.StartupParam startupParam) throws Throwable {

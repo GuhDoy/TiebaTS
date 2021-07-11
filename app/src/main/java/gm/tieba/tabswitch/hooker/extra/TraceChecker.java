@@ -25,13 +25,13 @@ import java.util.Random;
 import dalvik.system.PathClassLoader;
 import de.robv.android.xposed.XposedBridge;
 import gm.tieba.tabswitch.BuildConfig;
-import gm.tieba.tabswitch.XposedWrapper;
+import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.TSPreferenceHelper;
 import gm.tieba.tabswitch.util.FileUtils;
 import gm.tieba.tabswitch.widget.TbToast;
 
-public class TraceChecker extends XposedWrapper {
+public class TraceChecker extends XposedContext {
     public static int sChildCount;
     private final TSPreferenceHelper.PreferenceLayout mPreferenceLayout;
     private final String JAVA = "java";

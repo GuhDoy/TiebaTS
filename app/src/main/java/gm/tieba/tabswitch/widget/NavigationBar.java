@@ -4,10 +4,10 @@ import android.view.View;
 import android.widget.TextView;
 
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.XposedWrapper;
+import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
-public class NavigationBar extends XposedWrapper {
+public class NavigationBar extends XposedContext {
     private final Object mNavigationBar;
 
     public NavigationBar(Object thisObject) {

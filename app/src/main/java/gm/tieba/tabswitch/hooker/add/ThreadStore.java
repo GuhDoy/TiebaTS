@@ -21,7 +21,7 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
-import gm.tieba.tabswitch.XposedWrapper;
+import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.util.DisplayUtils;
 import gm.tieba.tabswitch.util.ReflectUtils;
@@ -29,7 +29,7 @@ import gm.tieba.tabswitch.widget.TbDialog;
 import gm.tieba.tabswitch.widget.TbEditText;
 import gm.tieba.tabswitch.widget.TbToast;
 
-public class ThreadStore extends XposedWrapper implements IHooker {
+public class ThreadStore extends XposedContext implements IHooker {
     private String mRegex = "";
 
     public void hook() throws Throwable {

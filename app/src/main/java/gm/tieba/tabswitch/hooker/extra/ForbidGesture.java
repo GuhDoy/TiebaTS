@@ -16,12 +16,12 @@ import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
-import gm.tieba.tabswitch.XposedWrapper;
+import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
 @SuppressLint("ClickableViewAccessibility")
-public class ForbidGesture extends XposedWrapper implements IHooker {
+public class ForbidGesture extends XposedContext implements IHooker {
     public void hook() throws Throwable {
         // 帖子字号
         AcRules.findRule(sRes.getString(R.string.ForbidGesture), (AcRules.Callback) (rule, clazz, method) ->

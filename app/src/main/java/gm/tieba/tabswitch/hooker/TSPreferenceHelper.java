@@ -23,7 +23,7 @@ import java.util.regex.PatternSyntaxException;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.R;
-import gm.tieba.tabswitch.XposedWrapper;
+import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.util.ReflectUtils;
 import gm.tieba.tabswitch.widget.Switch;
@@ -31,7 +31,7 @@ import gm.tieba.tabswitch.widget.TbDialog;
 import gm.tieba.tabswitch.widget.TbEditText;
 import gm.tieba.tabswitch.widget.TbToast;
 
-public class TSPreferenceHelper extends XposedWrapper {
+public class TSPreferenceHelper extends XposedContext {
     public static TextView createTextView(String text) {
         TextView textView = new TextView(getContext());
         textView.setText(text);

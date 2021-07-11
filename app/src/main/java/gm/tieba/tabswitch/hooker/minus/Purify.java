@@ -22,11 +22,11 @@ import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
-import gm.tieba.tabswitch.XposedWrapper;
+import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
-public class Purify extends XposedWrapper implements IHooker {
+public class Purify extends XposedContext implements IHooker {
     public void hook() throws Throwable {
         AcRules.findRule(sRes.getStringArray(R.array.Purify), (AcRules.Callback) (rule, clazz, method) -> {
             switch (rule) {

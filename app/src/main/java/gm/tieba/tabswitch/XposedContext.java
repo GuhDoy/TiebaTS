@@ -5,13 +5,13 @@ import android.content.res.Resources;
 
 import java.lang.ref.WeakReference;
 
-public abstract class XposedWrapper {
+public abstract class XposedContext {
     protected static WeakReference<Context> sContextRef;
     protected static ClassLoader sClassLoader;
     protected static Resources sRes;
     public static String sPath;
 
-    protected XposedWrapper() {
+    protected XposedContext() {
     }
 
     protected static Context getContext() {

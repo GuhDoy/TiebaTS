@@ -6,11 +6,11 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
-import gm.tieba.tabswitch.XposedWrapper;
+import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
-public class FrsTab extends XposedWrapper implements IHooker {
+public class FrsTab extends XposedContext implements IHooker {
     private int mPosition;
 
     public void hook() throws Throwable {

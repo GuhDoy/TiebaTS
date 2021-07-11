@@ -28,7 +28,7 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.IHooker;
-import gm.tieba.tabswitch.XposedWrapper;
+import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.util.FileUtils;
 import gm.tieba.tabswitch.util.ReflectUtils;
 import gm.tieba.tabswitch.widget.TbToast;
@@ -36,7 +36,7 @@ import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
 
-public class SaveImages extends XposedWrapper implements IHooker {
+public class SaveImages extends XposedContext implements IHooker {
     private List<String> mList;
     private String mTitle;
 

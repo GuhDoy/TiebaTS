@@ -8,9 +8,9 @@ import java.util.Map;
 
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.XposedWrapper;
+import gm.tieba.tabswitch.XposedContext;
 
-public class ReflectUtils extends XposedWrapper {
+public class ReflectUtils extends XposedContext {
     private static final Map<String, Field> sFieldCache = new HashMap<>();
 
     private static int getR(String innerClassName, String fieldName) {

@@ -14,9 +14,9 @@ import java.util.Set;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.XposedWrapper;
+import gm.tieba.tabswitch.XposedContext;
 
-public class Adp extends XposedWrapper {
+public class Adp extends XposedContext {
     private static Adp sAdp;
     public String BDUSS;
     public String tbs;

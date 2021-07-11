@@ -6,9 +6,9 @@ import java.util.List;
 
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.XposedWrapper;
+import gm.tieba.tabswitch.XposedContext;
 
-public class Parser extends XposedWrapper {
+public class Parser extends XposedContext {
     public static List<String> parseMainTabActivityConfig() {
         List<String> mainTabActivityConfig = new ArrayList<>();
         try {

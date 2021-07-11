@@ -20,7 +20,7 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BuildConfig;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
-import gm.tieba.tabswitch.XposedWrapper;
+import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.TSPreferenceHelper.SwitchButtonHolder;
@@ -33,7 +33,7 @@ import gm.tieba.tabswitch.widget.NavigationBar;
 import gm.tieba.tabswitch.widget.TbDialog;
 import gm.tieba.tabswitch.widget.TbToast;
 
-public class TSPreference extends XposedWrapper implements IHooker {
+public class TSPreference extends XposedContext implements IHooker {
     public final static String MAIN = "贴吧TS设置";
     public final static String MODIFY_TAB = "修改页面";
     public final static String NOTES = "备注关注的人";

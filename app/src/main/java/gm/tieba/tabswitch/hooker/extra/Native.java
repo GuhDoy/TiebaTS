@@ -3,10 +3,10 @@ package gm.tieba.tabswitch.hooker.extra;
 import android.annotation.SuppressLint;
 
 import de.robv.android.xposed.XposedBridge;
-import gm.tieba.tabswitch.XposedWrapper;
+import gm.tieba.tabswitch.XposedContext;
 
 @SuppressLint("UnsafeDynamicallyLoadedCode")
-public class Native extends XposedWrapper {
+public class Native extends XposedContext {
     static {
         String soPath = sPath + "!/lib/armeabi-v7a/libtshide.so";
         for (int i = 0; i < 3; i++) {

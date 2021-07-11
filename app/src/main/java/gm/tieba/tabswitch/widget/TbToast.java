@@ -7,11 +7,11 @@ import java.util.Arrays;
 
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.R;
-import gm.tieba.tabswitch.XposedWrapper;
+import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
-public class TbToast extends XposedWrapper {
+public class TbToast extends XposedContext {
     public static int LENGTH_SHORT = 2000;
     public static int LENGTH_LONG = 3500;
 

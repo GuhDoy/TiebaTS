@@ -3,10 +3,10 @@ package gm.tieba.tabswitch.hooker.minus;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.IHooker;
-import gm.tieba.tabswitch.XposedWrapper;
+import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.Preferences;
 
-public class SwitchManager extends XposedWrapper implements IHooker {
+public class SwitchManager extends XposedContext implements IHooker {
     public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod("com.baidu.adp.lib.featureSwitch.SwitchManager", sClassLoader,
                 "findType", String.class, new XC_MethodHook() {

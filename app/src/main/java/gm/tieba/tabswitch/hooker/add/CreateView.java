@@ -11,11 +11,11 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
-import gm.tieba.tabswitch.XposedWrapper;
+import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
-public class CreateView extends XposedWrapper implements IHooker {
+public class CreateView extends XposedContext implements IHooker {
     public void hook() throws Throwable {
         AcRules.findRule(sRes.getString(R.string.CreateView), (AcRules.Callback) (rule, clazz, method) ->
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, Bundle.class, new XC_MethodHook() {
