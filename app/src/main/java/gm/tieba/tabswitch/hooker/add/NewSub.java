@@ -34,9 +34,12 @@ public class NewSub extends XposedContext implements IHooker {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                         Object thread = XposedHelpers.getObjectField(param.thisObject, "thread");
-                        mThreadId = XposedHelpers.getObjectField(thread, "id");
                         Object post = XposedHelpers.getObjectField(param.thisObject, "post");
-                        mPostId = XposedHelpers.getObjectField(post, "id");
+                        // null when post is omitted
+                        if (thread != null && post != null) {
+                            mThreadId = XposedHelpers.getObjectField(thread, "id");
+                            mPostId = XposedHelpers.getObjectField(post, "id");
+                        }
                     }
                 });
     }
