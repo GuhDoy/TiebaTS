@@ -6,7 +6,7 @@ import java.util.List;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BuildConfig;
-import gm.tieba.tabswitch.IHooker;
+import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.XposedContext;
 
 public class Hide extends XposedContext implements IHooker {

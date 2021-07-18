@@ -119,13 +119,15 @@ public class ReflectUtils extends XposedContext {
             for (Field field : declaredFields) {
                 field.setAccessible(true);
                 Object objField = field.get(instance);
-                if (objField != null && cls.equals(objField.getClass()) && handle.onFieldFound(objField)) {
+                if (objField != null && cls.equals(objField.getClass())
+                        && handle.onFieldFound(objField)) {
                     return;
                 }
             }
             for (Field field : declaredFields) {
                 Object objField = field.get(instance);
-                if (objField != null && cls.isAssignableFrom(objField.getClass()) && handle.onFieldFound(objField)) {
+                if (objField != null && cls.isAssignableFrom(objField.getClass())
+                        && handle.onFieldFound(objField)) {
                     return;
                 }
             }

@@ -18,7 +18,6 @@ import java.io.File;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BuildConfig;
-import gm.tieba.tabswitch.IHooker;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;

@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch;
+package gm.tieba.tabswitch.hooker;
 
 public interface IHooker {
 
