@@ -351,7 +351,6 @@ static inline void fill_invokeOriginalMethodNative_signature(char v[]) {
     v[0x77] = '\0';
 }
 
-
 jclass findLoadedClass(JNIEnv *env, jobject classLoader, const char *name) {
     char v1[0x80], v2[0x80];
     jclass loadedClass = NULL;

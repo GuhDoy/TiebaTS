@@ -111,10 +111,13 @@ public class TraceChecker extends XposedContext {
         }
 
         String path = String.format(Locale.getDefault(), "/proc/%d/maps", Process.myPid());
-        for (String trace : new String[]{Native.fopen(path), Native.openat(path)}) {
-            if (!TextUtils.isEmpty(trace)) {
-                result.addTrace(S, trace.substring(0, trace.length() - 1));
-            }
+        String trace = Native.fopen(path);
+        if (!TextUtils.isEmpty(trace)) {
+            result.addTrace(C, trace.substring(0, trace.length() - 1));
+        }
+        String trace2 = Native.openat(path);
+        if (!TextUtils.isEmpty(trace2)) {
+            result.addTrace(S, trace2.substring(0, trace2.length() - 1));
         }
         result.show();
     }
