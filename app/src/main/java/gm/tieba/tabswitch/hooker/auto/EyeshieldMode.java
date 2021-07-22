@@ -9,8 +9,8 @@ import android.os.Bundle;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.XposedContext;
+import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.util.DisplayUtils;
 import gm.tieba.tabswitch.util.ReflectUtils;
 import gm.tieba.tabswitch.widget.Switch;

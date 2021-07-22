@@ -8,9 +8,9 @@ import java.util.function.Predicate;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.Preferences;
+import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.widget.TbToast;
 
 public class FollowFilter extends XposedContext implements IHooker {

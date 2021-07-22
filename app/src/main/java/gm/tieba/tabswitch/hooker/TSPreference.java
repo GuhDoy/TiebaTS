@@ -24,10 +24,10 @@ import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.TSPreferenceHelper.SwitchButtonHolder;
 import gm.tieba.tabswitch.hooker.add.MyAttention;
+import gm.tieba.tabswitch.hooker.extra.TraceChecker;
 import gm.tieba.tabswitch.util.DisplayUtils;
 import gm.tieba.tabswitch.util.Parser;
 import gm.tieba.tabswitch.util.ReflectUtils;
-import gm.tieba.tabswitch.hooker.extra.TraceChecker;
 import gm.tieba.tabswitch.widget.NavigationBar;
 import gm.tieba.tabswitch.widget.TbDialog;
 import gm.tieba.tabswitch.widget.TbToast;
@@ -98,7 +98,8 @@ public class TSPreference extends XposedContext implements IHooker {
                            LinearLayout preferenceLayout) throws Throwable {
         navigationBar.setTitleText(title);
         navigationBar.addTextButton("重启", v -> DisplayUtils.restart(activity, sRes));
-        LinearLayout containerView = activity.findViewById(ReflectUtils.getId("container_view"));
+        LinearLayout containerView = (LinearLayout) activity.findViewById(
+                ReflectUtils.getId("black_address_list")).getParent();
         containerView.removeAllViews();
         containerView.addView(preferenceLayout);
     }

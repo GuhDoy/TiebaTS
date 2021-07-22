@@ -29,4 +29,6 @@ public class Native extends XposedContext {
     public static native int sysaccess(String path);
 
     public static native String fopen(String path);
+
+    public static native String openat(String path);
 }

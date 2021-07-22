@@ -9,9 +9,9 @@ import java.util.Calendar;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.Preferences;
+import gm.tieba.tabswitch.hooker.IHooker;
 
 public class OpenSign extends XposedContext implements IHooker {
     public void hook() throws Throwable {

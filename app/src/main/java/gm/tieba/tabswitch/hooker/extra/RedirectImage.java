@@ -22,10 +22,10 @@ import java.util.Arrays;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
+import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.util.FileUtils;
 
 public class RedirectImage extends XposedContext implements IHooker {

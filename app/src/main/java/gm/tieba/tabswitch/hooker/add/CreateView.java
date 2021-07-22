@@ -9,10 +9,10 @@ import android.widget.RelativeLayout;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
+import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class CreateView extends XposedContext implements IHooker {

@@ -20,10 +20,10 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
+import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class Purify extends XposedContext implements IHooker {
@@ -119,7 +119,13 @@ public class Purify extends XposedContext implements IHooker {
             }
         }
         // 帖子底部推荐
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.pb.pb.main.PbActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
+        Class<?> clazz;
+        try {
+            clazz = XposedHelpers.findClass("com.baidu.tieba.pb.pb.main.AbsPbActivity", sClassLoader);
+        } catch (XposedHelpers.ClassNotFoundError e) {
+            clazz = XposedHelpers.findClass("com.baidu.tieba.pb.pb.main.PbActivity", sClassLoader);
+        }
+        XposedHelpers.findAndHookMethod(clazz, "onCreate", Bundle.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 Activity activity = (Activity) param.thisObject;

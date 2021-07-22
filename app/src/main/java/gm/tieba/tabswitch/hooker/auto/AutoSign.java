@@ -15,10 +15,10 @@ import java.util.List;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.Adp;
 import gm.tieba.tabswitch.dao.Preferences;
+import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.widget.TbToast;
 
 public class AutoSign extends XposedContext implements IHooker {

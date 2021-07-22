@@ -11,6 +11,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.IBinder;
 import android.os.Process;
+import android.text.TextUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -110,8 +111,11 @@ public class TraceChecker extends XposedContext {
         }
 
         String path = String.format(Locale.getDefault(), "/proc/%d/maps", Process.myPid());
-        String trace = Native.fopen(path);
-        if (!trace.equals("")) result.addTrace(C, trace.substring(0, trace.length() - 1));
+        for (String trace : new String[]{Native.fopen(path), Native.openat(path)}) {
+            if (!TextUtils.isEmpty(trace)) {
+                result.addTrace(S, trace.substring(0, trace.length() - 1));
+            }
+        }
         result.show();
     }
 

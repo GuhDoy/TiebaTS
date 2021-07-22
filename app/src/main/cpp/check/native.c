@@ -6,13 +6,10 @@
 #include <stdlib.h>
 #include <sys/system_properties.h>
 #include <dlfcn.h>
+#include "native.h"
 #include "classloader.h"
 #include "inline.h"
 #include "plt.h"
-#include <android/log.h>
-
-#define APPLICATION_ID "gm.tieba.tabswitch"
-#define LOGE(...) ((void)__android_log_print(ANDROID_LOG_ERROR, APPLICATION_ID, __VA_ARGS__))
 
 static bool check_hook_function(void *handle, const char *name) {
     void *symbol = dlsym(handle, name);
@@ -176,6 +173,32 @@ jstring _fopen(JNIEnv *env, jclass clazz, jstring jpath) {
         return (*env)->NewStringUTF(env, getCannotOpen());
     }
 
+    char result[PATH_MAX];
+    strcpy(result, "");
+    char line[PATH_MAX];
+    while (fgets(line, PATH_MAX - 1, f) != NULL) {
+        if (strstr(line, getDataApp()) != NULL
+            && strstr(line, getComGoogleAndroid()) == NULL
+            && strstr(line, getComBaiduTieba()) == NULL) {
+            if (strlen(result) + strlen(line) > PATH_MAX) break;
+            strcat(result, line);
+        }
+    }
+    fclose(f);
+    return (*env)->NewStringUTF(env, result);
+}
+
+jstring _openat(JNIEnv *env, jclass clazz, jstring jpath) {
+    const char *path = (*env)->GetStringUTFChars(env, jpath, NULL);
+    int fd = (int) syscall(__NR_openat, AT_FDCWD, path, O_RDONLY);
+    (*env)->ReleaseStringUTFChars(env, jpath, path);
+    if (fd < 0) {
+        return (*env)->NewStringUTF(env, getCannotOpen());
+    }
+    FILE *f = fdopen(fd, "r");
+    if (f == NULL) {
+        return (*env)->NewStringUTF(env, getCannotOpen());
+    }
     char result[PATH_MAX];
     strcpy(result, "");
     char line[PATH_MAX];
