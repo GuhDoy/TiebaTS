@@ -28,7 +28,7 @@ public class AcRules {
                 && rulesAndCallback[rulesAndCallback.length - 1] instanceof Callback) {
             Callback callback = (Callback) rulesAndCallback[rulesAndCallback.length - 1];
             for (String rule : getParameterRules(rulesAndCallback)) {
-                if (sRulesFromDb.containsKey(rule)) {
+                if (isRuleFound(rule)) {
                     Pair<String, String> pair = sRulesFromDb.get(rule);
                     callback.onRuleFound(rule, pair.first, pair.second);
                 }

@@ -108,13 +108,14 @@ public class AntiConfusion extends XposedContext implements IHooker {
                                 List<List<Integer>> totalIndexes = new ArrayList<>();
                                 int totalItemCount = 0;
                                 boolean isSkip = false;
-                                for (int i = 0; i < fs.length; i++) {
-                                    DexFile dex = new DexFile(fs[i]);
+                                float progress = 0;
+                                for (File f : fs) {
+                                    DexFile dex = new DexFile(f);
                                     List<ClassDefItem> classes = dex.ClassDefsSection.getItems();
                                     List<Integer> indexes = new ArrayList<>();
                                     for (int j = 0; j < classes.size(); j++) {
-                                        setProgress("读取类签名", (float)
-                                                j / fs.length / classes.size() + (float) i / fs.length);
+                                        progress += (float) 1 / fs.length / classes.size();
+                                        setProgress("读取类签名", progress);
 
                                         String signature = classes.get(j).getClassType().getTypeDescriptor();
                                         if (signature.matches("Ld/[a-b]/.*")) {
@@ -198,7 +199,7 @@ public class AntiConfusion extends XposedContext implements IHooker {
             mMessage.setText(message);
             ViewGroup.LayoutParams lp = mProgress.getLayoutParams();
             lp.height = mMessage.getHeight();
-            lp.width = (int) (mProgressContainer.getWidth() * progress);
+            lp.width = Math.round(mProgressContainer.getWidth() * progress);
             mProgress.setLayoutParams(lp);
         });
     }
