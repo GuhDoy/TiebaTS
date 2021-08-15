@@ -82,7 +82,7 @@ public class AntiConfusion extends XposedContext implements IHooker {
                                 int entrySize = zipFile.size();
                                 while (enumeration.hasMoreElements()) {
                                     entryCount++;
-                                    setProgress("解压", (float) entryCount / entrySize);
+                                    setProgress("解压 (1/3)", (float) entryCount / entrySize);
 
                                     ZipEntry ze = enumeration.nextElement();
                                     if (ze.getName().matches("classes[0-9]*?\\.dex")) {
@@ -107,7 +107,6 @@ public class AntiConfusion extends XposedContext implements IHooker {
                                 });
                                 List<List<Integer>> totalIndexes = new ArrayList<>();
                                 int totalItemCount = 0;
-                                boolean isSkip = false;
                                 float progress = 0;
                                 for (File f : fs) {
                                     DexFile dex = new DexFile(f);
@@ -115,14 +114,13 @@ public class AntiConfusion extends XposedContext implements IHooker {
                                     List<Integer> indexes = new ArrayList<>();
                                     for (int j = 0; j < classes.size(); j++) {
                                         progress += (float) 1 / fs.length / classes.size();
-                                        setProgress("读取类签名", progress);
+                                        setProgress("读取类签名 (2/3)", progress);
 
                                         String signature = classes.get(j).getClassType().getTypeDescriptor();
-                                        if (signature.matches("Ld/[a-b]/.*")) {
-                                            indexes.add(classes.get(j).getIndex());
-                                            isSkip = true;
-                                        } else if (signature.startsWith("Lcom/baidu/tbadk")
-                                                || !isSkip && (signature.startsWith("Lcom/baidu/tieba"))) {
+                                        if (signature.startsWith("Lc/a/")
+                                                || signature.startsWith("Lc/b/")
+                                                || signature.startsWith("Lcom/baidu/tieba")
+                                                || signature.startsWith("Lcom/baidu/tbadk")) {
                                             indexes.add(classes.get(j).getIndex());
                                         }
                                     }
@@ -136,7 +134,7 @@ public class AntiConfusion extends XposedContext implements IHooker {
                                         List<Integer> indexes = totalIndexes.get(i);
                                         for (int j = 0; j < indexes.size(); j++) {
                                             itemCount++;
-                                            setProgress("搜索", (float) itemCount / totalItemCount);
+                                            setProgress("搜索 (3/3)", (float) itemCount / totalItemCount);
 
                                             ClassDefItem classItem = dex.ClassDefsSection.getItemByIndex(indexes.get(j));
                                             AntiConfusionHelper.searchAndSave(classItem, 0, db);

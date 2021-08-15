@@ -10,7 +10,7 @@ import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.XposedContext;
 
-public class DevelopUtils extends XposedContext {
+public class DevUtils extends XposedContext {
     public static void log(Object o) {
         XposedBridge.log(String.valueOf(o));
     }
@@ -28,7 +28,7 @@ public class DevelopUtils extends XposedContext {
         XposedBridge.hookMethod(method, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) {
-                XposedBridge.log(method.getName());
+                XposedBridge.log(method.getDeclaringClass().getName() + ": " + method.getName());
             }
         });
     }
