@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 
@@ -21,14 +20,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.zip.ZipFile;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.R;
+import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.util.DisplayUtils;
@@ -36,21 +34,8 @@ import gm.tieba.tabswitch.util.DisplayUtils;
 public class AntiConfusionHelper {
     static List<String> matcherList = new ArrayList<>();
 
-    public static void initMatchers(Resources res) {
-        matcherList.add(res.getString(R.string.TSPreference));
-        matcherList.add(res.getString(R.string.TbDialog));
-        matcherList.add(res.getString(R.string.TbToast));
-        matcherList.add(res.getString(R.string.FragmentTab));
-        Collections.addAll(matcherList, res.getStringArray(R.array.Purify));
-        Collections.addAll(matcherList, res.getStringArray(R.array.PurifyEnter));
-        Collections.addAll(matcherList, res.getStringArray(R.array.PurifyMy));
-        matcherList.add(res.getString(R.string.CreateView));
-        matcherList.add(res.getString(R.string.Ripple));
-        matcherList.add(res.getString(R.string.ThreadStore));
-        matcherList.add(res.getString(R.string.NewSub));
-        matcherList.add(res.getString(R.string.RedirectImage));
-        matcherList.add(res.getString(R.string.ForbidGesture));
-        matcherList.add(res.getString(R.string.FrsTab));
+    static {
+        Constants.getMatchers().values().forEach(strings -> matcherList.addAll(Arrays.asList(strings)));
     }
 
     public static List<String> getRulesLost() {
@@ -78,16 +63,16 @@ public class AntiConfusionHelper {
     }
 
     @SuppressLint("ApplySharedPref")
-    public static void saveAndRestart(Activity activity, String value, Class<?> springboardActivity, Resources res) {
+    public static void saveAndRestart(Activity activity, String value, Class<?> springboardActivity) {
         SharedPreferences.Editor editor = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE).edit();
         editor.putString("anti-confusion_version", value);
         editor.commit();
-        if (springboardActivity == null) DisplayUtils.restart(activity, res);
+        if (springboardActivity == null) DisplayUtils.restart(activity);
         else {
             XposedHelpers.findAndHookMethod(springboardActivity, "onCreate", Bundle.class, new XC_MethodHook() {
                 protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                     Activity activity = (Activity) param.thisObject;
-                    DisplayUtils.restart(activity, res);
+                    DisplayUtils.restart(activity);
                 }
             });
             Intent intent = new Intent(activity, springboardActivity);

@@ -9,7 +9,7 @@ import android.widget.RelativeLayout;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.R;
+import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
@@ -17,7 +17,7 @@ import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class CreateView extends XposedContext implements IHooker {
     public void hook() throws Throwable {
-        AcRules.findRule(sRes.getString(R.string.CreateView), (AcRules.Callback) (rule, clazz, method) ->
+        AcRules.findRule(Constants.getMatchers().get("CreateView"), (AcRules.Callback) (rule, clazz, method) ->
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, Bundle.class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {

@@ -5,7 +5,7 @@ import android.content.Intent;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.R;
+import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
@@ -17,7 +17,7 @@ public class NewSub extends XposedContext implements IHooker {
     private Object mPostId;
 
     public void hook() throws Throwable {
-        AcRules.findRule(sRes.getString(R.string.NewSub), (AcRules.Callback) (rule, clazz, method) ->
+        AcRules.findRule(Constants.getMatchers().get("NewSub"), (AcRules.Callback) (rule, clazz, method) ->
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {

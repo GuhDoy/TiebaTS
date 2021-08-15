@@ -5,8 +5,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Application;
 import android.app.Instrumentation;
-import android.content.res.AssetManager;
-import android.content.res.Resources;
 import android.database.sqlite.SQLiteException;
 import android.os.Bundle;
 
@@ -60,9 +58,6 @@ public class XposedInit extends XposedContext implements IXposedHookLoadPackage,
     @Override
     public void initZygote(IXposedHookZygoteInit.StartupParam startupParam) throws Throwable {
         sPath = startupParam.modulePath;
-        AssetManager assetManager = AssetManager.class.newInstance();
-        XposedHelpers.callMethod(assetManager, "addAssetPath", sPath);
-        sRes = new Resources(assetManager, null, null);
     }
 
     @Override
@@ -76,7 +71,6 @@ public class XposedInit extends XposedContext implements IXposedHookLoadPackage,
                 sContextRef = new WeakReference<>(((Application) param.args[0]).getApplicationContext());
                 sClassLoader = lpparam.classLoader;
                 Preferences.init(getContext());
-                AntiConfusionHelper.initMatchers(sRes);
                 try {
                     AcRules.init(getContext());
                     List<String> lostList = AntiConfusionHelper.getRulesLost();
@@ -92,12 +86,12 @@ public class XposedInit extends XposedContext implements IXposedHookLoadPackage,
                             XposedBridge.log(e.toString());
                             if (!Preferences.getIsEULAAccepted()) return;
                             Activity activity = (Activity) param.thisObject;
-                            String message = sRes.getString(R.string.rules_incomplete) + "\n" + e.getMessage();
-                            if (AcRules.isRuleFound(sRes.getString(R.string.TbDialog))) {
+                            String message = Constants.getStrings().get("rules_incomplete") + "\n" + e.getMessage();
+                            if (AcRules.isRuleFound(Constants.getMatchers().get("TbDialog"))) {
                                 TbDialog bdAlert = new TbDialog(activity, "警告", message, false, null);
                                 bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
                                 bdAlert.setOnYesButtonClickListener(v -> AntiConfusionHelper
-                                        .saveAndRestart(activity, "unknown", null, sRes));
+                                        .saveAndRestart(activity, "unknown", null));
                                 bdAlert.show();
                             } else {
                                 @SuppressWarnings("deprecation")
@@ -105,7 +99,7 @@ public class XposedInit extends XposedContext implements IXposedHookLoadPackage,
                                         .setTitle("警告").setMessage(message).setCancelable(false)
                                         .setNegativeButton(activity.getString(android.R.string.cancel), (dialogInterface, i) -> {
                                         }).setPositiveButton(activity.getString(android.R.string.ok), (dialogInterface, i) -> AntiConfusionHelper
-                                                .saveAndRestart(activity, "unknown", null, sRes)).create();
+                                                .saveAndRestart(activity, "unknown", null)).create();
                                 alertDialog.show();
                             }
                         }

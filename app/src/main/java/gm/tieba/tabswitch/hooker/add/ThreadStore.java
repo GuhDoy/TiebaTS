@@ -19,7 +19,7 @@ import java.util.regex.PatternSyntaxException;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.R;
+import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
@@ -53,7 +53,7 @@ public class ThreadStore extends XposedContext implements IHooker {
                         textView.setOnClickListener(v -> showRegexDialog(activity));
                     }
                 });
-        AcRules.findRule(sRes.getString(R.string.ThreadStore), (AcRules.Callback) (rule, clazz, method) ->
+        AcRules.findRule(Constants.getMatchers().get("ThreadStore"), (AcRules.Callback) (rule, clazz, method) ->
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, Boolean[].class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
@@ -83,7 +83,7 @@ public class ThreadStore extends XposedContext implements IHooker {
 
     private void showRegexDialog(Activity activity) {
         EditText editText = new TbEditText(activity);
-        editText.setHint(sRes.getString(R.string.regex_hint));
+        editText.setHint(Constants.getStrings().get("regex_hint"));
         editText.setText(mRegex);
         editText.addTextChangedListener(new TextWatcher() {
             @Override

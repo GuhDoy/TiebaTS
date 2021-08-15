@@ -11,7 +11,7 @@ import android.widget.RelativeLayout;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.R;
+import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
@@ -21,7 +21,7 @@ import gm.tieba.tabswitch.util.ReflectUtils;
 public class Ripple extends XposedContext implements IHooker {
     public void hook() throws Throwable {
         // 楼中楼
-        AcRules.findRule(sRes.getString(R.string.Ripple), (AcRules.Callback) (rule, clazz, method) ->
+        AcRules.findRule(Constants.getMatchers().get("Ripple"), (AcRules.Callback) (rule, clazz, method) ->
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {

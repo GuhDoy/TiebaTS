@@ -4,7 +4,7 @@ import java.util.List;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.R;
+import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
@@ -27,7 +27,7 @@ public class FrsTab extends XposedContext implements IHooker {
                 }
             }
         });
-        AcRules.findRule(sRes.getString(R.string.FrsTab), (AcRules.Callback) (rule, clazz, method) -> {
+        AcRules.findRule(Constants.getMatchers().get("FrsTab"), (AcRules.Callback) (rule, clazz, method) -> {
             if (!"com.baidu.tieba.frs.vc.FrsTabViewController".equals(clazz)) return;
             XposedHelpers.findAndHookMethod("com.baidu.tieba.frs.vc.FrsTabViewController", sClassLoader, method, new XC_MethodHook() {
                 @Override

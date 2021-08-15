@@ -11,7 +11,7 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.R;
+import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
@@ -22,7 +22,7 @@ public class PurifyEnter extends XposedContext implements IHooker {
     public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.flutter.base.view.FlutterEnterForumDelegateStatic", sClassLoader,
                 "createFragmentTabStructure", XC_MethodReplacement.returnConstant(null));
-        AcRules.findRule(sRes.getStringArray(R.array.PurifyEnter), (AcRules.Callback) (rule, clazz, method) ->
+        AcRules.findRule(Constants.getMatchers().get("PurifyEnter"), (AcRules.Callback) (rule, clazz, method) ->
                 XposedBridge.hookAllConstructors(XposedHelpers.findClass(clazz, sClassLoader), new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {

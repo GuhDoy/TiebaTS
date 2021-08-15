@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.ViewGroup;
@@ -29,7 +30,6 @@ import java.util.zip.ZipFile;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.R;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.dao.RulesDbHelper;
@@ -66,7 +66,7 @@ public class AntiConfusion extends XposedContext implements IHooker {
                             AntiConfusionHelper.matcherList = AntiConfusionHelper.getRulesLost();
                         } else {
                             AntiConfusionHelper.saveAndRestart(mActivity, AntiConfusionHelper.getTbVersion(mActivity),
-                                    XposedHelpers.findClass(SPRINGBOARD_ACTIVITY, sClassLoader), sRes);
+                                    XposedHelpers.findClass(SPRINGBOARD_ACTIVITY, sClassLoader));
                         }
 
                         initProgressIndicator();
@@ -149,7 +149,7 @@ public class AntiConfusion extends XposedContext implements IHooker {
                                 XposedBridge.log("anti-confusion accomplished, current version: "
                                         + AntiConfusionHelper.getTbVersion(mActivity));
                                 AntiConfusionHelper.saveAndRestart(mActivity, AntiConfusionHelper.getTbVersion(mActivity),
-                                        XposedHelpers.findClass(SPRINGBOARD_ACTIVITY, sClassLoader), sRes);
+                                        XposedHelpers.findClass(SPRINGBOARD_ACTIVITY, sClassLoader));
                             } catch (Throwable e) {
                                 XposedBridge.log(e);
                                 mActivity.runOnUiThread(() -> mMessage.setText(String.format(
@@ -169,13 +169,13 @@ public class AntiConfusion extends XposedContext implements IHooker {
         title.setTextSize(16);
         title.setPadding(0, 0, 0, 20);
         title.setGravity(Gravity.CENTER);
-        title.setTextColor(sRes.getColor(R.color.colorPrimaryDark, null));
+        title.setTextColor(Color.parseColor("#FF303030"));
         title.setText("贴吧TS正在定位被混淆的类和方法，请耐心等待");
         mMessage = new TextView(mActivity);
         mMessage.setTextSize(16);
-        mMessage.setTextColor(sRes.getColor(R.color.colorPrimaryDark, null));
+        mMessage.setTextColor(Color.parseColor("#FF303030"));
         mProgress = new TextView(mActivity);
-        mProgress.setBackgroundColor(sRes.getColor(R.color.colorProgress, null));
+        mProgress.setBackgroundColor(Color.parseColor("#FFBEBEBE"));
         mProgressContainer = new RelativeLayout(mActivity);
         mProgressContainer.addView(mProgress);
         mProgressContainer.addView(mMessage);

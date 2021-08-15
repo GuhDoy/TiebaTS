@@ -19,7 +19,7 @@ import java.util.regex.PatternSyntaxException;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.R;
+import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.widget.NavigationBar;
@@ -73,7 +73,7 @@ public class HistoryCache extends XposedContext implements IHooker {
 
     private void showRegexDialog(Activity activity) {
         EditText editText = new TbEditText(activity);
-        editText.setHint(sRes.getString(R.string.regex_hint));
+        editText.setHint(Constants.getStrings().get("regex_hint"));
         editText.setText(mRegex);
         editText.addTextChangedListener(new TextWatcher() {
             @Override

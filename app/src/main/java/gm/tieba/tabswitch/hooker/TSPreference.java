@@ -18,7 +18,7 @@ import java.io.File;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BuildConfig;
-import gm.tieba.tabswitch.R;
+import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
@@ -67,7 +67,7 @@ public class TSPreference extends XposedContext implements IHooker {
                                 v -> startMainPreferenceActivity(activity)), 11);
                     }
                 });
-        AcRules.findRule(sRes.getString(R.string.TSPreference), (AcRules.Callback) (rule, clazz, method) ->
+        AcRules.findRule(Constants.getMatchers().get("TSPreference"), (AcRules.Callback) (rule, clazz, method) ->
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, XposedHelpers
                         .findClass(PROXY_ACTIVITY, sClassLoader), new XC_MethodHook() {
                     @Override
@@ -97,7 +97,7 @@ public class TSPreference extends XposedContext implements IHooker {
     private void proxyPage(Activity activity, NavigationBar navigationBar, String title,
                            LinearLayout preferenceLayout) throws Throwable {
         navigationBar.setTitleText(title);
-        navigationBar.addTextButton("重启", v -> DisplayUtils.restart(activity, sRes));
+        navigationBar.addTextButton("重启", v -> DisplayUtils.restart(activity));
         LinearLayout containerView = (LinearLayout) activity.findViewById(
                 ReflectUtils.getId("black_address_list")).getParent();
         containerView.removeAllViews();
@@ -106,9 +106,9 @@ public class TSPreference extends XposedContext implements IHooker {
 
     private void startMainPreferenceActivity(Activity activity) {
         if (!Preferences.getIsEULAAccepted()) {
-            StringBuilder stringBuilder = new StringBuilder().append(sRes.getString(R.string.EULA));
+            StringBuilder stringBuilder = new StringBuilder().append(Constants.getStrings().get("EULA"));
             if (BuildConfig.VERSION_NAME.contains("alpha") || BuildConfig.VERSION_NAME.contains("beta")) {
-                stringBuilder.append("\n\n").append(sRes.getString(R.string.dev_tip));
+                stringBuilder.append("\n\n").append(Constants.getStrings().get("dev_tip"));
             }
             TbDialog bdAlert = new TbDialog(activity, "使用协议", stringBuilder.toString(), true, null);
             bdAlert.setOnNoButtonClickListener(v -> {

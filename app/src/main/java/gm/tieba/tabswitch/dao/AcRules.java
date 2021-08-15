@@ -52,6 +52,13 @@ public class AcRules {
         return sRulesFromDb.containsKey(rule);
     }
 
+    public static boolean isRuleFound(String[] rules) {
+        if (rules.length != 1) {
+            throw new IllegalArgumentException("rules must be a singleton array");
+        }
+        return isRuleFound(rules[0]);
+    }
+
     public interface Callback {
         void onRuleFound(String rule, String clazz, String method);
     }

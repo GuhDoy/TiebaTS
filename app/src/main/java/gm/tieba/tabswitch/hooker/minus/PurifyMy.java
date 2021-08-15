@@ -13,7 +13,7 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.R;
+import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
@@ -23,7 +23,7 @@ public class PurifyMy extends XposedContext implements IHooker {
     public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.flutter.base.view.FlutterDelegateStatic", sClassLoader,
                 "createFragmentTabStructure", XC_MethodReplacement.returnConstant(null));
-        AcRules.findRule(sRes.getStringArray(R.array.PurifyMy), (AcRules.Callback) (rule, clazz, method) -> {
+        AcRules.findRule(Constants.getMatchers().get("PurifyMy"), (AcRules.Callback) (rule, clazz, method) -> {
             switch (rule) {
                 case "Lcom/baidu/tieba/R$drawable;->icon_pure_topbar_store44_svg:I":// 商店
                     XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, int.class, new XC_MethodHook() {

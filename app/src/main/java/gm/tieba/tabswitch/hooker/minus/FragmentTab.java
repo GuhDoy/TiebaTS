@@ -7,7 +7,7 @@ import java.util.Arrays;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.R;
+import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
@@ -18,7 +18,7 @@ public class FragmentTab extends XposedContext implements IHooker {
     private static boolean sIsFirstHook = true;
 
     public void hook() throws Throwable {
-        AcRules.findRule(sRes.getString(R.string.FragmentTab), (AcRules.Callback) (rule, clazz, method) -> {
+        AcRules.findRule(Constants.getMatchers().get("FragmentTab"), (AcRules.Callback) (rule, clazz, method) -> {
             for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
                 if (Arrays.toString(md.getParameterTypes()).equals("[class java.util.ArrayList]")) {
                     XposedBridge.hookMethod(md, new XC_MethodHook() {

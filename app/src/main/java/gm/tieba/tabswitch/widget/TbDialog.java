@@ -14,7 +14,7 @@ import java.util.Objects;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.R;
+import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.util.ReflectUtils;
@@ -34,7 +34,7 @@ public class TbDialog extends XposedContext {
                         mPageContext = param.getResult();
                     }
                 });
-        AcRules.findRule(sRes.getString(R.string.TbDialog), (AcRules.Callback) (rule, clazz, method) -> {
+        AcRules.findRule(Constants.getMatchers().get("TbDialog"), (AcRules.Callback) (rule, clazz, method) -> {
             mClass = XposedHelpers.findClass(clazz, sClassLoader);
             mBdAlert = XposedHelpers.newInstance(mClass, activity);
             try {

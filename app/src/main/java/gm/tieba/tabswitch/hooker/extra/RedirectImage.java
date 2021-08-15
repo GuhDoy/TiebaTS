@@ -22,7 +22,7 @@ import java.util.Arrays;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.R;
+import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
@@ -30,7 +30,7 @@ import gm.tieba.tabswitch.util.FileUtils;
 
 public class RedirectImage extends XposedContext implements IHooker {
     public void hook() throws Throwable {
-        AcRules.findRule(sRes.getString(R.string.RedirectImage), (AcRules.Callback) (rule, clazz, method) -> {
+        AcRules.findRule(Constants.getMatchers().get("RedirectImage"), (AcRules.Callback) (rule, clazz, method) -> {
             for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
                 switch (Arrays.toString(md.getParameterTypes())) {
                     case "[class java.lang.String, class [B, class android.content.Context]":

@@ -20,7 +20,7 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.R;
+import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
@@ -28,7 +28,7 @@ import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class Purify extends XposedContext implements IHooker {
     public void hook() throws Throwable {
-        AcRules.findRule(sRes.getStringArray(R.array.Purify), (AcRules.Callback) (rule, clazz, method) -> {
+        AcRules.findRule(Constants.getMatchers().get("Purify"), (AcRules.Callback) (rule, clazz, method) -> {
             switch (rule) {
                 case "\"c/s/splashSchedule\"":// 旧启动广告
                 case "Lcom/baidu/tieba/recapp/lego/model/AdCard;-><init>(Lorg/json/JSONObject;)V":// 卡片广告

@@ -1,5 +1,7 @@
 package gm.tieba.tabswitch.util;
 
+import androidx.annotation.ColorInt;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -22,6 +24,7 @@ public class ReflectUtils extends XposedContext {
         return getR("id", fieldName);
     }
 
+    @ColorInt
     public static int getColor(String fieldName) {
         return getContext().getColor(
                 getR("color", fieldName + DisplayUtils.getTbSkin(getContext())));

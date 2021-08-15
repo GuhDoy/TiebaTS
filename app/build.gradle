@@ -4,6 +4,7 @@ import org.eclipse.jgit.internal.storage.file.FileRepository
 import java.nio.file.Paths
 
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
 
 def repo = new FileRepository(rootProject.file(".git"))
 def refId = repo.refDatabase.exactRef("refs/remotes/origin/main").objectId

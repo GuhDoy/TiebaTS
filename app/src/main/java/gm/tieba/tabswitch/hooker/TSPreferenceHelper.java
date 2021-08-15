@@ -22,7 +22,7 @@ import java.util.regex.PatternSyntaxException;
 
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.R;
+import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.util.ReflectUtils;
@@ -151,7 +151,7 @@ public class TSPreferenceHelper extends XposedContext {
 
         private void showRegexDialog(Activity activity) {
             EditText editText = new TbEditText(getContext());
-            editText.setHint(sRes.getString(R.string.regex_hint));
+            editText.setHint(Constants.getStrings().get("regex_hint"));
             editText.setText(Preferences.getString(mKey));
             TbDialog bdAlert = new TbDialog(activity, null, null, true, editText);
             bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());

@@ -1,11 +1,4 @@
 <resources>
     <string name="app_name">贴吧TS</string>
     <string name="description">提供修改百度贴吧底栏等个性化功能</string>
-    <string name="EULA">如果您对本协议的任何条款表示异议，您可以选择不使用本模块；使用本模块则意味着您已完全理解和同意遵守本协议。\n\n
-        ①本模块开源免费，所有版本均为自动构建，可确保构建版本与源代码一致。对本模块的任何异议都必须以源代码为依据。\n
-        ②本模块不会主动发起网络请求，不会上传任何用户数据，隐私泄露或者账号异常行为与本模块无关。\n
-        ③本模块主要用于学习和交流技术，任何人不得将本模块用于商业或非法用途。</string>
-    <string name="dev_tip">提示：您当前安装的是非正式版本，可能含有较多错误，如果您希望得到更稳定的使用体验，建议您安装正式版本。</string>
-    <string name="rules_incomplete">规则异常，建议您执行反混淆。若执行完后仍出现此对话框则应更新模块，若模块已是最新版本则应向作者反馈。</string>
-    <string name="regex_hint">请输入正则表达式，如.*</string>
 </resources>
