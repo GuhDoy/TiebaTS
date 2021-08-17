@@ -55,7 +55,7 @@ public class AntiConfusion extends XposedContext implements IHooker {
                     protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
                         mActivity = (Activity) param.thisObject;
                         if (Preferences.getBoolean("purify")) {
-                            SharedPreferences.Editor editor = mActivity.getSharedPreferences(
+                            var editor = mActivity.getSharedPreferences(
                                     "settings", Context.MODE_PRIVATE).edit();
                             editor.putString("key_location_request_dialog_last_show_version",
                                     AntiConfusionHelper.getTbVersion(mActivity));
@@ -74,24 +74,24 @@ public class AntiConfusion extends XposedContext implements IHooker {
                         initProgressIndicator();
                         mActivity.setContentView(mContentView);
                         new Thread(() -> {
-                            File dexDir = new File(mActivity.getCacheDir(), "app_dex");
+                            var dexDir = new File(mActivity.getCacheDir(), "app_dex");
                             try {
                                 FileUtils.deleteRecursively(dexDir);
                                 dexDir.mkdirs();
-                                ZipFile zipFile = new ZipFile(new File(mActivity.getPackageResourcePath()));
-                                Enumeration<? extends ZipEntry> enumeration = zipFile.entries();
-                                int entryCount = 0;
-                                int entrySize = zipFile.size();
+                                var zipFile = new ZipFile(new File(mActivity.getPackageResourcePath()));
+                                var enumeration = zipFile.entries();
+                                var entryCount = 0;
+                                var entrySize = zipFile.size();
                                 while (enumeration.hasMoreElements()) {
                                     entryCount++;
                                     setProgress("解压", (float) entryCount / entrySize);
 
-                                    ZipEntry ze = enumeration.nextElement();
+                                    var ze = enumeration.nextElement();
                                     if (ze.getName().matches("classes[0-9]*?\\.dex")) {
                                         FileUtils.copy(zipFile.getInputStream(ze), new File(dexDir, ze.getName()));
                                     }
                                 }
-                                File[] fs = dexDir.listFiles();
+                                var fs = dexDir.listFiles();
                                 if (fs == null) throw new FileNotFoundException("解压失败");
                                 Arrays.sort(fs, (o1, o2) -> {
                                     int i1, i2;
@@ -107,21 +107,21 @@ public class AntiConfusion extends XposedContext implements IHooker {
                                     }
                                     return i1 - i2;
                                 });
-                                float progress = 0;
-                                try (SQLiteDatabase db = new RulesDbHelper(mActivity).getReadableDatabase()) {
-                                    for (File f : fs) {
-                                        try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(f))) {
-                                            DexBackedDexFile dex = DexBackedDexFile.fromInputStream(null, in);
-                                            List<? extends ClassDef> classDefs = new ArrayList<>(dex.getClasses());
-                                            for (int i = 0; i < classDefs.size(); i++) {
+                                var progress = 0f;
+                                try (var db = new RulesDbHelper(mActivity).getReadableDatabase()) {
+                                    for (var f : fs) {
+                                        try (var in = new BufferedInputStream(new FileInputStream(f))) {
+                                            var dex = DexBackedDexFile.fromInputStream(null, in);
+                                            var classDefs = new ArrayList<>(dex.getClasses());
+                                            for (var i = 0; i < classDefs.size(); i++) {
                                                 progress += (float) 1 / fs.length / classDefs.size();
                                                 setProgress("搜索", progress);
 
-                                                String signature = classDefs.get(i).getType();
+                                                var signature = classDefs.get(i).getType();
                                                 if (signature.startsWith("Lc/a/")
                                                         || signature.startsWith("Lc/b/")
-                                                        || signature.startsWith("Lcom/baidu/tieba/")
-                                                        || signature.startsWith("Lcom/baidu/tbadk/")) {
+                                                        || signature.startsWith("Lcom/baidu/tieba/frs/")
+                                                        || signature.startsWith("Lcom/baidu/tbadk/core/")) {
 
                                                     AntiConfusionHelper.searchAndSave(classDefs.get(i), db);
                                                 }
@@ -129,7 +129,7 @@ public class AntiConfusion extends XposedContext implements IHooker {
                                         }
                                     }
                                 }
-                                try (InputStream in = new FileInputStream(fs[0])) {
+                                try (var in = new FileInputStream(fs[0])) {
                                     Preferences.putSignature(Arrays.hashCode(AntiConfusionHelper.calcSignature(in)));
                                 }
                                 XposedBridge.log("anti-confusion accomplished, current version: "
@@ -151,7 +151,7 @@ public class AntiConfusion extends XposedContext implements IHooker {
 
     @SuppressLint({"SetTextI18n"})
     private void initProgressIndicator() {
-        TextView title = new TextView(mActivity);
+        var title = new TextView(mActivity);
         title.setTextSize(16);
         title.setPadding(0, 0, 0, 20);
         title.setGravity(Gravity.CENTER);
@@ -165,10 +165,10 @@ public class AntiConfusion extends XposedContext implements IHooker {
         mProgressContainer = new RelativeLayout(mActivity);
         mProgressContainer.addView(mProgress);
         mProgressContainer.addView(mMessage);
-        RelativeLayout.LayoutParams tvLp = (RelativeLayout.LayoutParams) mMessage.getLayoutParams();
+        var tvLp = (RelativeLayout.LayoutParams) mMessage.getLayoutParams();
         tvLp.addRule(RelativeLayout.CENTER_IN_PARENT);
         mMessage.setLayoutParams(tvLp);
-        RelativeLayout.LayoutParams rlLp = new RelativeLayout.LayoutParams(
+        var rlLp = new RelativeLayout.LayoutParams(
                 RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         mProgressContainer.setLayoutParams(rlLp);
         mContentView = new LinearLayout(mActivity);
@@ -181,7 +181,7 @@ public class AntiConfusion extends XposedContext implements IHooker {
     private void setProgress(String message, float progress) {
         mActivity.runOnUiThread(() -> {
             mMessage.setText(message);
-            ViewGroup.LayoutParams lp = mProgress.getLayoutParams();
+            var lp = mProgress.getLayoutParams();
             lp.height = mMessage.getHeight();
             lp.width = Math.round(mProgressContainer.getWidth() * progress);
             mProgress.setLayoutParams(lp);

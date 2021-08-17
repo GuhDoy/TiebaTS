@@ -1,29 +1,25 @@
-import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.internal.storage.file.FileRepository
-
 import java.nio.file.Paths
 
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
 
-def repo = new FileRepository(rootProject.file(".git"))
-def refId = repo.refDatabase.exactRef("refs/remotes/origin/main").objectId
-def gitCommitCount = new Git(repo).log().add(refId).call().size()
+def gitCommitCount = Integer.parseInt('git rev-list --count HEAD'.execute([], project.rootDir).text.trim())
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion '30.0.3'
-    ndkVersion '22.1.7171670'
+    compileSdk 31
+    buildToolsVersion '31.0.0'
+    ndkVersion '23.0.7599858'
 
     defaultConfig {
         applicationId 'gm.tieba.tabswitch'
-        minSdkVersion 24
-        targetSdkVersion 30
+        minSdk 24
+        targetSdk 31
         versionCode gitCommitCount
         versionName "2.6.2-beta"
-        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
-        multiDexEnabled false
 
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         externalNativeBuild {
             cmake {
                 abiFilters "armeabi-v7a"
@@ -36,34 +32,35 @@ android {
             outputFileName = "TS_${defaultConfig.versionName}-${variant.buildType.name}.apk"
         }
     }
-    buildFeatures {
-        prefab true
-    }
     buildTypes {
         release {
             minifyEnabled true
-            shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
     externalNativeBuild {
         cmake {
             path 'src/main/cpp/CMakeLists.txt'
-            version "3.10.2"
         }
     }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
     packagingOptions {
-        exclude '/META-INF/**'
-        exclude '/kotlin/**'
-        exclude '/okhttp3/**'
+        resources {
+            excludes += ['/META-INF/**', '/kotlin/**', '/okhttp3/**']
+        }
+    }
+    buildFeatures {
+        prefab true
+    }
+    lint {
+        checkDependencies true
     }
 }
 
-def optimizeReleaseResources = task('optimizeReleaseResources').doLast {
+def optimizeReleaseRes() {
     def aapt2 = Paths.get(project.android.sdkDirectory.path, 'build-tools', project.android.buildToolsVersion, 'aapt2')
     def zip = Paths.get(project.buildDir.path, 'intermediates',
             'processed_res', 'release', 'out', "resources-release.ap_")
@@ -75,14 +72,8 @@ def optimizeReleaseResources = task('optimizeReleaseResources').doLast {
         ignoreExitValue false
     }
     if (cmd.exitValue == 0) {
-        delete(zip)
-        optimized.renameTo("$zip")
-    }
-}
-
-tasks.whenTaskAdded { task ->
-    if (task.name == 'processReleaseResources') {
-        task.finalizedBy optimizeReleaseResources
+        zip.toFile().delete()
+        optimized.renameTo(zip.toFile())
     }
 }
 

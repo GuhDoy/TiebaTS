@@ -1,6 +1,7 @@
 #include <jni.h>
 #include <string.h>
-#include "native.h"
+#include "main.h"
+#include "check/native.h"
 
 jint JNI_OnLoad(JavaVM *jvm, void *v __unused) {
     JNIEnv *env;
