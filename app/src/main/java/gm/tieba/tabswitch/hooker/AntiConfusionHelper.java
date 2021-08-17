@@ -98,24 +98,26 @@ public class AntiConfusionHelper {
 
     static void searchAndSave(ClassDef classDef, SQLiteDatabase db) throws IOException {
         for (Method method : classDef.getMethods()) {
+            MethodImplementation methodImpl = method.getImplementation();
+            if (methodImpl == null) {
+                continue;
+            }
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             BufferedWriter bufWriter = new BufferedWriter(new OutputStreamWriter(baos, StandardCharsets.UTF_8));
-            BaksmaliWriter writer = new BaksmaliWriter(bufWriter, null);
-            MethodImplementation methodImpl = method.getImplementation();
-            if (methodImpl != null) {
+            try (BaksmaliWriter writer = new BaksmaliWriter(bufWriter, null)) {
                 ClassDefinition classDefinition = new ClassDefinition(new BaksmaliOptions(), classDef);
                 MethodDefinition methodDefinition = new MethodDefinition(classDefinition, method, methodImpl);
                 methodDefinition.writeTo(writer);
-            }
-            bufWriter.flush();
-            for (String matcher : matcherList) {
-                if (baos.toString().contains(matcher)) {
-                    String clazz = classDef.getType();
-                    clazz = clazz.substring(clazz.indexOf("L") + 1,
-                            clazz.indexOf(";")).replace("/", ".");
-                    db.execSQL("insert into rules(rule, class, method) values(?, ?, ?)",
-                            new Object[]{matcher, clazz, method.getName()});
-                    return;
+                writer.flush();
+                for (String matcher : matcherList) {
+                    if (baos.toString().contains(matcher)) {
+                        String clazz = classDef.getType();
+                        clazz = clazz.substring(clazz.indexOf("L") + 1,
+                                clazz.indexOf(";")).replace("/", ".");
+                        db.execSQL("insert into rules(rule, class, method) values(?, ?, ?)",
+                                new Object[]{matcher, clazz, method.getName()});
+                        return;
+                    }
                 }
             }
         }
