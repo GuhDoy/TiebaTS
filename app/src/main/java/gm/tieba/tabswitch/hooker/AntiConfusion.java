@@ -13,12 +13,14 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import org.jf.dexlib.ClassDefItem;
-import org.jf.dexlib.DexFile;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.iface.ClassDef;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -82,7 +84,7 @@ public class AntiConfusion extends XposedContext implements IHooker {
                                 int entrySize = zipFile.size();
                                 while (enumeration.hasMoreElements()) {
                                     entryCount++;
-                                    setProgress("解压 (1/3)", (float) entryCount / entrySize);
+                                    setProgress("解压", (float) entryCount / entrySize);
 
                                     ZipEntry ze = enumeration.nextElement();
                                     if (ze.getName().matches("classes[0-9]*?\\.dex")) {
@@ -105,47 +107,31 @@ public class AntiConfusion extends XposedContext implements IHooker {
                                     }
                                     return i1 - i2;
                                 });
-                                List<List<Integer>> totalIndexes = new ArrayList<>();
-                                int totalItemCount = 0;
                                 float progress = 0;
-                                for (File f : fs) {
-                                    DexFile dex = new DexFile(f);
-                                    List<ClassDefItem> classes = dex.ClassDefsSection.getItems();
-                                    List<Integer> indexes = new ArrayList<>();
-                                    for (int j = 0; j < classes.size(); j++) {
-                                        progress += (float) 1 / fs.length / classes.size();
-                                        setProgress("读取类签名 (2/3)", progress);
-
-                                        String signature = classes.get(j).getClassType().getTypeDescriptor();
-                                        if (signature.startsWith("Lc/a/")
-                                                || signature.startsWith("Lc/b/")
-                                                || signature.startsWith("Lcom/baidu/tieba")
-                                                || signature.startsWith("Lcom/baidu/tbadk")) {
-                                            indexes.add(classes.get(j).getIndex());
-                                        }
-                                    }
-                                    totalItemCount += indexes.size();
-                                    totalIndexes.add(indexes);
-                                }
-                                int itemCount = 0;
                                 try (SQLiteDatabase db = new RulesDbHelper(mActivity).getReadableDatabase()) {
-                                    for (int i = 0; i < fs.length; i++) {
-                                        DexFile dex = new DexFile(fs[i]);
-                                        List<Integer> indexes = totalIndexes.get(i);
-                                        for (int j = 0; j < indexes.size(); j++) {
-                                            itemCount++;
-                                            setProgress("搜索 (3/3)", (float) itemCount / totalItemCount);
+                                    for (File f : fs) {
+                                        try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(f))) {
+                                            DexBackedDexFile dex = DexBackedDexFile.fromInputStream(null, in);
+                                            List<? extends ClassDef> classDefs = new ArrayList<>(dex.getClasses());
+                                            for (int i = 0; i < classDefs.size(); i++) {
+                                                progress += (float) 1 / fs.length / classDefs.size();
+                                                setProgress("搜索", progress);
 
-                                            ClassDefItem classItem = dex.ClassDefsSection.getItemByIndex(indexes.get(j));
-                                            AntiConfusionHelper.searchAndSave(classItem, 0, db);
-                                            AntiConfusionHelper.searchAndSave(classItem, 1, db);
+                                                String signature = classDefs.get(i).getType();
+                                                if (signature.startsWith("Lc/a/")
+                                                        || signature.startsWith("Lc/b/")
+                                                        || signature.startsWith("Lcom/baidu/tieba/")
+                                                        || signature.startsWith("Lcom/baidu/tbadk/")) {
+
+                                                    AntiConfusionHelper.searchAndSave(classDefs.get(i), db);
+                                                }
+                                            }
                                         }
                                     }
                                 }
-                                byte[] bytes = new byte[32];
-                                new FileInputStream(fs[0]).read(bytes);
-                                DexFile.calcSignature(bytes);
-                                Preferences.putSignature(Arrays.hashCode(bytes));
+                                try (InputStream in = new FileInputStream(fs[0])) {
+                                    Preferences.putSignature(Arrays.hashCode(AntiConfusionHelper.calcSignature(in)));
+                                }
                                 XposedBridge.log("anti-confusion accomplished, current version: "
                                         + AntiConfusionHelper.getTbVersion(mActivity));
                                 AntiConfusionHelper.saveAndRestart(mActivity, AntiConfusionHelper.getTbVersion(mActivity),
