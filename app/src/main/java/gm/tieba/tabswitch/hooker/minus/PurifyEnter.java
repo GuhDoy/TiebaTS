@@ -34,31 +34,23 @@ public class PurifyEnter extends XposedContext implements IHooker {
                     }
                 }));
         // 可能感兴趣的吧
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader,
-                "onCreate", Bundle.class, new XC_MethodHook() {
+        Class<?> clazz = XposedHelpers.findClass("com.baidu.card.view.RecommendForumLayout", sClassLoader);
+        for (Method method : clazz.getDeclaredMethods()) {
+            if (method.getParameterTypes().length == 0) {
+                XposedBridge.hookMethod(method, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        Activity activity = (Activity) param.thisObject;
-                        Class<?> clazz = XposedHelpers.findClass("com.baidu.card.view.RecommendForumLayout", sClassLoader);
-                        Method method;
-                        try {
-                            method = clazz.getDeclaredMethod("initUI");
-                        } catch (NoSuchMethodException e) {
-                            method = clazz.getDeclaredMethod("b");
-                        }
-                        XposedBridge.hookMethod(method, new XC_MethodHook() {
-                            @Override
-                            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                                ReflectUtils.handleObjectFields(param.thisObject, View.class, objField -> {
-                                    View view = (View) objField;
-                                    view.setVisibility(View.INVISIBLE);
-                                    ViewGroup.LayoutParams lp = view.getLayoutParams();
-                                    lp.height = DisplayUtils.dipToPx(activity, 9);
-                                    return false;
-                                });
-                            }
+                        ReflectUtils.handleObjectFields(param.thisObject, View.class, objField -> {
+                            View view = (View) objField;
+                            view.setVisibility(View.INVISIBLE);
+                            ViewGroup.LayoutParams lp = view.getLayoutParams();
+                            lp.height = DisplayUtils.dipToPx(view.getContext(), 9);
+                            return false;
                         });
                     }
                 });
+                break;
+            }
+        }
     }
 }

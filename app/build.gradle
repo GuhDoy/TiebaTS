@@ -60,23 +60,6 @@ android {
     }
 }
 
-def optimizeReleaseRes() {
-    def aapt2 = Paths.get(project.android.sdkDirectory.path, 'build-tools', project.android.buildToolsVersion, 'aapt2')
-    def zip = Paths.get(project.buildDir.path, 'intermediates',
-            'processed_res', 'release', 'out', "resources-release.ap_")
-    def optimized = new File("${zip}.opt")
-    def cmd = exec {
-        commandLine aapt2, 'optimize', '--collapse-resource-names',
-                '--shorten-resource-paths',
-                '-o', optimized, zip
-        ignoreExitValue false
-    }
-    if (cmd.exitValue == 0) {
-        zip.toFile().delete()
-        optimized.renameTo(zip.toFile())
-    }
-}
-
 dependencies {
     compileOnly files('libs/XposedBridgeApi-89.jar')
     api 'androidx.annotation:annotation:1.2.0'
