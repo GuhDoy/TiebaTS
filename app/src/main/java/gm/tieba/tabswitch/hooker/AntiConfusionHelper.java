@@ -116,7 +116,6 @@ public class AntiConfusionHelper {
                                 clazz.indexOf(";")).replace("/", ".");
                         db.execSQL("insert into rules(rule, class, method) values(?, ?, ?)",
                                 new Object[]{matcher, clazz, method.getName()});
-                        return;
                     }
                 }
             }

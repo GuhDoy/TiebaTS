@@ -37,20 +37,20 @@ import gm.tieba.tabswitch.hooker.auto.EyeshieldMode;
 import gm.tieba.tabswitch.hooker.auto.FrsTab;
 import gm.tieba.tabswitch.hooker.auto.OpenSign;
 import gm.tieba.tabswitch.hooker.auto.OriginSrc;
+import gm.tieba.tabswitch.hooker.eliminate.ContentFilter;
+import gm.tieba.tabswitch.hooker.eliminate.FollowFilter;
+import gm.tieba.tabswitch.hooker.eliminate.FragmentTab;
+import gm.tieba.tabswitch.hooker.eliminate.FrsPageFilter;
+import gm.tieba.tabswitch.hooker.eliminate.PersonalizedFilter;
+import gm.tieba.tabswitch.hooker.eliminate.Purify;
+import gm.tieba.tabswitch.hooker.eliminate.PurifyEnter;
+import gm.tieba.tabswitch.hooker.eliminate.PurifyMy;
+import gm.tieba.tabswitch.hooker.eliminate.RedTip;
+import gm.tieba.tabswitch.hooker.eliminate.SwitchManager;
 import gm.tieba.tabswitch.hooker.extra.ForbidGesture;
 import gm.tieba.tabswitch.hooker.extra.Hide;
 import gm.tieba.tabswitch.hooker.extra.RedirectImage;
 import gm.tieba.tabswitch.hooker.extra.StackTrace;
-import gm.tieba.tabswitch.hooker.minus.ContentFilter;
-import gm.tieba.tabswitch.hooker.minus.FollowFilter;
-import gm.tieba.tabswitch.hooker.minus.FragmentTab;
-import gm.tieba.tabswitch.hooker.minus.FrsPageFilter;
-import gm.tieba.tabswitch.hooker.minus.PersonalizedFilter;
-import gm.tieba.tabswitch.hooker.minus.Purify;
-import gm.tieba.tabswitch.hooker.minus.PurifyEnter;
-import gm.tieba.tabswitch.hooker.minus.PurifyMy;
-import gm.tieba.tabswitch.hooker.minus.RedTip;
-import gm.tieba.tabswitch.hooker.minus.SwitchManager;
 import gm.tieba.tabswitch.widget.TbDialog;
 
 public class XposedInit extends XposedContext implements IXposedHookLoadPackage, IXposedHookZygoteInit {
@@ -77,7 +77,7 @@ public class XposedInit extends XposedContext implements IXposedHookLoadPackage,
                     if (!lostList.isEmpty()) {
                         throw new SQLiteException(String.format(Locale.getDefault(),
                                 "rules incomplete, tbversion: %s, module version: %d, lost %d rule(s): %s",
-                                AntiConfusionHelper.getTbVersion(getContext()), BuildConfig.VERSION_CODE, lostList.size(), lostList.toString()));
+                                AntiConfusionHelper.getTbVersion(getContext()), BuildConfig.VERSION_CODE, lostList.size(), lostList));
                     }
                 } catch (SQLiteException e) {
                     XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {

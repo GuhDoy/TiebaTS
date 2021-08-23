@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hooker.minus;
+package gm.tieba.tabswitch.hooker.eliminate;
 
 import android.app.Activity;
 import android.content.Intent;

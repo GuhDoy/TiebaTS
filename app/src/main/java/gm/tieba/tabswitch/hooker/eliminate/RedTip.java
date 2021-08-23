@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hooker.minus;
+package gm.tieba.tabswitch.hooker.eliminate;
 
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;

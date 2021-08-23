@@ -1,7 +1,5 @@
-package gm.tieba.tabswitch.hooker.minus;
+package gm.tieba.tabswitch.hooker.eliminate;
 
-import android.app.Activity;
-import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 

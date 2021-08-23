@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hooker.minus;
+package gm.tieba.tabswitch.hooker.eliminate;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
