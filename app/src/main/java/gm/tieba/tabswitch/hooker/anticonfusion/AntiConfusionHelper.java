@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hooker;
+package gm.tieba.tabswitch.hooker.anticonfusion;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -7,25 +7,13 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 
-import org.jf.baksmali.Adaptors.ClassDefinition;
-import org.jf.baksmali.Adaptors.MethodDefinition;
-import org.jf.baksmali.BaksmaliOptions;
-import org.jf.baksmali.formatter.BaksmaliWriter;
 import org.jf.dexlib2.dexbacked.raw.HeaderItem;
-import org.jf.dexlib2.iface.ClassDef;
-import org.jf.dexlib2.iface.Method;
-import org.jf.dexlib2.iface.MethodImplementation;
 
-import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -54,25 +42,6 @@ public class AntiConfusionHelper {
         return list;
     }
 
-    public static boolean isVersionChanged(Context context) {
-        SharedPreferences tsConfig = context.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
-        return !tsConfig.getString("anti-confusion_version", "unknown").equals(getTbVersion(context));
-    }
-
-    public static boolean isDexChanged(Context context) {
-        try {
-            ZipFile zipFile = new ZipFile(new File(context.getPackageResourcePath()));
-            byte[] signature;
-            try (InputStream in = zipFile.getInputStream(zipFile.getEntry("classes.dex"))) {
-                signature = calcSignature(in);
-            }
-            return Arrays.hashCode(signature) != Preferences.getSignature();
-        } catch (IOException e) {
-            XposedBridge.log(e);
-        }
-        return false;
-    }
-
     public static byte[] calcSignature(InputStream dataStoreInput) throws IOException {
         MessageDigest md;
         try {
@@ -96,30 +65,23 @@ public class AntiConfusionHelper {
         return signature;
     }
 
-    static void searchAndSave(ClassDef classDef, SQLiteDatabase db) throws IOException {
-        for (Method method : classDef.getMethods()) {
-            MethodImplementation methodImpl = method.getImplementation();
-            if (methodImpl == null) {
-                continue;
+    public static boolean isVersionChanged(Context context) {
+        SharedPreferences tsConfig = context.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
+        return !tsConfig.getString("anti-confusion_version", "unknown").equals(getTbVersion(context));
+    }
+
+    public static boolean isDexChanged(Context context) {
+        try {
+            ZipFile zipFile = new ZipFile(new File(context.getPackageResourcePath()));
+            byte[] signature;
+            try (InputStream in = zipFile.getInputStream(zipFile.getEntry("classes.dex"))) {
+                signature = calcSignature(in);
             }
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            BufferedWriter bufWriter = new BufferedWriter(new OutputStreamWriter(baos, StandardCharsets.UTF_8));
-            try (BaksmaliWriter writer = new BaksmaliWriter(bufWriter, null)) {
-                ClassDefinition classDefinition = new ClassDefinition(new BaksmaliOptions(), classDef);
-                MethodDefinition methodDefinition = new MethodDefinition(classDefinition, method, methodImpl);
-                methodDefinition.writeTo(writer);
-                writer.flush();
-                for (String matcher : matcherList) {
-                    if (baos.toString().contains(matcher)) {
-                        String clazz = classDef.getType();
-                        clazz = clazz.substring(clazz.indexOf("L") + 1,
-                                clazz.indexOf(";")).replace("/", ".");
-                        db.execSQL("insert into rules(rule, class, method) values(?, ?, ?)",
-                                new Object[]{matcher, clazz, method.getName()});
-                    }
-                }
-            }
+            return Arrays.hashCode(signature) != Preferences.getSignature();
+        } catch (IOException e) {
+            XposedBridge.log(e);
         }
+        return false;
     }
 
     public static String getTbVersion(Context context) {

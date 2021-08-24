@@ -22,38 +22,34 @@ import java.util.Arrays;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
-import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.util.FileUtils;
 
 public class RedirectImage extends XposedContext implements IHooker {
     public void hook() throws Throwable {
-        AcRules.findRule(Constants.getMatchers().get("RedirectImage"), (AcRules.Callback) (rule, clazz, method) -> {
-            for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
-                switch (Arrays.toString(md.getParameterTypes())) {
-                    case "[class java.lang.String, class [B, class android.content.Context]":
-                        XposedBridge.hookMethod(md, new XC_MethodReplacement() {
-                            @Override
-                            protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
-                                return saveImage((String) param.args[0], new ByteArrayInputStream(
-                                        (byte[]) param.args[1]), (Context) param.args[2]);
-                            }
-                        });
-                        break;
-                    case "[class java.lang.String, class java.lang.String, class android.content.Context]":
-                        XposedBridge.hookMethod(md, new XC_MethodReplacement() {
-                            @Override
-                            protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
-                                return saveImage((String) param.args[1], new FileInputStream(
-                                        (String) param.args[0]), (Context) param.args[2]);
-                            }
-                        });
-                        break;
-                }
+        for (Method md : XposedHelpers.findClass("com.baidu.tbadk.core.util.FileHelper", sClassLoader).getDeclaredMethods()) {
+            switch (Arrays.toString(md.getParameterTypes())) {
+                case "[class java.lang.String, class [B, class android.content.Context]":
+                    XposedBridge.hookMethod(md, new XC_MethodReplacement() {
+                        @Override
+                        protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
+                            return saveImage((String) param.args[0], new ByteArrayInputStream(
+                                    (byte[]) param.args[1]), (Context) param.args[2]);
+                        }
+                    });
+                    break;
+                case "[class java.lang.String, class java.lang.String, class android.content.Context]":
+                    XposedBridge.hookMethod(md, new XC_MethodReplacement() {
+                        @Override
+                        protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
+                            return saveImage((String) param.args[1], new FileInputStream(
+                                    (String) param.args[0]), (Context) param.args[2]);
+                        }
+                    });
+                    break;
             }
-        });
+        }
     }
 
     private int saveImage(String url, InputStream in, Context context) {

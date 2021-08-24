@@ -39,7 +39,6 @@ object Constants {
         "Ripple" to arrayOf("Lcom/baidu/tieba/R\$layout;->new_sub_pb_list_item:I"),
         "ThreadStore" to arrayOf("\"c/f/post/threadstore\""),
         "NewSub" to arrayOf("Lcom/baidu/tieba/R\$id;->subpb_head_user_info_root:I"),
-        "RedirectImage" to arrayOf("0x4197d783fc000000L"),
         "ForbidGesture" to arrayOf("Lcom/baidu/tieba/R\$id;->new_pb_list:I"),
         "FrsTab" to arrayOf("\"from_pb_or_person\"")
     )

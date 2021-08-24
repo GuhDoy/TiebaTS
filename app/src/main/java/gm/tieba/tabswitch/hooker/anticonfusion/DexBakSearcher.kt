@@ -1,0 +1,118 @@
+package gm.tieba.tabswitch.hooker.anticonfusion
+
+import org.jf.baksmali.Adaptors.ClassDefinition
+import org.jf.baksmali.Adaptors.MethodDefinition
+import org.jf.baksmali.BaksmaliOptions
+import org.jf.baksmali.formatter.BaksmaliWriter
+import org.jf.dexlib2.Opcode
+import org.jf.dexlib2.iface.ClassDef
+import org.jf.dexlib2.iface.instruction.DualReferenceInstruction
+import org.jf.dexlib2.iface.instruction.ReferenceInstruction
+import org.jf.dexlib2.iface.reference.Reference.InvalidReferenceException
+import org.jf.dexlib2.iface.reference.StringReference
+import java.io.BufferedWriter
+import java.io.ByteArrayOutputStream
+import java.io.OutputStreamWriter
+import java.nio.charset.StandardCharsets
+
+class DexBakSearcher constructor(matcherList: MutableList<String>) {
+    private val stringMatchers: MutableList<String> by lazy { ArrayList() }
+    private val integerMatchers: MutableList<String> by lazy { ArrayList() }
+    private val smaliMatchers: MutableList<String> by lazy { ArrayList() }
+
+    init {
+        matcherList.forEach {
+            when {
+                it.startsWith('\"') && it.endsWith('\"') ->
+                    stringMatchers.add(it.substring(1, it.length - 1))
+                it.startsWith("0x") ->
+                    integerMatchers.add(it)
+                else ->
+                    smaliMatchers.add(it)
+            }
+        }
+    }
+
+    fun searchString(classDef: ClassDef, l: MatcherListener) {
+        for (method in classDef.methods) {
+            val methodImpl = method.implementation ?: continue
+            for (instruction in methodImpl.instructions) {
+                when (instruction.opcode) {
+                    Opcode.CONST_STRING, Opcode.CONST_STRING_JUMBO -> if (instruction is ReferenceInstruction) {
+                        val reference = instruction.reference
+                        try {
+                            reference.validateReference()
+                            if (reference is StringReference) {
+                                stringMatchers.forEach {
+                                    if (it == reference.toString()) {
+                                        l.onMatch("\"$it\"", classDef.type.convert(), method.name)
+                                    }
+                                }
+                            }
+                        } catch (ignored: InvalidReferenceException) {
+                        }
+                        if (instruction is DualReferenceInstruction) {
+                            try {
+                                val reference2 = instruction.reference2
+                                reference2.validateReference()
+                                if (reference2 is StringReference) {
+                                    stringMatchers.forEach {
+                                        if (it == reference2.toString()) {
+                                            l.onMatch(
+                                                "\"$it\"", classDef.type.convert(), method.name
+                                            )
+                                        }
+                                    }
+                                }
+                            } catch (ignored: InvalidReferenceException) {
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun searchSmali(classDef: ClassDef, l: MatcherListener) {
+        for (method in classDef.methods) {
+            val methodImpl = method.implementation ?: continue
+            val baos = ByteArrayOutputStream()
+            val bufWriter = BufferedWriter(OutputStreamWriter(baos, StandardCharsets.UTF_8))
+            BaksmaliWriter(bufWriter, null).use { writer ->
+                val classDefinition = ClassDefinition(BaksmaliOptions(), classDef)
+                val methodDefinition = MethodDefinition(classDefinition, method, methodImpl)
+                methodDefinition.writeTo(writer)
+                writer.flush()
+                AntiConfusionHelper.matcherList.forEach {
+                    if (baos.toString().contains(it)) {
+                        l.onMatch(it, classDef.type.convert(), method.name)
+                    }
+                }
+            }
+        }
+    }
+
+    fun String.convert(): String = this.substring(
+        this.indexOf("L") + 1, this.indexOf(";")
+    ).replace("/", ".")
+
+    class MutablePair<String, Int>(var first: String, var second: Int)
+
+    fun List<String>.most(): String {
+        val map: MutableList<MutablePair<String, Int>> = ArrayList()
+        forEach { thiz ->
+            val pair = map.firstOrNull { it.first == thiz }
+            if (pair == null) {
+                map.add(MutablePair(thiz, 0))
+            } else {
+                pair.second = pair.second + 1
+            }
+        }
+        map.sortWith(Comparator.comparingInt { -it.second })
+        return map[0].first
+    }
+
+    interface MatcherListener {
+        fun onMatch(matcher: String, clazz: String, method: String)
+    }
+}

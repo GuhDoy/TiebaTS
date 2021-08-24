@@ -1,9 +1,10 @@
-package gm.tieba.tabswitch.hooker;
+package gm.tieba.tabswitch.hooker.anticonfusion;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
 import android.widget.LinearLayout;
@@ -27,6 +28,7 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.dao.RulesDbHelper;
+import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.util.FileUtils;
 
 public class AntiConfusion extends XposedContext implements IHooker {
@@ -39,8 +41,7 @@ public class AntiConfusion extends XposedContext implements IHooker {
 
     public void hook() throws Throwable {
         for (Method method : XposedHelpers.findClass("com.baidu.tieba.LogoActivity", sClassLoader).getDeclaredMethods()) {
-            if (!method.getName().startsWith("on") && Arrays.toString(method.getParameterTypes())
-                    .equals("[class android.os.Bundle]")) {
+            if (!method.getName().startsWith("on") && Arrays.equals(method.getParameterTypes(), new Class[]{Bundle.class})) {
                 XposedBridge.hookMethod(method, new XC_MethodReplacement() {
                     @SuppressLint("ApplySharedPref")
                     @Override
@@ -74,9 +75,10 @@ public class AntiConfusion extends XposedContext implements IHooker {
                                 var enumeration = zipFile.entries();
                                 var entryCount = 0;
                                 var entrySize = zipFile.size();
+                                setMessage("解压");
                                 while (enumeration.hasMoreElements()) {
                                     entryCount++;
-                                    setProgress("解压", (float) entryCount / entrySize);
+                                    setProgress((float) entryCount / entrySize);
 
                                     var ze = enumeration.nextElement();
                                     if (ze.getName().matches("classes[0-9]*?\\.dex")) {
@@ -86,36 +88,61 @@ public class AntiConfusion extends XposedContext implements IHooker {
                                 var fs = dexDir.listFiles();
                                 if (fs == null) throw new FileNotFoundException("解压失败");
                                 Arrays.sort(fs, (o1, o2) -> {
-                                    int i1, i2;
-                                    try {
-                                        i1 = Integer.parseInt(o1.getName().replaceAll("[a-z.]", ""));
-                                    } catch (NumberFormatException e) {
-                                        i1 = 1;
+                                    var ints = new int[2];
+                                    var comparingFiles = new File[]{o1, o2};
+                                    for (var i = 0; i < comparingFiles.length; i++) {
+                                        try {
+                                            ints[i] = Integer.parseInt(comparingFiles[i].getName().replaceAll("[a-z.]", ""));
+                                        } catch (NumberFormatException e) {
+                                            ints[i] = 1;
+                                        }
                                     }
-                                    try {
-                                        i2 = Integer.parseInt(o2.getName().replaceAll("[a-z.]", ""));
-                                    } catch (NumberFormatException e) {
-                                        i2 = 1;
-                                    }
-                                    return i1 - i2;
+                                    return ints[0] - ints[1];
                                 });
-                                var progress = 0f;
+                                var searcher = new DexBakSearcher(AntiConfusionHelper.matcherList);
                                 try (var db = new RulesDbHelper(mActivity).getReadableDatabase()) {
+                                    var progress = 0f;
+                                    setMessage("搜索字符串");
+                                    var classes = new ArrayList<String>();
                                     for (var f : fs) {
                                         try (var in = new BufferedInputStream(new FileInputStream(f))) {
                                             var dex = DexBackedDexFile.fromInputStream(null, in);
                                             var classDefs = new ArrayList<>(dex.getClasses());
                                             for (var i = 0; i < classDefs.size(); i++) {
                                                 progress += (float) 1 / fs.length / classDefs.size();
-                                                setProgress("搜索", progress);
+                                                setProgress(progress);
+
+                                                searcher.searchString(classDefs.get(i), (matcher, clazz, method1) -> {
+                                                    db.execSQL("insert into rules(rule, class, method) values(?, ?, ?)",
+                                                            new Object[]{matcher, clazz, method1});
+                                                    classes.add(clazz);
+                                                });
+                                            }
+                                        }
+                                    }
+                                    var first = new ArrayList<String>();
+                                    var second = new ArrayList<String>();
+                                    classes.forEach(s -> {
+                                        var split = s.split("\\.");
+                                        first.add(split[0]);
+                                        second.add(split[1]);
+                                    });
+                                    var most = "L" + searcher.most(first) + "/" + searcher.most(second) + "/";
+                                    progress = 0f;
+                                    setMessage("在 " + most + " 中搜索代码");
+                                    for (var f : fs) {
+                                        try (var in = new BufferedInputStream(new FileInputStream(f))) {
+                                            var dex = DexBackedDexFile.fromInputStream(null, in);
+                                            var classDefs = new ArrayList<>(dex.getClasses());
+                                            for (var i = 0; i < classDefs.size(); i++) {
+                                                progress += (float) 1 / fs.length / classDefs.size();
+                                                setProgress(progress);
 
                                                 var signature = classDefs.get(i).getType();
-                                                if (signature.startsWith("Lc/a/")
-                                                        || signature.startsWith("Lc/b/")
-                                                        || signature.startsWith("Lcom/baidu/tieba/frs/")
-                                                        || signature.startsWith("Lcom/baidu/tbadk/core/")) {
-
-                                                    AntiConfusionHelper.searchAndSave(classDefs.get(i), db);
+                                                if (signature.startsWith(most)) {
+                                                    searcher.searchSmali(classDefs.get(i), (matcher, clazz, method2) ->
+                                                            db.execSQL("insert into rules(rule, class, method) values(?, ?, ?)",
+                                                                    new Object[]{matcher, clazz, method2}));
                                                 }
                                             }
                                         }
@@ -130,8 +157,7 @@ public class AntiConfusion extends XposedContext implements IHooker {
                                         XposedHelpers.findClass(SPRINGBOARD_ACTIVITY, sClassLoader));
                             } catch (Throwable e) {
                                 XposedBridge.log(e);
-                                mActivity.runOnUiThread(() -> mMessage.setText(String.format(
-                                        "处理失败\n%s", Log.getStackTraceString(e))));
+                                setMessage("处理失败\n" + Log.getStackTraceString(e));
                             }
                         }).start();
                         return null;
@@ -170,9 +196,12 @@ public class AntiConfusion extends XposedContext implements IHooker {
         mContentView.addView(mProgressContainer);
     }
 
-    private void setProgress(String message, float progress) {
+    private void setMessage(String message) {
+        mActivity.runOnUiThread(() -> mMessage.setText(message));
+    }
+
+    private void setProgress(float progress) {
         mActivity.runOnUiThread(() -> {
-            mMessage.setText(message);
             var lp = mProgress.getLayoutParams();
             lp.height = mMessage.getHeight();
             lp.width = Math.round(mProgressContainer.getWidth() * progress);
