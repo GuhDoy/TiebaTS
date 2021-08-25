@@ -28,6 +28,7 @@ import gm.tieba.tabswitch.util.FileUtils;
 
 public class RedirectImage extends XposedContext implements IHooker {
     public void hook() throws Throwable {
+        // 0x4197d783fc000000L
         for (Method md : XposedHelpers.findClass("com.baidu.tbadk.core.util.FileHelper", sClassLoader).getDeclaredMethods()) {
             switch (Arrays.toString(md.getParameterTypes())) {
                 case "[class java.lang.String, class [B, class android.content.Context]":

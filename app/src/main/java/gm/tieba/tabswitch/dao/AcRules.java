@@ -14,13 +14,17 @@ public class AcRules {
     public static void init(Context context) {
         try (SQLiteDatabase db = context.openOrCreateDatabase("Rules.db", Context.MODE_PRIVATE, null)) {
             try (Cursor c = db.query("rules", null, null, null, null, null, null)) {
-                for (int i = 0; i < c.getCount(); i++) {
-                    c.moveToNext();
+                while (c.moveToNext()) {
                     Pair<String, String> pair = new Pair<>(c.getString(2), c.getString(3));
                     sRulesFromDb.put(c.getString(1), pair);
                 }
             }
         }
+    }
+
+    public static void putRule(SQLiteDatabase db, String rule, String clazz, String method) {
+        db.execSQL("insert into rules(rule, class, method) values(?, ?, ?)",
+                new Object[]{rule, clazz, method});
     }
 
     public static void findRule(Object... rulesAndCallback) {

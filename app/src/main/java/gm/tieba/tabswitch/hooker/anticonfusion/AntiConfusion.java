@@ -3,6 +3,7 @@ package gm.tieba.tabswitch.hooker.anticonfusion;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,6 +13,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.dexbacked.raw.ClassDefItem;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -20,12 +22,14 @@ import java.io.FileNotFoundException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.zip.ZipFile;
 
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.XposedContext;
+import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.dao.RulesDbHelper;
 import gm.tieba.tabswitch.hooker.IHooker;
@@ -99,11 +103,14 @@ public class AntiConfusion extends XposedContext implements IHooker {
                                     }
                                     return ints[0] - ints[1];
                                 });
+                                // special optimization for TbDialog
+                                var dialog = "\"Dialog must be created by function create()!\"";
+                                var dialogClasses = new HashSet<String>();
+                                AntiConfusionHelper.matcherList.add(dialog);
                                 var searcher = new DexBakSearcher(AntiConfusionHelper.matcherList);
                                 try (var db = new RulesDbHelper(mActivity).getReadableDatabase()) {
                                     var progress = 0f;
                                     setMessage("搜索字符串");
-                                    var classes = new ArrayList<String>();
                                     for (var f : fs) {
                                         try (var in = new BufferedInputStream(new FileInputStream(f))) {
                                             var dex = DexBackedDexFile.fromInputStream(null, in);
@@ -113,36 +120,64 @@ public class AntiConfusion extends XposedContext implements IHooker {
                                                 setProgress(progress);
 
                                                 searcher.searchString(classDefs.get(i), (matcher, clazz, method1) -> {
-                                                    db.execSQL("insert into rules(rule, class, method) values(?, ?, ?)",
-                                                            new Object[]{matcher, clazz, method1});
-                                                    classes.add(clazz);
+                                                    if (matcher.equals(dialog)) {
+                                                        dialogClasses.add(searcher.revert(clazz));
+                                                    } else {
+                                                        AcRules.putRule(db, matcher, clazz, method1);
+                                                    }
                                                 });
                                             }
                                         }
                                     }
+                                    var classes = new ArrayList<String>();
+                                    try (Cursor c = db.query("rules", null, null, null, null, null, null)) {
+                                        while (c.moveToNext()) {
+                                            classes.add(c.getString(2));
+                                        }
+                                    }
                                     var first = new ArrayList<String>();
                                     var second = new ArrayList<String>();
+                                    var third = new ArrayList<String>();
                                     classes.forEach(s -> {
                                         var split = s.split("\\.");
                                         first.add(split[0]);
                                         second.add(split[1]);
+                                        third.add(split[2]);
                                     });
-                                    var most = "L" + searcher.most(first) + "/" + searcher.most(second) + "/";
-                                    progress = 0f;
+                                    var most = "L" + searcher.most(first) + "/" + searcher.most(second) + "/" + searcher.most(third) + "/";
+                                    var numberOfClassesToSearch = new int[fs.length];
+                                    var totalClassesToSearch = 0;
+                                    for (var i = 0; i < fs.length; i++) {
+                                        try (var in = new BufferedInputStream(new FileInputStream(fs[i]))) {
+                                            var dex = DexBackedDexFile.fromInputStream(null, in);
+                                            var classDefs = ClassDefItem.getClasses(dex);
+                                            var count = 0;
+                                            for (var classDef : classDefs) {
+                                                if (classDef.startsWith(most) || dialogClasses.contains(classDef)) {
+                                                    count++;
+                                                }
+                                            }
+                                            numberOfClassesToSearch[i] = count;
+                                            totalClassesToSearch += count;
+                                        }
+                                    }
+                                    var searchedClassCount = 0;
                                     setMessage("在 " + most + " 中搜索代码");
-                                    for (var f : fs) {
-                                        try (var in = new BufferedInputStream(new FileInputStream(f))) {
+                                    for (var i = 0; i < fs.length; i++) {
+                                        if (numberOfClassesToSearch[i] == 0) {
+                                            continue;
+                                        }
+                                        try (var in = new BufferedInputStream(new FileInputStream(fs[i]))) {
                                             var dex = DexBackedDexFile.fromInputStream(null, in);
                                             var classDefs = new ArrayList<>(dex.getClasses());
-                                            for (var i = 0; i < classDefs.size(); i++) {
-                                                progress += (float) 1 / fs.length / classDefs.size();
-                                                setProgress(progress);
+                                            for (var classDef : classDefs) {
+                                                var signature = classDef.getType();
+                                                if (signature.startsWith(most) || dialogClasses.contains(signature)) {
+                                                    searchedClassCount++;
+                                                    setProgress((float) searchedClassCount / totalClassesToSearch);
 
-                                                var signature = classDefs.get(i).getType();
-                                                if (signature.startsWith(most)) {
-                                                    searcher.searchSmali(classDefs.get(i), (matcher, clazz, method2) ->
-                                                            db.execSQL("insert into rules(rule, class, method) values(?, ?, ?)",
-                                                                    new Object[]{matcher, clazz, method2}));
+                                                    searcher.searchSmali(classDef, (matcher, clazz, method2) ->
+                                                            AcRules.putRule(db, matcher, clazz, method2));
                                                 }
                                             }
                                         }

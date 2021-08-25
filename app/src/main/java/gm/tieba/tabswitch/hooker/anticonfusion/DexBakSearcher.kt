@@ -17,7 +17,6 @@ import java.nio.charset.StandardCharsets
 
 class DexBakSearcher constructor(matcherList: MutableList<String>) {
     private val stringMatchers: MutableList<String> by lazy { ArrayList() }
-    private val integerMatchers: MutableList<String> by lazy { ArrayList() }
     private val smaliMatchers: MutableList<String> by lazy { ArrayList() }
 
     init {
@@ -25,16 +24,14 @@ class DexBakSearcher constructor(matcherList: MutableList<String>) {
             when {
                 it.startsWith('\"') && it.endsWith('\"') ->
                     stringMatchers.add(it.substring(1, it.length - 1))
-                it.startsWith("0x") ->
-                    integerMatchers.add(it)
                 else ->
                     smaliMatchers.add(it)
             }
         }
     }
 
-    fun searchString(classDef: ClassDef, l: MatcherListener) {
-        for (method in classDef.methods) {
+    fun ClassDef.searchString(l: MatcherListener) {
+        for (method in methods) {
             val methodImpl = method.implementation ?: continue
             for (instruction in methodImpl.instructions) {
                 when (instruction.opcode) {
@@ -45,7 +42,7 @@ class DexBakSearcher constructor(matcherList: MutableList<String>) {
                             if (reference is StringReference) {
                                 stringMatchers.forEach {
                                     if (it == reference.toString()) {
-                                        l.onMatch("\"$it\"", classDef.type.convert(), method.name)
+                                        l.onMatch("\"$it\"", type.convert(), method.name)
                                     }
                                 }
                             }
@@ -59,7 +56,7 @@ class DexBakSearcher constructor(matcherList: MutableList<String>) {
                                     stringMatchers.forEach {
                                         if (it == reference2.toString()) {
                                             l.onMatch(
-                                                "\"$it\"", classDef.type.convert(), method.name
+                                                "\"$it\"", type.convert(), method.name
                                             )
                                         }
                                     }
@@ -73,28 +70,29 @@ class DexBakSearcher constructor(matcherList: MutableList<String>) {
         }
     }
 
-    fun searchSmali(classDef: ClassDef, l: MatcherListener) {
-        for (method in classDef.methods) {
+    fun ClassDef.searchSmali(l: MatcherListener) {
+        for (method in methods) {
             val methodImpl = method.implementation ?: continue
             val baos = ByteArrayOutputStream()
             val bufWriter = BufferedWriter(OutputStreamWriter(baos, StandardCharsets.UTF_8))
             BaksmaliWriter(bufWriter, null).use { writer ->
-                val classDefinition = ClassDefinition(BaksmaliOptions(), classDef)
+                val classDefinition = ClassDefinition(BaksmaliOptions(), this)
                 val methodDefinition = MethodDefinition(classDefinition, method, methodImpl)
                 methodDefinition.writeTo(writer)
                 writer.flush()
-                AntiConfusionHelper.matcherList.forEach {
+                smaliMatchers.forEach {
                     if (baos.toString().contains(it)) {
-                        l.onMatch(it, classDef.type.convert(), method.name)
+                        l.onMatch(it, type.convert(), method.name)
                     }
                 }
             }
         }
     }
 
-    fun String.convert(): String = this.substring(
-        this.indexOf("L") + 1, this.indexOf(";")
-    ).replace("/", ".")
+    fun String.convert(): String = substring(indexOf("L") + 1, indexOf(";"))
+        .replace("/", ".")
+
+    fun String.revert(): String = "L" + replace(".", "/") + ";"
 
     class MutablePair<String, Int>(var first: String, var second: Int)
 
@@ -106,6 +104,7 @@ class DexBakSearcher constructor(matcherList: MutableList<String>) {
                 map.add(MutablePair(thiz, 0))
             } else {
                 pair.second = pair.second + 1
+                if (pair.second > size / 2) return@forEach
             }
         }
         map.sortWith(Comparator.comparingInt { -it.second })
