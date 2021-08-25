@@ -64,7 +64,7 @@ public class TSPreference extends XposedContext implements IHooker {
                                 ReflectUtils.getId("browseSetting"));
                         LinearLayout parent = (LinearLayout) browseSetting.getParent();
                         parent.addView(TSPreferenceHelper.createButton(MAIN, null,
-                                v -> startMainPreferenceActivity(activity)), 11);
+                                v -> startRootPreferenceActivity(activity)), 11);
                     }
                 });
         AcRules.findRule(Constants.getMatchers().get("TSPreference"), (AcRules.Callback) (rule, clazz, method) ->
@@ -78,7 +78,7 @@ public class TSPreference extends XposedContext implements IHooker {
                         if (proxyPage == null) return;
                         switch (proxyPage) {
                             case MAIN:
-                                proxyPage(activity, navigationBar, MAIN, createMainPreference(activity));
+                                proxyPage(activity, navigationBar, MAIN, createRootPreference(activity));
                                 break;
                             case MODIFY_TAB:
                                 proxyPage(activity, navigationBar, MODIFY_TAB, createModifyTabPreference(activity));
@@ -104,7 +104,7 @@ public class TSPreference extends XposedContext implements IHooker {
         containerView.addView(preferenceLayout);
     }
 
-    private void startMainPreferenceActivity(Activity activity) {
+    private void startRootPreferenceActivity(Activity activity) {
         if (!Preferences.getIsEULAAccepted()) {
             StringBuilder stringBuilder = new StringBuilder().append(Constants.getStrings().get("EULA"));
             if (BuildConfig.VERSION_NAME.contains("alpha") || BuildConfig.VERSION_NAME.contains("beta")) {
@@ -121,7 +121,7 @@ public class TSPreference extends XposedContext implements IHooker {
             });
             bdAlert.setOnYesButtonClickListener(v -> {
                 Preferences.putEULAAccepted();
-                startMainPreferenceActivity(activity);
+                startRootPreferenceActivity(activity);
                 bdAlert.dismiss();
             });
             bdAlert.show();
@@ -133,7 +133,7 @@ public class TSPreference extends XposedContext implements IHooker {
     }
 
     @NotNull
-    private LinearLayout createMainPreference(Activity activity) {
+    private LinearLayout createRootPreference(Activity activity) {
         boolean isPurifyEnabled = Preferences.getIsPurifyEnabled();
         TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
 

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -13,6 +14,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -104,6 +106,14 @@ public class TSPreferenceHelper extends XposedContext {
 
         SwitchButtonHolder(Activity activity, String text, String key, int type) {
             mKey = key;
+            if (sExceptions.containsKey(key)) {
+                switchButton = createButton(text, "此功能初始化失败", v -> {
+                    Throwable tr = sExceptions.get(key);
+                    XposedBridge.log(tr);
+                    Toast.makeText(activity, Log.getStackTraceString(tr), Toast.LENGTH_SHORT).show();
+                });
+                return;
+            }
             bdSwitch = new Switch();
             bdSwitch.setOnSwitchStateChangeListener(new SwitchStatusChangeHandler());
             View bdSwitchView = bdSwitch.bdSwitch;

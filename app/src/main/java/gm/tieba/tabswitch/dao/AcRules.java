@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Pair;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,11 +57,8 @@ public class AcRules {
         return sRulesFromDb.containsKey(rule);
     }
 
-    public static boolean isRuleFound(String[] rules) {
-        if (rules.length != 1) {
-            throw new IllegalArgumentException("rules must be a singleton array");
-        }
-        return isRuleFound(rules[0]);
+    public static boolean isRuleFound(String... rules) {
+        return Arrays.stream(rules).allMatch(AcRules::isRuleFound);
     }
 
     public interface Callback {
