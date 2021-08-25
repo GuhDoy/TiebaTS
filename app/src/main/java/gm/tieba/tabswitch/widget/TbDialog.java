@@ -34,7 +34,7 @@ public class TbDialog extends XposedContext {
                         mPageContext = param.getResult();
                     }
                 });
-        AcRules.findRule(Constants.getMatchers().get("TbDialog"), (AcRules.Callback) (rule, clazz, method) -> {
+        AcRules.findRule(Constants.getMatchers().get(TbDialog.class), (AcRules.Callback) (rule, clazz, method) -> {
             mClass = XposedHelpers.findClass(clazz, sClassLoader);
             mBdAlert = XposedHelpers.newInstance(mClass, activity);
             try {

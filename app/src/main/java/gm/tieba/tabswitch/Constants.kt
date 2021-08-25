@@ -1,8 +1,22 @@
 package gm.tieba.tabswitch
 
+import gm.tieba.tabswitch.hooker.TSPreference
+import gm.tieba.tabswitch.hooker.add.CreateView
+import gm.tieba.tabswitch.hooker.add.NewSub
+import gm.tieba.tabswitch.hooker.add.Ripple
+import gm.tieba.tabswitch.hooker.add.ThreadStore
+import gm.tieba.tabswitch.hooker.auto.FrsTab
+import gm.tieba.tabswitch.hooker.eliminate.FragmentTab
+import gm.tieba.tabswitch.hooker.eliminate.Purify
+import gm.tieba.tabswitch.hooker.eliminate.PurifyEnter
+import gm.tieba.tabswitch.hooker.eliminate.PurifyMy
+import gm.tieba.tabswitch.hooker.extra.ForbidGesture
+import gm.tieba.tabswitch.widget.TbDialog
+import gm.tieba.tabswitch.widget.TbToast
+
 object Constants {
     @JvmStatic
-    val strings: Map<String, String> = mapOf(
+    val strings = mapOf(
         "EULA" to "如果您对本协议的任何条款表示异议，您可以选择不使用本模块；使用本模块则意味着您已完全理解和同意遵守本协议。\n\n" +
                 "    ①本模块开源免费，所有版本均为自动构建，可确保构建版本与源代码一致。对本模块的任何异议都必须以源代码为依据。\n" +
                 "    ②本模块不会主动发起网络请求，不会上传任何用户数据，隐私泄露或者账号异常行为与本模块无关。\n" +
@@ -13,12 +27,12 @@ object Constants {
     )
 
     @JvmStatic
-    val matchers: Map<String, Array<String>> = mapOf(
-        "TSPreference" to arrayOf("Lcom/baidu/tieba/R\$id;->black_address_list:I"),
-        "TbDialog" to arrayOf("Lcom/baidu/tieba/R\$layout;->dialog_bdalert:I"),
-        "TbToast" to arrayOf("\"can not be call not thread! trace = \""),
-        "FragmentTab" to arrayOf("\"has_show_message_tab_tips\""),
-        "Purify" to arrayOf(
+    val matchers = mapOf(
+        TSPreference::class.java to arrayOf("Lcom/baidu/tieba/R\$id;->black_address_list:I"),
+        TbDialog::class.java to arrayOf("Lcom/baidu/tieba/R\$layout;->dialog_bdalert:I"),
+        TbToast::class.java to arrayOf("\"can not be call not thread! trace = \""),
+        FragmentTab::class.java to arrayOf("\"has_show_message_tab_tips\""),
+        Purify::class.java to arrayOf(
             "\"c/s/splashSchedule\"",
             "Lcom/baidu/tieba/recapp/lego/model/AdCard;-><init>(Lorg/json/JSONObject;)V",
             "\"pic_amount\"",
@@ -26,20 +40,20 @@ object Constants {
             "Lcom/baidu/tieba/R\$id;->frs_ad_banner:I",
             "Lcom/baidu/tieba/R\$layout;->pb_child_title:I"
         ),
-        "PurifyEnter" to arrayOf(
+        PurifyEnter::class.java to arrayOf(
             "Lcom/baidu/tieba/R\$id;->square_background:I",
             "Lcom/baidu/tieba/R\$id;->create_bar_container:I"
         ),
-        "PurifyMy" to arrayOf(
+        PurifyMy::class.java to arrayOf(
             "Lcom/baidu/tieba/R\$drawable;->icon_pure_topbar_store44_svg:I",
             "Lcom/baidu/tieba/R\$id;->function_item_bottom_divider:I",
             "\"https://tieba.baidu.com/mo/q/duxiaoman/index?noshare=1\""
         ),
-        "CreateView" to arrayOf("Lcom/baidu/tieba/R\$id;->navigationBarGoSignall:I"),
-        "Ripple" to arrayOf("Lcom/baidu/tieba/R\$layout;->new_sub_pb_list_item:I"),
-        "ThreadStore" to arrayOf("\"c/f/post/threadstore\""),
-        "NewSub" to arrayOf("Lcom/baidu/tieba/R\$id;->subpb_head_user_info_root:I"),
-        "ForbidGesture" to arrayOf("Lcom/baidu/tieba/R\$id;->new_pb_list:I"),
-        "FrsTab" to arrayOf("\"from_pb_or_person\"")
+        CreateView::class.java to arrayOf("Lcom/baidu/tieba/R\$id;->navigationBarGoSignall:I"),
+        Ripple::class.java to arrayOf("Lcom/baidu/tieba/R\$layout;->new_sub_pb_list_item:I"),
+        ThreadStore::class.java to arrayOf("\"c/f/post/threadstore\""),
+        NewSub::class.java to arrayOf("Lcom/baidu/tieba/R\$id;->subpb_head_user_info_root:I"),
+        ForbidGesture::class.java to arrayOf("Lcom/baidu/tieba/R\$id;->new_pb_list:I"),
+        FrsTab::class.java to arrayOf("\"from_pb_or_person\"")
     )
 }

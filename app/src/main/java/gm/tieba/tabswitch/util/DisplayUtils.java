@@ -24,7 +24,7 @@ public class DisplayUtils {
                 .getPackageName());
         if (intent == null) {
             String hint = "获取启动意图失败，请手动启动应用";
-            if (AcRules.isRuleFound(Constants.getMatchers().get("TbToast"))) {
+            if (AcRules.isRuleFound(Constants.getMatchers().get(TbToast.class))) {
                 TbToast.showTbToast(hint, TbToast.LENGTH_SHORT);
             } else {
                 Toast.makeText(activity, hint, Toast.LENGTH_SHORT).show();

@@ -17,7 +17,7 @@ public class NewSub extends XposedContext implements IHooker {
     private Object mPostId;
 
     public void hook() throws Throwable {
-        AcRules.findRule(Constants.getMatchers().get("NewSub"), (AcRules.Callback) (rule, clazz, method) ->
+        AcRules.findRule(Constants.getMatchers().get(NewSub.class), (AcRules.Callback) (rule, clazz, method) ->
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {

@@ -1,5 +1,7 @@
 package gm.tieba.tabswitch.widget;
 
+import android.content.Context;
+
 import androidx.annotation.MainThread;
 
 import java.lang.reflect.Method;
@@ -17,10 +19,9 @@ public class TbToast extends XposedContext {
 
     @MainThread
     public static void showTbToast(String text, int duration) {
-        AcRules.findRule(Constants.getMatchers().get("TbToast"), (AcRules.Callback) (rule, clazz, method) -> {
+        AcRules.findRule(Constants.getMatchers().get(TbToast.class), (AcRules.Callback) (rule, clazz, method) -> {
             for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
-                if (Arrays.toString(md.getParameterTypes()).equals(
-                        "[class android.content.Context, class java.lang.String, int]")) {
+                if (Arrays.equals(md.getParameterTypes(), new Class[]{Context.class, String.class, int.class})) {
                     ReflectUtils.callStaticMethod(md, getContext(), text, duration);
                 }
             }

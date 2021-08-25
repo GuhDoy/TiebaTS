@@ -24,7 +24,7 @@ import gm.tieba.tabswitch.util.ReflectUtils;
 public class ForbidGesture extends XposedContext implements IHooker {
     public void hook() throws Throwable {
         // 帖子字号
-        AcRules.findRule(Constants.getMatchers().get("ForbidGesture"), (AcRules.Callback) (rule, clazz, method) ->
+        AcRules.findRule(Constants.getMatchers().get(ForbidGesture.class), (AcRules.Callback) (rule, clazz, method) ->
                 XposedBridge.hookAllConstructors(XposedHelpers.findClass(clazz, sClassLoader), new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {

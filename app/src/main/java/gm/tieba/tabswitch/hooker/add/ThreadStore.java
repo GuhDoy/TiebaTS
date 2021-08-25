@@ -53,7 +53,7 @@ public class ThreadStore extends XposedContext implements IHooker {
                         textView.setOnClickListener(v -> showRegexDialog(activity));
                     }
                 });
-        AcRules.findRule(Constants.getMatchers().get("ThreadStore"), (AcRules.Callback) (rule, clazz, method) ->
+        AcRules.findRule(Constants.getMatchers().get(ThreadStore.class), (AcRules.Callback) (rule, clazz, method) ->
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, Boolean[].class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {

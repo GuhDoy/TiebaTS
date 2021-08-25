@@ -87,7 +87,7 @@ public class XposedInit extends XposedContext implements IXposedHookLoadPackage,
                             if (!Preferences.getIsEULAAccepted()) return;
                             Activity activity = (Activity) param.thisObject;
                             String message = Constants.getStrings().get("rules_incomplete") + "\n" + e.getMessage();
-                            if (AcRules.isRuleFound(Constants.getMatchers().get("TbDialog"))) {
+                            if (AcRules.isRuleFound(Constants.getMatchers().get(TbDialog.class))) {
                                 TbDialog bdAlert = new TbDialog(activity, "警告", message, false, null);
                                 bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
                                 bdAlert.setOnYesButtonClickListener(v -> AntiConfusionHelper

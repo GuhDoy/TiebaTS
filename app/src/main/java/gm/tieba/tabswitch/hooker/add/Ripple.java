@@ -21,7 +21,7 @@ import gm.tieba.tabswitch.util.ReflectUtils;
 public class Ripple extends XposedContext implements IHooker {
     public void hook() throws Throwable {
         // 楼中楼
-        AcRules.findRule(Constants.getMatchers().get("Ripple"), (AcRules.Callback) (rule, clazz, method) ->
+        AcRules.findRule(Constants.getMatchers().get(Ripple.class), (AcRules.Callback) (rule, clazz, method) ->
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {

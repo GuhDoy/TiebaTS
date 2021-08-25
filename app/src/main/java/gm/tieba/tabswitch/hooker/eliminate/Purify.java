@@ -28,7 +28,7 @@ import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class Purify extends XposedContext implements IHooker {
     public void hook() throws Throwable {
-        AcRules.findRule(Constants.getMatchers().get("Purify"), (AcRules.Callback) (rule, clazz, method) -> {
+        AcRules.findRule(Constants.getMatchers().get(Purify.class), (AcRules.Callback) (rule, clazz, method) -> {
             switch (rule) {
                 case "\"c/s/splashSchedule\"":// 旧启动广告
                 case "Lcom/baidu/tieba/recapp/lego/model/AdCard;-><init>(Lorg/json/JSONObject;)V":// 卡片广告
