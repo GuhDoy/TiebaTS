@@ -1,11 +1,14 @@
 package gm.tieba.tabswitch.hooker;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Process;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.FrameLayout;
@@ -14,8 +17,11 @@ import android.widget.LinearLayout;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Locale;
 
 import de.robv.android.xposed.XC_MethodHook;
+import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.BuildConfig;
 import gm.tieba.tabswitch.Constants;
@@ -24,6 +30,7 @@ import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.TSPreferenceHelper.SwitchButtonHolder;
 import gm.tieba.tabswitch.hooker.add.MyAttention;
+import gm.tieba.tabswitch.hooker.anticonfusion.AntiConfusionHelper;
 import gm.tieba.tabswitch.hooker.extra.TraceChecker;
 import gm.tieba.tabswitch.util.DisplayUtils;
 import gm.tieba.tabswitch.util.Parser;
@@ -72,23 +79,38 @@ public class TSPreference extends XposedContext implements IHooker {
                         .findClass(PROXY_ACTIVITY, sClassLoader), new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        Activity activity = (Activity) param.args[0];
-                        NavigationBar navigationBar = new NavigationBar(param.thisObject);
-                        String proxyPage = activity.getIntent().getStringExtra("proxyPage");
-                        if (proxyPage == null) return;
-                        switch (proxyPage) {
-                            case MAIN:
-                                proxyPage(activity, navigationBar, MAIN, createRootPreference(activity));
-                                break;
-                            case MODIFY_TAB:
-                                proxyPage(activity, navigationBar, MODIFY_TAB, createModifyTabPreference(activity));
-                                break;
-                            case NOTES:
-                                proxyPage(activity, navigationBar, NOTES, MyAttention.createNotesPreference(activity));
-                                break;
-                            case TRACE:
-                                proxyPage(activity, navigationBar, TRACE, createHidePreference(activity));
-                                break;
+                        var activity = (Activity) param.args[0];
+                        try {
+                            var navigationBar = new NavigationBar(param.thisObject);
+                            var proxyPage = activity.getIntent().getStringExtra("proxyPage");
+                            if (proxyPage == null) return;
+                            switch (proxyPage) {
+                                case MAIN:
+                                    proxyPage(activity, navigationBar, MAIN, createRootPreference(activity));
+                                    break;
+                                case MODIFY_TAB:
+                                    proxyPage(activity, navigationBar, MODIFY_TAB, createModifyTabPreference(activity));
+                                    break;
+                                case NOTES:
+                                    proxyPage(activity, navigationBar, NOTES, MyAttention.createNotesPreference(activity));
+                                    break;
+                                case TRACE:
+                                    proxyPage(activity, navigationBar, TRACE, createHidePreference(activity));
+                                    break;
+                            }
+                        } catch (Throwable tr) {
+                            var messages = new ArrayList<String>();
+                            messages.add(Constants.getStrings().get("exception_init_preference"));
+                            messages.add(String.format(Locale.CHINA, "tbversion: %s, module version: %d",
+                                    AntiConfusionHelper.getTbVersion(getContext()), BuildConfig.VERSION_CODE));
+                            messages.add(Log.getStackTraceString(tr));
+                            var message = TextUtils.join("\n", messages);
+                            XposedBridge.log(message);
+                            var alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_DEVICE_DEFAULT_LIGHT)
+                                    .setTitle("警告").setMessage(message).setCancelable(false)
+                                    .setPositiveButton(activity.getString(android.R.string.ok), (dialogInterface, i) -> activity.finish())
+                                    .create();
+                            alertDialog.show();
                         }
                     }
                 }));

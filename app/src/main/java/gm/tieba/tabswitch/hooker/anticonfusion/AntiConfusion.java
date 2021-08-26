@@ -44,7 +44,7 @@ public class AntiConfusion extends XposedContext implements IHooker {
     private LinearLayout mContentView;
 
     public void hook() throws Throwable {
-        for (Method method : XposedHelpers.findClass("com.baidu.tieba.LogoActivity", sClassLoader).getDeclaredMethods()) {
+        for (var method : XposedHelpers.findClass("com.baidu.tieba.LogoActivity", sClassLoader).getDeclaredMethods()) {
             if (!method.getName().startsWith("on") && Arrays.equals(method.getParameterTypes(), new Class[]{Bundle.class})) {
                 XposedBridge.hookMethod(method, new XC_MethodReplacement() {
                     @SuppressLint("ApplySharedPref")
@@ -130,7 +130,7 @@ public class AntiConfusion extends XposedContext implements IHooker {
                                         }
                                     }
                                     var classes = new ArrayList<String>();
-                                    try (Cursor c = db.query("rules", null, null, null, null, null, null)) {
+                                    try (var c = db.query("rules", null, null, null, null, null, null)) {
                                         while (c.moveToNext()) {
                                             classes.add(c.getString(2));
                                         }

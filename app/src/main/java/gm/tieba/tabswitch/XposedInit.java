@@ -5,11 +5,11 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Application;
 import android.app.Instrumentation;
-import android.database.sqlite.SQLiteException;
 import android.os.Bundle;
+import android.text.TextUtils;
 
 import java.lang.ref.WeakReference;
-import java.util.List;
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Map;
 
@@ -71,42 +71,41 @@ public class XposedInit extends XposedContext implements IXposedHookLoadPackage,
                 sContextRef = new WeakReference<>(((Application) param.args[0]).getApplicationContext());
                 sClassLoader = lpparam.classLoader;
                 Preferences.init(getContext());
-                try {
-                    AcRules.init(getContext());
-                    List<String> lostList = AntiConfusionHelper.getRulesLost();
-                    if (!lostList.isEmpty()) {
-                        throw new SQLiteException(String.format(Locale.getDefault(),
-                                "rules incomplete, tbversion: %s, module version: %d, lost %d rule(s): %s",
-                                AntiConfusionHelper.getTbVersion(getContext()), BuildConfig.VERSION_CODE, lostList.size(), lostList));
-                    }
-                } catch (SQLiteException e) {
+                AcRules.init(getContext());
+                if (AntiConfusionHelper.isVersionChanged(getContext())) {
+                    new AntiConfusion().hook();
+                    return;
+                }
+                var lostList = AntiConfusionHelper.getRulesLost();
+                if (!lostList.isEmpty()) {
                     XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
                         @Override
                         protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                            XposedBridge.log(e.toString());
-                            if (!Preferences.getIsEULAAccepted()) return;
-                            Activity activity = (Activity) param.thisObject;
-                            String message = Constants.getStrings().get("rules_incomplete") + "\n" + e.getMessage();
+                            var activity = (Activity) param.thisObject;
+                            var messages = new ArrayList<String>();
+                            messages.add(Constants.getStrings().get("exception_rules_incomplete"));
+                            messages.add(String.format(Locale.CHINA, "tbversion: %s, module version: %d",
+                                    AntiConfusionHelper.getTbVersion(getContext()), BuildConfig.VERSION_CODE));
+                            messages.add(String.format(Locale.CHINA, "lost %d rule(s): %s", lostList.size(), lostList));
+                            var message = TextUtils.join("\n", messages);
+                            XposedBridge.log(message);
                             if (AcRules.isRuleFound(Constants.getMatchers().get(TbDialog.class))) {
-                                TbDialog bdAlert = new TbDialog(activity, "警告", message, false, null);
+                                var bdAlert = new TbDialog(activity, "警告", message, false, null);
                                 bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
                                 bdAlert.setOnYesButtonClickListener(v -> AntiConfusionHelper
                                         .saveAndRestart(activity, "unknown", null));
                                 bdAlert.show();
                             } else {
-                                @SuppressWarnings("deprecation")
-                                AlertDialog alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_DEVICE_DEFAULT_LIGHT)
+                                var alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_DEVICE_DEFAULT_LIGHT)
                                         .setTitle("警告").setMessage(message).setCancelable(false)
-                                        .setNegativeButton(activity.getString(android.R.string.cancel), (dialogInterface, i) -> {
-                                        }).setPositiveButton(activity.getString(android.R.string.ok), (dialogInterface, i) -> AntiConfusionHelper
-                                                .saveAndRestart(activity, "unknown", null)).create();
+                                        .setNegativeButton(activity.getString(android.R.string.cancel), null)
+                                        .setPositiveButton(activity.getString(android.R.string.ok), (dialogInterface, i) -> AntiConfusionHelper
+                                                .saveAndRestart(activity, "unknown", null))
+                                        .create();
                                 alertDialog.show();
                             }
                         }
                     });
-                }
-                if (AntiConfusionHelper.isVersionChanged(getContext())) {
-                    new AntiConfusion().hook();
                     return;
                 }
 
