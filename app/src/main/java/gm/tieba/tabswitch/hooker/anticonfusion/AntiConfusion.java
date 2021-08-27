@@ -3,7 +3,6 @@ package gm.tieba.tabswitch.hooker.anticonfusion;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
-import android.database.Cursor;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -19,7 +18,6 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -104,9 +102,9 @@ public class AntiConfusion extends XposedContext implements IHooker {
                                     return ints[0] - ints[1];
                                 });
                                 // special optimization for TbDialog
-                                var dialog = "\"Dialog must be created by function create()!\"";
+                                var dialogMatcher = "\"Dialog must be created by function create()!\"";
                                 var dialogClasses = new HashSet<String>();
-                                AntiConfusionHelper.matcherList.add(dialog);
+                                AntiConfusionHelper.matcherList.add(dialogMatcher);
                                 var searcher = new DexBakSearcher(AntiConfusionHelper.matcherList);
                                 try (var db = new RulesDbHelper(mActivity).getReadableDatabase()) {
                                     var progress = 0f;
@@ -120,7 +118,7 @@ public class AntiConfusion extends XposedContext implements IHooker {
                                                 setProgress(progress);
 
                                                 searcher.searchString(classDefs.get(i), (matcher, clazz, method1) -> {
-                                                    if (matcher.equals(dialog)) {
+                                                    if (matcher.equals(dialogMatcher)) {
                                                         dialogClasses.add(searcher.revert(clazz));
                                                     } else {
                                                         AcRules.putRule(db, matcher, clazz, method1);
@@ -129,16 +127,16 @@ public class AntiConfusion extends XposedContext implements IHooker {
                                             }
                                         }
                                     }
-                                    var classes = new ArrayList<String>();
+                                    var stringClasses = new ArrayList<String>();
                                     try (var c = db.query("rules", null, null, null, null, null, null)) {
                                         while (c.moveToNext()) {
-                                            classes.add(c.getString(2));
+                                            stringClasses.add(c.getString(2));
                                         }
                                     }
                                     var first = new ArrayList<String>();
                                     var second = new ArrayList<String>();
                                     var third = new ArrayList<String>();
-                                    classes.forEach(s -> {
+                                    stringClasses.forEach(s -> {
                                         var split = s.split("\\.");
                                         first.add(split[0]);
                                         second.add(split[1]);

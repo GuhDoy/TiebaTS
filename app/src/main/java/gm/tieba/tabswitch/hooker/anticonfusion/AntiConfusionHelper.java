@@ -42,7 +42,7 @@ public class AntiConfusionHelper {
         return list;
     }
 
-    public static byte[] calcSignature(InputStream dataStoreInput) throws IOException {
+    static byte[] calcSignature(InputStream dataStoreInput) throws IOException {
         MessageDigest md;
         try {
             md = MessageDigest.getInstance("SHA-1");
@@ -73,11 +73,9 @@ public class AntiConfusionHelper {
     public static boolean isDexChanged(Context context) {
         try {
             ZipFile zipFile = new ZipFile(new File(context.getPackageResourcePath()));
-            byte[] signature;
             try (InputStream in = zipFile.getInputStream(zipFile.getEntry("classes.dex"))) {
-                signature = calcSignature(in);
+                return Arrays.hashCode(calcSignature(in)) != Preferences.getSignature();
             }
-            return Arrays.hashCode(signature) != Preferences.getSignature();
         } catch (IOException e) {
             XposedBridge.log(e);
         }
@@ -109,8 +107,9 @@ public class AntiConfusionHelper {
         SharedPreferences.Editor editor = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE).edit();
         editor.putString("anti-confusion_version", value);
         editor.commit();
-        if (springboardActivity == null) DisplayUtils.restart(activity);
-        else {
+        if (springboardActivity == null) {
+            DisplayUtils.restart(activity);
+        } else {
             XposedHelpers.findAndHookMethod(springboardActivity, "onCreate", Bundle.class, new XC_MethodHook() {
                 protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                     Activity activity = (Activity) param.thisObject;

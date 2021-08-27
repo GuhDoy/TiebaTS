@@ -1,5 +1,6 @@
 package gm.tieba.tabswitch.hooker.anticonfusion
 
+import gm.tieba.tabswitch.util.MutablePair
 import org.jf.baksmali.Adaptors.ClassDefinition
 import org.jf.baksmali.Adaptors.MethodDefinition
 import org.jf.baksmali.BaksmaliOptions
@@ -55,9 +56,7 @@ class DexBakSearcher constructor(matcherList: MutableList<String>) {
                                 if (reference2 is StringReference) {
                                     stringMatchers.forEach {
                                         if (it == reference2.toString()) {
-                                            l.onMatch(
-                                                "\"$it\"", type.convert(), method.name
-                                            )
+                                            l.onMatch("\"$it\"", type.convert(), method.name)
                                         }
                                     }
                                 }
@@ -94,10 +93,8 @@ class DexBakSearcher constructor(matcherList: MutableList<String>) {
 
     fun String.revert(): String = "L" + replace(".", "/") + ";"
 
-    class MutablePair<String, Int>(var first: String, var second: Int)
-
-    fun List<String>.most(): String {
-        val map: MutableList<MutablePair<String, Int>> = ArrayList()
+    fun Collection<String>.most(): String {
+        val map = ArrayList<MutablePair<String, Int>>()
         forEach { thiz ->
             val pair = map.firstOrNull { it.first == thiz }
             if (pair == null) {

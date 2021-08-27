@@ -11,7 +11,7 @@ public class RulesDbHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("create table rules(id integer primary key autoincrement, rule varchar(255), class varchar(255), method varchar(255))");
+        db.execSQL("create table if not exists rules(id integer primary key autoincrement, rule varchar(255), class varchar(255), method varchar(255))");
     }
 
     @Override

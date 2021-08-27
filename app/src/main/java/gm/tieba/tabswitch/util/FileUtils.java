@@ -1,6 +1,5 @@
 package gm.tieba.tabswitch.util;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileDescriptor;
@@ -9,7 +8,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
 
 public class FileUtils {
     public static void copy(Object input, Object output) throws IOException {
@@ -22,7 +22,7 @@ public class FileUtils {
             is = new FileInputStream((FileDescriptor) input);
         } else if (input instanceof String) {
             is = new FileInputStream((String) input);
-        } else throw new IOException("unknown input type");
+        } else throw new IllegalArgumentException("unknown input type");
 
         OutputStream os;
         if (output instanceof OutputStream) {
@@ -33,7 +33,7 @@ public class FileUtils {
             os = new FileOutputStream((FileDescriptor) output);
         } else if (output instanceof String) {
             os = new FileOutputStream((String) output);
-        } else throw new IOException("unknown output type");
+        } else throw new IllegalArgumentException("unknown output type");
 
         copy(is, os);
     }
@@ -49,21 +49,42 @@ public class FileUtils {
         os.close();
     }
 
-    public static ByteArrayOutputStream cloneInputStream(InputStream in) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        copy(in, baos);
-        return baos;
+    public static void copy(ByteBuffer bb, Object output) throws IOException {
+        OutputStream os;
+        if (output instanceof OutputStream) {
+            os = (OutputStream) output;
+        } else if (output instanceof File) {
+            os = new FileOutputStream((File) output);
+        } else if (output instanceof FileDescriptor) {
+            os = new FileOutputStream((FileDescriptor) output);
+        } else if (output instanceof String) {
+            os = new FileOutputStream((String) output);
+        } else throw new IllegalArgumentException("unknown output type");
+
+        os.write(bb.array());
     }
 
-    // TODO: use ByteBuffer
-    public static String getExtension(ByteArrayOutputStream baos) throws IOException {
-        InputStream inputStream = new ByteArrayInputStream(baos.toByteArray());
-        byte[] bytes = new byte[6];
-        if (inputStream.read(bytes) == -1) throw new IOException();
-        String chunk = new String(bytes, StandardCharsets.UTF_8);
-        if (chunk.contains("GIF")) return "gif";
-        if (chunk.contains("PNG")) return "png";
-        return "jpg";
+    public static ByteBuffer toByteBuffer(InputStream is) throws IOException {
+        var baos = new ByteArrayOutputStream();
+        copy(is, baos);
+        return ByteBuffer.wrap(baos.toByteArray());
+    }
+
+    public static ByteBuffer toByteBufferNoCopy(InputStream is) throws IOException {
+        var bb = ByteBuffer.allocate(is.available());
+        Channels.newChannel(is).read(bb);
+        return bb;
+    }
+
+    public static String getExtension(ByteBuffer bb) throws IOException {
+        var chunk = new String(bb.array(), 0, 6);
+        try {
+            if (chunk.contains("GIF")) return "gif";
+            else if (chunk.contains("PNG")) return "png";
+            else return "jpeg";
+        } finally {
+            bb.rewind();
+        }
     }
 
     public static String getParent(String path) {
