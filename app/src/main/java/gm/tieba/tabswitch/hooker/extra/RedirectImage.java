@@ -2,6 +2,7 @@ package gm.tieba.tabswitch.hooker.extra;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 
@@ -52,8 +53,16 @@ public class RedirectImage extends XposedContext implements IHooker {
         try {
             var bb = FileUtils.toByteBufferNoCopy(is);
             var newImageDetails = new ContentValues();
-            newImageDetails.put(MediaStore.MediaColumns.RELATIVE_PATH,
-                    Environment.DIRECTORY_PICTURES + File.separator + "tieba");
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                newImageDetails.put(MediaStore.MediaColumns.RELATIVE_PATH,
+                        Environment.DIRECTORY_PICTURES + File.separator + "tieba");
+            } else {
+                var path = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                        "tieba");
+                path.mkdirs();
+                newImageDetails.put(MediaStore.MediaColumns.DATA, path + File.separator
+                        + fileName + "." + FileUtils.getExtension(bb));
+            }
             newImageDetails.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
             newImageDetails.put(MediaStore.MediaColumns.MIME_TYPE, "image/" + FileUtils.getExtension(bb));
             var resolver = appContext.getContentResolver();

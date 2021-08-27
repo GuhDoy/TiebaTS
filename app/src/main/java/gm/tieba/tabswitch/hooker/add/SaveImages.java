@@ -2,6 +2,7 @@ package gm.tieba.tabswitch.hooker.add;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
@@ -96,8 +97,16 @@ public class SaveImages extends XposedContext implements IHooker {
         try (var is = new URL(url).openStream()) {
             var bb = FileUtils.toByteBuffer(is);
             var newImageDetails = new ContentValues();
-            newImageDetails.put(MediaStore.MediaColumns.RELATIVE_PATH,
-                    Environment.DIRECTORY_PICTURES + File.separator + "tieba" + File.separator + title);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                newImageDetails.put(MediaStore.MediaColumns.RELATIVE_PATH,
+                        Environment.DIRECTORY_PICTURES + File.separator + "tieba" + File.separator + title);
+            } else {
+                var path = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                        "tieba" + File.separator + title);
+                path.mkdirs();
+                newImageDetails.put(MediaStore.MediaColumns.DATA, path + File.separator
+                        + i + "." + FileUtils.getExtension(bb));
+            }
             newImageDetails.put(MediaStore.MediaColumns.DISPLAY_NAME, String.valueOf(i));
             newImageDetails.put(MediaStore.MediaColumns.MIME_TYPE, "image/" + FileUtils.getExtension(bb));
             var resolver = context.getContentResolver();
