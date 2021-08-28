@@ -95,13 +95,15 @@ class DexBakSearcher constructor(matcherList: MutableList<String>) {
 
     fun Collection<String>.most(): String {
         val map = ArrayList<MutablePair<String, Int>>()
-        forEach { thiz ->
-            val pair = map.firstOrNull { it.first == thiz }
-            if (pair == null) {
-                map.add(MutablePair(thiz, 0))
-            } else {
-                pair.second = pair.second + 1
-                if (pair.second > size / 2) return@forEach
+        run loop@{
+            forEach { thiz ->
+                val pair = map.firstOrNull { it.first == thiz }
+                if (pair == null) {
+                    map.add(MutablePair(thiz, 0))
+                } else {
+                    pair.second = pair.second + 1
+                    if (pair.second > size / 2) return@loop
+                }
             }
         }
         map.sortWith(Comparator.comparingInt { -it.second })
