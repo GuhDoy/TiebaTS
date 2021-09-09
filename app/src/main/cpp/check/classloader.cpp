@@ -177,49 +177,52 @@ static void doAntiXposed(JNIEnv *env, jobject object, intptr_t hash) {
     xposed_status = true;
 }
 
-static inline void fill_dalvik_system_PathClassLoader(char v[]) {
-    // dalvik/system/PathClassLoader
+static inline void fill_dalvik_system_BaseDexClassLoader(char v[]) {
+    // dalvik/system/BaseDexClassLoader
     static unsigned int m = 0;
 
     if (m == 0) {
-        m = 23;
-    } else if (m == 29) {
         m = 31;
+    } else if (m == 37) {
+        m = 41;
     }
 
-    v[0x0] = 'b';
-    v[0x1] = 'f';
-    v[0x2] = 'd';
-    v[0x3] = '\x7f';
-    v[0x4] = 'c';
-    v[0x5] = '`';
-    v[0x6] = '#';
-    v[0x7] = '~';
-    v[0x8] = 'w';
-    v[0x9] = '|';
-    v[0xa] = 'd';
-    v[0xb] = 't';
-    v[0xc] = '\x7f';
-    v[0xd] = '<';
-    v[0xe] = 'D';
-    v[0xf] = 't';
+    v[0x0] = 'e';
+    v[0x1] = 'c';
+    v[0x2] = 'o';
+    v[0x3] = 'r';
+    v[0x4] = 'l';
+    v[0x5] = 'm';
+    v[0x6] = '(';
+    v[0x7] = '{';
+    v[0x8] = 'p';
+    v[0x9] = 'y';
+    v[0xa] = '\x7f';
+    v[0xb] = 'i';
+    v[0xc] = '`';
+    v[0xd] = '!';
+    v[0xe] = 'M';
+    v[0xf] = 'q';
     v[0x10] = 'b';
-    v[0x11] = 'h';
-    v[0x12] = 'B';
-    v[0x13] = 'n';
-    v[0x14] = 'b';
-    v[0x15] = 'w';
-    v[0x16] = 'v';
-    v[0x17] = 'J';
-    v[0x18] = 'h';
+    v[0x11] = 'w';
+    v[0x12] = 'W';
+    v[0x13] = 'q';
+    v[0x14] = 'm';
+    v[0x15] = 'U';
+    v[0x16] = '{';
+    v[0x17] = 'y';
+    v[0x18] = 'j';
     v[0x19] = 'i';
-    v[0x1a] = 'm';
-    v[0x1b] = 'o';
-    v[0x1c] = 'y';
-    for (unsigned int i = 0; i < 0x1d; ++i) {
-        v[i] ^= ((i + 0x1d) % m);
+    v[0x1a] = 'W';
+    v[0x1b] = 's';
+    v[0x1c] = '|';
+    v[0x1d] = 'z';
+    v[0x1e] = 'e';
+    v[0x1f] = 's';
+    for (unsigned int i = 0; i < 0x20; ++i) {
+        v[i] ^= ((i + 0x20) % m);
     }
-    v[0x1d] = '\0';
+    v[0x20] = '\0';
 }
 
 class PathClassLoaderVisitor : public art::SingleRootVisitor {
@@ -436,7 +439,7 @@ void checkClassLoader(JNIEnv *env, int sdk) {
     }
 
     char v[0x40];
-    fill_dalvik_system_PathClassLoader(v);
+    fill_dalvik_system_BaseDexClassLoader(v);
     jclass clazz = env->FindClass(v);
     if (env->ExceptionCheck()) {
 #ifdef DEBUG

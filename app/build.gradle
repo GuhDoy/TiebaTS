@@ -16,7 +16,7 @@ android {
         minSdk 24
         targetSdk sdk
         versionCode gitCommitCount
-        versionName "2.7"
+        versionName "2.7.1-beta"
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         externalNativeBuild {

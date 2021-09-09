@@ -3,9 +3,7 @@ package gm.tieba.tabswitch.dao;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Build;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashSet;
@@ -19,21 +17,6 @@ public class Preferences {
     private static SharedPreferences sTsNotes;
 
     public static void init(Context context) {
-        //TODO: remove this
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            File oldSp = new File(context.getDataDir() + File.separator
-                    + "shared_prefs" + File.separator + "TS_preference.xml");
-            if (oldSp.exists()) {
-                SharedPreferences.Editor editor = context.getSharedPreferences(
-                        "TS_config", Context.MODE_PRIVATE).edit();
-                editor.remove("EULA");
-                editor.commit();
-                File newSp = new File(context.getDataDir() + File.separator
-                        + "shared_prefs" + File.separator + "TS_preferences.xml");
-                oldSp.renameTo(newSp);
-            }
-        }
-
         sTsPreferences = context.getSharedPreferences("TS_preferences", Context.MODE_PRIVATE);
         sTsConfig = context.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
         sTsNotes = context.getSharedPreferences("TS_notes", Context.MODE_PRIVATE);

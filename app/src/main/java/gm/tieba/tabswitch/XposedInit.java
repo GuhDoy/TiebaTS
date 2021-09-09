@@ -96,13 +96,12 @@ public class XposedInit extends XposedContext implements IXposedHookLoadPackage,
                                         .saveAndRestart(activity, "unknown", null));
                                 bdAlert.show();
                             } else {
-                                var alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_DEVICE_DEFAULT_LIGHT)
+                                new AlertDialog.Builder(activity, AlertDialog.THEME_DEVICE_DEFAULT_LIGHT)
                                         .setTitle("警告").setMessage(message).setCancelable(false)
                                         .setNegativeButton(activity.getString(android.R.string.cancel), null)
                                         .setPositiveButton(activity.getString(android.R.string.ok), (dialogInterface, i) -> AntiConfusionHelper
                                                 .saveAndRestart(activity, "unknown", null))
-                                        .create();
-                                alertDialog.show();
+                                        .show();
                             }
                         }
                     });

@@ -106,11 +106,10 @@ public class TSPreference extends XposedContext implements IHooker {
                             messages.add(Log.getStackTraceString(tr));
                             var message = TextUtils.join("\n", messages);
                             XposedBridge.log(message);
-                            var alertDialog = new AlertDialog.Builder(activity, AlertDialog.THEME_DEVICE_DEFAULT_LIGHT)
+                            new AlertDialog.Builder(activity, AlertDialog.THEME_DEVICE_DEFAULT_LIGHT)
                                     .setTitle("警告").setMessage(message).setCancelable(false)
                                     .setPositiveButton(activity.getString(android.R.string.ok), (dialogInterface, i) -> activity.finish())
-                                    .create();
-                            alertDialog.show();
+                                    .show();
                         }
                     }
                 }));

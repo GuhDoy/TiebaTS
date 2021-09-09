@@ -1,5 +1,6 @@
 package gm.tieba.tabswitch.util;
 
+import org.jetbrains.annotations.TestOnly;
 import org.json.JSONObject;
 
 import java.lang.reflect.Method;
@@ -11,10 +12,6 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.XposedContext;
 
 public class DevUtils extends XposedContext {
-    public static void log(Object o) {
-        XposedBridge.log(String.valueOf(o));
-    }
-
     public static void logJSONObject() {
         XposedBridge.hookAllConstructors(JSONObject.class, new XC_MethodHook() {
             @Override
@@ -24,6 +21,7 @@ public class DevUtils extends XposedContext {
         });
     }
 
+    @TestOnly
     private static void logMethod(Method method) {
         XposedBridge.hookMethod(method, new XC_MethodHook() {
             @Override
@@ -61,6 +59,7 @@ public class DevUtils extends XposedContext {
         }
     }
 
+    @TestOnly
     private static void disableMethod(Method method) {
         XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(
                 method.getReturnType().equals(boolean.class) ? true : null));

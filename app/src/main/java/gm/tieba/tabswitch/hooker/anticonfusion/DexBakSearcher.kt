@@ -88,8 +88,7 @@ class DexBakSearcher constructor(matcherList: MutableList<String>) {
         }
     }
 
-    fun String.convert(): String = substring(indexOf("L") + 1, indexOf(";"))
-        .replace("/", ".")
+    fun String.convert(): String = substring(indexOf("L") + 1, indexOf(";")).replace("/", ".")
 
     fun String.revert(): String = "L" + replace(".", "/") + ";"
 
@@ -101,7 +100,7 @@ class DexBakSearcher constructor(matcherList: MutableList<String>) {
                 if (pair == null) {
                     map.add(MutablePair(thiz, 0))
                 } else {
-                    pair.second = pair.second + 1
+                    pair.second++
                     if (pair.second > size / 2) return@loop
                 }
             }
