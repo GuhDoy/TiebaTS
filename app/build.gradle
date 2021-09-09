@@ -62,7 +62,7 @@ android {
 dependencies {
     compileOnly files('libs/XposedBridgeApi-89.jar')
     api 'androidx.annotation:annotation:1.2.0'
+    implementation 'org.smali:baksmali:2.5.2'
     implementation 'com.squareup.okhttp3:okhttp:5.0.0-alpha.2'
     implementation 'dev.rikka.ndk.thirdparty:cxx:1.1.0'
-    implementation 'org.smali:baksmali:2.5.2'
 }

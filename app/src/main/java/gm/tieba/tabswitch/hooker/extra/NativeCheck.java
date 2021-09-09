@@ -6,9 +6,9 @@ import de.robv.android.xposed.XposedBridge;
 import gm.tieba.tabswitch.XposedContext;
 
 @SuppressLint("UnsafeDynamicallyLoadedCode")
-public class Native extends XposedContext {
+public class NativeCheck extends XposedContext {
     static {
-        String soPath = sPath + "!/lib/armeabi-v7a/libtshide.so";
+        String soPath = sPath + "!/lib/armeabi-v7a/libcheck.so";
         for (int i = 0; i < 3; i++) {
             try {
                 System.load(soPath);

@@ -75,14 +75,14 @@ public class TraceChecker extends XposedContext {
         } catch (ClassNotFoundException ignored) {
         }
 
-        if (Native.findXposed()) result.addTrace(C, "de/robv/android/xposed/XposedBridge");
+        if (NativeCheck.findXposed()) result.addTrace(C, "de/robv/android/xposed/XposedBridge");
         result.show();
     }
 
     private void files() {
         ResultBuilder result = new ResultBuilder("文件");
         for (String symbol : new String[]{"access", "faccessat"}) {
-            if (Native.inline(symbol)) result.addTrace(FAKE, symbol + " is inline hooked");
+            if (NativeCheck.inline(symbol)) result.addTrace(FAKE, symbol + " is inline hooked");
         }
 
         String[] paths = new String[]{getContext().getFilesDir().getParent()
@@ -97,8 +97,8 @@ public class TraceChecker extends XposedContext {
                 getContext().getFilesDir().getParent() + File.separator + "shared_prefs"
                         + File.separator + "TS_notes.xml"};
         for (String path : paths) {
-            if (Native.access(path) == 0) result.addTrace(C, path);
-            if (Native.sysaccess(path) == 0) result.addTrace(S, path);
+            if (NativeCheck.access(path) == 0) result.addTrace(C, path);
+            if (NativeCheck.sysaccess(path) == 0) result.addTrace(S, path);
         }
         result.show();
     }
@@ -107,15 +107,15 @@ public class TraceChecker extends XposedContext {
         ResultBuilder result = new ResultBuilder("内存映射");
         for (String symbol : new String[]{"open", "open64", "openat", "openat64", "__openat",
                 "fopen", "fdopen"}) {
-            if (Native.inline(symbol)) result.addTrace(FAKE, symbol + " is inline hooked");
+            if (NativeCheck.inline(symbol)) result.addTrace(FAKE, symbol + " is inline hooked");
         }
 
         String path = String.format(Locale.getDefault(), "/proc/%d/maps", Process.myPid());
-        String trace = Native.fopen(path);
+        String trace = NativeCheck.fopen(path);
         if (!TextUtils.isEmpty(trace)) {
             result.addTrace(C, trace.substring(0, trace.length() - 1));
         }
-        String trace2 = Native.openat(path);
+        String trace2 = NativeCheck.openat(path);
         if (!TextUtils.isEmpty(trace2)) {
             result.addTrace(S, trace2.substring(0, trace2.length() - 1));
         }

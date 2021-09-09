@@ -209,6 +209,16 @@ public class XposedInit extends XposedContext implements IXposedHookLoadPackage,
                     case "hide":
                         if ((Boolean) entry.getValue()) new Hide().hook();
                         break;
+                    case "hide_native":
+                        if ((Boolean) entry.getValue()) {
+                            try {
+                                System.loadLibrary("hide");
+                            } catch (UnsatisfiedLinkError e) {
+                                XposedBridge.log(e);
+                                Preferences.remove(entry.getKey());
+                            }
+                        }
+                        break;
                     case "check_stack_trace":
                         if ((Boolean) entry.getValue()) new StackTrace().hook();
                         break;

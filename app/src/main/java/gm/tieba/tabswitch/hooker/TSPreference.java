@@ -299,8 +299,8 @@ public class TSPreference extends XposedContext implements IHooker {
         boolean isPurifyEnabled = Preferences.getIsPurifyEnabled();
         TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
         if (isPurifyEnabled || BuildConfig.DEBUG) {
-            preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurifyEnabled ? "尾巴是藏不住的（" : null));
             preferenceLayout.addView(new SwitchButtonHolder(activity, isPurifyEnabled ? "藏起尾巴" : "隐藏模块", "hide", SwitchButtonHolder.TYPE_SWITCH));
+            preferenceLayout.addView(new SwitchButtonHolder(activity, isPurifyEnabled ? "藏起尾巴（原生）" : "隐藏模块（原生）", "hide_native", SwitchButtonHolder.TYPE_SWITCH));
         }
         preferenceLayout.addView(TSPreferenceHelper.createTextView("检测设置"));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "检测 Xposed", "check_xposed", SwitchButtonHolder.TYPE_SWITCH));
