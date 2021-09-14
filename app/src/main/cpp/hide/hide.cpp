@@ -12,9 +12,9 @@ jclass fake_FindClass(JNIEnv *env, const char *name) {
 }
 
 void on_library_loaded(const char *name, void *handle) {
-    if (std::string(name).ends_with("libcheck.so")) {
-        // TODO
-    }
+//    if (std::string(name).ends_with("libcheck.so")) {
+//        // TODO
+//    }
 }
 
 extern "C" [[gnu::visibility("default")]] [[gnu::used]]

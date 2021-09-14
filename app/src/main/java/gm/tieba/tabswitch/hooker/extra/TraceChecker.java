@@ -76,6 +76,7 @@ public class TraceChecker extends XposedContext {
         }
 
         if (NativeCheck.findXposed()) result.addTrace(C, "de/robv/android/xposed/XposedBridge");
+        if (NativeCheck.isFindClassInline()) result.addTrace(FAKE, "FindClass is inline hooked");
         result.show();
     }
 

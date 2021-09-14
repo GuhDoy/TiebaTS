@@ -25,7 +25,7 @@ find_package(cxx REQUIRED CONFIG)
 find_library(log-lib log)
 
 aux_source_directory(check CHECK)
-add_library(check SHARED check/main.c ${CHECK})
+add_library(check SHARED ${CHECK})
 target_link_libraries(check ${log-lib} cxx::cxx)
 
 aux_source_directory(hide HIDE)

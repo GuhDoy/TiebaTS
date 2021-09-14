@@ -3,6 +3,7 @@ package gm.tieba.tabswitch.hooker.eliminate;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.view.View;
@@ -150,7 +151,7 @@ public class Purify extends XposedContext implements IHooker {
                 activity.setIntent(intent);
             }
         });
-        // 帖子直播推荐：在com/baidu/tieba/pb/pb/main/包搜索tbclient/AlaLiveInfo
+        // 帖子直播推荐：在 com/baidu/tieba/pb/pb/main/ 中搜索 tbclient/AlaLiveInfo
         XposedHelpers.findAndHookMethod("tbclient.AlaLiveInfo$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
@@ -211,7 +212,8 @@ public class Purify extends XposedContext implements IHooker {
         });
         // 你可能感兴趣的人：initUI()
         for (Method method : XposedHelpers.findClass("com.baidu.tieba.homepage.concern.view.ConcernRecommendLayout", sClassLoader).getDeclaredMethods()) {
-            if (Arrays.toString(method.getParameterTypes()).equals("[]")) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && method.getParameterCount() == 0 ||
+                    Build.VERSION.SDK_INT < Build.VERSION_CODES.O && method.getParameterTypes().length == 0) {
                 XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(null));
             }
         }
@@ -219,7 +221,7 @@ public class Purify extends XposedContext implements IHooker {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.homepage.framework.indicator.NestedScrollHeader", sClassLoader, "onAttachedToWindow", new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                ReflectUtils.handleObjectFields(param.thisObject, ImageView.class, objField -> {
+                ReflectUtils.walkObjectFields(param.thisObject, ImageView.class, objField -> {
                     ImageView iv = (ImageView) objField;
                     iv.setVisibility(View.GONE);
                     return false;
@@ -250,7 +252,7 @@ public class Purify extends XposedContext implements IHooker {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.launcherGuide.tblauncher.GuideActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                ReflectUtils.handleObjectFields(param.thisObject, int[].class, objField -> {
+                ReflectUtils.walkObjectFields(param.thisObject, int[].class, objField -> {
                     int[] ints = (int[]) objField;
                     for (int i = 0; i < ints.length; i++) {
                         ints[i] = 0;

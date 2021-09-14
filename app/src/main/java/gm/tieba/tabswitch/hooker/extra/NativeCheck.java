@@ -22,6 +22,8 @@ public class NativeCheck extends XposedContext {
 
     public static native boolean inline(String name);
 
+    public static native boolean isFindClassInline();
+
     public static native boolean findXposed();
 
     public static native int access(String path);
