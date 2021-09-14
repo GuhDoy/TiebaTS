@@ -24,7 +24,7 @@ public class PurifyEnter extends XposedContext implements IHooker {
                 XposedBridge.hookAllConstructors(XposedHelpers.findClass(clazz, sClassLoader), new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        ReflectUtils.handleObjectFields(param.thisObject, View.class, objField -> {
+                        ReflectUtils.walkObjectFields(param.thisObject, View.class, objField -> {
                             View view = (View) objField;
                             view.setVisibility(View.GONE);
                             return false;
@@ -38,7 +38,7 @@ public class PurifyEnter extends XposedContext implements IHooker {
                 XposedBridge.hookMethod(method, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        ReflectUtils.handleObjectFields(param.thisObject, View.class, objField -> {
+                        ReflectUtils.walkObjectFields(param.thisObject, View.class, objField -> {
                             View view = (View) objField;
                             view.setVisibility(View.INVISIBLE);
                             ViewGroup.LayoutParams lp = view.getLayoutParams();

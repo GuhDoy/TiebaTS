@@ -53,7 +53,7 @@ public class SaveImages extends XposedContext implements IHooker {
                 sClassLoader, Context.class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-                        ReflectUtils.handleObjectFields(param.thisObject, ImageView.class, objField -> {
+                        ReflectUtils.walkObjectFields(param.thisObject, ImageView.class, objField -> {
                             var iv = (ImageView) objField;
                             if (iv.getId() == ReflectUtils.getId("download_icon")) {
                                 var context = ((Context) param.args[0]).getApplicationContext();

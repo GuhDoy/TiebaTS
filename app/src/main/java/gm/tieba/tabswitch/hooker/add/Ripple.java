@@ -45,7 +45,7 @@ public class Ripple extends XposedContext implements IHooker {
                 XposedHelpers.findClass("com.baidu.tbadk.TbPageContext", sClassLoader), View.class, int.class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        ReflectUtils.handleObjectFields(param.thisObject, LinearLayout.class, objField -> {
+                        ReflectUtils.walkObjectFields(param.thisObject, LinearLayout.class, objField -> {
                             LinearLayout ll = (LinearLayout) objField;
                             if (ll.getId() == ReflectUtils.getId("all_content")) {
                                 ll.setBackground(createBackground());

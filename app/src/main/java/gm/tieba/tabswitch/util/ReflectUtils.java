@@ -139,11 +139,11 @@ public class ReflectUtils extends XposedContext {
         }
     }
 
-    public static void handleObjectFields(Object instance, Class<?> cls, Callback handle) {
+    public static void walkObjectFields(Object instance, Class<?> cls, Callback handle) {
         findField(instance, cls, handle);
     }
 
-    public static void handleObjectFields(Object instance, String className, Callback handle) {
+    public static void walkObjectFields(Object instance, String className, Callback handle) {
         findField(instance, XposedHelpers.findClass(className, sClassLoader), handle);
     }
 

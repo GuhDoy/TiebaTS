@@ -28,7 +28,7 @@ public class ForbidGesture extends XposedContext implements IHooker {
                 XposedBridge.hookAllConstructors(XposedHelpers.findClass(clazz, sClassLoader), new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        ReflectUtils.handleObjectFields(param.thisObject, RelativeLayout.class, objField -> {
+                        ReflectUtils.walkObjectFields(param.thisObject, RelativeLayout.class, objField -> {
                             RelativeLayout rl = (RelativeLayout) ReflectUtils.getObjectField(param.thisObject, RelativeLayout.class);
                             ListView list = rl.findViewById(ReflectUtils.getId("new_pb_list"));
                             if (list != null) {

@@ -21,7 +21,6 @@ static bool check_hook_function(void *handle, const char *name) {
 
 #define HOOK_SYMBOL(x, y) check_hook_function(x, y)
 
-// TODO: check FindClass
 jboolean _inline(JNIEnv *env, jclass clazz, jstring jname) {
     const char *name = (*env)->GetStringUTFChars(env, jname, NULL);
     void *handle = dlopen("libc.so", RTLD_NOW);
@@ -30,6 +29,11 @@ jboolean _inline(JNIEnv *env, jclass clazz, jstring jname) {
     dlclose(handle);
     (*env)->ReleaseStringUTFChars(env, jname, name);
     return isInlineHooked;
+}
+
+jboolean FindClass_inline(JNIEnv *env, jclass clazz) {
+    auto symbol = (*env)->FindClass;
+    return isInlineHooked(symbol);
 }
 
 static inline void fill_ro_build_version_sdk(char v[]) {

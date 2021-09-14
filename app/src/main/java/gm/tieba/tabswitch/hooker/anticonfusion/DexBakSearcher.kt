@@ -41,8 +41,9 @@ class DexBakSearcher constructor(matcherList: MutableList<String>) {
                         try {
                             reference.validateReference()
                             if (reference is StringReference) {
+                                val string = reference.string
                                 stringMatchers.forEach {
-                                    if (it == reference.toString()) {
+                                    if (string == it) {
                                         l.onMatch("\"$it\"", type.convert(), method.name)
                                     }
                                 }
@@ -54,8 +55,9 @@ class DexBakSearcher constructor(matcherList: MutableList<String>) {
                                 val reference2 = instruction.reference2
                                 reference2.validateReference()
                                 if (reference2 is StringReference) {
+                                    val string = reference2.string
                                     stringMatchers.forEach {
-                                        if (it == reference2.toString()) {
+                                        if (string == it) {
                                             l.onMatch("\"$it\"", type.convert(), method.name)
                                         }
                                     }
@@ -79,8 +81,9 @@ class DexBakSearcher constructor(matcherList: MutableList<String>) {
                 val methodDefinition = MethodDefinition(classDefinition, method, methodImpl)
                 methodDefinition.writeTo(writer)
                 writer.flush()
+                val smali = baos.toString()
                 smaliMatchers.forEach {
-                    if (baos.toString().contains(it)) {
+                    if (smali.contains(it)) {
                         l.onMatch(it, type.convert(), method.name)
                     }
                 }

@@ -29,7 +29,7 @@ public class PurifyMy extends XposedContext implements IHooker {
                     XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, int.class, new XC_MethodHook() {
                         @Override
                         protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                            ReflectUtils.handleObjectFields(param.thisObject, ImageView.class, objField -> {
+                            ReflectUtils.walkObjectFields(param.thisObject, ImageView.class, objField -> {
                                 ImageView iv = (ImageView) objField;
                                 if (iv.getId() == ReflectUtils.getId("person_navigation_dressup_img")) {
                                     iv.setVisibility(View.GONE);
@@ -47,7 +47,7 @@ public class PurifyMy extends XposedContext implements IHooker {
                             XposedBridge.hookMethod(md, new XC_MethodHook() {
                                 @Override
                                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                                    ReflectUtils.handleObjectFields(param.thisObject, View.class, objField -> {
+                                    ReflectUtils.walkObjectFields(param.thisObject, View.class, objField -> {
                                         View v = (View) objField;
                                         if (v.getId() == ReflectUtils.getId("function_item_bottom_divider")) {
                                             v.setVisibility(View.GONE);
