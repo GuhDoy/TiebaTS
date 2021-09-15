@@ -300,6 +300,7 @@ public class TSPreference extends XposedContext implements IHooker {
         boolean isPurifyEnabled = Preferences.getIsPurifyEnabled();
         TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
         if (isPurifyEnabled || BuildConfig.DEBUG) {
+            preferenceLayout.addView(TSPreferenceHelper.createTextView(null));
             preferenceLayout.addView(new SwitchButtonHolder(activity, isPurifyEnabled ? "藏起尾巴" : "隐藏模块", "hide", SwitchButtonHolder.TYPE_SWITCH));
             preferenceLayout.addView(new SwitchButtonHolder(activity, isPurifyEnabled ? "藏起尾巴（原生）" : "隐藏模块（原生）", "hide_native", SwitchButtonHolder.TYPE_SWITCH));
         }
