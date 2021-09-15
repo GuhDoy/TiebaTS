@@ -24,6 +24,7 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
+import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
@@ -261,5 +262,23 @@ public class Purify extends XposedContext implements IHooker {
                 });
             }
         });
+        // 傻宝
+        if (Preferences.getBoolean("sha_bao")) {
+            XposedHelpers.findAndHookMethod("tbclient.PbPage.DataRes$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
+                @Override
+                protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                    var postList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "post_list");
+                    if (postList == null) return;
+
+                    postList.removeIf(o -> {
+                        var contents = (List<?>) XposedHelpers.getObjectField(o, "content");
+                        return contents.stream().anyMatch(o1 -> {
+                            var src = XposedHelpers.getObjectField(o1, "cdn_src");
+                            return "https://tiebapic.baidu.com/forum/pic/item/574e9258d109b3defcfad08389bf6c81810a4c97.jpg".equals(src);
+                        });
+                    });
+                }
+            });
+        }
     }
 }

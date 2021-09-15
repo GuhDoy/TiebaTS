@@ -166,6 +166,7 @@ public class TSPreference extends XposedContext implements IHooker {
         }));
         if (isPurifyEnabled) {
             preferenceLayout.addView(new SwitchButtonHolder(activity, "真正的净化界面", "purify", SwitchButtonHolder.TYPE_SWITCH));
+            preferenceLayout.addView(new SwitchButtonHolder(activity, "过滤傻宝", "sha_bao", SwitchButtonHolder.TYPE_SWITCH));
         }
         preferenceLayout.addView(new SwitchButtonHolder(activity, "净化进吧", "purify_enter", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "净化我的", "purify_my", SwitchButtonHolder.TYPE_SWITCH));
