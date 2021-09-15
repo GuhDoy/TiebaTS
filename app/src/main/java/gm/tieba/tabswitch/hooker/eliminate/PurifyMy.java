@@ -3,11 +3,9 @@ package gm.tieba.tabswitch.hooker.eliminate;
 import android.view.View;
 import android.widget.ImageView;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.function.Predicate;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
@@ -67,29 +65,30 @@ public class PurifyMy extends XposedContext implements IHooker {
                                 @Override
                                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                                     ArrayList<?> list = (ArrayList<?>) ReflectUtils.getObjectField(param.thisObject, ArrayList.class);
-                                    list.removeIf((Predicate<Object>) o -> {
+                                    list.removeIf(o -> {
                                         try {
                                             ReflectUtils.getObjectField(o, "com.baidu.tbadk.core.data.UserData");
                                         } catch (NoSuchFieldError e) {
                                             return true;
                                         }
-                                        try {
-                                            for (Field field : o.getClass().getDeclaredFields()) {
-                                                field.setAccessible(true);
-                                                if (field.get(o) instanceof String) {
-                                                    String type = (String) field.get(o);
-                                                    if (type != null && !type.startsWith("http")
+                                        return Arrays.stream(o.getClass().getDeclaredFields()).anyMatch(field -> {
+                                            field.setAccessible(true);
+                                            try {
+                                                Object obj = field.get(o);
+                                                if (obj instanceof String) {
+                                                    String type = (String) obj;
+                                                    if (!type.startsWith("http")
                                                             && !type.equals("我的收藏")
                                                             && !type.equals("浏览历史")
                                                             && !type.equals("服务中心")) {
                                                         return true;
                                                     }
                                                 }
+                                            } catch (IllegalAccessException e) {
+                                                XposedBridge.log(e);
                                             }
-                                        } catch (Throwable e) {
-                                            XposedBridge.log(e);
-                                        }
-                                        return false;
+                                            return false;
+                                        });
                                     });
                                 }
                             });

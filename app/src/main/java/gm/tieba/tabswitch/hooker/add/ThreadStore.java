@@ -60,7 +60,7 @@ public class ThreadStore extends XposedContext implements IHooker {
                         ArrayList<?> list = (ArrayList<?>) ReflectUtils.getObjectField(param.getResult(), ArrayList.class);
                         if (list == null) return;
                         final Pattern pattern = Pattern.compile(mRegex);
-                        list.removeIf((Predicate<Object>) o -> {
+                        list.removeIf(o -> {
                             // com.baidu.tbadk.baseEditMark.MarkData
                             String[] strings = new String[]{(String) XposedHelpers.getObjectField(o, "mTitle"),
                                     (String) XposedHelpers.getObjectField(o, "mForumName"),

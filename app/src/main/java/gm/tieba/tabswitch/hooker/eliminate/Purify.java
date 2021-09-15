@@ -170,7 +170,7 @@ public class Purify extends XposedContext implements IHooker {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 List<?> threadList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");
                 if (threadList == null) return;
-                threadList.removeIf((Predicate<Object>) o -> {
+                threadList.removeIf(o -> {
                     if (XposedHelpers.getObjectField(o, "forum_info") == null) {
                         return true;
                     }
@@ -189,7 +189,7 @@ public class Purify extends XposedContext implements IHooker {
 
                 List<?> threadList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");
                 if (threadList == null) return;
-                threadList.removeIf((Predicate<Object>) o -> {
+                threadList.removeIf(o -> {
                     if (XposedHelpers.getObjectField(o, "ala_info") != null) {
                         return true;
                     }
@@ -207,7 +207,7 @@ public class Purify extends XposedContext implements IHooker {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 List<?> list = (List<?>) XposedHelpers.getObjectField(param.thisObject, "tab");
                 if (list == null) return;
-                list.removeIf((Predicate<Object>) o -> (Integer) XposedHelpers.getObjectField(o, "tab_type") == 92);
+                list.removeIf(o -> (Integer) XposedHelpers.getObjectField(o, "tab_type") == 92);
             }
         });
         // 你可能感兴趣的人：initUI()

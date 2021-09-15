@@ -48,7 +48,7 @@ public class HistoryCache extends XposedContext implements IHooker {
                         List<?> list = (List<?>) param.args[0];
                         if (list == null) return;
                         final Pattern pattern = Pattern.compile(mRegex);
-                        list.removeIf((Predicate<Object>) o -> {
+                        list.removeIf(o -> {
                             String[] strings;
                             try {
                                 // com.baidu.tieba.myCollection.baseHistory.a

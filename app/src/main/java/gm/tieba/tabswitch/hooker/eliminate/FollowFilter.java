@@ -4,7 +4,6 @@ import android.os.Looper;
 
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
@@ -28,8 +27,7 @@ public class FollowFilter extends XposedContext implements IHooker {
                         }
                         List<?> list = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");
                         if (list == null) return;
-                        list.removeIf((Predicate<Object>) o -> !forums.contains(
-                                (String) XposedHelpers.getObjectField(o, "fname")));
+                        list.removeIf(o -> !forums.contains((String) XposedHelpers.getObjectField(o, "fname")));
                     }
                 });
     }

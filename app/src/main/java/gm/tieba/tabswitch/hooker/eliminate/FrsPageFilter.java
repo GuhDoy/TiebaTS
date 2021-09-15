@@ -1,6 +1,6 @@
 package gm.tieba.tabswitch.hooker.eliminate;
 
-
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -20,28 +20,21 @@ public class FrsPageFilter extends XposedContext implements IHooker {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 List<?> threadList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");
                 if (threadList == null) return;
-                threadList.removeIf((Predicate<Object>) o -> {
+                threadList.removeIf(o -> {
                     if (pattern.matcher(Parser.parsePbContent(o, "first_post_content")).find()) {
                         return true;
                     }
 
                     String[] strings = new String[]{(String) XposedHelpers.getObjectField(o, "title"),
                             (String) XposedHelpers.getObjectField(o, "fname")};
-                    for (String string : strings) {
-                        if (pattern.matcher(string).find()) {
-                            return true;
-                        }
+                    if (Arrays.stream(strings).anyMatch(s -> pattern.matcher(s).find())) {
+                        return true;
                     }
 
                     Object author = XposedHelpers.getObjectField(o, "author");
                     String[] authors = new String[]{(String) XposedHelpers.getObjectField(author, "name"),
                             (String) XposedHelpers.getObjectField(author, "name_show")};
-                    for (String string : authors) {
-                        if (pattern.matcher(string).find()) {
-                            return true;
-                        }
-                    }
-                    return false;
+                    return Arrays.stream(authors).anyMatch(s -> pattern.matcher(s).find());
                 });
             }
         });

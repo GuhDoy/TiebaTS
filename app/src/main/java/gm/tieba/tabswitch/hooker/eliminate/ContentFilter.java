@@ -1,10 +1,9 @@
 package gm.tieba.tabswitch.hooker.eliminate;
 
-
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import de.robv.android.xposed.XC_MethodHook;
@@ -27,7 +26,7 @@ public class ContentFilter extends XposedContext implements IHooker {
                 if (postList == null) return;
                 initIdList(param.thisObject, pattern);
 
-                postList.removeIf((Predicate<Object>) o -> !((Integer) XposedHelpers.getObjectField(o, "floor") == 1)
+                postList.removeIf(o -> ((Integer) XposedHelpers.getObjectField(o, "floor") != 1)
                         && (pattern.matcher(Parser.parsePbContent(o, "content")).find()
                         || mIds.contains(XposedHelpers.getObjectField(o, "author_id"))));
             }
@@ -38,7 +37,7 @@ public class ContentFilter extends XposedContext implements IHooker {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 List<?> subPostList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "sub_post_list");
                 if (subPostList == null) return;
-                subPostList.removeIf((Predicate<Object>) o -> pattern.matcher(Parser.parsePbContent(o, "content")).find()
+                subPostList.removeIf(o -> pattern.matcher(Parser.parsePbContent(o, "content")).find()
                         || mIds.contains(XposedHelpers.getObjectField(o, "author_id")));
             }
         });
@@ -48,7 +47,7 @@ public class ContentFilter extends XposedContext implements IHooker {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 List<?> subpostList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "subpost_list");
                 if (subpostList == null) return;
-                subpostList.removeIf((Predicate<Object>) o -> {
+                subpostList.removeIf(o -> {
                     if (pattern.matcher(Parser.parsePbContent(o, "content")).find()) {
                         return true;
                     }
@@ -56,12 +55,7 @@ public class ContentFilter extends XposedContext implements IHooker {
                     Object author = XposedHelpers.getObjectField(o, "author");
                     String[] authors = new String[]{(String) XposedHelpers.getObjectField(author, "name"),
                             (String) XposedHelpers.getObjectField(author, "name_show")};
-                    for (String string : authors) {
-                        if (pattern.matcher(string).find()) {
-                            return true;
-                        }
-                    }
-                    return false;
+                    return Arrays.stream(authors).anyMatch(s -> pattern.matcher(s).find());
                 });
             }
         });
@@ -72,11 +66,8 @@ public class ContentFilter extends XposedContext implements IHooker {
         for (int i = 0; i < userList.size(); i++) {
             String[] authors = new String[]{(String) XposedHelpers.getObjectField(userList.get(i), "name"),
                     (String) XposedHelpers.getObjectField(userList.get(i), "name_show")};
-            for (String string : authors) {
-                if (pattern.matcher(string).find()) {
-                    mIds.add(XposedHelpers.getObjectField(userList.get(i), "id"));
-                    break;
-                }
+            if (Arrays.stream(authors).anyMatch(s -> pattern.matcher(s).find())) {
+                mIds.add(XposedHelpers.getObjectField(userList.get(i), "id"));
             }
         }
     }
