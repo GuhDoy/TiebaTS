@@ -8,8 +8,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import gm.tieba.tabswitch.Constants;
+
 public class AcRules {
-    private static final Map<String, Pair<String, String>> sRulesFromDb = new HashMap<>();
+    private static final Map<String, Pair<String, String>> sRulesFromDb = new HashMap<>(
+            (int) Constants.getMatchers().values().stream().flatMap(Arrays::stream).count());
 
     public static void init(Context context) {
         try (var db = new RulesDbHelper(context).getReadableDatabase()) {
