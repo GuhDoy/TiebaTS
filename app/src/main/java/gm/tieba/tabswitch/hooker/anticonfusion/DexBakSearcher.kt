@@ -95,8 +95,8 @@ class DexBakSearcher constructor(matcherList: MutableList<String>) {
 
     fun String.revert(): String = "L" + replace(".", "/") + ";"
 
-    fun Collection<String>.most(): String {
-        val map = ArrayList<MutablePair<String, Int>>()
+    fun <T> Collection<T>.most(): T {
+        val map = ArrayList<MutablePair<T, Int>>()
         run loop@{
             forEach { thiz ->
                 val pair = map.firstOrNull { it.first == thiz }

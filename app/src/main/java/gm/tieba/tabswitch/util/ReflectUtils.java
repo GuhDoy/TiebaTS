@@ -15,7 +15,7 @@ import gm.tieba.tabswitch.XposedContext;
 public class ReflectUtils extends XposedContext {
     private static final Map<String, Field> sFieldCache = new HashMap<>();
 
-    private static int getR(String innerClassName, String fieldName) {
+    public static int getR(String innerClassName, String fieldName) {
         return XposedHelpers.getStaticIntField(XposedHelpers.findClass(
                 "com.baidu.tieba.R$" + innerClassName, sClassLoader), fieldName);
     }

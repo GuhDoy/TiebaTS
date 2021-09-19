@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Predicate;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
@@ -279,6 +278,12 @@ public class Purify extends XposedContext implements IHooker {
                     });
                 }
             });
+        }
+        // 首页推荐右侧悬浮
+        for (var method : XposedHelpers.findClass("com.baidu.tbadk.widget.RightFloatLayerView", sClassLoader).getDeclaredMethods()) {
+            if (method.getParameterTypes().length == 0 && method.getReturnType() == boolean.class) {
+                XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(false));
+            }
         }
     }
 }
