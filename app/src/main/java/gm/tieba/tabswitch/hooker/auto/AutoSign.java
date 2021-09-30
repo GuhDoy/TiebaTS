@@ -7,6 +7,7 @@ import android.os.Looper;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -106,14 +107,16 @@ public class AutoSign extends XposedContext implements IHooker {
                 Iterator<String> iterator = mFollow.iterator();
                 while (iterator.hasNext()) {
                     String s = iterator.next();
-                    String body = "kw=" + s + "&tbs=" + mTbs + "&sign=" + AutoSignHelper.enCodeMd5(
-                            "kw=" + s + "tbs=" + mTbs + "tiebaclient!!!");
+                    String body = "kw=" + URLEncoder.encode(s, "UTF-8") + "&tbs=" + mTbs + "&sign=" +
+                            AutoSignHelper.enCodeMd5("kw=" + s + "tbs=" + mTbs + "tiebaclient!!!");
                     JSONObject post = AutoSignHelper.post(SIGN_URL, body);
                     if ("0".equals(post.getString("error_code"))) {
                         iterator.remove();
                         mSuccess.add(s);
                         XposedBridge.log(s + ": " + "签到成功");
-                    } else XposedBridge.log(s + ": " + "签到失败");
+                    } else {
+                        XposedBridge.log(s + ": " + "签到失败");
+                    }
                 }
                 if (mSuccess.size() != mFollowNum) {
                     Thread.sleep(2500);

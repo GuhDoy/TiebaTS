@@ -4,7 +4,7 @@ plugins {
 }
 
 def gitCommitCount = Integer.parseInt('git rev-list --count HEAD'.execute([], project.rootDir).text.trim())
-// TODO: sdk 31 when sources is available
+// TODO: sdk 31 when sources are available
 def sdk = 30
 
 android {
@@ -61,7 +61,8 @@ android {
 }
 
 dependencies {
-    compileOnly files('libs/XposedBridgeApi-89.jar')
+    compileOnly 'de.robv.android.xposed:api:82'
+    compileOnly 'de.robv.android.xposed:api:82:sources'
     api 'androidx.annotation:annotation:1.2.0'
 //    def room_version = "1.1.1"
 //    implementation "android.arch.persistence.room:runtime:$room_version"

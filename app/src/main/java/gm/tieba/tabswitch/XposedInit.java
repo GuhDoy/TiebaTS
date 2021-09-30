@@ -53,7 +53,7 @@ import gm.tieba.tabswitch.hooker.extra.RedirectImage;
 import gm.tieba.tabswitch.hooker.extra.StackTrace;
 import gm.tieba.tabswitch.widget.TbDialog;
 
-public class XposedInit extends XposedContext implements IXposedHookLoadPackage, IXposedHookZygoteInit {
+public class XposedInit extends XposedContext implements IXposedHookZygoteInit, IXposedHookLoadPackage {
     @SuppressLint("DiscouragedPrivateApi")
     @Override
     public void initZygote(IXposedHookZygoteInit.StartupParam startupParam) throws Throwable {

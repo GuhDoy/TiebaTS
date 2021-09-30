@@ -52,7 +52,8 @@ public class EyeshieldMode extends XposedContext implements IHooker {
                     var splashLogo = BitmapFactory.decodeFile(nightSplashCache.getPath());
                     if (splashLogo == null) {
                         var whitePixelColor = getContext().getColor(getR("color", "CAM_X0204"));
-                        splashLogo = createNightSplash(activity, nightColor, whitePixelColor);
+                        splashLogo = createNightSplash(BitmapFactory.decodeResource(activity.getResources(),
+                                ReflectUtils.getDrawableId("pic_splash_logo")), nightColor, whitePixelColor);
                         try (var out = new FileOutputStream(nightSplashCache)) {
                             splashLogo.compress(Bitmap.CompressFormat.PNG, 100, out);
                         } catch (IOException e) {
@@ -77,9 +78,8 @@ public class EyeshieldMode extends XposedContext implements IHooker {
                 }
 
                 @NonNull
-                private Bitmap createNightSplash(Activity activity, int nightColor, int whitePixelColor) {
+                private Bitmap createNightSplash(Bitmap immutable, int nightColor, int whitePixelColor) {
                     // create a mutable bitmap
-                    var immutable = BitmapFactory.decodeResource(activity.getResources(), ReflectUtils.getDrawableId("pic_splash_logo"));
                     var splashLogo = immutable.copy(immutable.getConfig(), true);
                     immutable.recycle();
                     // alter its color

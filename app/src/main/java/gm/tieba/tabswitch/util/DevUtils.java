@@ -1,5 +1,7 @@
 package gm.tieba.tabswitch.util;
 
+import androidx.annotation.RestrictTo;
+
 import org.jetbrains.annotations.TestOnly;
 import org.json.JSONObject;
 
@@ -11,6 +13,7 @@ import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.XposedContext;
 
+@RestrictTo(RestrictTo.Scope.TESTS)
 public class DevUtils extends XposedContext {
     public static void logJSONObject() {
         XposedBridge.hookAllConstructors(JSONObject.class, new XC_MethodHook() {
