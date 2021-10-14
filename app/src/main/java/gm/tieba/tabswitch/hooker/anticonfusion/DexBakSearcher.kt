@@ -1,6 +1,5 @@
 package gm.tieba.tabswitch.hooker.anticonfusion
 
-import gm.tieba.tabswitch.util.MutablePair
 import org.jf.baksmali.Adaptors.ClassDefinition
 import org.jf.baksmali.Adaptors.MethodDefinition
 import org.jf.baksmali.BaksmaliOptions
@@ -17,8 +16,8 @@ import java.io.OutputStreamWriter
 import java.nio.charset.StandardCharsets
 
 class DexBakSearcher constructor(matcherList: MutableList<String>) {
-    private val stringMatchers: MutableList<String> by lazy { ArrayList() }
-    private val smaliMatchers: MutableList<String> by lazy { ArrayList() }
+    private val stringMatchers by lazy { mutableListOf<String>() }
+    private val smaliMatchers by lazy { mutableListOf<String>() }
 
     init {
         matcherList.forEach {
@@ -91,26 +90,9 @@ class DexBakSearcher constructor(matcherList: MutableList<String>) {
         }
     }
 
-    fun String.convert(): String = substring(indexOf("L") + 1, indexOf(";")).replace("/", ".")
+    fun String.convert() = substring(indexOf("L") + 1, indexOf(";")).replace("/", ".")
 
-    fun String.revert(): String = "L" + replace(".", "/") + ";"
-
-    fun <T> Collection<T>.most(): T {
-        val map = ArrayList<MutablePair<T, Int>>()
-        run loop@{
-            forEach { thiz ->
-                val pair = map.firstOrNull { it.first == thiz }
-                if (pair == null) {
-                    map.add(MutablePair(thiz, 0))
-                } else {
-                    pair.second++
-                    if (pair.second > size / 2) return@loop
-                }
-            }
-        }
-        map.sortWith(Comparator.comparingInt { -it.second })
-        return map[0].first
-    }
+    fun String.revert() = "L" + replace(".", "/") + ";"
 
     interface MatcherListener {
         fun onMatch(matcher: String, clazz: String, method: String)

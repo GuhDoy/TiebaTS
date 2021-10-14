@@ -103,20 +103,20 @@ public class AntiConfusionHelper {
     }
 
     @SuppressLint("ApplySharedPref")
-    public static void saveAndRestart(Activity activity, String value, Class<?> springboardActivity) {
+    public static void saveAndRestart(Activity activity, String value, Class<?> trampoline) {
         SharedPreferences.Editor editor = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE).edit();
         editor.putString("anti-confusion_version", value);
         editor.commit();
-        if (springboardActivity == null) {
+        if (trampoline == null) {
             DisplayUtils.restart(activity);
         } else {
-            XposedHelpers.findAndHookMethod(springboardActivity, "onCreate", Bundle.class, new XC_MethodHook() {
+            XposedHelpers.findAndHookMethod(trampoline, "onCreate", Bundle.class, new XC_MethodHook() {
                 protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                     Activity activity = (Activity) param.thisObject;
                     DisplayUtils.restart(activity);
                 }
             });
-            Intent intent = new Intent(activity, springboardActivity);
+            Intent intent = new Intent(activity, trampoline);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
             activity.startActivity(intent);
         }

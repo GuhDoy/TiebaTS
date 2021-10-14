@@ -28,7 +28,7 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.hooker.anticonfusion.AntiConfusionHelper;
-import gm.tieba.tabswitch.hooker.anticonfusion.DexBakSearcher;
+import gm.tieba.tabswitch.util.CollectionsKt;
 import gm.tieba.tabswitch.util.DisplayUtils;
 import gm.tieba.tabswitch.util.ReflectUtils;
 import gm.tieba.tabswitch.widget.Switch;
@@ -95,8 +95,7 @@ public class EyeshieldMode extends XposedContext implements IHooker {
                             candidates.add(pixels[i]);
                         }
                     }
-                    var searcher = new DexBakSearcher(new ArrayList<>());
-                    var blackPixelColor = searcher.most(candidates);
+                    var blackPixelColor = CollectionsKt.most(candidates);
                     for (var i = 0; i < pixels.length; i++) {
                         if (pixels[i] == blackPixelColor) {
                             pixels[i] = whitePixelColor;

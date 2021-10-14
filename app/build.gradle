@@ -4,8 +4,7 @@ plugins {
 }
 
 def gitCommitCount = Integer.parseInt('git rev-list --count HEAD'.execute([], project.rootDir).text.trim())
-// TODO: sdk 31 when sources are available
-def sdk = 30
+def sdk = 31
 
 android {
     compileSdk sdk
@@ -64,9 +63,13 @@ dependencies {
     compileOnly 'de.robv.android.xposed:api:82'
     compileOnly 'de.robv.android.xposed:api:82:sources'
     api 'androidx.annotation:annotation:1.2.0'
-//    def room_version = "1.1.1"
-//    implementation "android.arch.persistence.room:runtime:$room_version"
-//    annotationProcessor "android.arch.persistence.room:compiler:$room_version"
+    def room_version = "1.1.1"
+    implementation "android.arch.persistence.room:runtime:$room_version"
+    annotationProcessor "android.arch.persistence.room:compiler:$room_version"
+    implementation 'io.reactivex.rxjava3:rxjava:3.1.2'
+    def kotlinx_coroutines_version = '1.5.2'
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinx_coroutines_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinx_coroutines_version"
     implementation 'org.smali:baksmali:2.5.2'
     implementation 'com.squareup.okhttp3:okhttp:5.0.0-alpha.2'
     implementation 'dev.rikka.ndk.thirdparty:cxx:1.1.0'

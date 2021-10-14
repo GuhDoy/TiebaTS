@@ -11,30 +11,20 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import org.jf.dexlib2.dexbacked.DexBackedDexFile;
-import org.jf.dexlib2.dexbacked.raw.ClassDefItem;
-
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.zip.ZipFile;
 
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.XposedContext;
-import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.dao.RulesDbHelper;
 import gm.tieba.tabswitch.hooker.IHooker;
-import gm.tieba.tabswitch.util.FileUtils;
 
 public class AntiConfusion extends XposedContext implements IHooker {
-    private static final String SPRINGBOARD_ACTIVITY = "com.baidu.tieba.tblauncher.MainTabActivity";
+    private static final String TRAMPOLINE_ACTIVITY = "com.baidu.tieba.tblauncher.MainTabActivity";
+    private final AntiConfusionViewModel viewModel = new AntiConfusionViewModel();
     private Activity mActivity;
     private TextView mMessage;
     private TextView mProgress;
@@ -63,131 +53,37 @@ public class AntiConfusion extends XposedContext implements IHooker {
                             AntiConfusionHelper.matcherList = AntiConfusionHelper.getRulesLost();
                         } else {
                             AntiConfusionHelper.saveAndRestart(mActivity, AntiConfusionHelper.getTbVersion(mActivity),
-                                    XposedHelpers.findClass(SPRINGBOARD_ACTIVITY, sClassLoader));
+                                    XposedHelpers.findClass(TRAMPOLINE_ACTIVITY, sClassLoader));
                         }
 
                         initProgressIndicator();
                         mActivity.setContentView(mContentView);
-                        new Thread(() -> {
-                            var dexDir = new File(mActivity.getCacheDir(), "app_dex");
-                            try {
-                                FileUtils.deleteRecursively(dexDir);
-                                dexDir.mkdirs();
-                                var zipFile = new ZipFile(new File(mActivity.getPackageResourcePath()));
-                                var enumeration = zipFile.entries();
-                                var entryCount = 0;
-                                var entrySize = zipFile.size();
-                                setMessage("解压");
-                                while (enumeration.hasMoreElements()) {
-                                    entryCount++;
-                                    setProgress((float) entryCount / entrySize);
+                        viewModel.progress.subscribe(progress -> setProgress(progress));
 
-                                    var ze = enumeration.nextElement();
-                                    if (ze.getName().matches("classes[0-9]*?\\.dex")) {
-                                        FileUtils.copy(zipFile.getInputStream(ze), new File(dexDir, ze.getName()));
-                                    }
-                                }
-                                var fs = dexDir.listFiles();
-                                if (fs == null) throw new FileNotFoundException("解压失败");
-                                Arrays.sort(fs, (o1, o2) -> {
-                                    var ints = new int[2];
-                                    var comparingFiles = new File[]{o1, o2};
-                                    for (var i = 0; i < comparingFiles.length; i++) {
-                                        try {
-                                            ints[i] = Integer.parseInt(comparingFiles[i].getName().replaceAll("[a-z.]", ""));
-                                        } catch (NumberFormatException e) {
-                                            ints[i] = 1;
-                                        }
-                                    }
-                                    return ints[0] - ints[1];
-                                });
+                        new Thread(() -> {
+                            try {
+                                setMessage("解压");
+                                var packageResource = new File(mActivity.getPackageResourcePath());
+                                var dexDir = new File(mActivity.getCacheDir(), "app_dex");
+                                viewModel.unzip(packageResource, dexDir);
+
                                 // special optimization for TbDialog
                                 var dialogMatcher = "\"Dialog must be created by function create()!\"";
-                                var dialogClasses = new HashSet<String>();
                                 AntiConfusionHelper.matcherList.add(dialogMatcher);
                                 var searcher = new DexBakSearcher(AntiConfusionHelper.matcherList);
                                 try (var db = new RulesDbHelper(mActivity).getReadableDatabase()) {
-                                    var progress = 0f;
                                     setMessage("搜索字符串");
-                                    for (var f : fs) {
-                                        try (var in = new BufferedInputStream(new FileInputStream(f))) {
-                                            var dex = DexBackedDexFile.fromInputStream(null, in);
-                                            var classDefs = new ArrayList<>(dex.getClasses());
-                                            for (var i = 0; i < classDefs.size(); i++) {
-                                                progress += (float) 1 / fs.length / classDefs.size();
-                                                setProgress(progress);
+                                    var scope = viewModel.searchStringAndFindScope(searcher, db);
 
-                                                searcher.searchString(classDefs.get(i), (matcher, clazz, method1) -> {
-                                                    if (matcher.equals(dialogMatcher)) {
-                                                        dialogClasses.add(searcher.revert(clazz));
-                                                    } else {
-                                                        AcRules.putRule(db, matcher, clazz, method1);
-                                                    }
-                                                });
-                                            }
-                                        }
-                                    }
-                                    var stringClasses = new ArrayList<String>();
-                                    try (var c = db.query("rules", null, null, null, null, null, null)) {
-                                        while (c.moveToNext()) {
-                                            stringClasses.add(c.getString(2));
-                                        }
-                                    }
-                                    var first = new ArrayList<String>();
-                                    var second = new ArrayList<String>();
-                                    var third = new ArrayList<String>();
-                                    stringClasses.forEach(s -> {
-                                        var split = s.split("\\.");
-                                        first.add(split[0]);
-                                        second.add(split[1]);
-                                        third.add(split[2]);
-                                    });
-                                    var most = "L" + searcher.most(first) + "/" + searcher.most(second) + "/" + searcher.most(third) + "/";
-                                    var numberOfClassesToSearch = new int[fs.length];
-                                    var totalClassesToSearch = 0;
-                                    for (var i = 0; i < fs.length; i++) {
-                                        try (var in = new BufferedInputStream(new FileInputStream(fs[i]))) {
-                                            var dex = DexBackedDexFile.fromInputStream(null, in);
-                                            var classDefs = ClassDefItem.getClasses(dex);
-                                            var count = 0;
-                                            for (var classDef : classDefs) {
-                                                if (classDef.startsWith(most) || dialogClasses.contains(classDef)) {
-                                                    count++;
-                                                }
-                                            }
-                                            numberOfClassesToSearch[i] = count;
-                                            totalClassesToSearch += count;
-                                        }
-                                    }
-                                    var searchedClassCount = 0;
-                                    setMessage("在 " + most + " 中搜索代码");
-                                    for (var i = 0; i < fs.length; i++) {
-                                        if (numberOfClassesToSearch[i] == 0) {
-                                            continue;
-                                        }
-                                        try (var in = new BufferedInputStream(new FileInputStream(fs[i]))) {
-                                            var dex = DexBackedDexFile.fromInputStream(null, in);
-                                            var classDefs = new ArrayList<>(dex.getClasses());
-                                            for (var classDef : classDefs) {
-                                                var signature = classDef.getType();
-                                                if (signature.startsWith(most) || dialogClasses.contains(signature)) {
-                                                    searchedClassCount++;
-                                                    setProgress((float) searchedClassCount / totalClassesToSearch);
+                                    setMessage("在 " + scope.getMost() + " 中搜索代码");
+                                    viewModel.searchSmali(searcher, scope, db);
+                                }
 
-                                                    searcher.searchSmali(classDef, (matcher, clazz, method2) ->
-                                                            AcRules.putRule(db, matcher, clazz, method2));
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                try (var in = new FileInputStream(fs[0])) {
-                                    Preferences.putSignature(Arrays.hashCode(AntiConfusionHelper.calcSignature(in)));
-                                }
+                                Preferences.putSignature(viewModel.getDexSignatureHashCode());
                                 XposedBridge.log("anti-confusion accomplished, current version: "
                                         + AntiConfusionHelper.getTbVersion(mActivity));
                                 AntiConfusionHelper.saveAndRestart(mActivity, AntiConfusionHelper.getTbVersion(mActivity),
-                                        XposedHelpers.findClass(SPRINGBOARD_ACTIVITY, sClassLoader));
+                                        XposedHelpers.findClass(TRAMPOLINE_ACTIVITY, sClassLoader));
                             } catch (Throwable e) {
                                 XposedBridge.log(e);
                                 setMessage("处理失败\n" + Log.getStackTraceString(e));
