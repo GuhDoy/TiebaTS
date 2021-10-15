@@ -74,7 +74,7 @@ public class TSPreference extends XposedContext implements IHooker {
                                 v -> startRootPreferenceActivity(activity)), 11);
                     }
                 });
-        AcRules.findRule(Constants.getMatchers().get(TSPreference.class), (AcRules.Callback) (rule, clazz, method) ->
+        AcRules.findRule(Constants.getMatchers().get(TSPreference.class), (AcRules.Callback) (matcher, clazz, method) ->
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, XposedHelpers
                         .findClass(PROXY_ACTIVITY, sClassLoader), new XC_MethodHook() {
                     @Override

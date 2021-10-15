@@ -1,7 +1,5 @@
 package gm.tieba.tabswitch.hooker.anticonfusion;
 
-import android.database.sqlite.SQLiteDatabase;
-
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.raw.ClassDefItem;
 
@@ -15,6 +13,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.zip.ZipFile;
 
+import gm.tieba.tabswitch.dao.AcRule;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.util.CollectionsKt;
 import gm.tieba.tabswitch.util.FileUtils;
@@ -25,6 +24,7 @@ public class AntiConfusionViewModel {
     private final PublishSubject<Float> _progress = PublishSubject.create();
     Observable<Float> progress = _progress;
     private File[] dexs;
+    private int dexCount;
 
     public void unzip(File source, File destination) throws IOException {
         FileUtils.deleteRecursively(destination);
@@ -60,52 +60,49 @@ public class AntiConfusionViewModel {
             return ints[0] - ints[1];
         });
         dexs = fs;
+        dexCount = dexs.length;
     }
 
-    public SearchScope searchStringAndFindScope(DexBakSearcher searcher, SQLiteDatabase db) throws Throwable {
+    public SearchScope searchStringAndFindScope(DexBakSearcher searcher) throws IOException {
         // special optimization for TbDialog
         var dialogMatcher = "\"Dialog must be created by function create()!\"";
         var dialogClasses = new HashSet<String>();
-        var progress = 0f;
+        var progress = 0F;
         for (var f : dexs) {
             try (var in = new BufferedInputStream(new FileInputStream(f))) {
                 var dex = DexBackedDexFile.fromInputStream(null, in);
                 var classDefs = new ArrayList<>(dex.getClasses());
                 for (var i = 0; i < classDefs.size(); i++) {
-                    progress += (float) 1 / dexs.length / classDefs.size();
+                    progress += (float) 1 / dexCount / classDefs.size();
                     _progress.onNext(progress);
 
                     searcher.searchString(classDefs.get(i), (matcher, clazz, method1) -> {
                         if (matcher.equals(dialogMatcher)) {
                             dialogClasses.add(searcher.revert(clazz));
                         } else {
-                            AcRules.putRule(db, matcher, clazz, method1);
+                            AcRules.putRule(matcher, clazz, method1);
                         }
                     });
                 }
             }
         }
 
-        var stringClasses = new ArrayList<String>();
-        try (var c = db.query("rules", null, null, null, null, null, null)) {
-            while (c.moveToNext()) {
-                stringClasses.add(c.getString(2));
-            }
-        }
         var first = new ArrayList<String>();
         var second = new ArrayList<String>();
         var third = new ArrayList<String>();
-        stringClasses.forEach(s -> {
-            var split = s.split("\\.");
+        AcRules.sDao.getAll().stream().map(AcRule::getClazz).forEach(it -> {
+            var split = it.split("\\.");
             first.add(split[0]);
             second.add(split[1]);
             third.add(split[2]);
         });
-        var most = "L" + CollectionsKt.most(first) + "/" + CollectionsKt.most(second) + "/" + CollectionsKt.most(third) + "/";
+        var most = "L" + CollectionsKt.most(first) + "/" +
+                CollectionsKt.most(second) + "/" +
+                CollectionsKt.most(third) + "/";
         var scope = new SearchScope(most, dialogClasses, new int[0]);
 
-        var numberOfClassesNeedToSearch = new int[dexs.length];
-        for (var i = 0; i < dexs.length; i++) {
+        var numberOfClassesNeedToSearch = new int[dexCount];
+        for (var i = 0; i < dexCount; i++) {
             try (var in = new BufferedInputStream(new FileInputStream(dexs[i]))) {
                 var dex = DexBackedDexFile.fromInputStream(null, in);
                 var classDefs = ClassDefItem.getClasses(dex);
@@ -122,10 +119,10 @@ public class AntiConfusionViewModel {
         return scope;
     }
 
-    public void searchSmali(DexBakSearcher searcher, SearchScope scope, SQLiteDatabase db) throws Throwable {
+    public void searchSmali(DexBakSearcher searcher, SearchScope scope) throws IOException {
         var searchedClassCount = 0;
         var totalClassesNeedToSearch = Arrays.stream(scope.getNumberOfClassesNeedToSearch()).sum();
-        for (var i = 0; i < dexs.length; i++) {
+        for (var i = 0; i < dexCount; i++) {
             if (scope.getNumberOfClassesNeedToSearch()[i] == 0) {
                 continue;
             }
@@ -139,7 +136,7 @@ public class AntiConfusionViewModel {
                         _progress.onNext((float) searchedClassCount / totalClassesNeedToSearch);
 
                         searcher.searchSmali(classDef, (matcher, clazz, method2) ->
-                                AcRules.putRule(db, matcher, clazz, method2));
+                                AcRules.putRule(matcher, clazz, method2));
                     }
                 }
             }

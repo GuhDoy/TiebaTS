@@ -13,7 +13,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -53,7 +52,7 @@ public class ThreadStore extends XposedContext implements IHooker {
                         textView.setOnClickListener(v -> showRegexDialog(activity));
                     }
                 });
-        AcRules.findRule(Constants.getMatchers().get(ThreadStore.class), (AcRules.Callback) (rule, clazz, method) ->
+        AcRules.findRule(Constants.getMatchers().get(ThreadStore.class), (AcRules.Callback) (matcher, clazz, method) ->
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, Boolean[].class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {

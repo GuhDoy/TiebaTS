@@ -18,8 +18,8 @@ import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.XposedContext;
+import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
-import gm.tieba.tabswitch.dao.RulesDbHelper;
 import gm.tieba.tabswitch.hooker.IHooker;
 
 public class AntiConfusion extends XposedContext implements IHooker {
@@ -48,7 +48,7 @@ public class AntiConfusion extends XposedContext implements IHooker {
                         }
 
                         if (AntiConfusionHelper.isDexChanged(mActivity)) {
-                            mActivity.deleteDatabase("Rules.db");
+                            AcRules.dropRules();
                         } else if (!AntiConfusionHelper.getRulesLost().isEmpty()) {
                             AntiConfusionHelper.matcherList = AntiConfusionHelper.getRulesLost();
                         } else {
@@ -67,17 +67,15 @@ public class AntiConfusion extends XposedContext implements IHooker {
                                 var dexDir = new File(mActivity.getCacheDir(), "app_dex");
                                 viewModel.unzip(packageResource, dexDir);
 
+                                setMessage("搜索字符串");
                                 // special optimization for TbDialog
                                 var dialogMatcher = "\"Dialog must be created by function create()!\"";
                                 AntiConfusionHelper.matcherList.add(dialogMatcher);
                                 var searcher = new DexBakSearcher(AntiConfusionHelper.matcherList);
-                                try (var db = new RulesDbHelper(mActivity).getReadableDatabase()) {
-                                    setMessage("搜索字符串");
-                                    var scope = viewModel.searchStringAndFindScope(searcher, db);
+                                var scope = viewModel.searchStringAndFindScope(searcher);
 
-                                    setMessage("在 " + scope.getMost() + " 中搜索代码");
-                                    viewModel.searchSmali(searcher, scope, db);
-                                }
+                                setMessage("在 " + scope.getMost() + " 中搜索代码");
+                                viewModel.searchSmali(searcher, scope);
 
                                 Preferences.putSignature(viewModel.getDexSignatureHashCode());
                                 XposedBridge.log("anti-confusion accomplished, current version: "

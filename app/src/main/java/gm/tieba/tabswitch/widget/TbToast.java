@@ -19,7 +19,7 @@ public class TbToast extends XposedContext {
 
     @MainThread
     public static void showTbToast(String text, int duration) {
-        AcRules.findRule(Constants.getMatchers().get(TbToast.class), (AcRules.Callback) (rule, clazz, method) -> {
+        AcRules.findRule(Constants.getMatchers().get(TbToast.class), (AcRules.Callback) (matcher, clazz, method) -> {
             for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
                 if (Arrays.equals(md.getParameterTypes(), new Class[]{Context.class, String.class, int.class})) {
                     ReflectUtils.callStaticMethod(md, getContext(), text, duration);

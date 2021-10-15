@@ -33,7 +33,7 @@ public class RedTip extends XposedContext implements IHooker {
                     "onMessage", XC_MethodReplacement.returnConstant(null));
         } catch (XposedHelpers.ClassNotFoundError e) {
             AcRules.findRule("\"https://tieba.baidu.com/mo/q/duxiaoman/index?noshare=1\"",
-                    (AcRules.Callback) (rule, clazz, method) -> {
+                    (AcRules.Callback) (matcher, clazz, method) -> {
                         for (int j = 0; j < 2; j++) {
                             clazz = clazz.substring(0, clazz.lastIndexOf("."));
                         }

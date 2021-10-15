@@ -18,7 +18,7 @@ public class FragmentTab extends XposedContext implements IHooker {
     private static boolean sIsFirstHook = true;
 
     public void hook() throws Throwable {
-        AcRules.findRule(Constants.getMatchers().get(FragmentTab.class), (AcRules.Callback) (rule, clazz, method) -> {
+        AcRules.findRule(Constants.getMatchers().get(FragmentTab.class), (AcRules.Callback) (matcher, clazz, method) -> {
             for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
                 if (Arrays.toString(md.getParameterTypes()).equals("[class java.util.ArrayList]")) {
                     XposedBridge.hookMethod(md, new XC_MethodHook() {

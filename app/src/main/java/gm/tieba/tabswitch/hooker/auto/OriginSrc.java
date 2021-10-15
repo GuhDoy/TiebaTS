@@ -21,7 +21,7 @@ import gm.tieba.tabswitch.hooker.IHooker;
 public class OriginSrc extends XposedContext implements IHooker {
     private static void doHook() {
         try {
-            AcRules.findRule("\"pic_amount\"", (AcRules.Callback) (rule, clazz, method) ->
+            AcRules.findRule("\"pic_amount\"", (AcRules.Callback) (matcher, clazz, method) ->
                     XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, JSONObject.class, Boolean.class, new XC_MethodHook() {
                         @Override
                         protected void beforeHookedMethod(MethodHookParam param) throws Throwable {

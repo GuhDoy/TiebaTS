@@ -27,7 +27,7 @@ public class FrsTab extends XposedContext implements IHooker {
                 }
             }
         });
-        AcRules.findRule(Constants.getMatchers().get(FrsTab.class), (AcRules.Callback) (rule, clazz, method) -> {
+        AcRules.findRule(Constants.getMatchers().get(FrsTab.class), (AcRules.Callback) (matcher, clazz, method) -> {
             if (!"com.baidu.tieba.frs.vc.FrsTabViewController".equals(clazz)) return;
             XposedHelpers.findAndHookMethod("com.baidu.tieba.frs.vc.FrsTabViewController", sClassLoader, method, new XC_MethodHook() {
                 @Override

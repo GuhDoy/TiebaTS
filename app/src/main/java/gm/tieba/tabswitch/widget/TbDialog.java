@@ -11,8 +11,10 @@ import android.widget.TextView;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 
 import de.robv.android.xposed.XC_MethodHook;
+import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
@@ -34,28 +36,32 @@ public class TbDialog extends XposedContext {
                         mPageContext = param.getResult();
                     }
                 });
-        AcRules.findRule(Constants.getMatchers().get(TbDialog.class), (AcRules.Callback) (rule, clazz, method) -> {
-            mClass = XposedHelpers.findClass(clazz, sClassLoader);
-            mBdAlert = XposedHelpers.newInstance(mClass, activity);
-            try {
-                mRootView = (ViewGroup) XposedHelpers.getObjectField(mBdAlert, "mRootView");
-                XposedHelpers.setObjectField(mBdAlert, "mTitle", title);
-                XposedHelpers.setObjectField(mBdAlert, "mMessage", message);
-                XposedHelpers.setObjectField(mBdAlert, "mCancelable", cancelable);
-                XposedHelpers.setObjectField(mBdAlert, "mContentView", contentView);
-            } catch (NoSuchFieldError e) {
-                mRootView = (ViewGroup) XposedHelpers.getObjectField(mBdAlert, "y");
-                XposedHelpers.setObjectField(mBdAlert, "f", title);
-                XposedHelpers.setObjectField(mBdAlert, "h", message);
-                XposedHelpers.setObjectField(mBdAlert, "C", cancelable);
-                XposedHelpers.setObjectField(mBdAlert, "g", contentView);
-            }
-            int color = ReflectUtils.getColor("CAM_X0204");
-            mRootView.findViewById(ReflectUtils.getId("bdDialog_divider_line"))
-                    .setBackgroundColor(color);
-            mRootView.findViewById(ReflectUtils.getId("divider_yes_no_button"))
-                    .setBackgroundColor(color);
-        });
+        try {
+            AcRules.findRule(Constants.getMatchers().get(TbDialog.class), (AcRules.Callback) (matcher, clazz, method) -> {
+                mClass = XposedHelpers.findClass(clazz, sClassLoader);
+                mBdAlert = XposedHelpers.newInstance(mClass, activity);
+                try {
+                    mRootView = (ViewGroup) XposedHelpers.getObjectField(mBdAlert, "mRootView");
+                    XposedHelpers.setObjectField(mBdAlert, "mTitle", title);
+                    XposedHelpers.setObjectField(mBdAlert, "mMessage", message);
+                    XposedHelpers.setObjectField(mBdAlert, "mCancelable", cancelable);
+                    XposedHelpers.setObjectField(mBdAlert, "mContentView", contentView);
+                } catch (NoSuchFieldError e) {
+                    mRootView = (ViewGroup) XposedHelpers.getObjectField(mBdAlert, "y");
+                    XposedHelpers.setObjectField(mBdAlert, "f", title);
+                    XposedHelpers.setObjectField(mBdAlert, "h", message);
+                    XposedHelpers.setObjectField(mBdAlert, "C", cancelable);
+                    XposedHelpers.setObjectField(mBdAlert, "g", contentView);
+                }
+                int color = ReflectUtils.getColor("CAM_X0204");
+                mRootView.findViewById(ReflectUtils.getId("bdDialog_divider_line"))
+                        .setBackgroundColor(color);
+                mRootView.findViewById(ReflectUtils.getId("divider_yes_no_button"))
+                        .setBackgroundColor(color);
+            }).get();
+        } catch (ExecutionException | InterruptedException e) {
+            XposedBridge.log(e);
+        }
     }
 
     public void setOnNoButtonClickListener(View.OnClickListener l) {

@@ -1,44 +1,48 @@
 package gm.tieba.tabswitch.dao;
 
 import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
-import android.util.Pair;
+
+import androidx.room.Room;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
-import gm.tieba.tabswitch.Constants;
+import de.robv.android.xposed.XposedBridge;
 
 public class AcRules {
-    private static final Map<String, Pair<String, String>> sRulesFromDb = new HashMap<>(
-            (int) Constants.getMatchers().values().stream().flatMap(Arrays::stream).count());
+    public static final String ACRULES_DATABASE_NAME = "AcRules.db";
+    private static AcRuleDatabase sDatabase;
+    public static AcRuleDao sDao;
+    private static final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public static void init(Context context) {
-        try (var db = new RulesDbHelper(context).getReadableDatabase()) {
-            try (var c = db.query("rules", null, null, null, null, null, null)) {
-                while (c.moveToNext()) {
-                    var pair = new Pair<>(c.getString(2), c.getString(3));
-                    sRulesFromDb.put(c.getString(1), pair);
-                }
-            }
-        }
+        sDatabase = Room.databaseBuilder(context, AcRuleDatabase.class, ACRULES_DATABASE_NAME)
+                .addMigrations(AcRuleMigrations.getMIGRATION_1_2())
+                .build();
+        sDao = sDatabase.acRuleDao();
     }
 
-    public static void putRule(SQLiteDatabase db, String rule, String clazz, String method) {
-        db.execSQL("insert into rules(rule, class, method) values(?, ?, ?)",
-                new Object[]{rule, clazz, method});
+    public static void dropRules() {
+        executor.submit(() -> sDatabase.acRuleDao().getAll().forEach(it -> sDatabase.acRuleDao().delete(it)));
     }
 
-    public static void findRule(Object... rulesAndCallback) {
+    public static void putRule(String matcher, String clazz, String method) {
+        sDatabase.acRuleDao().insertAll(AcRule.Companion.create(matcher, clazz, method));
+    }
+
+    public static Future<?> findRule(Object... rulesAndCallback) {
+        return executor.submit(() -> findRuleInternal(rulesAndCallback));
+    }
+
+    private static void findRuleInternal(Object... rulesAndCallback) {
         if (rulesAndCallback.length != 0
                 && rulesAndCallback[rulesAndCallback.length - 1] instanceof Callback) {
             var callback = (Callback) rulesAndCallback[rulesAndCallback.length - 1];
-            for (var rule : getParameterRules(rulesAndCallback)) {
-                if (isRuleFound(rule)) {
-                    var pair = sRulesFromDb.get(rule);
-                    callback.onRuleFound(rule, pair.first, pair.second);
-                }
+            for (var rule : sDao.loadAllMatch(getParameterRules(rulesAndCallback))) {
+                callback.onRuleFound(rule.getMatcher(), rule.getClazz(), rule.getMethod());
             }
         } else {
             throw new IllegalArgumentException("no callback defined");
@@ -56,15 +60,21 @@ public class AcRules {
         return rules;
     }
 
-    public static boolean isRuleFound(String rule) {
-        return sRulesFromDb.containsKey(rule);
+    public static boolean isRuleFound(String matcher) {
+        var future = executor.submit(() -> !sDao.loadAllMatch(matcher).isEmpty());
+        try {
+            return future.get();
+        } catch (ExecutionException | InterruptedException e) {
+            XposedBridge.log(e);
+        }
+        return false;
     }
 
-    public static boolean isRuleFound(String... rules) {
-        return Arrays.stream(rules).allMatch(AcRules::isRuleFound);
+    public static boolean isRuleFound(String... matchers) {
+        return Arrays.stream(matchers).allMatch(AcRules::isRuleFound);
     }
 
     public interface Callback {
-        void onRuleFound(String rule, String clazz, String method);
+        void onRuleFound(String matcher, String clazz, String method);
     }
 }

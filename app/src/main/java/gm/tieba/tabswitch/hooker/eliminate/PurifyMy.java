@@ -21,8 +21,8 @@ public class PurifyMy extends XposedContext implements IHooker {
     public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.flutter.base.view.FlutterDelegateStatic", sClassLoader,
                 "createFragmentTabStructure", XC_MethodReplacement.returnConstant(null));
-        AcRules.findRule(Constants.getMatchers().get(PurifyMy.class), (AcRules.Callback) (rule, clazz, method) -> {
-            switch (rule) {
+        AcRules.findRule(Constants.getMatchers().get(PurifyMy.class), (AcRules.Callback) (matcher, clazz, method) -> {
+            switch (matcher) {
                 case "Lcom/baidu/tieba/R$drawable;->icon_pure_topbar_store44_svg:I":// 商店
                     XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, int.class, new XC_MethodHook() {
                         @Override

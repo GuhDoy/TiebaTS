@@ -2,7 +2,6 @@ package gm.tieba.tabswitch.hooker.eliminate;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import de.robv.android.xposed.XC_MethodHook;
