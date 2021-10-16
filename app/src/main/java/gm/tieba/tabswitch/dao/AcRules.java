@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 import de.robv.android.xposed.XposedBridge;
 
@@ -19,7 +18,7 @@ public class AcRules {
     private static final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public static void init(Context context) {
-        sDatabase = Room.databaseBuilder(context, AcRuleDatabase.class, ACRULES_DATABASE_NAME)
+        sDatabase = Room.databaseBuilder(context.getApplicationContext(), AcRuleDatabase.class, ACRULES_DATABASE_NAME)
                 .addMigrations(AcRuleMigrations.getMIGRATION_1_2())
                 .build();
         sDao = sDatabase.acRuleDao();
@@ -33,8 +32,13 @@ public class AcRules {
         sDatabase.acRuleDao().insertAll(AcRule.Companion.create(matcher, clazz, method));
     }
 
-    public static Future<?> findRule(Object... rulesAndCallback) {
-        return executor.submit(() -> findRuleInternal(rulesAndCallback));
+    public static Object findRule(Object... rulesAndCallback) {
+        try {
+            return executor.submit(() -> findRuleInternal(rulesAndCallback)).get();
+        } catch (ExecutionException | InterruptedException e) {
+            XposedBridge.log(e);
+            return null;
+        }
     }
 
     private static void findRuleInternal(Object... rulesAndCallback) {
@@ -61,9 +65,8 @@ public class AcRules {
     }
 
     public static boolean isRuleFound(String matcher) {
-        var future = executor.submit(() -> !sDao.loadAllMatch(matcher).isEmpty());
         try {
-            return future.get();
+            return executor.submit(() -> !sDao.loadAllMatch(matcher).isEmpty()).get();
         } catch (ExecutionException | InterruptedException e) {
             XposedBridge.log(e);
         }

@@ -8,7 +8,6 @@ import android.app.Instrumentation;
 import android.os.Bundle;
 import android.text.TextUtils;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Map;
@@ -68,7 +67,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 if (!(param.args[0] instanceof Application)) return;
-                sContextRef = new WeakReference<>(((Application) param.args[0]).getApplicationContext());
+                attachBaseContext((Application) param.args[0]);
                 sClassLoader = lpparam.classLoader;
                 Preferences.init(getContext());
                 AcRules.init(getContext());
