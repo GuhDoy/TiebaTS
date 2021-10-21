@@ -223,7 +223,6 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                         break;
                     case "check_xposed":
                     case "check_module":
-                    case "sha_bao":
                         // prevent from being removed
                         break;
                     default:

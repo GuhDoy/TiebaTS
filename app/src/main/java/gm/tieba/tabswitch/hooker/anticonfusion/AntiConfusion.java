@@ -54,6 +54,7 @@ public class AntiConfusion extends XposedContext implements IHooker {
                         } else {
                             AntiConfusionHelper.saveAndRestart(mActivity, AntiConfusionHelper.getTbVersion(mActivity),
                                     XposedHelpers.findClass(TRAMPOLINE_ACTIVITY, sClassLoader));
+                            return null;
                         }
 
                         initProgressIndicator();

@@ -135,8 +135,7 @@ public class AntiConfusionViewModel {
                         searchedClassCount++;
                         _progress.onNext((float) searchedClassCount / totalClassesNeedToSearch);
 
-                        searcher.searchSmali(classDef, (matcher, clazz, method2) ->
-                                AcRules.putRule(matcher, clazz, method2));
+                        searcher.searchSmali(classDef, AcRules::putRule);
                     }
                 }
             }

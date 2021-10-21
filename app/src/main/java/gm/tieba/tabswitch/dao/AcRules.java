@@ -19,7 +19,6 @@ public class AcRules {
 
     public static void init(Context context) {
         sDatabase = Room.databaseBuilder(context.getApplicationContext(), AcRuleDatabase.class, ACRULES_DATABASE_NAME)
-                .addMigrations(AcRuleMigrations.getMIGRATION_1_2())
                 .build();
         sDao = sDatabase.acRuleDao();
     }
