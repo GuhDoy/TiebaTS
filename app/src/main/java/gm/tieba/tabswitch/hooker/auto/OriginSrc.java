@@ -12,7 +12,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
@@ -20,29 +19,25 @@ import gm.tieba.tabswitch.hooker.IHooker;
 
 public class OriginSrc extends XposedContext implements IHooker {
     private static void doHook() {
-        try {
-            AcRules.findRule("\"pic_amount\"", (AcRules.Callback) (matcher, clazz, method) ->
-                    XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, JSONObject.class, Boolean.class, new XC_MethodHook() {
-                        @Override
-                        protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                            JSONObject jsonObject = (JSONObject) param.args[0];
-                            JSONArray picList = jsonObject.optJSONArray("pic_list");
-                            if (picList == null) return;
-                            for (int i = 0; i < picList.length(); i++) {
-                                JSONObject pic = picList.optJSONObject(i);
-                                JSONObject img = pic.getJSONObject("img");
-                                JSONObject original = img.getJSONObject("original");
-                                original.put("big_cdn_src", original.getString("original_src"));
-                                img.put("original", original);
-                                pic.put("img", img);
-                                pic.put("show_original_btn", 0);
-                            }
-                            jsonObject.put("pic_list", picList);
+        AcRules.findRule("\"pic_amount\"", (AcRules.Callback) (matcher, clazz, method) ->
+                XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, JSONObject.class, Boolean.class, new XC_MethodHook() {
+                    @Override
+                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                        JSONObject jsonObject = (JSONObject) param.args[0];
+                        JSONArray picList = jsonObject.optJSONArray("pic_list");
+                        if (picList == null) return;
+                        for (int i = 0; i < picList.length(); i++) {
+                            JSONObject pic = picList.optJSONObject(i);
+                            JSONObject img = pic.getJSONObject("img");
+                            JSONObject original = img.getJSONObject("original");
+                            original.put("big_cdn_src", original.getString("original_src"));
+                            img.put("original", original);
+                            pic.put("img", img);
+                            pic.put("show_original_btn", 0);
                         }
-                    }));
-        } catch (Throwable throwable) {
-            XposedBridge.log(throwable);
-        }
+                        jsonObject.put("pic_list", picList);
+                    }
+                }));
         XposedHelpers.findAndHookMethod("tbclient.PbContent$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {

@@ -1,6 +1,5 @@
 package gm.tieba.tabswitch;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Application;
@@ -53,7 +52,6 @@ import gm.tieba.tabswitch.hooker.extra.StackTrace;
 import gm.tieba.tabswitch.widget.TbDialog;
 
 public class XposedInit extends XposedContext implements IXposedHookZygoteInit, IXposedHookLoadPackage {
-    @SuppressLint("DiscouragedPrivateApi")
     @Override
     public void initZygote(IXposedHookZygoteInit.StartupParam startupParam) throws Throwable {
         sPath = startupParam.modulePath;
@@ -72,6 +70,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                 Preferences.init(getContext());
                 AcRules.init(getContext());
                 if (AntiConfusionHelper.isVersionChanged(getContext())) {
+                    XposedBridge.log("AntiConfusion");
                     new AntiConfusion().hook();
                     return;
                 }
@@ -109,7 +108,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
 
                 new TSPreference().hook();
                 new Adp();
-                for (Map.Entry<String, ?> entry : Preferences.getAll().entrySet()) {
+                for (var entry : Preferences.getAll().entrySet()) {
                     try {
                         initHooker(entry);
                     } catch (Throwable tr) {
