@@ -2,7 +2,6 @@ package gm.tieba.tabswitch.util;
 
 import androidx.annotation.RestrictTo;
 
-import org.jetbrains.annotations.TestOnly;
 import org.json.JSONObject;
 
 import java.lang.reflect.Method;
@@ -24,7 +23,6 @@ public class DevUtils extends XposedContext {
         });
     }
 
-    @TestOnly
     private static void logMethod(Method method) {
         XposedBridge.hookMethod(method, new XC_MethodHook() {
             @Override
@@ -62,7 +60,6 @@ public class DevUtils extends XposedContext {
         }
     }
 
-    @TestOnly
     private static void disableMethod(Method method) {
         XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(
                 method.getReturnType().equals(boolean.class) ? true : null));

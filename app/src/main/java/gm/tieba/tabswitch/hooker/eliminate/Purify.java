@@ -113,12 +113,12 @@ public class Purify extends XposedContext implements IHooker {
             }
         });
         // 广告sdk
-        for (Method method : XposedHelpers.findClass("com.fun.ad.sdk.FunAdSdk", sClassLoader).getDeclaredMethods()) {
-            if (method.getName().equals("init")) {
-                XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(
-                        method.getReturnType().equals(boolean.class) ? true : null));
-            }
-        }
+//        for (Method method : XposedHelpers.findClass("com.fun.ad.sdk.FunAdSdk", sClassLoader).getDeclaredMethods()) {
+//            if (method.getName().equals("init")) {
+//                XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(
+//                        method.getReturnType().equals(boolean.class) ? true : null));
+//            }
+//        }
         // 帖子底部推荐
         Class<?> clazz;
         try {

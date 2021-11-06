@@ -1,6 +1,6 @@
 package gm.tieba.tabswitch.hooker.anticonfusion
 
-data class SearchScope(
+data class SearchScope @JvmOverloads constructor(
     val most: String,
     val dialogClasses: MutableSet<String>,
     var numberOfClassesNeedToSearch: IntArray = IntArray(0)

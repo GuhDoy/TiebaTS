@@ -49,7 +49,7 @@ import gm.tieba.tabswitch.hooker.extra.ForbidGesture;
 import gm.tieba.tabswitch.hooker.extra.Hide;
 import gm.tieba.tabswitch.hooker.extra.RedirectImage;
 import gm.tieba.tabswitch.hooker.extra.StackTrace;
-import gm.tieba.tabswitch.widget.TbDialog;
+import gm.tieba.tabswitch.util.DisplayUtils;
 
 public class XposedInit extends XposedContext implements IXposedHookZygoteInit, IXposedHookLoadPackage {
     @Override
@@ -87,20 +87,13 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                             messages.add(String.format(Locale.CHINA, "lost %d rule(s): %s", lostList.size(), lostList));
                             var message = TextUtils.join("\n", messages);
                             XposedBridge.log(message);
-                            if (AcRules.isRuleFound(Constants.getMatchers().get(TbDialog.class))) {
-                                var bdAlert = new TbDialog(activity, "警告", message, false, null);
-                                bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
-                                bdAlert.setOnYesButtonClickListener(v -> AntiConfusionHelper
-                                        .saveAndRestart(activity, "unknown", null));
-                                bdAlert.show();
-                            } else {
-                                new AlertDialog.Builder(activity, AlertDialog.THEME_DEVICE_DEFAULT_LIGHT)
-                                        .setTitle("警告").setMessage(message).setCancelable(false)
-                                        .setNegativeButton(activity.getString(android.R.string.cancel), null)
-                                        .setPositiveButton(activity.getString(android.R.string.ok), (dialogInterface, i) -> AntiConfusionHelper
-                                                .saveAndRestart(activity, "unknown", null))
-                                        .show();
-                            }
+                            new AlertDialog.Builder(activity, DisplayUtils.isLightMode(getContext()) ?
+                                    AlertDialog.THEME_DEVICE_DEFAULT_LIGHT : AlertDialog.THEME_DEVICE_DEFAULT_DARK)
+                                    .setTitle("警告").setMessage(message).setCancelable(false)
+                                    .setNegativeButton(activity.getString(android.R.string.cancel), null)
+                                    .setPositiveButton(activity.getString(android.R.string.ok), (dialogInterface, i) -> AntiConfusionHelper
+                                            .saveAndRestart(activity, "unknown", null))
+                                    .show();
                         }
                     });
                     return;

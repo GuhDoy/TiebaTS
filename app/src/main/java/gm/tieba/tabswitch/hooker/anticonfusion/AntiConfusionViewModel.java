@@ -99,7 +99,7 @@ public class AntiConfusionViewModel {
         var most = "L" + CollectionsKt.most(first) + "/" +
                 CollectionsKt.most(second) + "/" +
                 CollectionsKt.most(third) + "/";
-        var scope = new SearchScope(most, dialogClasses, new int[0]);
+        var scope = new SearchScope(most, dialogClasses);
 
         var numberOfClassesNeedToSearch = new int[dexCount];
         for (var i = 0; i < dexCount; i++) {
