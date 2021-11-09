@@ -116,7 +116,7 @@ public class ReflectUtils extends XposedContext {
         boolean onFieldFound(Object objField);
     }
 
-    public static void findField(Object instance, Class<?> cls, Callback handle) {
+    public static void walkField(Object instance, Class<?> cls, Callback handle) {
         try {
             Field[] declaredFields = instance.getClass().getDeclaredFields();
             for (Field field : declaredFields) {
@@ -140,11 +140,11 @@ public class ReflectUtils extends XposedContext {
     }
 
     public static void walkObjectFields(Object instance, Class<?> cls, Callback handle) {
-        findField(instance, cls, handle);
+        walkField(instance, cls, handle);
     }
 
     public static void walkObjectFields(Object instance, String className, Callback handle) {
-        findField(instance, XposedHelpers.findClass(className, sClassLoader), handle);
+        walkField(instance, XposedHelpers.findClass(className, sClassLoader), handle);
     }
 
     public static Object callMethod(Method method, Object instance, Object... args) {

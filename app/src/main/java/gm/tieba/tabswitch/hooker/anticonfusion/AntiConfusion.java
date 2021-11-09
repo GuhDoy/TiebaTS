@@ -32,9 +32,12 @@ public class AntiConfusion extends XposedContext implements IHooker {
     private LinearLayout mContentView;
 
     public void hook() throws Throwable {
-        // make isLaunchOpOn = false to avoid startActivity() to com.baidu.tieba.NewLogoActivity
-        XposedHelpers.findAndHookMethod("com.baidu.tbadk.switchs.AdToMainTabActivitySwitch", sClassLoader,
-                "getIsOn", XC_MethodReplacement.returnConstant(false));
+        try {
+            // make isLaunchOpOn = false to avoid startActivity() to com.baidu.tieba.NewLogoActivity
+            XposedHelpers.findAndHookMethod("com.baidu.tbadk.switchs.AdToMainTabActivitySwitch", sClassLoader,
+                    "getIsOn", XC_MethodReplacement.returnConstant(false));
+        } catch (XposedHelpers.ClassNotFoundError ignored) {
+        }
         for (var method : XposedHelpers.findClass("com.baidu.tieba.LogoActivity", sClassLoader).getDeclaredMethods()) {
             if (!method.getName().startsWith("on") && Arrays.equals(method.getParameterTypes(), new Class[]{Bundle.class})) {
                 XposedBridge.hookMethod(method, new XC_MethodReplacement() {
