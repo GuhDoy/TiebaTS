@@ -10,19 +10,19 @@ def sdk = 31
 android {
     compileSdk sdk
     buildToolsVersion '31.0.0'
-    ndkVersion "23.1.7779620"
+    ndkVersion '23.1.7779620'
 
     defaultConfig {
         applicationId 'gm.tieba.tabswitch'
         minSdk 24
         targetSdk sdk
         versionCode gitCommitCount
-        versionName "2.7.2-beta"
+        versionName '2.7.2-beta'
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         externalNativeBuild {
             cmake {
-                abiFilters "armeabi-v7a"
+                abiFilters 'armeabi-v7a'
                 arguments '-DANDROID_STL=none'
             }
         }
@@ -64,7 +64,7 @@ dependencies {
     compileOnly 'de.robv.android.xposed:api:82'
     compileOnly 'de.robv.android.xposed:api:82:sources'
     api 'androidx.annotation:annotation:1.3.0'
-    def room_version = "2.4.0-beta02"
+    def room_version = '2.4.0-beta02'
     implementation "androidx.room:room-runtime:$room_version"
     annotationProcessor "androidx.room:room-compiler:$room_version"
     implementation "androidx.room:room-ktx:$room_version"
