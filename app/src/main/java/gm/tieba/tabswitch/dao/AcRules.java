@@ -13,22 +13,20 @@ import de.robv.android.xposed.XposedBridge;
 
 public class AcRules {
     public static final String ACRULES_DATABASE_NAME = "AcRules.db";
-    private static AcRuleDatabase sDatabase;
     public static AcRuleDao sDao;
     private static final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public static void init(Context context) {
-        sDatabase = Room.databaseBuilder(context.getApplicationContext(), AcRuleDatabase.class, ACRULES_DATABASE_NAME)
-                .build();
-        sDao = sDatabase.acRuleDao();
+        sDao = Room.databaseBuilder(context.getApplicationContext(), AcRuleDatabase.class, ACRULES_DATABASE_NAME)
+                .build().acRuleDao();
     }
 
     public static void dropRules() {
-        executor.submit(() -> sDatabase.acRuleDao().getAll().forEach(it -> sDatabase.acRuleDao().delete(it)));
+        executor.submit(() -> sDao.getAll().forEach(it -> sDao.delete(it)));
     }
 
     public static void putRule(String matcher, String clazz, String method) {
-        sDatabase.acRuleDao().insertAll(AcRule.Companion.create(matcher, clazz, method));
+        sDao.insertAll(AcRule.Companion.create(matcher, clazz, method));
     }
 
     public static Object findRule(Object... rulesAndCallback) {

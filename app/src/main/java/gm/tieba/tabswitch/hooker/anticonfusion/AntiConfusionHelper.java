@@ -19,6 +19,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.zip.ZipFile;
 
 import de.robv.android.xposed.XC_MethodHook;
@@ -30,11 +31,8 @@ import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.util.DisplayUtils;
 
 public class AntiConfusionHelper {
-    static List<String> matcherList = new ArrayList<>();
-
-    static {
-        Constants.getMatchers().values().forEach(strings -> matcherList.addAll(Arrays.asList(strings)));
-    }
+    static List<String> matcherList = Constants.getMatchers().values().stream()
+            .flatMap(Arrays::stream).collect(Collectors.toList());
 
     public static List<String> getRulesLost() {
         List<String> list = new ArrayList<>(matcherList);
