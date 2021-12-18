@@ -20,9 +20,7 @@ jint JNI_OnLoad(JavaVM *jvm, void *v __unused) {
             {"isFindClassInline", "()Z",                                    FindClass_inline},
             {"findXposed",        "()Z",                                    findXposed},
             {"access",            "(Ljava/lang/String;)I",                  _access},
-            {"sysaccess",         "(Ljava/lang/String;)I",                  sysaccess},
             {"fopen",             "(Ljava/lang/String;)Ljava/lang/String;", _fopen},
-            {"openat",            "(Ljava/lang/String;)Ljava/lang/String;", _openat},
     };
     if ((*env)->RegisterNatives(env, clazz, methods, NELEM(methods)) < 0) {
         return JNI_ERR;

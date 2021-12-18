@@ -2,7 +2,6 @@
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <sys/syscall.h>
 #include <stdlib.h>
 #include <sys/system_properties.h>
 #include <dlfcn.h>
@@ -32,7 +31,7 @@ jboolean _inline(JNIEnv *env, jclass clazz, jstring jname) {
 }
 
 jboolean FindClass_inline(JNIEnv *env, jclass clazz) {
-    auto symbol = (*env)->FindClass;
+    void *symbol = (*env)->FindClass;
     return isInlineHooked(symbol);
 }
 
@@ -91,13 +90,6 @@ jboolean findXposed(JNIEnv *env, jclass clazz) {
 jint _access(JNIEnv *env, jclass clazz, jstring jpath) {
     const char *path = (*env)->GetStringUTFChars(env, jpath, NULL);
     int i = access(path, F_OK);
-    (*env)->ReleaseStringUTFChars(env, jpath, path);
-    return i;
-}
-
-jint sysaccess(JNIEnv *env, jclass clazz, jstring jpath) {
-    const char *path = (*env)->GetStringUTFChars(env, jpath, NULL);
-    int i = (int) syscall(__NR_access, path, F_OK);
     (*env)->ReleaseStringUTFChars(env, jpath, path);
     return i;
 }
@@ -178,32 +170,6 @@ jstring _fopen(JNIEnv *env, jclass clazz, jstring jpath) {
         return (*env)->NewStringUTF(env, getCannotOpen());
     }
 
-    char result[PATH_MAX];
-    strcpy(result, "");
-    char line[PATH_MAX];
-    while (fgets(line, PATH_MAX - 1, f) != NULL) {
-        if (strstr(line, getDataApp()) != NULL
-            && strstr(line, getComGoogleAndroid()) == NULL
-            && strstr(line, getComBaiduTieba()) == NULL) {
-            if (strlen(result) + strlen(line) > PATH_MAX) break;
-            strcat(result, line);
-        }
-    }
-    fclose(f);
-    return (*env)->NewStringUTF(env, result);
-}
-
-jstring _openat(JNIEnv *env, jclass clazz, jstring jpath) {
-    const char *path = (*env)->GetStringUTFChars(env, jpath, NULL);
-    int fd = (int) syscall(__NR_openat, AT_FDCWD, path, O_RDONLY);
-    (*env)->ReleaseStringUTFChars(env, jpath, path);
-    if (fd < 0) {
-        return (*env)->NewStringUTF(env, getCannotOpen());
-    }
-    FILE *f = fdopen(fd, "r");
-    if (f == NULL) {
-        return (*env)->NewStringUTF(env, getCannotOpen());
-    }
     char result[PATH_MAX];
     strcpy(result, "");
     char line[PATH_MAX];

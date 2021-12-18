@@ -99,7 +99,6 @@ public class TraceChecker extends XposedContext {
                         + File.separator + "TS_notes.xml"};
         for (String path : paths) {
             if (NativeCheck.access(path) == 0) result.addTrace(C, path);
-            if (NativeCheck.sysaccess(path) == 0) result.addTrace(S, path);
         }
         result.show();
     }
@@ -115,10 +114,6 @@ public class TraceChecker extends XposedContext {
         String trace = NativeCheck.fopen(path);
         if (!TextUtils.isEmpty(trace)) {
             result.addTrace(C, trace.substring(0, trace.length() - 1));
-        }
-        String trace2 = NativeCheck.openat(path);
-        if (!TextUtils.isEmpty(trace2)) {
-            result.addTrace(S, trace2.substring(0, trace2.length() - 1));
         }
         result.show();
     }
