@@ -37,9 +37,15 @@ public class RedTip extends XposedContext implements IHooker {
                         for (int j = 0; j < 2; j++) {
                             clazz = clazz.substring(0, clazz.lastIndexOf("."));
                         }
-                        clazz += ".d.b$b";
-                        XposedBridge.hookAllMethods(XposedHelpers.findClass(clazz, sClassLoader),
-                                "onMessage", XC_MethodReplacement.returnConstant(null));
+                        try {
+                            var clazz1 = clazz + ".d.b$b";
+                            XposedBridge.hookAllMethods(XposedHelpers.findClass(clazz1, sClassLoader),
+                                    "onMessage", XC_MethodReplacement.returnConstant(null));
+                        } catch (XposedHelpers.ClassNotFoundError e2) {
+                            var clazz2 = clazz + ".c.b$b";
+                            XposedBridge.hookAllMethods(XposedHelpers.findClass(clazz2, sClassLoader),
+                                    "onMessage", XC_MethodReplacement.returnConstant(null));
+                        }
                     });
         }
     }
