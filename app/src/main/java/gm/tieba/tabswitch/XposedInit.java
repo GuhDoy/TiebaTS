@@ -63,7 +63,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                 "com.baidu.tieba.tblauncher.MainTabActivity", lpparam.classLoader) == null) return;
         XposedHelpers.findAndHookMethod(Instrumentation.class, "callApplicationOnCreate", Application.class, new XC_MethodHook() {
             @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 if (!(param.args[0] instanceof Application)) return;
                 attachBaseContext((Application) param.args[0]);
                 sClassLoader = lpparam.classLoader;

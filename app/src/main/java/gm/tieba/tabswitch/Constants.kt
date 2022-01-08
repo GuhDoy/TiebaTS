@@ -30,7 +30,8 @@ object Constants {
     // TODO: find titan field holder class if needed
     @JvmStatic
     val matchers = mapOf(
-        TSPreference::class.java to arrayOf("Lcom/baidu/tieba/R\$id;->black_address_list:I"),
+//        TSPreference::class.java to arrayOf("Lcom/baidu/tieba/R\$id;->black_address_list:I"),
+        TSPreference::class.java to arrayOf(";->black_address_list:I"),
         TbDialog::class.java to arrayOf("Lcom/baidu/tieba/R\$layout;->dialog_bdalert:I"),
         TbToast::class.java to arrayOf("\"can not be call not thread! trace = \""),
         FragmentTab::class.java to arrayOf("\"has_show_message_tab_tips\""),
