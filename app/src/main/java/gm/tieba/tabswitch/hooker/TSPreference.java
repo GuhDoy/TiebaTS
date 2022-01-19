@@ -211,9 +211,10 @@ public class TSPreference extends XposedContext implements IHooker {
         preferenceLayout.addView(new SwitchButtonHolder(activity, "自动查看原图", "origin_src", SwitchButtonHolder.TYPE_SWITCH));
 
         preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurifyEnabled ? "奇怪怪" : "其它"));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "保存图片重定向", "redirect_image", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(activity, "使用媒体存储保存图片", "redirect_image", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "禁用帖子手势", "forbid_gesture", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "用赞踩差数代替赞数", "agree_num", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(activity, "禁止监听内部图片内容变化", "register_internal_content_uri", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(TSPreferenceHelper.createButton(TRACE, "希望有一天不再需要贴吧TS", v -> {
             Intent intent = new Intent().setClassName(activity, PROXY_ACTIVITY);
             intent.putExtra("proxyPage", TRACE);

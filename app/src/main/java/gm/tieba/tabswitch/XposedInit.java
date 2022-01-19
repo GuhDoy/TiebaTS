@@ -30,11 +30,13 @@ import gm.tieba.tabswitch.hooker.add.SaveImages;
 import gm.tieba.tabswitch.hooker.add.ThreadStore;
 import gm.tieba.tabswitch.hooker.anticonfusion.AntiConfusion;
 import gm.tieba.tabswitch.hooker.anticonfusion.AntiConfusionHelper;
+import gm.tieba.tabswitch.hooker.auto.AgreeNum;
 import gm.tieba.tabswitch.hooker.auto.AutoSign;
 import gm.tieba.tabswitch.hooker.auto.EyeshieldMode;
 import gm.tieba.tabswitch.hooker.auto.FrsTab;
 import gm.tieba.tabswitch.hooker.auto.OpenSign;
 import gm.tieba.tabswitch.hooker.auto.OriginSrc;
+import gm.tieba.tabswitch.hooker.auto.RegisterInternalContentUri;
 import gm.tieba.tabswitch.hooker.eliminate.ContentFilter;
 import gm.tieba.tabswitch.hooker.eliminate.FollowFilter;
 import gm.tieba.tabswitch.hooker.eliminate.FragmentTab;
@@ -84,7 +86,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                             messages.add(Constants.getStrings().get("exception_rules_incomplete"));
                             messages.add(String.format(Locale.CHINA, "tbversion: %s, module version: %d",
                                     AntiConfusionHelper.getTbVersion(getContext()), BuildConfig.VERSION_CODE));
-                            messages.add(String.format(Locale.CHINA, "lost %d rule(s): %s", lostList.size(), lostList));
+                            messages.add(String.format(Locale.CHINA, "%d rule(s) lost: %s", lostList.size(), lostList));
                             var message = TextUtils.join("\n", messages);
                             XposedBridge.log(message);
                             new AlertDialog.Builder(activity, DisplayUtils.isLightMode(getContext()) ?
@@ -184,15 +186,10 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                         if ((Boolean) entry.getValue()) new ForbidGesture().hook();
                         break;
                     case "agree_num":
-                        if (!(Boolean) entry.getValue()) break;
-                        XposedHelpers.findAndHookMethod("tbclient.Agree$Builder", sClassLoader,
-                                "build", boolean.class, new XC_MethodHook() {
-                                    @Override
-                                    public void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                                        XposedHelpers.setObjectField(param.thisObject, "agree_num",
-                                                XposedHelpers.getObjectField(param.thisObject, "diff_agree_num"));
-                                    }
-                                });
+                        if ((Boolean) entry.getValue()) new AgreeNum().hook();
+                        break;
+                    case "register_internal_content_uri":
+                        if ((Boolean) entry.getValue()) new RegisterInternalContentUri().hook();
                         break;
                     case "frs_tab":
                         if ((Boolean) entry.getValue()) new FrsTab().hook();

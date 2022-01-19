@@ -10,6 +10,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.zip.ZipFile;
 
@@ -47,18 +48,13 @@ public class AntiConfusionViewModel {
         if (fs == null) {
             throw new FileNotFoundException("解压失败");
         }
-        Arrays.sort(fs, (o1, o2) -> {
-            var ints = new int[2];
-            var comparingFiles = new File[]{o1, o2};
-            for (var i = 0; i < comparingFiles.length; i++) {
-                try {
-                    ints[i] = Integer.parseInt(comparingFiles[i].getName().replaceAll("[a-z.]", ""));
-                } catch (NumberFormatException e) {
-                    ints[i] = 1;
-                }
+        Arrays.sort(fs, Comparator.comparingInt(it -> {
+            try {
+                return Integer.parseInt(it.getName().replaceAll("[a-z.]", ""));
+            } catch (NumberFormatException e) {
+                return 1;
             }
-            return ints[0] - ints[1];
-        });
+        }));
         dexs = fs;
         dexCount = dexs.length;
     }
