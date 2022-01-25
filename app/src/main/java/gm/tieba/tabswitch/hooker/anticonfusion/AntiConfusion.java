@@ -2,9 +2,12 @@ package gm.tieba.tabswitch.hooker.anticonfusion;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Instrumentation;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.util.Log;
 import android.view.Gravity;
 import android.widget.LinearLayout;
@@ -12,8 +15,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.io.File;
-import java.util.Arrays;
 
+import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
@@ -38,67 +41,67 @@ public class AntiConfusion extends XposedContext implements IHooker {
                     "getIsOn", XC_MethodReplacement.returnConstant(false));
         } catch (XposedHelpers.ClassNotFoundError ignored) {
         }
-        for (var method : XposedHelpers.findClass("com.baidu.tieba.LogoActivity", sClassLoader).getDeclaredMethods()) {
-            if (!method.getName().startsWith("on") && Arrays.equals(method.getParameterTypes(), new Class[]{Bundle.class})) {
-                XposedBridge.hookMethod(method, new XC_MethodReplacement() {
-                    @SuppressLint("ApplySharedPref")
-                    @Override
-                    protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
-                        mActivity = (Activity) param.thisObject;
-                        if (Preferences.getBoolean("purify")) {
-                            var editor = mActivity.getSharedPreferences(
-                                    "settings", Context.MODE_PRIVATE).edit();
-                            editor.putString("key_location_request_dialog_last_show_version",
-                                    AntiConfusionHelper.getTbVersion(mActivity));
-                            editor.commit();
-                        }
+        var unhook = XposedHelpers.findAndHookMethod(Instrumentation.class, "execStartActivity",
+                Context.class, IBinder.class, IBinder.class, Activity.class, Intent.class,
+                int.class, Bundle.class, XC_MethodReplacement.returnConstant(null));
+        XposedHelpers.findAndHookMethod("com.baidu.tieba.LogoActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
+            @SuppressLint("ApplySharedPref")
+            @Override
+            public void afterHookedMethod(MethodHookParam param) throws Throwable {
+                mActivity = (Activity) param.thisObject;
+                if (Preferences.getBoolean("purify")) {
+                    var editor = mActivity.getSharedPreferences(
+                            "settings", Context.MODE_PRIVATE).edit();
+                    editor.putString("key_location_request_dialog_last_show_version",
+                            AntiConfusionHelper.getTbVersion(mActivity));
+                    editor.commit();
+                }
 
-                        if (AntiConfusionHelper.isDexChanged(mActivity)) {
-                            AcRules.dropRules();
-                        } else if (!AntiConfusionHelper.getRulesLost().isEmpty()) {
-                            AntiConfusionHelper.matcherList = AntiConfusionHelper.getRulesLost();
-                        } else {
-                            AntiConfusionHelper.saveAndRestart(mActivity, AntiConfusionHelper.getTbVersion(mActivity),
-                                    XposedHelpers.findClass(TRAMPOLINE_ACTIVITY, sClassLoader));
-                            return null;
-                        }
+                if (AntiConfusionHelper.isDexChanged(mActivity)) {
+                    AcRules.dropRules();
+                } else if (!AntiConfusionHelper.getRulesLost().isEmpty()) {
+                    AntiConfusionHelper.matcherList = AntiConfusionHelper.getRulesLost();
+                } else {
+                    unhook.unhook();
+                    AntiConfusionHelper.saveAndRestart(mActivity, AntiConfusionHelper.getTbVersion(mActivity),
+                            XposedHelpers.findClass(TRAMPOLINE_ACTIVITY, sClassLoader));
+                    return;
+                }
 
-                        initProgressIndicator();
-                        mActivity.setContentView(mContentView);
-                        viewModel.progress.subscribe(progress -> setProgress(progress));
+                initProgressIndicator();
+                mActivity.setContentView(mContentView);
+                viewModel.progress.subscribe(progress -> setProgress(progress));
 
-                        new Thread(() -> {
-                            try {
-                                setMessage("解压");
-                                var packageResource = new File(mActivity.getPackageResourcePath());
-                                var dexDir = new File(mActivity.getCacheDir(), "app_dex");
-                                viewModel.unzip(packageResource, dexDir);
+                new Thread(() -> {
+                    try {
+                        setMessage("解压");
+                        var packageResource = new File(mActivity.getPackageResourcePath());
+                        var dexDir = new File(mActivity.getCacheDir(), "app_dex");
+                        viewModel.unzip(packageResource, dexDir);
 
-                                setMessage("搜索字符串");
-                                // special optimization for TbDialog
-                                var dialogMatcher = "\"Dialog must be created by function create()!\"";
-                                AntiConfusionHelper.matcherList.add(dialogMatcher);
-                                var searcher = new DexBakSearcher(AntiConfusionHelper.matcherList);
-                                var scope = viewModel.searchStringAndFindScope(searcher);
+                        setMessage("搜索字符串");
+                        // special optimization for TbDialog
+                        var dialogMatcher = "\"Dialog must be created by function create()!\"";
+                        AntiConfusionHelper.matcherList.add(dialogMatcher);
+                        var searcher = new DexBakSearcher(AntiConfusionHelper.matcherList);
+                        var scope = viewModel.searchStringAndFindScope(searcher);
 
-                                setMessage("在 " + scope.getMost() + " 中搜索代码");
-                                viewModel.searchSmali(searcher, scope);
+                        setMessage("在 " + scope.getMost() + " 中搜索代码");
+                        viewModel.searchSmali(searcher, scope);
 
-                                Preferences.putSignature(viewModel.getDexSignatureHashCode());
-                                XposedBridge.log("anti-confusion accomplished, current version: "
-                                        + AntiConfusionHelper.getTbVersion(mActivity));
-                                AntiConfusionHelper.saveAndRestart(mActivity, AntiConfusionHelper.getTbVersion(mActivity),
-                                        XposedHelpers.findClass(TRAMPOLINE_ACTIVITY, sClassLoader));
-                            } catch (Throwable e) {
-                                XposedBridge.log(e);
-                                setMessage("处理失败\n" + Log.getStackTraceString(e));
-                            }
-                        }).start();
-                        return null;
+                        Preferences.putSignature(viewModel.getDexSignatureHashCode());
+                        XposedBridge.log("anti-confusion accomplished, current version: "
+                                + AntiConfusionHelper.getTbVersion(mActivity));
+                        unhook.unhook();
+                        AntiConfusionHelper.saveAndRestart(mActivity, AntiConfusionHelper.getTbVersion(mActivity),
+                                XposedHelpers.findClass(TRAMPOLINE_ACTIVITY, sClassLoader));
+                    } catch (Throwable e) {
+                        XposedBridge.log(e);
+                        setMessage("处理失败\n" + Log.getStackTraceString(e));
                     }
-                });
+                }).start();
             }
-        }
+        });
     }
 
     @SuppressLint({"SetTextI18n"})

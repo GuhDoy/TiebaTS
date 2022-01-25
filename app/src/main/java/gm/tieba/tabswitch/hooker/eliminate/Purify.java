@@ -31,7 +31,6 @@ public class Purify extends XposedContext implements IHooker {
     public void hook() throws Throwable {
         AcRules.findRule(Constants.getMatchers().get(Purify.class), (AcRules.Callback) (matcher, clazz, method) -> {
             switch (matcher) {
-                case "\"c/s/splashSchedule\"":// 旧启动广告
                 case "Lcom/baidu/tieba/recapp/lego/model/AdCard;-><init>(Lorg/json/JSONObject;)V":// 卡片广告
                     XposedBridge.hookAllMethods(XposedHelpers.findClass(clazz, sClassLoader), method, XC_MethodReplacement.returnConstant(null));
                     break;

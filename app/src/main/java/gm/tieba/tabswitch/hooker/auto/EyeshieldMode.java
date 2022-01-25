@@ -43,7 +43,7 @@ public class EyeshieldMode extends XposedContext implements IHooker {
         editor.putString("skin_", sSavedUiMode ? "0" : "1");
         editor.apply();
         if (!sSavedUiMode && !AntiConfusionHelper.isVersionChanged(getContext())) {
-            XposedHelpers.findAndHookMethod("com.baidu.tieba.LogoActivity", sClassLoader, "init", Bundle.class, new XC_MethodHook() {
+            XposedHelpers.findAndHookMethod("com.baidu.tieba.LogoActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
                 @Override
                 protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                     var activity = (Activity) param.thisObject;

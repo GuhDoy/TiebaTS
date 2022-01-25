@@ -36,7 +36,6 @@ object Constants {
         TbToast::class.java to arrayOf("\"can not be call not thread! trace = \""),
         FragmentTab::class.java to arrayOf("\"has_show_message_tab_tips\""),
         Purify::class.java to arrayOf(
-            "\"c/s/splashSchedule\"",
             "Lcom/baidu/tieba/recapp/lego/model/AdCard;-><init>(Lorg/json/JSONObject;)V",
             "\"pic_amount\"",
             "\"key_frs_dialog_ad_last_show_time\"",
