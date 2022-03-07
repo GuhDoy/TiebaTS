@@ -1,5 +1,7 @@
 package gm.tieba.tabswitch.hooker.anticonfusion;
 
+import androidx.annotation.NonNull;
+
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.raw.ClassDefItem;
 
@@ -16,6 +18,7 @@ import java.util.zip.ZipFile;
 
 import gm.tieba.tabswitch.dao.AcRule;
 import gm.tieba.tabswitch.dao.AcRules;
+import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.util.CollectionsKt;
 import gm.tieba.tabswitch.util.FileUtils;
 import io.reactivex.rxjava3.core.Observable;
@@ -72,11 +75,20 @@ public class AntiConfusionViewModel {
                     progress += (float) 1 / dexCount / classCount;
                     _progress.onNext(progress);
 
-                    searcher.searchString(classDefs.get(i), (matcher, clazz, method1) -> {
-                        if (matcher.equals(dialogMatcher)) {
-                            dialogClasses.add(searcher.revert(clazz));
-                        } else {
-                            AcRules.putRule(matcher, clazz, method1);
+                    searcher.searchStringAndLiteral(classDefs.get(i), new DexBakSearcher.MatcherListener() {
+                        @Override
+                        public void onMatch(@NonNull String matcher, @NonNull String clazz, @NonNull String method1) {
+                            if (matcher.equals(dialogMatcher)) {
+                                dialogClasses.add(searcher.revert(clazz));
+                            } else {
+                                AcRules.putRule(matcher, clazz, method1);
+                            }
+                        }
+
+                        @Override
+                        public void onMatch(long matcher, @NonNull String clazz, @NonNull String method) {
+                            // TODO
+//                            DexBakSearcher.MatcherListener.super.onMatch(matcher, clazz, method);
                         }
                     });
                 }
@@ -131,16 +143,22 @@ public class AntiConfusionViewModel {
                         searchedClassCount++;
                         _progress.onNext((float) searchedClassCount / totalClassesNeedToSearch);
 
-                        searcher.searchSmali(classDef, AcRules::putRule);
+                        searcher.searchSmali(classDef, new DexBakSearcher.MatcherListener() {
+                            @Override
+                            public void onMatch(@NonNull String matcher, @NonNull String clazz, @NonNull String method1) {
+                                AcRules.putRule(matcher, clazz, method1);
+                            }
+                        });
                     }
                 }
             }
         }
     }
 
-    public int getDexSignatureHashCode() throws IOException {
+    public void saveDexSignatureHashCode() throws IOException {
         try (var in = new FileInputStream(dexs[0])) {
-            return Arrays.hashCode(AntiConfusionHelper.calcSignature(in));
+            var signatureHashCode = Arrays.hashCode(AntiConfusionHelper.calcSignature(in));
+            Preferences.putSignature(signatureHashCode);
         }
     }
 }

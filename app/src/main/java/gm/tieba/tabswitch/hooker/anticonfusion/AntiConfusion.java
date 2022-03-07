@@ -2,12 +2,9 @@ package gm.tieba.tabswitch.hooker.anticonfusion;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.Instrumentation;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.util.Log;
 import android.view.Gravity;
 import android.widget.LinearLayout;
@@ -89,7 +86,7 @@ public class AntiConfusion extends XposedContext implements IHooker {
                         setMessage("在 " + scope.getMost() + " 中搜索代码");
                         viewModel.searchSmali(searcher, scope);
 
-                        Preferences.putSignature(viewModel.getDexSignatureHashCode());
+                        viewModel.saveDexSignatureHashCode();
                         XposedBridge.log("anti-confusion accomplished, current version: "
                                 + AntiConfusionHelper.getTbVersion(mActivity));
 //                        unhook.unhook();
