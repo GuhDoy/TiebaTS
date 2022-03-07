@@ -27,9 +27,9 @@ import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
-public class Purify extends XposedContext implements IHooker {
+public class Purge extends XposedContext implements IHooker {
     public void hook() throws Throwable {
-        AcRules.findRule(Constants.getMatchers().get(Purify.class), (AcRules.Callback) (matcher, clazz, method) -> {
+        AcRules.findRule(Constants.getMatchers().get(Purge.class), (AcRules.Callback) (matcher, clazz, method) -> {
             switch (matcher) {
                 case "Lcom/baidu/tieba/recapp/lego/model/AdCard;-><init>(Lorg/json/JSONObject;)V":// 卡片广告
                     XposedBridge.hookAllMethods(XposedHelpers.findClass(clazz, sClassLoader), method, XC_MethodReplacement.returnConstant(null));

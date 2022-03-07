@@ -16,11 +16,11 @@ import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.util.DisplayUtils;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
-public class PurifyEnter extends XposedContext implements IHooker {
+public class PurgeEnter extends XposedContext implements IHooker {
     public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.flutter.base.view.FlutterEnterForumDelegateStatic", sClassLoader,
                 "createFragmentTabStructure", XC_MethodReplacement.returnConstant(null));
-        AcRules.findRule(Constants.getMatchers().get(PurifyEnter.class), (AcRules.Callback) (matcher, clazz, method) ->
+        AcRules.findRule(Constants.getMatchers().get(PurgeEnter.class), (AcRules.Callback) (matcher, clazz, method) ->
                 XposedBridge.hookAllConstructors(XposedHelpers.findClass(clazz, sClassLoader), new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {

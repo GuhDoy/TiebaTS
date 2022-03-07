@@ -89,13 +89,13 @@ public class Preferences {
     }
 
     @SuppressLint("ApplySharedPref")
-    public static void putPurifyEnabled() {
+    public static void putPurgeEnabled() {
         SharedPreferences.Editor editor = sTsConfig.edit();
         editor.putBoolean("ze", true);
         editor.commit();
     }
 
-    public static boolean getIsPurifyEnabled() {
+    public static boolean getIsPurgeEnabled() {
         return sTsConfig.getBoolean("ze", false);
     }
 

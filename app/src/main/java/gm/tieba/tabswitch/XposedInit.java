@@ -42,9 +42,9 @@ import gm.tieba.tabswitch.hooker.eliminate.FollowFilter;
 import gm.tieba.tabswitch.hooker.eliminate.FragmentTab;
 import gm.tieba.tabswitch.hooker.eliminate.FrsPageFilter;
 import gm.tieba.tabswitch.hooker.eliminate.PersonalizedFilter;
-import gm.tieba.tabswitch.hooker.eliminate.Purify;
-import gm.tieba.tabswitch.hooker.eliminate.PurifyEnter;
-import gm.tieba.tabswitch.hooker.eliminate.PurifyMy;
+import gm.tieba.tabswitch.hooker.eliminate.Purge;
+import gm.tieba.tabswitch.hooker.eliminate.PurgeEnter;
+import gm.tieba.tabswitch.hooker.eliminate.PurgeMy;
 import gm.tieba.tabswitch.hooker.eliminate.RedTip;
 import gm.tieba.tabswitch.hooker.eliminate.SwitchManager;
 import gm.tieba.tabswitch.hooker.extra.ForbidGesture;
@@ -122,14 +122,14 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                     case "switch_manager":
                         new SwitchManager().hook();
                         break;
-                    case "purify":
-                        if ((Boolean) entry.getValue()) new Purify().hook();
+                    case "purge":
+                        if ((Boolean) entry.getValue()) new Purge().hook();
                         break;
-                    case "purify_enter":
-                        if ((Boolean) entry.getValue()) new PurifyEnter().hook();
+                    case "purge_enter":
+                        if ((Boolean) entry.getValue()) new PurgeEnter().hook();
                         break;
-                    case "purify_my":
-                        if ((Boolean) entry.getValue()) new PurifyMy().hook();
+                    case "purge_my":
+                        if ((Boolean) entry.getValue()) new PurgeMy().hook();
                         break;
                     case "red_tip":
                         if ((Boolean) entry.getValue()) new RedTip().hook();

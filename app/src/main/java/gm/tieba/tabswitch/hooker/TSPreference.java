@@ -155,28 +155,28 @@ public class TSPreference extends XposedContext implements IHooker {
 
     @NotNull
     private LinearLayout createRootPreference(Activity activity) {
-        boolean isPurifyEnabled = Preferences.getIsPurifyEnabled();
+        boolean isPurgeEnabled = Preferences.getIsPurgeEnabled();
         TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
 
-        preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurifyEnabled ? "轻车简从" : "净化界面"));
+        preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurgeEnabled ? "轻车简从" : "净化界面"));
         preferenceLayout.addView(TSPreferenceHelper.createButton(MODIFY_TAB, null, v -> {
             Intent intent = new Intent().setClassName(activity, PROXY_ACTIVITY);
             intent.putExtra("proxyPage", MODIFY_TAB);
             activity.startActivity(intent);
         }));
-        if (isPurifyEnabled) {
-            preferenceLayout.addView(new SwitchButtonHolder(activity, "真正的净化界面", "purify", SwitchButtonHolder.TYPE_SWITCH));
+        if (isPurgeEnabled) {
+            preferenceLayout.addView(new SwitchButtonHolder(activity, "真正的净化界面", "purge", SwitchButtonHolder.TYPE_SWITCH));
 //            preferenceLayout.addView(new SwitchButtonHolder(activity, "过滤傻宝", "sha_bao", SwitchButtonHolder.TYPE_SWITCH));
         }
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "净化进吧", "purify_enter", SwitchButtonHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "净化我的", "purify_my", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(activity, "净化进吧", "purge_enter", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(activity, "净化我的", "purge_my", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏小红点", "red_tip", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "只推荐已关注的吧", "follow_filter", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "过滤首页推荐", "personalized_filter", SwitchButtonHolder.TYPE_DIALOG));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "过滤帖子回复", "content_filter", SwitchButtonHolder.TYPE_DIALOG));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "过滤吧页面", "frs_page_filter", SwitchButtonHolder.TYPE_DIALOG));
 
-        preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurifyEnabled ? "别出新意" : "增加功能"));
+        preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurgeEnabled ? "别出新意" : "增加功能"));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "进吧增加收藏、历史", "create_view", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "我的收藏增加搜索、吧名", "thread_store", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "浏览历史增加搜索", "history_cache", SwitchButtonHolder.TYPE_SWITCH));
@@ -189,7 +189,7 @@ public class TSPreference extends XposedContext implements IHooker {
             activity.startActivity(intent);
         }));
 
-        preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurifyEnabled ? "垂手可得" : "自动化"));
+        preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurgeEnabled ? "垂手可得" : "自动化"));
         SwitchButtonHolder autoSign = new SwitchButtonHolder(activity, "自动签到", "auto_sign", SwitchButtonHolder.TYPE_SWITCH);
         if (!Preferences.getIsAutoSignEnabled()) {
             autoSign.setOnButtonClickListener(v -> {
@@ -210,7 +210,7 @@ public class TSPreference extends XposedContext implements IHooker {
         preferenceLayout.addView(new SwitchButtonHolder(activity, "吧页面起始页面改为最新", "frs_tab", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "自动查看原图", "origin_src", SwitchButtonHolder.TYPE_SWITCH));
 
-        preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurifyEnabled ? "奇怪怪" : "其它"));
+        preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurgeEnabled ? "奇怪怪" : "其它"));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "使用媒体存储保存图片", "redirect_image", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "禁用帖子手势", "forbid_gesture", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "用赞踩差数代替赞数", "agree_num", SwitchButtonHolder.TYPE_SWITCH));
@@ -221,7 +221,7 @@ public class TSPreference extends XposedContext implements IHooker {
             activity.startActivity(intent);
         }));
 
-        preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurifyEnabled ? "关于就是关于" : "关于"));
+        preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurgeEnabled ? "关于就是关于" : "关于"));
         preferenceLayout.addView(TSPreferenceHelper.createButton("版本", BuildConfig.VERSION_NAME, v -> {
             Intent intent = new Intent();
             intent.setAction("android.intent.action.VIEW");
@@ -245,8 +245,8 @@ public class TSPreference extends XposedContext implements IHooker {
             if (sCount % 3 == 0) {
                 TbToast.showTbToast(TSPreferenceHelper.randomToast(), TbToast.LENGTH_SHORT);
             }
-            if (!isPurifyEnabled && sCount >= 10) {
-                Preferences.putPurifyEnabled();
+            if (!isPurgeEnabled && sCount >= 10) {
+                Preferences.putPurgeEnabled();
                 activity.recreate();
             }
         }));
@@ -298,18 +298,18 @@ public class TSPreference extends XposedContext implements IHooker {
     }
 
     private LinearLayout createHidePreference(Activity activity) {
-        boolean isPurifyEnabled = Preferences.getIsPurifyEnabled();
+        boolean isPurgeEnabled = Preferences.getIsPurgeEnabled();
         TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
-        if (isPurifyEnabled || BuildConfig.DEBUG) {
+        if (isPurgeEnabled || BuildConfig.DEBUG) {
             preferenceLayout.addView(TSPreferenceHelper.createTextView(null));
-            preferenceLayout.addView(new SwitchButtonHolder(activity, isPurifyEnabled ? "藏起尾巴" : "隐藏模块", "hide", SwitchButtonHolder.TYPE_SWITCH));
-            preferenceLayout.addView(new SwitchButtonHolder(activity, isPurifyEnabled ? "藏起尾巴（原生）" : "隐藏模块（原生）", "hide_native", SwitchButtonHolder.TYPE_SWITCH));
+            preferenceLayout.addView(new SwitchButtonHolder(activity, isPurgeEnabled ? "藏起尾巴" : "隐藏模块", "hide", SwitchButtonHolder.TYPE_SWITCH));
+            preferenceLayout.addView(new SwitchButtonHolder(activity, isPurgeEnabled ? "藏起尾巴（原生）" : "隐藏模块（原生）", "hide_native", SwitchButtonHolder.TYPE_SWITCH));
         }
         preferenceLayout.addView(TSPreferenceHelper.createTextView("检测设置"));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "检测 Xposed", "check_xposed", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "检测模块", "check_module", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "检测堆栈（重启才能真正生效）", "check_stack_trace", SwitchButtonHolder.TYPE_SWITCH));
-        preferenceLayout.addView(TSPreferenceHelper.createButton(isPurifyEnabled ? "捏捏尾巴" : "检测模块", String.valueOf(Process.myPid()), v ->
+        preferenceLayout.addView(TSPreferenceHelper.createButton(isPurgeEnabled ? "捏捏尾巴" : "检测模块", String.valueOf(Process.myPid()), v ->
                 new TraceChecker(preferenceLayout).checkAll()));
         TraceChecker.sChildCount = preferenceLayout.getChildCount();
         return preferenceLayout;

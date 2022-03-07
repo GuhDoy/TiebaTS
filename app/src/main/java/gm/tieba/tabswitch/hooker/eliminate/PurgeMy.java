@@ -17,11 +17,11 @@ import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
-public class PurifyMy extends XposedContext implements IHooker {
+public class PurgeMy extends XposedContext implements IHooker {
     public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.flutter.base.view.FlutterDelegateStatic", sClassLoader,
                 "createFragmentTabStructure", XC_MethodReplacement.returnConstant(null));
-        AcRules.findRule(Constants.getMatchers().get(PurifyMy.class), (AcRules.Callback) (matcher, clazz, method) -> {
+        AcRules.findRule(Constants.getMatchers().get(PurgeMy.class), (AcRules.Callback) (matcher, clazz, method) -> {
             switch (matcher) {
                 case "Lcom/baidu/tieba/R$drawable;->icon_pure_topbar_store44_svg:I":// 商店
                     XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, int.class, new XC_MethodHook() {

@@ -7,9 +7,9 @@ import gm.tieba.tabswitch.hooker.add.Ripple
 import gm.tieba.tabswitch.hooker.add.ThreadStore
 import gm.tieba.tabswitch.hooker.auto.FrsTab
 import gm.tieba.tabswitch.hooker.eliminate.FragmentTab
-import gm.tieba.tabswitch.hooker.eliminate.Purify
-import gm.tieba.tabswitch.hooker.eliminate.PurifyEnter
-import gm.tieba.tabswitch.hooker.eliminate.PurifyMy
+import gm.tieba.tabswitch.hooker.eliminate.Purge
+import gm.tieba.tabswitch.hooker.eliminate.PurgeEnter
+import gm.tieba.tabswitch.hooker.eliminate.PurgeMy
 import gm.tieba.tabswitch.hooker.extra.ForbidGesture
 import gm.tieba.tabswitch.widget.TbDialog
 import gm.tieba.tabswitch.widget.TbToast
@@ -33,18 +33,18 @@ object Constants {
         TbDialog::class.java to arrayOf("Lcom/baidu/tieba/R\$layout;->dialog_bdalert:I"),
         TbToast::class.java to arrayOf("\"can not be call not thread! trace = \""),
         FragmentTab::class.java to arrayOf("\"has_show_message_tab_tips\""),
-        Purify::class.java to arrayOf(
+        Purge::class.java to arrayOf(
             "Lcom/baidu/tieba/recapp/lego/model/AdCard;-><init>(Lorg/json/JSONObject;)V",
             "\"pic_amount\"",
             "\"key_frs_dialog_ad_last_show_time\"",
             "Lcom/baidu/tieba/R\$id;->frs_ad_banner:I",
             "Lcom/baidu/tieba/R\$layout;->pb_child_title:I"
         ),
-        PurifyEnter::class.java to arrayOf(
+        PurgeEnter::class.java to arrayOf(
             "Lcom/baidu/tieba/R\$id;->square_background:I",
             "Lcom/baidu/tieba/R\$id;->create_bar_container:I"
         ),
-        PurifyMy::class.java to arrayOf(
+        PurgeMy::class.java to arrayOf(
             "Lcom/baidu/tieba/R\$drawable;->icon_pure_topbar_store44_svg:I",
             "Lcom/baidu/tieba/R\$id;->function_item_bottom_divider:I",
             "\"https://tieba.baidu.com/mo/q/duxiaoman/index?noshare=1\""

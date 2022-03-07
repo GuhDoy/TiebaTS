@@ -49,7 +49,7 @@ public class AntiConfusion extends XposedContext implements IHooker {
             @Override
             public void afterHookedMethod(MethodHookParam param) throws Throwable {
                 mActivity = (Activity) param.thisObject;
-                if (Preferences.getBoolean("purify")) {
+                if (Preferences.getBoolean("purge")) {
                     var editor = mActivity.getSharedPreferences(
                             "settings", Context.MODE_PRIVATE).edit();
                     editor.putString("key_location_request_dialog_last_show_version",
