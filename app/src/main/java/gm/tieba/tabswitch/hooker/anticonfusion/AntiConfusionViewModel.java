@@ -68,8 +68,8 @@ public class AntiConfusionViewModel {
             try (var in = new BufferedInputStream(new FileInputStream(f))) {
                 var dex = DexBackedDexFile.fromInputStream(null, in);
                 var classDefs = new ArrayList<>(dex.getClasses());
-                for (var i = 0; i < classDefs.size(); i++) {
-                    progress += (float) 1 / dexCount / classDefs.size();
+                for (int i = 0, classCount = classDefs.size(); i < classCount; i++) {
+                    progress += (float) 1 / dexCount / classCount;
                     _progress.onNext(progress);
 
                     searcher.searchString(classDefs.get(i), (matcher, clazz, method1) -> {

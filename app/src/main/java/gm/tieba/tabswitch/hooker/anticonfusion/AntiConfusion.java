@@ -41,9 +41,9 @@ public class AntiConfusion extends XposedContext implements IHooker {
                     "getIsOn", XC_MethodReplacement.returnConstant(false));
         } catch (XposedHelpers.ClassNotFoundError ignored) {
         }
-        var unhook = XposedHelpers.findAndHookMethod(Instrumentation.class, "execStartActivity",
-                Context.class, IBinder.class, IBinder.class, Activity.class, Intent.class,
-                int.class, Bundle.class, XC_MethodReplacement.returnConstant(null));
+//        var unhook = XposedHelpers.findAndHookMethod(Instrumentation.class, "execStartActivity",
+//                Context.class, IBinder.class, IBinder.class, Activity.class, Intent.class,
+//                int.class, Bundle.class, XC_MethodReplacement.returnConstant(null));
         XposedHelpers.findAndHookMethod("com.baidu.tieba.LogoActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
             @SuppressLint("ApplySharedPref")
             @Override
@@ -62,7 +62,7 @@ public class AntiConfusion extends XposedContext implements IHooker {
                 } else if (!AntiConfusionHelper.getRulesLost().isEmpty()) {
                     AntiConfusionHelper.matcherList = AntiConfusionHelper.getRulesLost();
                 } else {
-                    unhook.unhook();
+//                    unhook.unhook();
                     AntiConfusionHelper.saveAndRestart(mActivity, AntiConfusionHelper.getTbVersion(mActivity),
                             XposedHelpers.findClass(TRAMPOLINE_ACTIVITY, sClassLoader));
                     return;
@@ -92,7 +92,7 @@ public class AntiConfusion extends XposedContext implements IHooker {
                         Preferences.putSignature(viewModel.getDexSignatureHashCode());
                         XposedBridge.log("anti-confusion accomplished, current version: "
                                 + AntiConfusionHelper.getTbVersion(mActivity));
-                        unhook.unhook();
+//                        unhook.unhook();
                         AntiConfusionHelper.saveAndRestart(mActivity, AntiConfusionHelper.getTbVersion(mActivity),
                                 XposedHelpers.findClass(TRAMPOLINE_ACTIVITY, sClassLoader));
                     } catch (Throwable e) {

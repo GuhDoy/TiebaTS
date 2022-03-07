@@ -27,11 +27,9 @@ object Constants {
         "regex_hint" to "请输入正则表达式，如.*"
     )
 
-    // TODO: find titan field holder class if needed
     @JvmStatic
     val matchers = mapOf(
-//        TSPreference::class.java to arrayOf("Lcom/baidu/tieba/R\$id;->black_address_list:I"),
-        TSPreference::class.java to arrayOf(";->black_address_list:I"),
+        TSPreference::class.java to arrayOf("Lcom/baidu/tieba/R\$id;->black_address_list:I"),
         TbDialog::class.java to arrayOf("Lcom/baidu/tieba/R\$layout;->dialog_bdalert:I"),
         TbToast::class.java to arrayOf("\"can not be call not thread! trace = \""),
         FragmentTab::class.java to arrayOf("\"has_show_message_tab_tips\""),
@@ -39,10 +37,8 @@ object Constants {
             "Lcom/baidu/tieba/recapp/lego/model/AdCard;-><init>(Lorg/json/JSONObject;)V",
             "\"pic_amount\"",
             "\"key_frs_dialog_ad_last_show_time\"",
-//            "Lcom/baidu/tieba/R\$id;->frs_ad_banner:I",
-//            "Lcom/baidu/tieba/R\$layout;->pb_child_title:I"
-            ";->frs_ad_banner:I",
-            ";->pb_child_title:I"
+            "Lcom/baidu/tieba/R\$id;->frs_ad_banner:I",
+            "Lcom/baidu/tieba/R\$layout;->pb_child_title:I"
         ),
         PurifyEnter::class.java to arrayOf(
             "Lcom/baidu/tieba/R\$id;->square_background:I",
@@ -54,13 +50,10 @@ object Constants {
             "\"https://tieba.baidu.com/mo/q/duxiaoman/index?noshare=1\""
         ),
         CreateView::class.java to arrayOf("Lcom/baidu/tieba/R\$id;->navigationBarGoSignall:I"),
-//        Ripple::class.java to arrayOf("Lcom/baidu/tieba/R\$layout;->new_sub_pb_list_item:I"),
-        Ripple::class.java to arrayOf(";->new_sub_pb_list_item:I"),
+        Ripple::class.java to arrayOf("Lcom/baidu/tieba/R\$layout;->new_sub_pb_list_item:I"),
         ThreadStore::class.java to arrayOf("\"c/f/post/threadstore\""),
-//        NewSub::class.java to arrayOf("Lcom/baidu/tieba/R\$id;->subpb_head_user_info_root:I"),
-//        ForbidGesture::class.java to arrayOf("Lcom/baidu/tieba/R\$id;->new_pb_list:I"),
-        NewSub::class.java to arrayOf(";->subpb_head_user_info_root:I"),
-        ForbidGesture::class.java to arrayOf(";->new_pb_list:I"),
+        NewSub::class.java to arrayOf("Lcom/baidu/tieba/R\$id;->subpb_head_user_info_root:I"),
+        ForbidGesture::class.java to arrayOf("Lcom/baidu/tieba/R\$id;->new_pb_list:I"),
         FrsTab::class.java to arrayOf("\"from_pb_or_person\"")
     )
 }
