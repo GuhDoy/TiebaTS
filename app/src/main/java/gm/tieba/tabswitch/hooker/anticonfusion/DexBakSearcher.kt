@@ -23,8 +23,8 @@ class DexBakSearcher {
     val literalMatchers = mutableListOf<Long>()
     val smaliMatchers = mutableListOf<String>()
 
-    constructor(matcherList: List<String>) {
-        matcherList.forEach {
+    constructor(genericMatchers: Iterable<String>) {
+        genericMatchers.forEach {
             when {
                 it.startsWith('\"') && it.endsWith('\"') ->
                     stringMatchers.add(it.substring(1, it.length - 1))
@@ -36,10 +36,15 @@ class DexBakSearcher {
         }
     }
 
+    constructor(genericMatchers: Iterable<String>, literalMatchers: Iterable<Long>)
+            : this(genericMatchers) {
+        this.literalMatchers.addAll(literalMatchers)
+    }
+
     constructor(
-        stringMatchers: List<String> = emptyList(),
-        literalMatchers: List<Long> = emptyList(),
-        smaliMatchers: List<String> = emptyList()
+        stringMatchers: Iterable<String> = emptyList(),
+        literalMatchers: Iterable<Long> = emptyList(),
+        smaliMatchers: Iterable<String> = emptyList()
     ) {
         this.stringMatchers.addAll(stringMatchers)
         this.literalMatchers.addAll(literalMatchers)

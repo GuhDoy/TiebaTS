@@ -31,24 +31,24 @@ public class Purge extends XposedContext implements IHooker {
     public void hook() throws Throwable {
         AcRules.findRule(Constants.getMatchers().get(Purge.class), (AcRules.Callback) (matcher, clazz, method) -> {
             switch (matcher) {
-                case "Lcom/baidu/tieba/recapp/lego/model/AdCard;-><init>(Lorg/json/JSONObject;)V":// 卡片广告
+                case "Lcom/baidu/tieba/recapp/lego/model/AdCard;-><init>(Lorg/json/JSONObject;)V": // 卡片广告
                     XposedBridge.hookAllMethods(XposedHelpers.findClass(clazz, sClassLoader), method, XC_MethodReplacement.returnConstant(null));
                     break;
-                case "\"pic_amount\"":// 图片广告：必须"recom_ala_info", "app", 可选"goods_info"
+                case "\"pic_amount\"": // 图片广告：必须"recom_ala_info", "app", 可选"goods_info"
                     for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
                         if (Arrays.toString(md.getParameterTypes()).contains("JSONObject") && !md.getName().equals(method)) {
                             XposedBridge.hookMethod(md, XC_MethodReplacement.returnConstant(null));
                         }
                     }
                     break;
-                case "\"key_frs_dialog_ad_last_show_time\"":// 吧推广弹窗
+                case "\"key_frs_dialog_ad_last_show_time\"": // 吧推广弹窗
                     for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
                         if (md.getName().equals(method) && md.getReturnType().toString().equals("boolean")) {
                             XposedBridge.hookMethod(md, XC_MethodReplacement.returnConstant(true));
                         }
                     }
                     break;
-                case "Lcom/baidu/tieba/R$id;->frs_ad_banner:I":// 吧推广横幅
+                case "Lcom/baidu/tieba/R$id;->frs_ad_banner:I": // 吧推广横幅
                     for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
                         if (Arrays.toString(md.getParameterTypes()).startsWith("[interface java.util.List, class ")) {
                             XposedBridge.hookMethod(md, new XC_MethodHook() {
@@ -60,7 +60,7 @@ public class Purge extends XposedContext implements IHooker {
                         }
                     }
                     break;
-                case "Lcom/baidu/tieba/R$layout;->pb_child_title:I":// 视频相关推荐
+                case "Lcom/baidu/tieba/R$layout;->pb_child_title:I": // 视频相关推荐
                     if (!("com.baidu.tieba.pb.videopb.fragment.DetailInfoAndReplyFragment").equals(clazz)) {
                         Class<?> clazz2 = XposedHelpers.findClass("com.baidu.adp.widget.ListView.BdTypeRecyclerView", sClassLoader);
                         try {

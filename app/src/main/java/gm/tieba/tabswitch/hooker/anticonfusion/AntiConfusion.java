@@ -12,6 +12,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.io.File;
+import java.util.stream.Collectors;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
@@ -21,6 +22,7 @@ import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.IHooker;
+import gm.tieba.tabswitch.util.Parser;
 
 public class AntiConfusion extends XposedContext implements IHooker {
     private static final String TRAMPOLINE_ACTIVITY = "com.baidu.tieba.tblauncher.MainTabActivity";
@@ -47,10 +49,12 @@ public class AntiConfusion extends XposedContext implements IHooker {
             public void afterHookedMethod(MethodHookParam param) throws Throwable {
                 mActivity = (Activity) param.thisObject;
                 if (Preferences.getBoolean("purge")) {
-                    var editor = mActivity.getSharedPreferences(
-                            "settings", Context.MODE_PRIVATE).edit();
+                    var editor = mActivity
+                            .getSharedPreferences("settings", Context.MODE_PRIVATE)
+                            .edit();
                     editor.putString("key_location_request_dialog_last_show_version",
-                            AntiConfusionHelper.getTbVersion(mActivity));
+                            AntiConfusionHelper.getTbVersion(mActivity)
+                    );
                     editor.commit();
                 }
 
@@ -60,8 +64,10 @@ public class AntiConfusion extends XposedContext implements IHooker {
                     AntiConfusionHelper.matcherList = AntiConfusionHelper.getRulesLost();
                 } else {
 //                    unhook.unhook();
-                    AntiConfusionHelper.saveAndRestart(mActivity, AntiConfusionHelper.getTbVersion(mActivity),
-                            XposedHelpers.findClass(TRAMPOLINE_ACTIVITY, sClassLoader));
+                    AntiConfusionHelper.saveAndRestart(mActivity,
+                            AntiConfusionHelper.getTbVersion(mActivity),
+                            XposedHelpers.findClass(TRAMPOLINE_ACTIVITY, sClassLoader)
+                    );
                     return;
                 }
 
@@ -76,12 +82,15 @@ public class AntiConfusion extends XposedContext implements IHooker {
                         var dexDir = new File(mActivity.getCacheDir(), "app_dex");
                         viewModel.unzip(packageResource, dexDir);
 
-                        setMessage("搜索字符串");
-                        // special optimization for TbDialog
-                        var dialogMatcher = "\"Dialog must be created by function create()!\"";
-                        AntiConfusionHelper.matcherList.add(dialogMatcher);
-                        var searcher = new DexBakSearcher(AntiConfusionHelper.matcherList);
-                        var scope = viewModel.searchStringAndFindScope(searcher);
+                        setMessage("搜索字符串和资源 id");
+                        var idToMatcher = Parser.resolveIdentifier(AntiConfusionHelper.matcherList);
+                        AntiConfusionHelper.matcherList.removeAll(idToMatcher.values());
+                        var searcher = new DexBakSearcher(AntiConfusionHelper.matcherList,
+                                idToMatcher.keySet().stream()
+                                        .map(Long::valueOf)
+                                        .collect(Collectors.toList())
+                        );
+                        var scope = viewModel.fastSearchAndFindScope(searcher, idToMatcher);
 
                         setMessage("在 " + scope.getMost() + " 中搜索代码");
                         viewModel.searchSmali(searcher, scope);
@@ -90,8 +99,10 @@ public class AntiConfusion extends XposedContext implements IHooker {
                         XposedBridge.log("anti-confusion accomplished, current version: "
                                 + AntiConfusionHelper.getTbVersion(mActivity));
 //                        unhook.unhook();
-                        AntiConfusionHelper.saveAndRestart(mActivity, AntiConfusionHelper.getTbVersion(mActivity),
-                                XposedHelpers.findClass(TRAMPOLINE_ACTIVITY, sClassLoader));
+                        AntiConfusionHelper.saveAndRestart(mActivity,
+                                AntiConfusionHelper.getTbVersion(mActivity),
+                                XposedHelpers.findClass(TRAMPOLINE_ACTIVITY, sClassLoader)
+                        );
                     } catch (Throwable e) {
                         XposedBridge.log(e);
                         setMessage("处理失败\n" + Log.getStackTraceString(e));

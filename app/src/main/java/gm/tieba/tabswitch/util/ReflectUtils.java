@@ -16,8 +16,8 @@ public class ReflectUtils extends XposedContext {
     private static final Map<String, Field> sFieldCache = new HashMap<>();
 
     public static int getR(String innerClassName, String fieldName) {
-        return XposedHelpers.getStaticIntField(XposedHelpers.findClass(
-                "com.baidu.tieba.R$" + innerClassName, sClassLoader), fieldName);
+        return getContext().getResources()
+                .getIdentifier(fieldName, innerClassName, getContext().getPackageName());
     }
 
     public static int getId(String fieldName) {

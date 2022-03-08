@@ -23,7 +23,7 @@ public class PurgeMy extends XposedContext implements IHooker {
                 "createFragmentTabStructure", XC_MethodReplacement.returnConstant(null));
         AcRules.findRule(Constants.getMatchers().get(PurgeMy.class), (AcRules.Callback) (matcher, clazz, method) -> {
             switch (matcher) {
-                case "Lcom/baidu/tieba/R$drawable;->icon_pure_topbar_store44_svg:I":// 商店
+                case "Lcom/baidu/tieba/R$drawable;->icon_pure_topbar_store44_svg:I": // 商店
                     XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, int.class, new XC_MethodHook() {
                         @Override
                         protected void afterHookedMethod(MethodHookParam param) throws Throwable {
@@ -38,7 +38,7 @@ public class PurgeMy extends XposedContext implements IHooker {
                         }
                     });
                     break;
-                case "Lcom/baidu/tieba/R$id;->function_item_bottom_divider:I":// 分割线
+                case "Lcom/baidu/tieba/R$id;->function_item_bottom_divider:I": // 分割线
                     for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
                         if (Arrays.toString(md.getParameterTypes()).equals("[interface com.baidu.tbadk.TbPageContext, int]")
                                 && !md.getName().equals(method)) {
@@ -58,7 +58,7 @@ public class PurgeMy extends XposedContext implements IHooker {
                         }
                     }
                     break;
-                case "\"https://tieba.baidu.com/mo/q/duxiaoman/index?noshare=1\"":// 我的ArrayList
+                case "\"https://tieba.baidu.com/mo/q/duxiaoman/index?noshare=1\"": // 我的ArrayList
                     for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
                         if (Arrays.toString(md.getParameterTypes()).equals("[class tbclient.Profile.ProfileResIdl]")) {
                             XposedBridge.hookMethod(md, new XC_MethodHook() {

@@ -2,10 +2,9 @@ package gm.tieba.tabswitch.hooker.anticonfusion
 
 data class SearchScope @JvmOverloads constructor(
     val most: String,
-    val dialogClasses: MutableSet<String>,
     var numberOfClassesNeedToSearch: IntArray = IntArray(0)
 ) {
-    fun isInScope(classDef: String) = classDef.startsWith(most) || dialogClasses.contains(classDef)
+    fun isInScope(classDef: String) = classDef.startsWith(most)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

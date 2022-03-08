@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashSet;
+import java.util.Map;
 import java.util.zip.ZipFile;
 
 import gm.tieba.tabswitch.dao.AcRule;
@@ -62,10 +62,7 @@ public class AntiConfusionViewModel {
         dexCount = dexs.length;
     }
 
-    public SearchScope searchStringAndFindScope(DexBakSearcher searcher) throws IOException {
-        // special optimization for TbDialog
-        var dialogMatcher = "\"Dialog must be created by function create()!\"";
-        var dialogClasses = new HashSet<String>();
+    public SearchScope fastSearchAndFindScope(DexBakSearcher searcher, Map<Integer, String> idToMatcher) throws IOException {
         var progress = 0F;
         for (var f : dexs) {
             try (var in = new BufferedInputStream(new FileInputStream(f))) {
@@ -77,18 +74,13 @@ public class AntiConfusionViewModel {
 
                     searcher.searchStringAndLiteral(classDefs.get(i), new DexBakSearcher.MatcherListener() {
                         @Override
-                        public void onMatch(@NonNull String matcher, @NonNull String clazz, @NonNull String method1) {
-                            if (matcher.equals(dialogMatcher)) {
-                                dialogClasses.add(searcher.revert(clazz));
-                            } else {
-                                AcRules.putRule(matcher, clazz, method1);
-                            }
+                        public void onMatch(@NonNull String matcher, @NonNull String clazz, @NonNull String method) {
+                            AcRules.putRule(matcher, clazz, method);
                         }
 
                         @Override
                         public void onMatch(long matcher, @NonNull String clazz, @NonNull String method) {
-                            // TODO
-//                            DexBakSearcher.MatcherListener.super.onMatch(matcher, clazz, method);
+                            AcRules.putRule(idToMatcher.get((int) matcher), clazz, method);
                         }
                     });
                 }
@@ -107,7 +99,7 @@ public class AntiConfusionViewModel {
         var most = "L" + CollectionsKt.most(first) + "/" +
                 CollectionsKt.most(second) + "/" +
                 CollectionsKt.most(third) + "/";
-        var scope = new SearchScope(most, dialogClasses);
+        var scope = new SearchScope(most);
 
         var numberOfClassesNeedToSearch = new int[dexCount];
         for (var i = 0; i < dexCount; i++) {
@@ -145,8 +137,8 @@ public class AntiConfusionViewModel {
 
                         searcher.searchSmali(classDef, new DexBakSearcher.MatcherListener() {
                             @Override
-                            public void onMatch(@NonNull String matcher, @NonNull String clazz, @NonNull String method1) {
-                                AcRules.putRule(matcher, clazz, method1);
+                            public void onMatch(@NonNull String matcher, @NonNull String clazz, @NonNull String method) {
+                                AcRules.putRule(matcher, clazz, method);
                             }
                         });
                     }
