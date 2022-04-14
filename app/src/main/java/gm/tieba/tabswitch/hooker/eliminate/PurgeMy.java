@@ -3,7 +3,6 @@ package gm.tieba.tabswitch.hooker.eliminate;
 import android.view.View;
 import android.widget.ImageView;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -27,44 +26,36 @@ public class PurgeMy extends XposedContext implements IHooker {
                     XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, int.class, new XC_MethodHook() {
                         @Override
                         protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                            ReflectUtils.walkObjectFields(param.thisObject, ImageView.class, objField -> {
-                                ImageView iv = (ImageView) objField;
-                                if (iv.getId() == ReflectUtils.getId("person_navigation_dressup_img")) {
-                                    iv.setVisibility(View.GONE);
-                                    return true;
-                                }
-                                return false;
-                            });
+                            // R.id.person_navigation_dressup_img
+                            var imageView = (ImageView) ReflectUtils.getObjectField(param.thisObject, 4);
+                            imageView.setVisibility(View.GONE);
                         }
                     });
                     break;
-                case "Lcom/baidu/tieba/R$id;->function_item_bottom_divider:I": // 分割线
-                    for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
-                        if (Arrays.toString(md.getParameterTypes()).equals("[interface com.baidu.tbadk.TbPageContext, int]")
-                                && !md.getName().equals(method)) {
+                case "Lcom/baidu/tieba/R$drawable;->person_center_red_tip_shape:I": // 分割线
+                    if ("com.baidu.tieba.post.PersonPostActivity".equals(clazz)) {
+                        break;
+                    }
+                    for (var md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
+                        if (Arrays.toString(md.getParameterTypes()).equals("[interface com.baidu.tbadk.TbPageContext, int]")) {
                             XposedBridge.hookMethod(md, new XC_MethodHook() {
                                 @Override
                                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                                    ReflectUtils.walkObjectFields(param.thisObject, View.class, objField -> {
-                                        View v = (View) objField;
-                                        if (v.getId() == ReflectUtils.getId("function_item_bottom_divider")) {
-                                            v.setVisibility(View.GONE);
-                                            return true;
-                                        }
-                                        return false;
-                                    });
+                                    // R.id.function_item_bottom_divider
+                                    var view = (View) ReflectUtils.getObjectField(param.thisObject, 10);
+                                    view.setVisibility(View.GONE);
                                 }
                             });
                         }
                     }
                     break;
                 case "\"https://tieba.baidu.com/mo/q/duxiaoman/index?noshare=1\"": // 我的ArrayList
-                    for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
+                    for (var md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
                         if (Arrays.toString(md.getParameterTypes()).equals("[class tbclient.Profile.ProfileResIdl]")) {
                             XposedBridge.hookMethod(md, new XC_MethodHook() {
                                 @Override
                                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                                    ArrayList<?> list = (ArrayList<?>) ReflectUtils.getObjectField(param.thisObject, ArrayList.class);
+                                    var list = (ArrayList<?>) ReflectUtils.getObjectField(param.thisObject, ArrayList.class);
                                     list.removeIf(o -> {
                                         try {
                                             ReflectUtils.getObjectField(o, "com.baidu.tbadk.core.data.UserData");
@@ -74,9 +65,9 @@ public class PurgeMy extends XposedContext implements IHooker {
                                         return Arrays.stream(o.getClass().getDeclaredFields()).anyMatch(field -> {
                                             field.setAccessible(true);
                                             try {
-                                                Object obj = field.get(o);
+                                                var obj = field.get(o);
                                                 if (obj instanceof String) {
-                                                    String type = (String) obj;
+                                                    var type = (String) obj;
                                                     if (!type.startsWith("http")
                                                             && !type.equals("我的收藏")
                                                             && !type.equals("浏览历史")

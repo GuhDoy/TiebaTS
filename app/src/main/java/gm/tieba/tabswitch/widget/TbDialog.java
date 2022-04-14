@@ -3,14 +3,11 @@ package gm.tieba.tabswitch.widget;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Objects;
+import java.util.function.Consumer;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
@@ -23,7 +20,6 @@ public class TbDialog extends XposedContext {
     private Class<?> mClass;
     private Object mBdAlert;
     private Object mPageContext;
-    private ViewGroup mRootView;
     private AlertDialog mDialog;
 
     public TbDialog(Activity activity, String title, String message, boolean cancelable, View contentView) {
@@ -35,74 +31,99 @@ public class TbDialog extends XposedContext {
                     }
                 });
         AcRules.findRule(Constants.getMatchers().get(TbDialog.class), (AcRules.Callback) (matcher, clazz, method) -> {
-            mClass = XposedHelpers.findClass(clazz, sClassLoader);
+            var cls = XposedHelpers.findClass(clazz, sClassLoader);
+            if (cls.getDeclaredMethods().length < 20) {
+                return;
+            }
+            mClass = cls;
             mBdAlert = XposedHelpers.newInstance(mClass, activity);
             try {
-                mRootView = (ViewGroup) XposedHelpers.getObjectField(mBdAlert, "mRootView");
                 XposedHelpers.setObjectField(mBdAlert, "mTitle", title);
                 XposedHelpers.setObjectField(mBdAlert, "mMessage", message);
                 XposedHelpers.setObjectField(mBdAlert, "mCancelable", cancelable);
                 XposedHelpers.setObjectField(mBdAlert, "mContentView", contentView);
             } catch (NoSuchFieldError e) {
-                mRootView = (ViewGroup) XposedHelpers.getObjectField(mBdAlert, "y");
                 XposedHelpers.setObjectField(mBdAlert, "f", title);
                 XposedHelpers.setObjectField(mBdAlert, "h", message);
                 XposedHelpers.setObjectField(mBdAlert, "C", cancelable);
                 XposedHelpers.setObjectField(mBdAlert, "g", contentView);
             }
-            int color = ReflectUtils.getColor("CAM_X0204");
-            mRootView.findViewById(ReflectUtils.getId("bdDialog_divider_line"))
-                    .setBackgroundColor(color);
-            mRootView.findViewById(ReflectUtils.getId("divider_yes_no_button"))
-                    .setBackgroundColor(color);
+
+            initButtonStyle(param -> {
+                int color = ReflectUtils.getColor("CAM_X0204");
+                // R.id.bdDialog_divider_line
+                var bdDialogDividerLine = (View) XposedHelpers.getObjectField(mBdAlert, "bdDialog_divider_line");
+                bdDialogDividerLine.setBackgroundColor(color);
+                // R.id.divider_yes_no_button
+                var dividerWithButton = (View) XposedHelpers.getObjectField(mBdAlert, "dividerWithButton");
+                dividerWithButton.setBackgroundColor(color);
+            });
+        });
+    }
+
+    // called in create()
+    private void initButtonStyle(Consumer<XC_MethodHook.MethodHookParam> consumer) {
+        XposedHelpers.findAndHookMethod(mClass, "initButtonStyle", new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                consumer.accept(param);
+            }
         });
     }
 
     public void setOnNoButtonClickListener(View.OnClickListener l) {
-        String cancel = getContext().getString(android.R.string.cancel);
-        try {
-            XposedHelpers.setObjectField(mBdAlert, "mNegativeButtonTip", cancel);
-        } catch (NoSuchFieldError e) {
-            XposedHelpers.setObjectField(mBdAlert, "m", cancel);
-        }
-        mRootView.findViewById(ReflectUtils.getId("no")).setOnClickListener(l);
+        initButtonStyle(param -> {
+            var cancel = getContext().getString(android.R.string.cancel);
+            try {
+                XposedHelpers.setObjectField(mBdAlert, "mNegativeButtonTip", cancel);
+            } catch (NoSuchFieldError e) {
+                XposedHelpers.setObjectField(mBdAlert, "m", cancel);
+            }
+            // R.id.no
+            var noButton = (TextView) XposedHelpers.getObjectField(mBdAlert, "noButton");
+            noButton.setOnClickListener(l);
+        });
     }
 
     public void setOnYesButtonClickListener(View.OnClickListener l) {
-        String ok = getContext().getString(android.R.string.ok);
-        try {
-            XposedHelpers.setObjectField(mBdAlert, "mPositiveButtonTip", ok);
-        } catch (NoSuchFieldError e) {
-            XposedHelpers.setObjectField(mBdAlert, "l", ok);
-        }
-        findYesButton().setOnClickListener(l);
+        initButtonStyle(param -> {
+            var ok = getContext().getString(android.R.string.ok);
+            try {
+                XposedHelpers.setObjectField(mBdAlert, "mPositiveButtonTip", ok);
+            } catch (NoSuchFieldError e) {
+                XposedHelpers.setObjectField(mBdAlert, "l", ok);
+            }
+            findYesButton().setOnClickListener(l);
+        });
     }
 
     public TextView findYesButton() {
-        return mRootView.findViewById(ReflectUtils.getId("yes"));
+        // R.id.yes
+        return (TextView) XposedHelpers.getObjectField(mBdAlert, "yesButton");
     }
 
     public void show() {
-        for (Method method : mClass.getDeclaredMethods()) {
-            if (Arrays.toString(method.getParameterTypes()).startsWith("[interface")
-                    && !Arrays.toString(method.getParameterTypes()).contains("$")) {
-                ReflectUtils.callMethod(method, mBdAlert, mPageContext);// create
+        for (var md : mClass.getDeclaredMethods()) {
+            var parameterTypesString = Arrays.toString(md.getParameterTypes());
+            if (parameterTypesString.startsWith("[interface") &&
+                    !parameterTypesString.contains("$")) {
+                ReflectUtils.callMethod(md, mBdAlert, mPageContext); // create()
             }
         }
-        LinearLayout parent = mRootView.findViewById(ReflectUtils.getId("dialog_content"));
-        if (parent.getChildAt(0) instanceof LinearLayout) {
-            LinearLayout linearLayout = (LinearLayout) parent.getChildAt(0);
-            for (int i = 0; i < linearLayout.getChildCount(); i++) {
-                View view = linearLayout.getChildAt(i);
-                if (view instanceof TextView) {
-                    ((TextView) view).setTextColor(ReflectUtils.getColor("CAM_X0105"));
-                }
-            }
-        }
-        for (Method method : mClass.getDeclaredMethods()) {
-            if (Arrays.toString(method.getParameterTypes()).equals("[]")
-                    && Objects.equals(method.getReturnType(), mClass)) {
-                ReflectUtils.callMethod(method, mBdAlert);// show
+//        LinearLayout parent = mRootView.findViewById(ReflectUtils.getId("dialog_content"));
+//        if (parent.getChildAt(0) instanceof LinearLayout) {
+//            LinearLayout linearLayout = (LinearLayout) parent.getChildAt(0);
+//            for (int i = 0, childCount = linearLayout.getChildCount(); i < childCount; i++) {
+//                View view = linearLayout.getChildAt(i);
+//                if (view instanceof TextView) {
+//                    ((TextView) view).setTextColor(ReflectUtils.getColor("CAM_X0105"));
+//                }
+//            }
+//        }
+        for (var method : mClass.getDeclaredMethods()) {
+            if (method.getParameterTypes().length == 0 &&
+                    mClass.equals(method.getReturnType())) {
+                ReflectUtils.callMethod(method, mBdAlert); // show()
                 break;
             }
         }

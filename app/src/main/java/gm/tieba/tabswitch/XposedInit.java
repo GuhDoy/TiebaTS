@@ -43,9 +43,6 @@ import gm.tieba.tabswitch.hooker.eliminate.FragmentTab;
 import gm.tieba.tabswitch.hooker.eliminate.FrsPageFilter;
 import gm.tieba.tabswitch.hooker.eliminate.PersonalizedFilter;
 import gm.tieba.tabswitch.hooker.eliminate.Purge;
-import gm.tieba.tabswitch.hooker.eliminate.PurgeEnter;
-import gm.tieba.tabswitch.hooker.eliminate.PurgeMy;
-import gm.tieba.tabswitch.hooker.eliminate.RedTip;
 import gm.tieba.tabswitch.hooker.eliminate.SwitchManager;
 import gm.tieba.tabswitch.hooker.extra.ForbidGesture;
 import gm.tieba.tabswitch.hooker.extra.Hide;
@@ -61,7 +58,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
 
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
-        if (!lpparam.packageName.equals("com.baidu.tieba") && XposedHelpers.findClassIfExists(
+        if (!"com.baidu.tieba".equals(lpparam.packageName) && XposedHelpers.findClassIfExists(
                 "com.baidu.tieba.tblauncher.MainTabActivity", lpparam.classLoader) == null) return;
         XposedHelpers.findAndHookMethod(Instrumentation.class, "callApplicationOnCreate", Application.class, new XC_MethodHook() {
             @Override
@@ -126,13 +123,13 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                         if ((Boolean) entry.getValue()) new Purge().hook();
                         break;
                     case "purge_enter":
-                        if ((Boolean) entry.getValue()) new PurgeEnter().hook();
+//                        if ((Boolean) entry.getValue()) new PurgeEnter().hook();
                         break;
                     case "purge_my":
-                        if ((Boolean) entry.getValue()) new PurgeMy().hook();
+//                        if ((Boolean) entry.getValue()) new PurgeMy().hook();
                         break;
                     case "red_tip":
-                        if ((Boolean) entry.getValue()) new RedTip().hook();
+//                        if ((Boolean) entry.getValue()) new RedTip().hook();
                         break;
                     case "follow_filter":
                         if ((Boolean) entry.getValue()) new FollowFilter().hook();

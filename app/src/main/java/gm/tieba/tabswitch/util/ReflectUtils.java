@@ -31,10 +31,26 @@ public class ReflectUtils extends XposedContext {
     }
 
     public static float getDimen(String fieldName) {
+        switch (fieldName) {
+            case "ds10":
+                return DisplayUtils.dipToPx(getContext(), 5F);
+            case "ds30":
+                return DisplayUtils.dipToPx(getContext(), 15F);
+            case "ds32":
+                return DisplayUtils.dipToPx(getContext(), 16F);
+            case "ds140":
+                return DisplayUtils.dipToPx(getContext(), 70F);
+        }
         return getContext().getResources().getDimension(getR("dimen", fieldName));
     }
 
     public static float getDimenDip(String fieldName) {
+        switch (fieldName) {
+            case "fontsize28":
+                return 14F;
+            case "fontsize36":
+                return 18F;
+        }
         return DisplayUtils.pxToDip(getContext(), getDimen(fieldName));
     }
 
@@ -42,39 +58,19 @@ public class ReflectUtils extends XposedContext {
         return getR("drawable", fieldName);
     }
 
-    public static Field findField(Object instance, Class<?> cls) {
-        String fullFieldName = instance.getClass().getName() + '#' + cls.getName();
-        if (sFieldCache.containsKey(fullFieldName)) {
-            return sFieldCache.get(fullFieldName);
-        }
+    /**
+     * Returns the first field of the given type in a class.
+     * Might be useful for Proguard'ed classes to identify fields with unique types.
+     *
+     * @param clazz The class which either declares or inherits the field.
+     * @param type  The type of the field.
+     * @return A reference to the first field of the given type.
+     * @throws NoSuchFieldError In case no matching field was not found.
+     */
+    public static Object getObjectField(Object instance, Class<?> type) {
         try {
-            Field[] declaredFields = instance.getClass().getDeclaredFields();
-            for (Field field : declaredFields) {
-                field.setAccessible(true);
-                Object objField = field.get(instance);
-                if (objField != null && cls.equals(objField.getClass())) {
-                    sFieldCache.put(field.getName(), field);
-                    return field;
-                }
-            }
-            for (Field field : declaredFields) {
-                Object objField = field.get(instance);
-                if (objField != null && cls.isAssignableFrom(objField.getClass())) {
-                    sFieldCache.put(field.getName(), field);
-                    return field;
-                }
-            }
-            throw new NoSuchFieldException(fullFieldName + " field not found");
-        } catch (NoSuchFieldException e) {
-            throw new NoSuchFieldError(e.getMessage());
-        } catch (IllegalAccessException e) {
-            throw new IllegalAccessError(e.getMessage());
-        }
-    }
-
-    public static Object getObjectField(Object instance, Class<?> cls) {
-        try {
-            return findField(instance, cls).get(instance);
+            return XposedHelpers.findFirstFieldByExactType(instance.getClass(), type)
+                    .get(instance);
         } catch (IllegalAccessException e) {
             XposedBridge.log(e);
             throw new IllegalAccessError(e.getMessage());
@@ -83,16 +79,18 @@ public class ReflectUtils extends XposedContext {
 
     public static Object getObjectField(Object instance, String className) {
         try {
-            return findField(instance, XposedHelpers.findClass(className, sClassLoader)).get(instance);
+            return XposedHelpers.findFirstFieldByExactType(instance.getClass(), XposedHelpers.findClass(className, sClassLoader))
+                    .get(instance);
         } catch (IllegalAccessException e) {
             XposedBridge.log(e);
             throw new IllegalAccessError(e.getMessage());
         }
     }
 
-    public static void setObjectField(Object instance, Class<?> cls, Object value) {
+    public static void setObjectField(Object instance, Class<?> type, Object value) {
         try {
-            findField(instance, cls).set(instance, value);
+            XposedHelpers.findFirstFieldByExactType(instance.getClass(), type)
+                    .set(instance, value);
         } catch (IllegalAccessException e) {
             XposedBridge.log(e);
             throw new IllegalAccessError(e.getMessage());
@@ -101,7 +99,39 @@ public class ReflectUtils extends XposedContext {
 
     public static void setObjectField(Object instance, String className, Object value) {
         try {
-            findField(instance, XposedHelpers.findClass(className, sClassLoader)).set(instance, value);
+            XposedHelpers.findFirstFieldByExactType(instance.getClass(), XposedHelpers.findClass(className, sClassLoader))
+                    .set(instance, value);
+        } catch (IllegalAccessException e) {
+            XposedBridge.log(e);
+            throw new IllegalAccessError(e.getMessage());
+        }
+    }
+
+    /**
+     * Returns the field at the given position in a class.
+     * Might be useful for Proguard'ed classes to identify fields with fixed position.
+     *
+     * @param clazz    The class which either declares or inherits the field.
+     * @param position The position of the field.
+     * @return A reference to the first field of the given type.
+     * @throws NoSuchFieldError In case no matching field was not found.
+     */
+    public static Object getObjectField(Object instance, int position) {
+        try {
+            var field = instance.getClass().getDeclaredFields()[position];
+            field.setAccessible(true);
+            return field.get(instance);
+        } catch (IllegalAccessException e) {
+            XposedBridge.log(e);
+            throw new IllegalAccessError(e.getMessage());
+        }
+    }
+
+    public static void setObjectField(Object instance, int position, Object value) {
+        try {
+            var field = instance.getClass().getDeclaredFields()[position];
+            field.setAccessible(true);
+            field.set(instance, value);
         } catch (IllegalAccessException e) {
             XposedBridge.log(e);
             throw new IllegalAccessError(e.getMessage());

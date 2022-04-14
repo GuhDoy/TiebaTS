@@ -4,7 +4,6 @@ import static gm.tieba.tabswitch.util.ReflectUtils.getR;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -31,7 +30,6 @@ import gm.tieba.tabswitch.hooker.anticonfusion.AntiConfusionHelper;
 import gm.tieba.tabswitch.util.CollectionsKt;
 import gm.tieba.tabswitch.util.DisplayUtils;
 import gm.tieba.tabswitch.util.ReflectUtils;
-import gm.tieba.tabswitch.widget.Switch;
 
 public class EyeshieldMode extends XposedContext implements IHooker {
     private static boolean sSavedUiMode;
@@ -106,32 +104,36 @@ public class EyeshieldMode extends XposedContext implements IHooker {
                 }
             });
         }
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader,
-                "onConfigurationChanged", Configuration.class, new XC_MethodHook() {
-                    @Override
-                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        Activity activity = (Activity) param.thisObject;
-                        if (sSavedUiMode != DisplayUtils.isLightMode(activity)) {
-                            Intent intent = new Intent().setClassName(activity,
-                                    "com.baidu.tieba.setting.more.MoreActivity");
-                            activity.startActivity(intent);
-                        }
+        XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader, "onConfigurationChanged", Configuration.class, new XC_MethodHook() {
+            @Override
+            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                var activity = (Activity) param.thisObject;
+                if (sSavedUiMode != DisplayUtils.isLightMode(activity)) {
+                    sSavedUiMode = DisplayUtils.isLightMode(activity);
+
+                    // com.baidu.tieba.setting.more.MoreActivity.OnSwitchStateChange()
+                    if (!DisplayUtils.isLightMode(activity)) {
+                        // CAM_X0201_1
+                        var color = ReflectUtils.getColor("CAM_X0201");
+                        XposedHelpers.callStaticMethod(
+                                XposedHelpers.findClass("com.baidu.tbadk.core.util.UtilHelper", sClassLoader),
+                                "setNavigationBarBackground", activity, color
+                        );
+
+                        XposedHelpers.callMethod(activity, "onChangeSkinType", 1);
+                        var app = XposedHelpers.callStaticMethod(
+                                XposedHelpers.findClass("com.baidu.tbadk.core.TbadkCoreApplication", sClassLoader),
+                                "getInst"
+                        );
+                        XposedHelpers.callMethod(app, "setSkinType", 1);
+                    } else {
+                        XposedHelpers.callStaticMethod(
+                                XposedHelpers.findClass("com.baidu.tbadk.core.util.SkinManager", sClassLoader),
+                                "setDayOrDarkSkinTypeWithSystemMode", true, false
+                        );
                     }
-                });
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.setting.more.MoreActivity", sClassLoader,
-                "onCreate", Bundle.class, new XC_MethodHook() {
-                    @Override
-                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        Activity activity = (Activity) param.thisObject;
-                        if (sSavedUiMode != DisplayUtils.isLightMode(activity)) {
-                            sSavedUiMode = DisplayUtils.isLightMode(activity);
-                            Switch bdSwitch = new Switch(activity.findViewById(
-                                    ReflectUtils.getId("item_switch")));
-                            if (DisplayUtils.isLightMode(activity)) bdSwitch.turnOff();
-                            else bdSwitch.turnOn();
-                            activity.finish();
-                        }
-                    }
-                });
+                }
+            }
+        });
     }
 }

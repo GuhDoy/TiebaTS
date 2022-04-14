@@ -116,7 +116,7 @@ public class AntiConfusion extends XposedContext implements IHooker {
     private void initProgressIndicator() {
         var title = new TextView(mActivity);
         title.setTextSize(16);
-        title.setPadding(0, 0, 0, 20);
+        title.setPaddingRelative(0, 0, 0, 20);
         title.setGravity(Gravity.CENTER);
         title.setTextColor(Color.parseColor("#FF303030"));
         title.setText("贴吧TS正在定位被混淆的类和方法，请耐心等待");

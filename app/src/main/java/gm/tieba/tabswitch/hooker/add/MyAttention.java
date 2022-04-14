@@ -39,7 +39,7 @@ public class MyAttention extends XposedContext implements IHooker {
         }
         for (String follow : follows) {
             preferenceLayout.addView(TSPreferenceHelper.createButton(follow, Preferences.getNote(follow),
-                    v -> showNoteDialog(activity, follow)));
+                    true, v -> showNoteDialog(activity, follow)));
         }
 
         boolean isAdd = true;
@@ -50,7 +50,7 @@ public class MyAttention extends XposedContext implements IHooker {
                 isAdd = false;
             }
             preferenceLayout.addView(TSPreferenceHelper.createButton(follow,
-                    Preferences.getNote(follow), v -> showNoteDialog(activity, follow)));
+                    Preferences.getNote(follow), true, v -> showNoteDialog(activity, follow)));
         }
         return preferenceLayout;
     }

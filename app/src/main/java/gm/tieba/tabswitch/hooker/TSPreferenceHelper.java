@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -41,7 +42,7 @@ public class TSPreferenceHelper extends XposedContext {
         textView.setTextSize(ReflectUtils.getDimenDip("fontsize28"));
         LinearLayout.LayoutParams layoutParams;
         if (text != null) {
-            textView.setPadding((int) ReflectUtils.getDimen("ds30"),
+            textView.setPaddingRelative((int) ReflectUtils.getDimen("ds30"),
                     (int) ReflectUtils.getDimen("ds32"), 0,
                     (int) ReflectUtils.getDimen("ds10"));
             layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
@@ -54,11 +55,16 @@ public class TSPreferenceHelper extends XposedContext {
         return textView;
     }
 
-    public static LinearLayout createButton(String text, String tip, View.OnClickListener l) {
+    public static LinearLayout createButton(String text, String tip, boolean showArrow, View.OnClickListener l) {
         Object textTipView = XposedHelpers.newInstance(XposedHelpers.findClass(
                 "com.baidu.tbadk.coreExtra.view.TbSettingTextTipView", sClassLoader), getContext());
         XposedHelpers.callMethod(textTipView, "setText", text);
         XposedHelpers.callMethod(textTipView, "setTip", tip);
+        if (!showArrow) {
+            // R.id.arrow2
+            var imageView = (ImageView) ReflectUtils.getObjectField(textTipView, ImageView.class);
+            imageView.setVisibility(View.GONE);
+        }
 
         LinearLayout newButton = (LinearLayout) ReflectUtils.getObjectField(textTipView, LinearLayout.class);
         ((ViewGroup) newButton.getParent()).removeView(newButton);
@@ -107,7 +113,7 @@ public class TSPreferenceHelper extends XposedContext {
         SwitchButtonHolder(Activity activity, String text, String key, int type) {
             mKey = key;
             if (sExceptions.containsKey(key)) {
-                switchButton = createButton(text, "此功能初始化失败", v -> {
+                switchButton = createButton(text, "此功能初始化失败", false, v -> {
                     Throwable tr = sExceptions.get(key);
                     XposedBridge.log(tr);
                     Toast.makeText(activity, Log.getStackTraceString(tr), Toast.LENGTH_SHORT).show();
@@ -121,37 +127,32 @@ public class TSPreferenceHelper extends XposedContext {
                     bdSwitchView.getHeight(), 0.25f));
             switch (type) {
                 case TYPE_SWITCH:
-                    switchButton = createButton(text, null, v -> bdSwitch.changeState());
+                    switchButton = createButton(text, null, false, v -> bdSwitch.changeState());
                     bdSwitchView.setTag(TYPE_SWITCH + key);
                     if (Preferences.getBoolean(key)) bdSwitch.turnOn();
                     else bdSwitch.turnOff();
                     break;
                 case TYPE_DIALOG:
-                    switchButton = createButton(text, null, v -> showRegexDialog(activity));
+                    switchButton = createButton(text, null, false, v -> showRegexDialog(activity));
                     bdSwitchView.setOnTouchListener((v, event) -> false);
                     if (Preferences.getString(key) != null) bdSwitch.turnOn();
                     else bdSwitch.turnOff();
                     break;
                 case TYPE_SET_MAIN:
-                    switchButton = createButton(text, null, v -> bdSwitch.changeState());
+                    switchButton = createButton(text, null, false, v -> bdSwitch.changeState());
                     bdSwitchView.setTag(TYPE_SET_MAIN + key);
                     if (Preferences.getStringSet("fragment_tab")
                             .contains(key)) bdSwitch.turnOn();
                     else bdSwitch.turnOff();
                     break;
                 case TYPE_SET_FLUTTER:
-                    switchButton = createButton(text, null, v -> bdSwitch.changeState());
+                    switchButton = createButton(text, null, false, v -> bdSwitch.changeState());
                     bdSwitchView.setTag(TYPE_SET_FLUTTER + key);
                     if (Preferences.getStringSet("switch_manager").contains(key)) bdSwitch.turnOn();
                     else bdSwitch.turnOff();
                     break;
             }
-            try {
-                switchButton.findViewById(ReflectUtils.getId("arrow2")).setVisibility(View.GONE);
-                switchButton.addView(bdSwitchView);
-            } catch (Throwable e) {
-                XposedBridge.log(e);
-            }
+            switchButton.addView(bdSwitchView);
         }
 
         void setOnButtonClickListener(View.OnClickListener l) {

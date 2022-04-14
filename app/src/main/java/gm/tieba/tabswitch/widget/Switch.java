@@ -51,7 +51,7 @@ public class Switch extends XposedContext {
         try {
             XposedHelpers.callMethod(bdSwitch, "turnOn");
         } catch (NoSuchMethodError e) {
-            XposedHelpers.callMethod(bdSwitch, "i");
+            XposedHelpers.callMethod(bdSwitch, "j");
         }
     }
 

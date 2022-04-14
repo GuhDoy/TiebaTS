@@ -89,16 +89,14 @@ public class AntiConfusionViewModel {
 
         var first = new ArrayList<String>();
         var second = new ArrayList<String>();
-        var third = new ArrayList<String>();
         AcRules.sDao.getAll().stream().map(AcRule::getClazz).forEach(it -> {
             var split = it.split("\\.");
             first.add(split[0]);
             second.add(split[1]);
-            third.add(split[2]);
         });
+        // should be "Lcom/repackage/"
         var most = "L" + CollectionsKt.most(first) + "/" +
-                CollectionsKt.most(second) + "/" +
-                CollectionsKt.most(third) + "/";
+                CollectionsKt.most(second) + "/";
         var scope = new SearchScope(most);
 
         var numberOfClassesNeedToSearch = new int[dexCount];

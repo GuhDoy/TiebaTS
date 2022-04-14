@@ -11,11 +11,14 @@ import java.util.Map;
 public abstract class XposedContext {
     private static WeakReference<Context> sContextRef;
     protected static ClassLoader sClassLoader;
-    protected static Map<String, Throwable> sExceptions = new HashMap<>();
+    protected static Map<String, Throwable> sExceptions = new HashMap<>(0);
     protected static String sPath;
     private static Handler sHandler;
 
     protected static void attachBaseContext(Context context) {
+        if (sContextRef != null) {
+            throw new IllegalStateException("Base context already set");
+        }
         sContextRef = new WeakReference<>(context.getApplicationContext());
         sHandler = new Handler(Looper.getMainLooper());
     }

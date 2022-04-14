@@ -9,8 +9,6 @@ import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 
-import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -21,6 +19,7 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.hooker.IHooker;
+import gm.tieba.tabswitch.util.ReflectUtils;
 import gm.tieba.tabswitch.widget.NavigationBar;
 import gm.tieba.tabswitch.widget.TbDialog;
 import gm.tieba.tabswitch.widget.TbEditText;
@@ -34,30 +33,31 @@ public class HistoryCache extends XposedContext implements IHooker {
                 "onCreate", Bundle.class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        Activity activity = (Activity) param.thisObject;
+                        var activity = (Activity) param.thisObject;
                         new NavigationBar(param.thisObject)
                                 .addTextButton("搜索", v -> showRegexDialog(activity));
                     }
                 });
-        for (Method method : XposedHelpers.findClass("com.baidu.tieba.myCollection.history.PbHistoryActivity", sClassLoader).getDeclaredMethods()) {
-            if (Arrays.toString(method.getParameterTypes()).equals("[interface java.util.List]")) {
+        for (var method : XposedHelpers.findClass("com.baidu.tieba.myCollection.history.PbHistoryActivity", sClassLoader).getDeclaredMethods()) {
+            var parameterTypes = method.getParameterTypes();
+            if (parameterTypes.length == 1 && parameterTypes[0].equals(List.class)) {
                 XposedBridge.hookMethod(method, new XC_MethodHook() {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                        List<?> list = (List<?>) param.args[0];
+                        var list = (List<?>) param.args[0];
                         if (list == null) return;
-                        final Pattern pattern = Pattern.compile(mRegex);
+
+                        final var pattern = Pattern.compile(mRegex);
                         list.removeIf(o -> {
                             String[] strings;
                             try {
-                                // com.baidu.tieba.myCollection.baseHistory.a
                                 strings = new String[]{(String) XposedHelpers.getObjectField(o, "forumName"),
                                         (String) XposedHelpers.getObjectField(o, "threadName")};
                             } catch (NoSuchFieldError e) {
-                                strings = new String[]{(String) XposedHelpers.getObjectField(o, "g"),
-                                        (String) XposedHelpers.getObjectField(o, "f")};
+                                strings = new String[]{(String) ReflectUtils.getObjectField(o, 3),
+                                        (String) ReflectUtils.getObjectField(o, 2)};
                             }
-                            for (String string : strings) {
+                            for (var string : strings) {
                                 if (pattern.matcher(string).find()) {
                                     return false;
                                 }

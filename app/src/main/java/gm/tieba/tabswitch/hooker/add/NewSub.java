@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 
 import de.robv.android.xposed.XC_MethodHook;
+import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
@@ -18,14 +19,17 @@ public class NewSub extends XposedContext implements IHooker {
 
     public void hook() throws Throwable {
         AcRules.findRule(Constants.getMatchers().get(NewSub.class), (AcRules.Callback) (matcher, clazz, method) ->
-                XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
+                XposedBridge.hookAllConstructors(XposedHelpers.findClass(clazz, sClassLoader), new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        Activity activity = (Activity) ReflectUtils.getObjectField(param.thisObject,
-                                "com.baidu.tieba.pb.pb.sub.NewSubPbActivity");
-                        if (activity.getIntent().getStringExtra("st_type").equals("search_post")) {
-                            new NavigationBar(param.thisObject)
-                                    .addTextButton("查看主题贴", v -> startPbActivity(activity));
+                        try {
+                            var activity = (Activity) ReflectUtils.getObjectField(param.thisObject,
+                                    "com.baidu.tieba.pb.pb.sub.NewSubPbActivity");
+                            if (activity.getIntent().getStringExtra("st_type").equals("search_post")) {
+                                new NavigationBar(param.thisObject)
+                                        .addTextButton("查看主题贴", v -> startPbActivity(activity));
+                            }
+                        } catch (NoSuchFieldError ignored) {
                         }
                     }
                 }));
@@ -33,8 +37,8 @@ public class NewSub extends XposedContext implements IHooker {
                 "build", boolean.class, new XC_MethodHook() {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                        Object thread = XposedHelpers.getObjectField(param.thisObject, "thread");
-                        Object post = XposedHelpers.getObjectField(param.thisObject, "post");
+                        var thread = XposedHelpers.getObjectField(param.thisObject, "thread");
+                        var post = XposedHelpers.getObjectField(param.thisObject, "post");
                         // null when post is omitted
                         if (thread != null && post != null) {
                             mThreadId = XposedHelpers.getObjectField(thread, "id");
@@ -46,7 +50,7 @@ public class NewSub extends XposedContext implements IHooker {
 
     // "com.baidu.tieba.pb.pb.main.PbModel", "initWithIntent"
     private void startPbActivity(Activity activity) {
-        Intent intent = new Intent().setClassName(activity, "com.baidu.tieba.pb.pb.main.PbActivity");
+        var intent = new Intent().setClassName(activity, "com.baidu.tieba.pb.pb.main.PbActivity");
         intent.putExtra("thread_id", String.valueOf(mThreadId));
         intent.putExtra("post_id", String.valueOf(mPostId));
         activity.startActivity(intent);

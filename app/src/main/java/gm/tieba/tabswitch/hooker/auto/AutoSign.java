@@ -1,8 +1,6 @@
 package gm.tieba.tabswitch.hooker.auto;
 
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -46,8 +44,7 @@ public class AutoSign extends XposedContext implements IHooker {
                                 Preferences.putSignDate();
                                 Preferences.putLikeForum(new HashSet<>(mSuccess));
                             }
-                            new Handler(Looper.getMainLooper()).post(() -> TbToast.showTbToast(
-                                    result, TbToast.LENGTH_SHORT));
+                            runOnUiThread(() -> TbToast.showTbToast(result, TbToast.LENGTH_SHORT));
                         }).start();
                     }
                 });
@@ -103,7 +100,7 @@ public class AutoSign extends XposedContext implements IHooker {
         // 当执行 3 轮所有贴吧还未签到成功就结束操作
         int flag = 3;
         try {
-            while (mSuccess.size() < mFollowNum && flag > 0) {
+            while (mSuccess.size() < mFollowNum && flag-- > 0) {
                 Iterator<String> iterator = mFollow.iterator();
                 while (iterator.hasNext()) {
                     String s = iterator.next();
@@ -121,13 +118,7 @@ public class AutoSign extends XposedContext implements IHooker {
                 if (mSuccess.size() != mFollowNum) {
                     Thread.sleep(2500);
                     getTbs();
-                    if (flag == 2) {
-                        mFollow.clear();
-                        mSuccess.clear();
-                        getFollow();
-                    }
                 }
-                flag--;
             }
         } catch (Exception e) {
             XposedBridge.log("签到部分出现错误 -- " + e);

@@ -13,7 +13,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -33,7 +32,8 @@ public class SaveImages extends XposedContext implements IHooker {
     public void hook() throws Throwable {
         for (var method : XposedHelpers.findClass("com.baidu.tbadk.coreExtra.view.ImagePagerAdapter",
                 sClassLoader).getDeclaredMethods()) {
-            if (Arrays.toString(method.getParameterTypes()).equals("[class java.util.ArrayList]")) {
+            var parameterTypes = method.getParameterTypes();
+            if (parameterTypes.length == 1 && parameterTypes[0].equals(ArrayList.class)) {
                 XposedBridge.hookMethod(method, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
@@ -53,41 +53,36 @@ public class SaveImages extends XposedContext implements IHooker {
                 sClassLoader, Context.class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-                        ReflectUtils.walkObjectFields(param.thisObject, ImageView.class, objField -> {
-                            var iv = (ImageView) objField;
-                            if (iv.getId() == ReflectUtils.getId("download_icon")) {
-                                var context = ((Context) param.args[0]).getApplicationContext();
-                                iv.setOnLongClickListener((v -> {
-                                    TbToast.showTbToast(String.format(Locale.CHINA,
-                                            "开始下载%d张图片", mList.size()), TbToast.LENGTH_SHORT);
-                                    new Thread(() -> {
+                        var context = ((Context) param.args[0]).getApplicationContext();
+                        // R.id.download_icon
+                        var imageView = (ImageView) ReflectUtils.getObjectField(param.thisObject, 11);
+                        imageView.setOnLongClickListener(v -> {
+                            TbToast.showTbToast(String.format(Locale.CHINA,
+                                    "开始下载%d张图片", mList.size()), TbToast.LENGTH_SHORT);
+                            new Thread(() -> {
+                                try {
+                                    var list = new ArrayList<>(mList);
+                                    var title = mTitle;
+                                    for (var i = 0; i < list.size(); i++) {
+                                        var url = list.get(i);
                                         try {
-                                            var list = new ArrayList<>(mList);
-                                            var title = mTitle;
-                                            for (var i = 0; i < list.size(); i++) {
-                                                var url = list.get(i);
-                                                try {
-                                                    url = "http://tiebapic.baidu.com/forum/pic/item/"
-                                                            + url.substring(url.lastIndexOf("/") + 1);
-                                                    url = url.substring(0, url.lastIndexOf("*"));
-                                                } catch (StringIndexOutOfBoundsException ignored) {
-                                                }
-                                                saveImage(url, title, i, context);
-                                            }
-                                            new Handler(Looper.getMainLooper()).post(() ->
-                                                    TbToast.showTbToast(String.format(Locale.CHINA,
-                                                            "已保存%d张图片至手机相册", list.size()),
-                                                            TbToast.LENGTH_SHORT));
-                                        } catch (IOException | NullPointerException e) {
-                                            new Handler(Looper.getMainLooper()).post(() ->
-                                                    TbToast.showTbToast("保存失败", TbToast.LENGTH_SHORT));
+                                            url = "http://tiebapic.baidu.com/forum/pic/item/" +
+                                                    url.substring(url.lastIndexOf("/") + 1);
+                                            url = url.substring(0, url.lastIndexOf("*"));
+                                        } catch (StringIndexOutOfBoundsException ignored) {
                                         }
-                                    }).start();
-                                    return true;
-                                }));
-                                return true;
-                            }
-                            return false;
+                                        saveImage(url, title, i, context);
+                                    }
+                                    new Handler(Looper.getMainLooper()).post(() ->
+                                            TbToast.showTbToast(String.format(Locale.CHINA,
+                                                            "已保存%d张图片至手机相册", list.size()),
+                                                    TbToast.LENGTH_SHORT));
+                                } catch (IOException | NullPointerException e) {
+                                    new Handler(Looper.getMainLooper()).post(() ->
+                                            TbToast.showTbToast("保存失败", TbToast.LENGTH_SHORT));
+                                }
+                            }).start();
+                            return true;
                         });
                     }
                 });

@@ -19,9 +19,9 @@ import java.io.OutputStreamWriter
 import java.nio.charset.StandardCharsets
 
 class DexBakSearcher {
-    val stringMatchers = mutableListOf<String>()
-    val literalMatchers = mutableListOf<Long>()
-    val smaliMatchers = mutableListOf<String>()
+    private val stringMatchers = mutableListOf<String>()
+    private val literalMatchers = mutableListOf<Long>()
+    private val smaliMatchers = mutableListOf<String>()
 
     constructor(genericMatchers: Iterable<String>) {
         genericMatchers.forEach {
@@ -53,6 +53,9 @@ class DexBakSearcher {
 
     // @see org.jf.baksmali.Adaptors.Format.InstructionMethodItem.writeTo()
     fun ClassDef.searchStringAndLiteral(l: MatcherListener) {
+        val stringMatchersSet = stringMatchers.toSet()
+        val literalMatchersSet = literalMatchers.toSet()
+
         for (method in methods) {
             val methodImpl = method.implementation ?: continue
             for (instruction in methodImpl.instructions) {
@@ -63,10 +66,8 @@ class DexBakSearcher {
                             reference.validateReference()
                             if (reference is StringReference) {
                                 val string = reference.string
-                                stringMatchers.forEach {
-                                    if (string == it) {
-                                        l.onMatch("\"$it\"", type.convert(), method.name)
-                                    }
+                                if (string in stringMatchersSet) {
+                                    l.onMatch("\"$string\"", type.convert(), method.name)
                                 }
                             }
                         } catch (ignored: InvalidReferenceException) {
@@ -77,10 +78,8 @@ class DexBakSearcher {
                                 reference2.validateReference()
                                 if (reference2 is StringReference) {
                                     val string = reference2.string
-                                    stringMatchers.forEach {
-                                        if (string == it) {
-                                            l.onMatch("\"$it\"", type.convert(), method.name)
-                                        }
+                                    if (string in stringMatchersSet) {
+                                        l.onMatch("\"$string\"", type.convert(), method.name)
                                     }
                                 }
                             } catch (ignored: InvalidReferenceException) {
@@ -96,10 +95,8 @@ class DexBakSearcher {
                         ) && instruction is WideLiteralInstruction
                     ) {
                         val wideLiteral = instruction.wideLiteral
-                        literalMatchers.forEach {
-                            if (wideLiteral == it) {
-                                l.onMatch(it, type.convert(), method.name)
-                            }
+                        if (wideLiteral in literalMatchersSet) {
+                            l.onMatch(wideLiteral, type.convert(), method.name)
                         }
                     }
                 }

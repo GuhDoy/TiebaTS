@@ -9,7 +9,7 @@ fun String.substringBetween(
 ): String {
     val indexOfAfter = indexOf(after)
     if (indexOfAfter == -1) return missingDelimiterValue
-    val indexOfBefore = indexOf(before)
+    val indexOfBefore = lastIndexOf(before)
     if (indexOfBefore == -1) return missingDelimiterValue
     if (indexOfAfter > indexOfBefore) return missingDelimiterValue
     return substring(indexOfAfter + after.length, indexOfBefore)

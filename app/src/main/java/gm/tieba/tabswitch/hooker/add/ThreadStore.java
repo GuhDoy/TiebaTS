@@ -5,12 +5,9 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.regex.Pattern;
@@ -22,8 +19,8 @@ import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
-import gm.tieba.tabswitch.util.DisplayUtils;
 import gm.tieba.tabswitch.util.ReflectUtils;
+import gm.tieba.tabswitch.widget.NavigationBar;
 import gm.tieba.tabswitch.widget.TbDialog;
 import gm.tieba.tabswitch.widget.TbEditText;
 import gm.tieba.tabswitch.widget.TbToast;
@@ -36,20 +33,10 @@ public class ThreadStore extends XposedContext implements IHooker {
                 "onCreate", Bundle.class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        Activity activity = (Activity) param.thisObject;
-                        TextView edit = activity.findViewById(ReflectUtils.getId("right_textview"));
-                        TextView textView = new TextView(activity);
-                        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
-                                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                        layoutParams.setMargins(60, 0, 20, 0);
-                        textView.setLayoutParams(layoutParams);
-                        textView.setTextSize(DisplayUtils.pxToDip(activity, edit.getTextSize()));
-                        textView.setTextColor(edit.getTextColors());
-                        textView.setText("搜索");
-                        LinearLayout naviRightButton = activity.findViewById(
-                                ReflectUtils.getId("navi_right_button"));
-                        naviRightButton.addView(textView);
-                        textView.setOnClickListener(v -> showRegexDialog(activity));
+                        var controller = ReflectUtils.getObjectField(param.thisObject, 1);
+                        var activity = (Activity) param.thisObject;
+                        new NavigationBar(controller)
+                                .addTextButton("搜索", v -> showRegexDialog(activity));
                     }
                 });
         AcRules.findRule(Constants.getMatchers().get(ThreadStore.class), (AcRules.Callback) (matcher, clazz, method) ->

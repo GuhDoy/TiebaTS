@@ -10,9 +10,11 @@ import android.os.Process;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +36,6 @@ import gm.tieba.tabswitch.hooker.anticonfusion.AntiConfusionHelper;
 import gm.tieba.tabswitch.hooker.extra.TraceChecker;
 import gm.tieba.tabswitch.util.DisplayUtils;
 import gm.tieba.tabswitch.util.Parser;
-import gm.tieba.tabswitch.util.ReflectUtils;
 import gm.tieba.tabswitch.widget.NavigationBar;
 import gm.tieba.tabswitch.widget.TbDialog;
 import gm.tieba.tabswitch.widget.TbToast;
@@ -66,16 +67,18 @@ public class TSPreference extends XposedContext implements IHooker {
                 "onCreate", Bundle.class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        Activity activity = (Activity) param.thisObject;
-                        FrameLayout browseSetting = activity.findViewById(
-                                ReflectUtils.getId("browseSetting"));
-                        LinearLayout parent = (LinearLayout) browseSetting.getParent();
-                        parent.addView(TSPreferenceHelper.createButton(MAIN, null,
+                        var activity = (Activity) param.thisObject;
+                        var contentView = (ViewGroup) activity.findViewById(android.R.id.content);
+                        var parent = (RelativeLayout) contentView.getChildAt(0);
+                        var scroll = (ScrollView) parent.getChildAt(0);
+                        var containerView = (LinearLayout) scroll.getChildAt(0);
+                        containerView.addView(TSPreferenceHelper.createButton(MAIN, null, true,
                                 v -> startRootPreferenceActivity(activity)), 11);
                     }
                 });
-        AcRules.findRule(Constants.getMatchers().get(TSPreference.class), (AcRules.Callback) (matcher, clazz, method) ->
-                XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, XposedHelpers
+        AcRules.findRule(Constants.getMatchers().get(TSPreference.class), (AcRules.Callback) (matcher, clazz, method) -> {
+            try {
+                XposedHelpers.findAndHookConstructor(clazz, sClassLoader, XposedHelpers
                         .findClass(PROXY_ACTIVITY, sClassLoader), new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
@@ -112,15 +115,20 @@ public class TSPreference extends XposedContext implements IHooker {
                                     .show();
                         }
                     }
-                }));
+                });
+            } catch (NoSuchMethodError ignored) {
+            }
+        });
     }
 
     private void proxyPage(Activity activity, NavigationBar navigationBar, String title,
                            LinearLayout preferenceLayout) throws Throwable {
         navigationBar.setTitleText(title);
         navigationBar.addTextButton("重启", v -> DisplayUtils.restart(activity));
-        LinearLayout containerView = (LinearLayout) activity.findViewById(
-                ReflectUtils.getId("black_address_list")).getParent();
+        var contentView = (ViewGroup) activity.findViewById(android.R.id.content);
+        var parent = (LinearLayout) contentView.getChildAt(0);
+        var mainScroll = (ScrollView) parent.getChildAt(1);
+        var containerView = (LinearLayout) mainScroll.getChildAt(0);
         containerView.removeAllViews();
         containerView.addView(preferenceLayout);
     }
@@ -159,7 +167,7 @@ public class TSPreference extends XposedContext implements IHooker {
         TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
 
         preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurgeEnabled ? "轻车简从" : "净化界面"));
-        preferenceLayout.addView(TSPreferenceHelper.createButton(MODIFY_TAB, null, v -> {
+        preferenceLayout.addView(TSPreferenceHelper.createButton(MODIFY_TAB, null, true, v -> {
             Intent intent = new Intent().setClassName(activity, PROXY_ACTIVITY);
             intent.putExtra("proxyPage", MODIFY_TAB);
             activity.startActivity(intent);
@@ -183,7 +191,7 @@ public class TSPreference extends XposedContext implements IHooker {
         preferenceLayout.addView(new SwitchButtonHolder(activity, "搜索楼中楼增加查看主题贴", "new_sub", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "楼层增加点按效果", "ripple", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "长按下载保存全部图片", "save_images", SwitchButtonHolder.TYPE_SWITCH));
-        preferenceLayout.addView(TSPreferenceHelper.createButton(NOTES, null, v -> {
+        preferenceLayout.addView(TSPreferenceHelper.createButton(NOTES, null, true, v -> {
             Intent intent = new Intent().setClassName(activity, PROXY_ACTIVITY);
             intent.putExtra("proxyPage", NOTES);
             activity.startActivity(intent);
@@ -215,32 +223,32 @@ public class TSPreference extends XposedContext implements IHooker {
         preferenceLayout.addView(new SwitchButtonHolder(activity, "禁用帖子手势", "forbid_gesture", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "用赞踩差数代替赞数", "agree_num", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "禁止监听内部图片内容变化", "register_internal_content_uri", SwitchButtonHolder.TYPE_SWITCH));
-        preferenceLayout.addView(TSPreferenceHelper.createButton(TRACE, "希望有一天不再需要贴吧TS", v -> {
+        preferenceLayout.addView(TSPreferenceHelper.createButton(TRACE, "希望有一天不再需要贴吧TS", true, v -> {
             Intent intent = new Intent().setClassName(activity, PROXY_ACTIVITY);
             intent.putExtra("proxyPage", TRACE);
             activity.startActivity(intent);
         }));
 
         preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurgeEnabled ? "关于就是关于" : "关于"));
-        preferenceLayout.addView(TSPreferenceHelper.createButton("版本", BuildConfig.VERSION_NAME, v -> {
+        preferenceLayout.addView(TSPreferenceHelper.createButton("版本", BuildConfig.VERSION_NAME, true, v -> {
             Intent intent = new Intent();
             intent.setAction("android.intent.action.VIEW");
             intent.setData(Uri.parse("https://github.com/GuhDoy/TiebaTS/releases/latest"));
             activity.startActivity(intent);
         }));
-        preferenceLayout.addView(TSPreferenceHelper.createButton("源代码", "想要小星星", v -> {
+        preferenceLayout.addView(TSPreferenceHelper.createButton("源代码", "想要小星星", true, v -> {
             Intent intent = new Intent();
             intent.setAction("android.intent.action.VIEW");
             intent.setData(Uri.parse("https://github.com/GuhDoy/TiebaTS"));
             activity.startActivity(intent);
         }));
-        preferenceLayout.addView(TSPreferenceHelper.createButton("TG群", "及时获取更新", v -> {
+        preferenceLayout.addView(TSPreferenceHelper.createButton("TG群", "及时获取更新", true, v -> {
             Intent intent = new Intent();
             intent.setAction("android.intent.action.VIEW");
             intent.setData(Uri.parse("https://t.me/TabSwitch"));
             activity.startActivity(intent);
         }));
-        preferenceLayout.addView(TSPreferenceHelper.createButton("作者", "GM", v -> {
+        preferenceLayout.addView(TSPreferenceHelper.createButton("作者", "GM", true, v -> {
             sCount++;
             if (sCount % 3 == 0) {
                 TbToast.showTbToast(TSPreferenceHelper.randomToast(), TbToast.LENGTH_SHORT);
@@ -309,7 +317,7 @@ public class TSPreference extends XposedContext implements IHooker {
         preferenceLayout.addView(new SwitchButtonHolder(activity, "检测 Xposed", "check_xposed", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "检测模块", "check_module", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "检测堆栈（重启才能真正生效）", "check_stack_trace", SwitchButtonHolder.TYPE_SWITCH));
-        preferenceLayout.addView(TSPreferenceHelper.createButton(isPurgeEnabled ? "捏捏尾巴" : "检测模块", String.valueOf(Process.myPid()), v ->
+        preferenceLayout.addView(TSPreferenceHelper.createButton(isPurgeEnabled ? "捏捏尾巴" : "检测模块", String.valueOf(Process.myPid()), true, v ->
                 new TraceChecker(preferenceLayout).checkAll()));
         TraceChecker.sChildCount = preferenceLayout.getChildCount();
         return preferenceLayout;

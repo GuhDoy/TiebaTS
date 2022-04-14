@@ -50,6 +50,8 @@ public class Parser extends XposedContext {
                 var identifier = resources.getIdentifier(name, defType, defPackage);
                 if (identifier != 0) {
                     result.put(identifier, it);
+                } else {
+                    // TODO
                 }
             }
         });
