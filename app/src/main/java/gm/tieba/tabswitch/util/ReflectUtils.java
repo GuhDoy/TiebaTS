@@ -5,16 +5,12 @@ import androidx.annotation.ColorInt;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
 
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.XposedContext;
 
 public class ReflectUtils extends XposedContext {
-    private static final Map<String, Field> sFieldCache = new HashMap<>();
-
     public static int getR(String innerClassName, String fieldName) {
         return getContext().getResources()
                 .getIdentifier(fieldName, innerClassName, getContext().getPackageName());

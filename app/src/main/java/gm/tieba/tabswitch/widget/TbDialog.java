@@ -53,10 +53,14 @@ public class TbDialog extends XposedContext {
                 int color = ReflectUtils.getColor("CAM_X0204");
                 // R.id.bdDialog_divider_line
                 var bdDialogDividerLine = (View) XposedHelpers.getObjectField(mBdAlert, "bdDialog_divider_line");
-                bdDialogDividerLine.setBackgroundColor(color);
+                if (bdDialogDividerLine != null) {
+                    bdDialogDividerLine.setBackgroundColor(color);
+                }
                 // R.id.divider_yes_no_button
                 var dividerWithButton = (View) XposedHelpers.getObjectField(mBdAlert, "dividerWithButton");
-                dividerWithButton.setBackgroundColor(color);
+                if (dividerWithButton != null) {
+                    dividerWithButton.setBackgroundColor(color);
+                }
             });
         });
     }
@@ -81,7 +85,9 @@ public class TbDialog extends XposedContext {
             }
             // R.id.no
             var noButton = (TextView) XposedHelpers.getObjectField(mBdAlert, "noButton");
-            noButton.setOnClickListener(l);
+            if (noButton != null) {
+                noButton.setOnClickListener(l);
+            }
         });
     }
 
@@ -93,7 +99,10 @@ public class TbDialog extends XposedContext {
             } catch (NoSuchFieldError e) {
                 XposedHelpers.setObjectField(mBdAlert, "l", ok);
             }
-            findYesButton().setOnClickListener(l);
+            var yesButton = (TextView) findYesButton();
+            if (yesButton != null) {
+                yesButton.setOnClickListener(l);
+            }
         });
     }
 

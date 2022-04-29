@@ -27,7 +27,7 @@ public class CreateView extends XposedContext implements IHooker {
                 var signButtonLayoutParams = (RelativeLayout.LayoutParams) signButton.getLayoutParams();
                 signButtonLayoutParams.leftMargin = 0;
                 signButton.setLayoutParams(signButtonLayoutParams);
-                //historyButton
+                // historyButton
                 final var historyDrawable = new ImageView(activity);
                 historyDrawable.setImageResource(
                         ReflectUtils.getDrawableId("icon_mask_wo_list_history24_svg"));
@@ -47,7 +47,7 @@ public class CreateView extends XposedContext implements IHooker {
                             "com.baidu.tieba.myCollection.history.PbHistoryActivity");
                     activity.startActivity(intent);
                 });
-                //collectButton
+                // collectButton
                 final var collectDrawable = new ImageView(activity);
                 collectDrawable.setImageResource(
                         ReflectUtils.getDrawableId("icon_mask_wo_list_collect24_svg"));
