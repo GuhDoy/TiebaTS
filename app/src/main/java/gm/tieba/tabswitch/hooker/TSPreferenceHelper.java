@@ -19,6 +19,8 @@ import android.widget.Toast;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -68,6 +70,7 @@ public class TSPreferenceHelper extends XposedContext {
 
         LinearLayout newButton = (LinearLayout) ReflectUtils.getObjectField(textTipView, LinearLayout.class);
         ((ViewGroup) newButton.getParent()).removeView(newButton);
+        newButton.setBackgroundColor(ReflectUtils.getColor("CAM_X0201"));
         if (l != null) newButton.setOnClickListener(l);
         return newButton;
     }
@@ -106,6 +109,7 @@ public class TSPreferenceHelper extends XposedContext {
         public final static int TYPE_DIALOG = 1;
         public final static int TYPE_SET_MAIN = 2;
         public final static int TYPE_SET_FLUTTER = 3;
+        public final static Map<Integer, String> sIdToTag = new HashMap<>();
         private final String mKey;
         public Switch bdSwitch;
         public LinearLayout switchButton;
@@ -124,11 +128,12 @@ public class TSPreferenceHelper extends XposedContext {
             bdSwitch.setOnSwitchStateChangeListener(new SwitchStatusChangeHandler());
             View bdSwitchView = bdSwitch.bdSwitch;
             bdSwitchView.setLayoutParams(new LinearLayout.LayoutParams(bdSwitchView.getWidth(),
-                    bdSwitchView.getHeight(), 0.25f));
+                    bdSwitchView.getHeight(), 0.15F));
+            bdSwitchView.setId(View.generateViewId());
             switch (type) {
                 case TYPE_SWITCH:
                     switchButton = createButton(text, null, false, v -> bdSwitch.changeState());
-                    bdSwitchView.setTag(TYPE_SWITCH + key);
+                    sIdToTag.put(bdSwitchView.getId(), TYPE_SWITCH + key);
                     if (Preferences.getBoolean(key)) bdSwitch.turnOn();
                     else bdSwitch.turnOff();
                     break;
@@ -140,14 +145,13 @@ public class TSPreferenceHelper extends XposedContext {
                     break;
                 case TYPE_SET_MAIN:
                     switchButton = createButton(text, null, false, v -> bdSwitch.changeState());
-                    bdSwitchView.setTag(TYPE_SET_MAIN + key);
-                    if (Preferences.getStringSet("fragment_tab")
-                            .contains(key)) bdSwitch.turnOn();
+                    sIdToTag.put(bdSwitchView.getId(), TYPE_SET_MAIN + key);
+                    if (Preferences.getStringSet("fragment_tab").contains(key)) bdSwitch.turnOn();
                     else bdSwitch.turnOff();
                     break;
                 case TYPE_SET_FLUTTER:
                     switchButton = createButton(text, null, false, v -> bdSwitch.changeState());
-                    bdSwitchView.setTag(TYPE_SET_FLUTTER + key);
+                    sIdToTag.put(bdSwitchView.getId(), TYPE_SET_FLUTTER + key);
                     if (Preferences.getStringSet("switch_manager").contains(key)) bdSwitch.turnOn();
                     else bdSwitch.turnOff();
                     break;
@@ -200,19 +204,19 @@ public class TSPreferenceHelper extends XposedContext {
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) {
                 View view = (View) args[0];
-                String key = (String) view.getTag();
-                if (key != null) {
-                    switch (Integer.parseInt(key.substring(0, 1))) {
+                var tag = sIdToTag.get(view.getId());
+                if (tag != null) {
+                    switch (Integer.parseInt(tag.substring(0, 1))) {
                         case TYPE_SWITCH:
-                            Preferences.putBoolean(key.substring(1), args[1].toString().equals("ON"));
+                            Preferences.putBoolean(tag.substring(1), args[1].toString().equals("ON"));
                             break;
                         case TYPE_SET_MAIN:
                             Preferences.putStringSet("fragment_tab",
-                                    key.substring(1), args[1].toString().equals("ON"));
+                                    tag.substring(1), args[1].toString().equals("ON"));
                             break;
                         case TYPE_SET_FLUTTER:
                             Preferences.putStringSet("switch_manager",
-                                    key.substring(1), args[1].toString().equals("ON"));
+                                    tag.substring(1), args[1].toString().equals("ON"));
                             break;
                     }
                 }

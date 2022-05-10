@@ -35,7 +35,7 @@ public class Switch extends XposedContext {
         try {
             return (Boolean) XposedHelpers.callMethod(bdSwitch, "isOn");
         } catch (NoSuchMethodError e) {
-            return (Boolean) XposedHelpers.callMethod(bdSwitch, "d");
+            return (Boolean) XposedHelpers.callMethod(bdSwitch, "f");
         }
     }
 
@@ -43,7 +43,7 @@ public class Switch extends XposedContext {
         try {
             XposedHelpers.callMethod(bdSwitch, "changeState");
         } catch (NoSuchMethodError e) {
-            XposedHelpers.callMethod(bdSwitch, "b");
+            XposedHelpers.callMethod(bdSwitch, "c");
         }
     }
 
@@ -51,7 +51,7 @@ public class Switch extends XposedContext {
         try {
             XposedHelpers.callMethod(bdSwitch, "turnOn");
         } catch (NoSuchMethodError e) {
-            XposedHelpers.callMethod(bdSwitch, "j");
+            XposedHelpers.callMethod(bdSwitch, "l");
         }
     }
 
@@ -59,7 +59,7 @@ public class Switch extends XposedContext {
         try {
             XposedHelpers.callMethod(bdSwitch, "turnOff");
         } catch (NoSuchMethodError e) {
-            XposedHelpers.callMethod(bdSwitch, "f");
+            XposedHelpers.callMethod(bdSwitch, "i");
         }
     }
 }

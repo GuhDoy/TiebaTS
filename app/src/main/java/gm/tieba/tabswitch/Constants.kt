@@ -44,7 +44,6 @@ object Constants {
         PurgeMy::class.java to arrayOf(
             "Lcom/baidu/tieba/R\$drawable;->icon_pure_topbar_store44_svg:I",
             "Lcom/baidu/tieba/R\$drawable;->person_center_red_tip_shape:I",
-            "\"https://tieba.baidu.com/mo/q/duxiaoman/index?noshare=1\"",
         ),
         ThreadStore::class.java to arrayOf("\"c/f/post/threadstore\""),
         NewSub::class.java to arrayOf("\"c0132\""),
