@@ -44,6 +44,7 @@ import gm.tieba.tabswitch.hooker.eliminate.FrsPageFilter;
 import gm.tieba.tabswitch.hooker.eliminate.PersonalizedFilter;
 import gm.tieba.tabswitch.hooker.eliminate.Purge;
 import gm.tieba.tabswitch.hooker.eliminate.PurgeMy;
+import gm.tieba.tabswitch.hooker.eliminate.RedTip;
 import gm.tieba.tabswitch.hooker.eliminate.SwitchManager;
 import gm.tieba.tabswitch.hooker.extra.ForbidGesture;
 import gm.tieba.tabswitch.hooker.extra.Hide;
@@ -130,7 +131,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                         if ((Boolean) entry.getValue()) new PurgeMy().hook();
                         break;
                     case "red_tip":
-//                        if ((Boolean) entry.getValue()) new RedTip().hook();
+                        if ((Boolean) entry.getValue()) new RedTip().hook();
                         break;
                     case "follow_filter":
                         if ((Boolean) entry.getValue()) new FollowFilter().hook();

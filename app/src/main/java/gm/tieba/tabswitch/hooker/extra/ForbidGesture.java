@@ -10,9 +10,12 @@ import android.view.ViewGroup;
 import java.lang.reflect.Method;
 
 import de.robv.android.xposed.XC_MethodHook;
+import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
+import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
+import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
@@ -20,21 +23,11 @@ import gm.tieba.tabswitch.util.ReflectUtils;
 public class ForbidGesture extends XposedContext implements IHooker {
     public void hook() throws Throwable {
         // 帖子字号
-//        AcRules.findRule(Constants.getMatchers().get(ForbidGesture.class), (AcRules.Callback) (matcher, clazz, method) ->
-//                XposedBridge.hookAllConstructors(XposedHelpers.findClass(clazz, sClassLoader), new XC_MethodHook() {
-//                    @Override
-//                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-//                        ReflectUtils.walkObjectFields(param.thisObject, RelativeLayout.class, objField -> {
-//                            RelativeLayout rl = (RelativeLayout) ReflectUtils.getObjectField(param.thisObject, RelativeLayout.class);
-//                            ListView list = rl.findViewById(ReflectUtils.getId("new_pb_list"));
-//                            if (list != null) {
-//                                list.setOnTouchListener((v, event) -> false);
-//                                return true;
-//                            }
-//                            return false;
-//                        });
-//                    }
-//                }));
+        AcRules.findRule(Constants.getResourceMatchers().get(ForbidGesture.class), (AcRules.Callback) (matcher, clazz, method) -> {
+                    XposedHelpers.findAndHookMethod(clazz, sClassLoader, "c", XC_MethodReplacement.returnConstant(null));
+                    XposedHelpers.findAndHookMethod(clazz, sClassLoader, "d", XC_MethodReplacement.returnConstant(null));
+                }
+        );
         // 视频帖字号
         XposedHelpers.findAndHookMethod("com.baidu.tieba.pb.videopb.fragment.DetailInfoAndReplyFragment", sClassLoader,
                 "onCreateView", LayoutInflater.class, ViewGroup.class, Bundle.class, new XC_MethodHook() {

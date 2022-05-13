@@ -17,7 +17,7 @@ android {
         minSdk 24
         targetSdk sdk
         versionCode gitCommitCount
-        versionName '2.8-beta'
+        versionName '2.8'
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         externalNativeBuild {
@@ -71,6 +71,8 @@ dependencies {
 
     implementation 'io.reactivex.rxjava3:rxjava:3.1.2'
     implementation 'org.smali:baksmali:2.5.2'
+    // https://stackoverflow.com/questions/61195038/excluding-dependency-from-implementation-files
+    implementation files('apktool_2.6.1.jar')
     implementation 'com.squareup.okhttp3:okhttp:5.0.0-alpha.5'
     implementation 'dev.rikka.ndk.thirdparty:cxx:1.2.0'
 }

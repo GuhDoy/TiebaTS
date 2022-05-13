@@ -128,7 +128,7 @@ public class TSPreferenceHelper extends XposedContext {
             bdSwitch.setOnSwitchStateChangeListener(new SwitchStatusChangeHandler());
             View bdSwitchView = bdSwitch.bdSwitch;
             bdSwitchView.setLayoutParams(new LinearLayout.LayoutParams(bdSwitchView.getWidth(),
-                    bdSwitchView.getHeight(), 0.15F));
+                    bdSwitchView.getHeight(), 0.16F));
             bdSwitchView.setId(View.generateViewId());
             switch (type) {
                 case TYPE_SWITCH:

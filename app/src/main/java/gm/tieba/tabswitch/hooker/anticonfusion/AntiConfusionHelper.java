@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,13 +28,16 @@ import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.util.DisplayUtils;
+import kotlin.collections.CollectionsKt;
 
 public class AntiConfusionHelper {
-    static List<String> matcherList = Constants.getMatchers().values().stream()
+    static List<String> matchers = Constants.getMatchers().values().stream()
+            .flatMap(Arrays::stream).collect(Collectors.toList());
+    static List<String> resourceMatchers = Constants.getResourceMatchers().values().stream()
             .flatMap(Arrays::stream).collect(Collectors.toList());
 
     public static List<String> getRulesLost() {
-        List<String> list = new ArrayList<>(matcherList);
+        var list = CollectionsKt.plus(matchers, resourceMatchers);
         list.removeIf(AcRules::isRuleFound);
         return list;
     }

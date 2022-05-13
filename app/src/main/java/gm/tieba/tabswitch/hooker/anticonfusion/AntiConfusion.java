@@ -12,17 +12,18 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
+import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.IHooker;
-import gm.tieba.tabswitch.util.Parser;
 
 public class AntiConfusion extends XposedContext implements IHooker {
     private static final String TRAMPOLINE_ACTIVITY = "com.baidu.tieba.tblauncher.MainTabActivity";
@@ -61,7 +62,7 @@ public class AntiConfusion extends XposedContext implements IHooker {
                 if (AntiConfusionHelper.isDexChanged(mActivity)) {
                     AcRules.dropRules();
                 } else if (!AntiConfusionHelper.getRulesLost().isEmpty()) {
-                    AntiConfusionHelper.matcherList = AntiConfusionHelper.getRulesLost();
+                    AntiConfusionHelper.matchers = AntiConfusionHelper.getRulesLost();
                 } else {
 //                    unhook.unhook();
                     AntiConfusionHelper.saveAndRestart(mActivity,
@@ -77,22 +78,30 @@ public class AntiConfusion extends XposedContext implements IHooker {
 
                 new Thread(() -> {
                     try {
-                        setMessage("解压");
+                        setMessage("(1/4) 解压");
                         var packageResource = new File(mActivity.getPackageResourcePath());
                         var dexDir = new File(mActivity.getCacheDir(), "app_dex");
                         viewModel.unzip(packageResource, dexDir);
 
-                        setMessage("搜索字符串和资源 id");
-                        var idToMatcher = Parser.resolveIdentifier(AntiConfusionHelper.matcherList);
-                        AntiConfusionHelper.matcherList.removeAll(idToMatcher.values());
-                        var searcher = new DexBakSearcher(AntiConfusionHelper.matcherList,
+                        setMessage("(2/4) 解析资源");
+                        var idToMatcher = AntiConfusionViewModel.resolveIdentifier(
+                                AntiConfusionHelper.matchers, getContext());
+                        var idToResMatcher = AntiConfusionViewModel.decodeArsc(
+                                Constants.getResourceMatchers().values().stream()
+                                        .flatMap(Arrays::stream).collect(Collectors.toSet()),
+                                packageResource);
+                        idToMatcher.putAll(idToResMatcher);
+                        AntiConfusionHelper.matchers.removeAll(idToMatcher.values());
+
+                        setMessage("(3/4) 搜索字符串和资源 id");
+                        var searcher = new DexBakSearcher(AntiConfusionHelper.matchers,
                                 idToMatcher.keySet().stream()
                                         .map(Long::valueOf)
                                         .collect(Collectors.toList())
                         );
                         var scope = viewModel.fastSearchAndFindScope(searcher, idToMatcher);
 
-                        setMessage("在 " + scope.getMost() + " 中搜索代码");
+                        setMessage("(4/4) 在 " + scope.getMost() + " 中搜索代码");
                         viewModel.searchSmali(searcher, scope);
 
                         viewModel.saveDexSignatureHashCode();

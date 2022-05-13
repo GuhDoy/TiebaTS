@@ -8,6 +8,7 @@ import gm.tieba.tabswitch.hooker.eliminate.FragmentTab
 import gm.tieba.tabswitch.hooker.eliminate.Purge
 import gm.tieba.tabswitch.hooker.eliminate.PurgeEnter
 import gm.tieba.tabswitch.hooker.eliminate.PurgeMy
+import gm.tieba.tabswitch.hooker.extra.ForbidGesture
 import gm.tieba.tabswitch.widget.TbDialog
 import gm.tieba.tabswitch.widget.TbToast
 
@@ -47,7 +48,11 @@ object Constants {
         ),
         ThreadStore::class.java to arrayOf("\"c/f/post/threadstore\""),
         NewSub::class.java to arrayOf("\"c0132\""),
-//        ForbidGesture::class.java to arrayOf("Lcom/baidu/tieba/R\$id;->new_pb_list:I"),
         FrsTab::class.java to arrayOf("\"from_pb_or_person\""),
+    )
+
+    @JvmStatic
+    val resourceMatchers = mapOf(
+        ForbidGesture::class.java to arrayOf("特大号字体"),
     )
 }
