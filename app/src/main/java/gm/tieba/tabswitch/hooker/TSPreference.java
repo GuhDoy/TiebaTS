@@ -298,7 +298,6 @@ public class TSPreference extends XposedContext implements IHooker {
         preferenceLayout.addView(TSPreferenceHelper.createTextView("禁用 Flutter"));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "我关注的吧", "flutter_concern_forum_enable_android", SwitchButtonHolder.TYPE_SET_FLUTTER));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "吧资料", "flutter_forum_detail_enable_android_112", SwitchButtonHolder.TYPE_SET_FLUTTER));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "MyTab", "flutter_mytab_enable_android_112", SwitchButtonHolder.TYPE_SET_FLUTTER));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "粉丝", "flutter_attention_enable_android_112", SwitchButtonHolder.TYPE_SET_FLUTTER));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "个人中心", "flutter_person_center_enable_android_12", SwitchButtonHolder.TYPE_SET_FLUTTER));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "一键签到", "flutter_signin_enable_android_119", SwitchButtonHolder.TYPE_SET_FLUTTER));
