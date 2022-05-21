@@ -51,22 +51,22 @@ public class RedirectImage extends XposedContext implements IHooker {
         var appContext = context.getApplicationContext();
         var fileName = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("."));
         try {
-            var bb = FileUtils.toByteBufferNoCopy(is);
-            var newImageDetails = new ContentValues();
+            var bb = FileUtils.toByteBuffer(is);
+            var imageDetails = new ContentValues();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                newImageDetails.put(MediaStore.MediaColumns.RELATIVE_PATH,
+                imageDetails.put(MediaStore.MediaColumns.RELATIVE_PATH,
                         Environment.DIRECTORY_PICTURES + File.separator + "tieba");
             } else {
                 var path = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
                         "tieba");
                 path.mkdirs();
-                newImageDetails.put(MediaStore.MediaColumns.DATA, path + File.separator
+                imageDetails.put(MediaStore.MediaColumns.DATA, path + File.separator
                         + fileName + "." + FileUtils.getExtension(bb));
             }
-            newImageDetails.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
-            newImageDetails.put(MediaStore.MediaColumns.MIME_TYPE, "image/" + FileUtils.getExtension(bb));
+            imageDetails.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+            imageDetails.put(MediaStore.MediaColumns.MIME_TYPE, "image/" + FileUtils.getExtension(bb));
             var resolver = appContext.getContentResolver();
-            var imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, newImageDetails);
+            var imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, imageDetails);
             var descriptor = resolver.openFileDescriptor(imageUri, "w");
             FileUtils.copy(bb, descriptor.getFileDescriptor());
             is.close();

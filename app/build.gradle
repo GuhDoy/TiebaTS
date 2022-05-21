@@ -1,8 +1,8 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id "org.jetbrains.kotlin.kapt"
 }
-apply plugin: "kotlin-kapt"
 
 def gitCommitCount = Integer.parseInt('git rev-list --count HEAD'.execute([], project.rootDir).text.trim())
 def sdk = 31
@@ -17,7 +17,7 @@ android {
         minSdk 24
         targetSdk sdk
         versionCode gitCommitCount
-        versionName '2.8'
+        versionName '2.8.1-beta'
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         externalNativeBuild {

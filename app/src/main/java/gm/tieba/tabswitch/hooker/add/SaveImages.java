@@ -91,21 +91,21 @@ public class SaveImages extends XposedContext implements IHooker {
     private static void saveImage(String url, String title, int i, Context context) throws IOException {
         try (var is = new URL(url).openStream()) {
             var bb = FileUtils.toByteBuffer(is);
-            var newImageDetails = new ContentValues();
+            var imageDetails = new ContentValues();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                newImageDetails.put(MediaStore.MediaColumns.RELATIVE_PATH,
+                imageDetails.put(MediaStore.MediaColumns.RELATIVE_PATH,
                         Environment.DIRECTORY_PICTURES + File.separator + "tieba" + File.separator + title);
             } else {
                 var path = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
                         "tieba" + File.separator + title);
                 path.mkdirs();
-                newImageDetails.put(MediaStore.MediaColumns.DATA, path + File.separator
-                        + i + "." + FileUtils.getExtension(bb));
+                imageDetails.put(MediaStore.MediaColumns.DATA, path + File.separator
+                        + String.format(Locale.CHINA, "%02d", i) + "." + FileUtils.getExtension(bb));
             }
-            newImageDetails.put(MediaStore.MediaColumns.DISPLAY_NAME, String.valueOf(i));
-            newImageDetails.put(MediaStore.MediaColumns.MIME_TYPE, "image/" + FileUtils.getExtension(bb));
+            imageDetails.put(MediaStore.MediaColumns.DISPLAY_NAME, String.format(Locale.CHINA, "%02d", i));
+            imageDetails.put(MediaStore.MediaColumns.MIME_TYPE, "image/" + FileUtils.getExtension(bb));
             var resolver = context.getContentResolver();
-            var imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, newImageDetails);
+            var imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, imageDetails);
             var descriptor = resolver.openFileDescriptor(imageUri, "w");
             FileUtils.copy(bb, descriptor.getFileDescriptor());
         }

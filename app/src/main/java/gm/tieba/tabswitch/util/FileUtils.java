@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
 
 public class FileUtils {
     public static void copy(Object input, Object output) throws IOException {
@@ -68,12 +67,6 @@ public class FileUtils {
         var baos = new ByteArrayOutputStream();
         copy(is, baos);
         return ByteBuffer.wrap(baos.toByteArray());
-    }
-
-    public static ByteBuffer toByteBufferNoCopy(InputStream is) throws IOException {
-        var bb = ByteBuffer.allocate(is.available());
-        Channels.newChannel(is).read(bb);
-        return bb;
     }
 
     public static String getExtension(ByteBuffer bb) throws IOException {
