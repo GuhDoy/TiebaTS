@@ -22,7 +22,6 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
-import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
@@ -232,14 +231,6 @@ public class Purge extends XposedContext implements IHooker {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.enterForum.view.ForumHeaderView", sClassLoader, "setSearchHint", String.class, XC_MethodReplacement.returnConstant(null));
         // 进吧大家都在搜
         XposedHelpers.findAndHookMethod("com.baidu.tieba.homepage.framework.indicator.NestedScrollHeader", sClassLoader, "setSearchHint", String.class, XC_MethodReplacement.returnConstant(null));
-        // 首页任务弹窗
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.missionCustomDialog.MissionCustomDialogActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
-            @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                Activity activity = (Activity) param.thisObject;
-                activity.finish();
-            }
-        });
         // 一键签到广告
         XposedHelpers.findAndHookMethod("com.baidu.tieba.signall.SignAllForumAdvertActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
             @Override
@@ -248,37 +239,6 @@ public class Purge extends XposedContext implements IHooker {
                 activity.finish();
             }
         });
-        // 欢迎页
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.launcherGuide.tblauncher.GuideActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
-            @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                ReflectUtils.walkObjectFields(param.thisObject, int[].class, objField -> {
-                    int[] ints = (int[]) objField;
-                    for (int i = 0; i < ints.length; i++) {
-                        ints[i] = 0;
-                    }
-                    return false;
-                });
-            }
-        });
-        // 傻宝
-        if (Preferences.getBoolean("sha_bao")) {
-            XposedHelpers.findAndHookMethod("tbclient.PbPage.DataRes$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
-                @Override
-                protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                    var postList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "post_list");
-                    if (postList == null) return;
-
-                    postList.removeIf(o -> {
-                        var contents = (List<?>) XposedHelpers.getObjectField(o, "content");
-                        return contents.stream().anyMatch(o1 -> {
-                            var src = XposedHelpers.getObjectField(o1, "cdn_src");
-                            return "https://tiebapic.baidu.com/forum/pic/item/574e9258d109b3defcfad08389bf6c81810a4c97.jpg".equals(src);
-                        });
-                    });
-                }
-            });
-        }
         // 首页推荐右侧悬浮
         for (var method : XposedHelpers.findClass("com.baidu.tbadk.widget.RightFloatLayerView", sClassLoader).getDeclaredMethods()) {
             if (method.getParameterTypes().length == 0 && method.getReturnType() == boolean.class) {
