@@ -5,12 +5,12 @@ plugins {
 }
 
 def gitCommitCount = Integer.parseInt('git rev-list --count HEAD'.execute([], project.rootDir).text.trim())
-def sdk = 31
+def sdk = 32
 
 android {
     compileSdk sdk
-    buildToolsVersion '31.0.0'
-    ndkVersion '23.1.7779620'
+    buildToolsVersion '33.0.0'
+    ndkVersion '24.0.8215888'
 
     defaultConfig {
         applicationId 'gm.tieba.tabswitch'

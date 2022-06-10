@@ -99,6 +99,9 @@ class DexBakSearcher {
                             l.onMatch(wideLiteral, type.convert(), method.name)
                         }
                     }
+                    else -> {
+                        // do nothing.
+                    }
                 }
             }
         }
