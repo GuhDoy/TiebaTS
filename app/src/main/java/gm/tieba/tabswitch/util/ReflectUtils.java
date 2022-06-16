@@ -180,7 +180,7 @@ public class ReflectUtils extends XposedContext {
                 return method;
             }
         }
-        throw new NoSuchMethodError();
+        throw new NoSuchMethodError(Arrays.toString(paramTypes));
     }
 
     public static Method findFirstMethodByExactType(String className, Class<?>... paramTypes) {

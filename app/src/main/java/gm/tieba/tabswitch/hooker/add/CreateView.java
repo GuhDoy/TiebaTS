@@ -3,7 +3,9 @@ package gm.tieba.tabswitch.hooker.add;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
@@ -16,9 +18,16 @@ import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class CreateView extends XposedContext implements IHooker {
     public void hook() throws Throwable {
-        var method = ReflectUtils.findFirstMethodByExactType(
-                "com.baidu.tieba.enterForum.home.EnterForumTabFragment", View.class, Bundle.class
+        var method = XposedHelpers.findMethodExactIfExists(
+                "com.baidu.tieba.enterForum.home.EnterForumTabFragment", sClassLoader,
+                "onCreateView", LayoutInflater.class, ViewGroup.class, Bundle.class
         );
+        if (method == null) {
+            // 12.25.4.1 +
+            method = ReflectUtils.findFirstMethodByExactType(
+                    "com.baidu.tieba.enterForum.home.EnterForumTabFragment", View.class, Bundle.class
+            );
+        }
         XposedBridge.hookMethod(method, new XC_MethodHook() {
             @Override
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
