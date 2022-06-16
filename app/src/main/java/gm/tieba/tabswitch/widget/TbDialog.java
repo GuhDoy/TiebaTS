@@ -130,8 +130,7 @@ public class TbDialog extends XposedContext {
 //            }
 //        }
         for (var method : mClass.getDeclaredMethods()) {
-            if (method.getParameterTypes().length == 0 &&
-                    mClass.equals(method.getReturnType())) {
+            if (method.getParameterTypes().length == 0 && mClass.equals(method.getReturnType())) {
                 ReflectUtils.callMethod(method, mBdAlert); // show()
                 break;
             }

@@ -3,13 +3,12 @@ package gm.tieba.tabswitch.hooker.add;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import de.robv.android.xposed.XC_MethodHook;
+import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.hooker.IHooker;
@@ -17,7 +16,10 @@ import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class CreateView extends XposedContext implements IHooker {
     public void hook() throws Throwable {
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.enterForum.home.EnterForumTabFragment", sClassLoader, "onCreateView", LayoutInflater.class, ViewGroup.class, Bundle.class, new XC_MethodHook() {
+        var method = ReflectUtils.findFirstMethodByExactType(
+                "com.baidu.tieba.enterForum.home.EnterForumTabFragment", View.class, Bundle.class
+        );
+        XposedBridge.hookMethod(method, new XC_MethodHook() {
             @Override
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 var controller = ReflectUtils.getObjectField(param.thisObject, 1);

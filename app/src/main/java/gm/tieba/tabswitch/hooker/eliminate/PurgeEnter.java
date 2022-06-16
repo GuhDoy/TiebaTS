@@ -3,8 +3,6 @@ package gm.tieba.tabswitch.hooker.eliminate;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.lang.reflect.Method;
-
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
@@ -32,23 +30,18 @@ public class PurgeEnter extends XposedContext implements IHooker {
                     }
                 }));
         // 可能感兴趣的吧
-        Class<?> clazz = XposedHelpers.findClass("com.baidu.card.view.RecommendForumLayout", sClassLoader);
-        for (Method method : clazz.getDeclaredMethods()) {
-            if (method.getParameterTypes().length == 0) {
-                XposedBridge.hookMethod(method, new XC_MethodHook() {
-                    @Override
-                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        ReflectUtils.walkObjectFields(param.thisObject, View.class, objField -> {
-                            View view = (View) objField;
-                            view.setVisibility(View.INVISIBLE);
-                            ViewGroup.LayoutParams lp = view.getLayoutParams();
-                            lp.height = DisplayUtils.dipToPx(view.getContext(), 9);
-                            return false;
-                        });
-                    }
+        var method = ReflectUtils.findFirstMethodByExactType("com.baidu.card.view.RecommendForumLayout");
+        XposedBridge.hookMethod(method, new XC_MethodHook() {
+            @Override
+            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                ReflectUtils.walkObjectFields(param.thisObject, View.class, objField -> {
+                    View view = (View) objField;
+                    view.setVisibility(View.INVISIBLE);
+                    ViewGroup.LayoutParams lp = view.getLayoutParams();
+                    lp.height = DisplayUtils.dipToPx(view.getContext(), 9);
+                    return false;
                 });
-                break;
             }
-        }
+        });
     }
 }

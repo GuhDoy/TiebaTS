@@ -4,10 +4,6 @@ import android.content.Context;
 
 import androidx.annotation.MainThread;
 
-import java.lang.reflect.Method;
-import java.util.Arrays;
-
-import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
@@ -20,11 +16,8 @@ public class TbToast extends XposedContext {
     @MainThread
     public static void showTbToast(String text, int duration) {
         AcRules.findRule(Constants.getMatchers().get(TbToast.class), (AcRules.Callback) (matcher, clazz, method) -> {
-            for (Method md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
-                if (Arrays.equals(md.getParameterTypes(), new Class[]{Context.class, String.class, int.class})) {
-                    runOnUiThread(() -> ReflectUtils.callStaticMethod(md, getContext(), text, duration));
-                }
-            }
+            var md = ReflectUtils.findFirstMethodByExactType(clazz, Context.class, String.class, int.class);
+            runOnUiThread(() -> ReflectUtils.callStaticMethod(md, getContext(), text, duration));
         });
     }
 }

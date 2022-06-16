@@ -38,36 +38,34 @@ public class HistoryCache extends XposedContext implements IHooker {
                                 .addTextButton("搜索", v -> showRegexDialog(activity));
                     }
                 });
-        for (var method : XposedHelpers.findClass("com.baidu.tieba.myCollection.history.PbHistoryActivity", sClassLoader).getDeclaredMethods()) {
-            var parameterTypes = method.getParameterTypes();
-            if (parameterTypes.length == 1 && parameterTypes[0].equals(List.class)) {
-                XposedBridge.hookMethod(method, new XC_MethodHook() {
-                    @Override
-                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                        var list = (List<?>) param.args[0];
-                        if (list == null) return;
+        var method = ReflectUtils.findFirstMethodByExactType(
+                "com.baidu.tieba.myCollection.history.PbHistoryActivity", List.class
+        );
+        XposedBridge.hookMethod(method, new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                var list = (List<?>) param.args[0];
+                if (list == null) return;
 
-                        final var pattern = Pattern.compile(mRegex);
-                        list.removeIf(o -> {
-                            String[] strings;
-                            try {
-                                strings = new String[]{(String) XposedHelpers.getObjectField(o, "forumName"),
-                                        (String) XposedHelpers.getObjectField(o, "threadName")};
-                            } catch (NoSuchFieldError e) {
-                                strings = new String[]{(String) ReflectUtils.getObjectField(o, 3),
-                                        (String) ReflectUtils.getObjectField(o, 2)};
-                            }
-                            for (var string : strings) {
-                                if (pattern.matcher(string).find()) {
-                                    return false;
-                                }
-                            }
-                            return true;
-                        });
+                final var pattern = Pattern.compile(mRegex);
+                list.removeIf(o -> {
+                    String[] strings;
+                    try {
+                        strings = new String[]{(String) XposedHelpers.getObjectField(o, "forumName"),
+                                (String) XposedHelpers.getObjectField(o, "threadName")};
+                    } catch (NoSuchFieldError e) {
+                        strings = new String[]{(String) ReflectUtils.getObjectField(o, 3),
+                                (String) ReflectUtils.getObjectField(o, 2)};
                     }
+                    for (var string : strings) {
+                        if (pattern.matcher(string).find()) {
+                            return false;
+                        }
+                    }
+                    return true;
                 });
             }
-        }
+        });
     }
 
     private void showRegexDialog(Activity activity) {

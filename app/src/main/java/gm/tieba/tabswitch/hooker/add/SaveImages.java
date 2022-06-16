@@ -30,18 +30,15 @@ public class SaveImages extends XposedContext implements IHooker {
     private String mTitle;
 
     public void hook() throws Throwable {
-        for (var method : XposedHelpers.findClass("com.baidu.tbadk.coreExtra.view.ImagePagerAdapter",
-                sClassLoader).getDeclaredMethods()) {
-            var parameterTypes = method.getParameterTypes();
-            if (parameterTypes.length == 1 && parameterTypes[0].equals(ArrayList.class)) {
-                XposedBridge.hookMethod(method, new XC_MethodHook() {
-                    @Override
-                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        mList = (ArrayList<String>) param.args[0];
-                    }
-                });
+        var method = ReflectUtils.findFirstMethodByExactType(
+                "com.baidu.tbadk.coreExtra.view.ImagePagerAdapter", ArrayList.class
+        );
+        XposedBridge.hookMethod(method, new XC_MethodHook() {
+            @Override
+            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                mList = (ArrayList<String>) param.args[0];
             }
-        }
+        });
         XposedHelpers.findAndHookMethod("com.baidu.tbadk.widget.richText.TbRichText",
                 sClassLoader, "toString", new XC_MethodHook() {
                     @Override

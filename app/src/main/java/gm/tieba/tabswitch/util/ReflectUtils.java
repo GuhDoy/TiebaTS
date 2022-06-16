@@ -5,6 +5,7 @@ import androidx.annotation.ColorInt;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
@@ -171,6 +172,19 @@ public class ReflectUtils extends XposedContext {
 
     public static void walkObjectFields(Object instance, String className, Callback handle) {
         walkField(instance, XposedHelpers.findClass(className, sClassLoader), handle);
+    }
+
+    public static Method findFirstMethodByExactType(Class<?> cls, Class<?>... paramTypes) {
+        for (var method : cls.getDeclaredMethods()) {
+            if (Arrays.equals(method.getParameterTypes(), paramTypes)) {
+                return method;
+            }
+        }
+        throw new NoSuchMethodError();
+    }
+
+    public static Method findFirstMethodByExactType(String className, Class<?>... paramTypes) {
+        return findFirstMethodByExactType(XposedHelpers.findClass(className, sClassLoader), paramTypes);
     }
 
     public static Object callMethod(Method method, Object instance, Object... args) {

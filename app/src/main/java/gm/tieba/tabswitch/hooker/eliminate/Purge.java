@@ -3,7 +3,6 @@ package gm.tieba.tabswitch.hooker.eliminate;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.view.View;
@@ -210,12 +209,8 @@ public class Purge extends XposedContext implements IHooker {
             }
         });
         // 你可能感兴趣的人：initUI()
-        for (Method method : XposedHelpers.findClass("com.baidu.tieba.homepage.concern.view.ConcernRecommendLayout", sClassLoader).getDeclaredMethods()) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && method.getParameterCount() == 0 ||
-                    Build.VERSION.SDK_INT < Build.VERSION_CODES.O && method.getParameterTypes().length == 0) {
-                XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(null));
-            }
-        }
+        var md = ReflectUtils.findFirstMethodByExactType("com.baidu.tieba.homepage.concern.view.ConcernRecommendLayout");
+        XposedBridge.hookMethod(md, XC_MethodReplacement.returnConstant(null));
         // 首页任务中心：R.id.task TbImageView
         XposedHelpers.findAndHookMethod("com.baidu.tieba.homepage.framework.indicator.NestedScrollHeader", sClassLoader, "onAttachedToWindow", new XC_MethodHook() {
             @Override
