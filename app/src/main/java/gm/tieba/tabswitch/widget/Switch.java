@@ -3,17 +3,21 @@ package gm.tieba.tabswitch.widget;
 import android.view.View;
 
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.XposedContext;
+import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class Switch extends XposedContext {
     public View bdSwitch;
+    private Method[] mMethods;
 
     public Switch() {
-        bdSwitch = (View) XposedHelpers.newInstance(XposedHelpers.findClass(
-                "com.baidu.adp.widget.BdSwitchView.BdSwitchView", sClassLoader), getContext());
+        var cls = XposedHelpers.findClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView", sClassLoader);
+        bdSwitch = (View) XposedHelpers.newInstance(cls, getContext());
+        mMethods = cls.getDeclaredMethods();
     }
 
     public Switch(View bdSwitch) {
@@ -35,7 +39,7 @@ public class Switch extends XposedContext {
         try {
             return (Boolean) XposedHelpers.callMethod(bdSwitch, "isOn");
         } catch (NoSuchMethodError e) {
-            return (Boolean) XposedHelpers.callMethod(bdSwitch, "f");
+            return (Boolean) ReflectUtils.callMethod(mMethods[6], bdSwitch);
         }
     }
 
@@ -43,7 +47,7 @@ public class Switch extends XposedContext {
         try {
             XposedHelpers.callMethod(bdSwitch, "changeState");
         } catch (NoSuchMethodError e) {
-            XposedHelpers.callMethod(bdSwitch, "c");
+            ReflectUtils.callMethod(mMethods[3], bdSwitch);
         }
     }
 
@@ -51,7 +55,7 @@ public class Switch extends XposedContext {
         try {
             XposedHelpers.callMethod(bdSwitch, "turnOn");
         } catch (NoSuchMethodError e) {
-            XposedHelpers.callMethod(bdSwitch, "l");
+            ReflectUtils.callMethod(mMethods[11], bdSwitch);
         }
     }
 
@@ -59,7 +63,7 @@ public class Switch extends XposedContext {
         try {
             XposedHelpers.callMethod(bdSwitch, "turnOff");
         } catch (NoSuchMethodError e) {
-            XposedHelpers.callMethod(bdSwitch, "i");
+            ReflectUtils.callMethod(mMethods[8], bdSwitch);
         }
     }
 }
