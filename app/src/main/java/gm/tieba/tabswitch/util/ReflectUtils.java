@@ -64,10 +64,10 @@ public class ReflectUtils extends XposedContext {
      * @return A reference to the first field of the given type.
      * @throws NoSuchFieldError In case no matching field was not found.
      */
-    public static Object getObjectField(Object instance, Class<?> type) {
+    public static <T> T getObjectField(Object instance, Class<T> type) {
         try {
-            return XposedHelpers.findFirstFieldByExactType(instance.getClass(), type)
-                    .get(instance);
+            return type.cast(XposedHelpers.findFirstFieldByExactType(instance.getClass(), type)
+                    .get(instance));
         } catch (IllegalAccessException e) {
             XposedBridge.log(e);
             throw new IllegalAccessError(e.getMessage());

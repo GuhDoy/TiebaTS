@@ -2,16 +2,22 @@ package gm.tieba.tabswitch.hooker.anticonfusion;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Instrumentation;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.util.Log;
 import android.view.Gravity;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
@@ -35,19 +41,11 @@ public class AntiConfusion extends XposedContext implements IHooker {
     private LinearLayout mContentView;
 
     public void hook() throws Throwable {
-        try {
-            // make isLaunchOpOn = false to avoid startActivity() to com.baidu.tieba.NewLogoActivity
-            XposedHelpers.findAndHookMethod("com.baidu.tbadk.switchs.AdToMainTabActivitySwitch", sClassLoader,
-                    "getIsOn", XC_MethodReplacement.returnConstant(false));
-        } catch (XposedHelpers.ClassNotFoundError ignored) {
-        }
-//        var unhook = XposedHelpers.findAndHookMethod(Instrumentation.class, "execStartActivity",
-//                Context.class, IBinder.class, IBinder.class, Activity.class, Intent.class,
-//                int.class, Bundle.class, XC_MethodReplacement.returnConstant(null));
         XposedHelpers.findAndHookMethod("com.baidu.tieba.LogoActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
             @SuppressLint("ApplySharedPref")
             @Override
             public void afterHookedMethod(MethodHookParam param) throws Throwable {
+                var hooks = disableStartAndFinishActivity();
                 mActivity = (Activity) param.thisObject;
                 if (Preferences.getBoolean("purge")) {
                     var editor = mActivity
@@ -64,7 +62,7 @@ public class AntiConfusion extends XposedContext implements IHooker {
                 } else if (!AntiConfusionHelper.getRulesLost().isEmpty()) {
                     AntiConfusionHelper.matchers = AntiConfusionHelper.getRulesLost();
                 } else {
-//                    unhook.unhook();
+                    hooks.forEach(Unhook::unhook);
                     AntiConfusionHelper.saveAndRestart(mActivity,
                             AntiConfusionHelper.getTbVersion(mActivity),
                             XposedHelpers.findClass(TRAMPOLINE_ACTIVITY, sClassLoader)
@@ -73,7 +71,9 @@ public class AntiConfusion extends XposedContext implements IHooker {
                 }
 
                 initProgressIndicator();
-                mActivity.setContentView(mContentView);
+                mActivity.addContentView(mContentView, new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT
+                ));
                 viewModel.progress.subscribe(progress -> setProgress(progress));
 
                 new Thread(() -> {
@@ -85,7 +85,7 @@ public class AntiConfusion extends XposedContext implements IHooker {
 
                         setMessage("(2/4) 解析资源");
                         var idToMatcher = AntiConfusionViewModel.resolveIdentifier(
-                                AntiConfusionHelper.matchers, getContext());
+                                AntiConfusionHelper.matchers, mActivity);
                         var idToResMatcher = AntiConfusionViewModel.decodeArsc(
                                 Constants.getResourceMatchers().values().stream()
                                         .flatMap(Arrays::stream).collect(Collectors.toSet()),
@@ -107,7 +107,7 @@ public class AntiConfusion extends XposedContext implements IHooker {
                         viewModel.saveDexSignatureHashCode();
                         XposedBridge.log("anti-confusion accomplished, current version: "
                                 + AntiConfusionHelper.getTbVersion(mActivity));
-//                        unhook.unhook();
+                        hooks.forEach(Unhook::unhook);
                         AntiConfusionHelper.saveAndRestart(mActivity,
                                 AntiConfusionHelper.getTbVersion(mActivity),
                                 XposedHelpers.findClass(TRAMPOLINE_ACTIVITY, sClassLoader)
@@ -119,6 +119,28 @@ public class AntiConfusion extends XposedContext implements IHooker {
                 }).start();
             }
         });
+    }
+
+    @NonNull
+    private ArrayList<XC_MethodHook.Unhook> disableStartAndFinishActivity() {
+        var hooks = new ArrayList<XC_MethodHook.Unhook>();
+        hooks.add(
+                XposedHelpers.findAndHookMethod(Instrumentation.class, "execStartActivity",
+                        Context.class, IBinder.class, IBinder.class, Activity.class, Intent.class,
+                        int.class, Bundle.class, XC_MethodReplacement.returnConstant(null))
+        );
+        for (var method : XposedHelpers.findClass("android.app.ActivityClient", sClassLoader).getDeclaredMethods()) {
+            if (method.getReturnType().equals(boolean.class)) {
+                hooks.add(
+                        XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(false))
+                );
+            } else if (method.getReturnType().equals(void.class)) {
+                hooks.add(
+                        XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(null))
+                );
+            }
+        }
+        return hooks;
     }
 
     @SuppressLint({"SetTextI18n"})
@@ -146,6 +168,7 @@ public class AntiConfusion extends XposedContext implements IHooker {
         mContentView = new LinearLayout(mActivity);
         mContentView.setOrientation(LinearLayout.VERTICAL);
         mContentView.setGravity(Gravity.CENTER);
+//        mContentView.setBackgroundColor(Color.WHITE);
         mContentView.addView(title);
         mContentView.addView(mProgressContainer);
     }

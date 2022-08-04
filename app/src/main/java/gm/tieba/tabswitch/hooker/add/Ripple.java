@@ -49,7 +49,7 @@ public class Ripple extends XposedContext implements IHooker {
         XposedHelpers.findAndHookConstructor(subPbLayoutClass, Context.class, AttributeSet.class, new XC_MethodHook() {
             @Override
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                View view = (View) ReflectUtils.getObjectField(param.thisObject, RelativeLayout.class);
+                var view = ReflectUtils.getObjectField(param.thisObject, RelativeLayout.class);
                 view.setBackground(createSubPbBackground());
             }
         });
@@ -59,7 +59,7 @@ public class Ripple extends XposedContext implements IHooker {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                         // R.id.all_content
-                        LinearLayout mAllContent = (LinearLayout) ReflectUtils.getObjectField(param.thisObject, 18);
+                        var mAllContent = ReflectUtils.getObjectField(param.thisObject, LinearLayout.class);
                         mAllContent.setBackground(createBackground());
                     }
                 });

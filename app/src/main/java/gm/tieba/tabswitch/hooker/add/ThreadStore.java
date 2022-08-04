@@ -43,7 +43,7 @@ public class ThreadStore extends XposedContext implements IHooker {
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, Boolean[].class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        ArrayList<?> list = (ArrayList<?>) ReflectUtils.getObjectField(param.getResult(), ArrayList.class);
+                        var list = ReflectUtils.getObjectField(param.getResult(), ArrayList.class);
                         if (list == null) return;
                         final Pattern pattern = Pattern.compile(mRegex);
                         list.removeIf(o -> {

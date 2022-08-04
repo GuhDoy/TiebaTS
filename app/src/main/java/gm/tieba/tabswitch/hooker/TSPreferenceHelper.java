@@ -64,11 +64,11 @@ public class TSPreferenceHelper extends XposedContext {
         XposedHelpers.callMethod(textTipView, "setTip", tip);
         if (!showArrow) {
             // R.id.arrow2
-            var imageView = (ImageView) ReflectUtils.getObjectField(textTipView, ImageView.class);
+            var imageView = ReflectUtils.getObjectField(textTipView, ImageView.class);
             imageView.setVisibility(View.GONE);
         }
 
-        LinearLayout newButton = (LinearLayout) ReflectUtils.getObjectField(textTipView, LinearLayout.class);
+        var newButton = ReflectUtils.getObjectField(textTipView, LinearLayout.class);
         ((ViewGroup) newButton.getParent()).removeView(newButton);
         newButton.setBackgroundColor(ReflectUtils.getColor("CAM_X0201"));
         if (l != null) newButton.setOnClickListener(l);

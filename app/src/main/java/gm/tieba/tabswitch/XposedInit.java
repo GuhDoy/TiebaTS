@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Application;
 import android.app.Instrumentation;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 
@@ -71,6 +72,17 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                 Preferences.init(getContext());
                 AcRules.init(getContext());
                 if (AntiConfusionHelper.isVersionChanged(getContext())) {
+                    if ("com.baidu.tieba".equals(lpparam.processName)) {
+                        XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
+                            @Override
+                            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                                var activity = (Activity) param.thisObject;
+                                var intent = new Intent(activity, XposedHelpers.findClass("com.baidu.tieba.LogoActivity", sClassLoader));
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                activity.startActivity(intent);
+                            }
+                        });
+                    }
                     XposedBridge.log("AntiConfusion");
                     new AntiConfusion().hook();
                     return;

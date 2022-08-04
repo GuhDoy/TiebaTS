@@ -32,7 +32,7 @@ public class CreateView extends XposedContext implements IHooker {
             @Override
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 var controller = ReflectUtils.getObjectField(param.thisObject, 1);
-                var signButton = (ImageView) ReflectUtils.getObjectField(controller, ImageView.class);
+                var signButton = ReflectUtils.getObjectField(controller, ImageView.class);
                 var activity = (Activity) XposedHelpers.callMethod(param.thisObject, "requireActivity");
                 var parent = (RelativeLayout) signButton.getParent();
                 var signButtonLayoutParams = (RelativeLayout.LayoutParams) signButton.getLayoutParams();
