@@ -17,8 +17,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import de.robv.android.xposed.XC_MethodHook;
@@ -30,6 +30,7 @@ import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.IHooker;
+import kotlin.collections.CollectionsKt;
 
 public class AntiConfusion extends XposedContext implements IHooker {
     private static final String TRAMPOLINE_ACTIVITY = "com.baidu.tieba.tblauncher.MainTabActivity";
@@ -122,25 +123,18 @@ public class AntiConfusion extends XposedContext implements IHooker {
     }
 
     @NonNull
-    private ArrayList<XC_MethodHook.Unhook> disableStartAndFinishActivity() {
-        var hooks = new ArrayList<XC_MethodHook.Unhook>();
-        hooks.add(
+    private List<XC_MethodHook.Unhook> disableStartAndFinishActivity() {
+        return CollectionsKt.listOf(
                 XposedHelpers.findAndHookMethod(Instrumentation.class, "execStartActivity",
                         Context.class, IBinder.class, IBinder.class, Activity.class, Intent.class,
-                        int.class, Bundle.class, XC_MethodReplacement.returnConstant(null))
+                        int.class, Bundle.class, XC_MethodReplacement.returnConstant(null)),
+                XposedHelpers.findAndHookMethod(Activity.class, "finish",
+                        int.class, XC_MethodReplacement.returnConstant(null)),
+                XposedHelpers.findAndHookMethod(Activity.class, "finishActivity",
+                        int.class, XC_MethodReplacement.returnConstant(null)),
+                XposedHelpers.findAndHookMethod(Activity.class, "finishAffinity",
+                        XC_MethodReplacement.returnConstant(null))
         );
-        for (var method : XposedHelpers.findClass("android.app.ActivityClient", sClassLoader).getDeclaredMethods()) {
-            if (method.getReturnType().equals(boolean.class)) {
-                hooks.add(
-                        XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(false))
-                );
-            } else if (method.getReturnType().equals(void.class)) {
-                hooks.add(
-                        XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(null))
-                );
-            }
-        }
-        return hooks;
     }
 
     @SuppressLint({"SetTextI18n"})
