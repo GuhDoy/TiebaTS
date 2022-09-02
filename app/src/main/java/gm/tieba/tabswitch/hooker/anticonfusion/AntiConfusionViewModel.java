@@ -29,11 +29,11 @@ import de.robv.android.xposed.XposedBridge;
 import gm.tieba.tabswitch.dao.AcRule;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
-import gm.tieba.tabswitch.util.CollectionsKt;
 import gm.tieba.tabswitch.util.FileUtils;
 import gm.tieba.tabswitch.util.StringsKt;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.subjects.PublishSubject;
+import kotlin.collections.CollectionsKt;
 
 public class AntiConfusionViewModel {
     private final PublishSubject<Float> _progress = PublishSubject.create();
@@ -141,17 +141,27 @@ public class AntiConfusionViewModel {
             }
         }
 
-        var first = new ArrayList<String>();
-        var second = new ArrayList<String>();
-        AcRules.sDao.getAll().stream().map(AcRule::getClazz).forEach(it -> {
-            var split = it.split("\\.");
-            first.add(split[0]);
-            second.add(split[1]);
+        // find repackageclasses
+        var segments = new ArrayList<ArrayList<String>>();
+        AcRules.sDao.getAll().stream().map(AcRule::getClazz).forEach(cls -> {
+            var splits = cls.split("\\.");
+            for (int i = 0, length = splits.length; i < length; i++) {
+                var split = splits[i];
+                if (segments.size() <= i) {
+                    segments.add(new ArrayList<>());
+                }
+                segments.get(i).add(split);
+            }
         });
-        // should be "Lcom/repackage/"
-        var most = "L" + CollectionsKt.most(first) + "/" +
-                CollectionsKt.most(second) + "/";
-        var scope = new SearchScope(most);
+        StringBuilder repackageclasses = new StringBuilder("L");
+        for (var segment : segments) {
+            var most = gm.tieba.tabswitch.util.CollectionsKt.most(segment);
+            if (CollectionsKt.count(segment, s -> s.equals(most)) < segments.get(0).size() / 2) {
+                break;
+            }
+            repackageclasses.append(most).append("/");
+        }
+        var scope = new SearchScope(repackageclasses.toString());
 
         var numberOfClassesNeedToSearch = new int[dexCount];
         for (var i = 0; i < dexCount; i++) {
