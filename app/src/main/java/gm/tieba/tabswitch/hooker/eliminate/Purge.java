@@ -5,8 +5,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.view.View;
-import android.widget.ImageView;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
@@ -212,20 +210,20 @@ public class Purge extends XposedContext implements IHooker {
         var md = ReflectUtils.findFirstMethodByExactType("com.baidu.tieba.homepage.concern.view.ConcernRecommendLayout");
         XposedBridge.hookMethod(md, XC_MethodReplacement.returnConstant(null));
         // 首页任务中心：R.id.task TbImageView
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.homepage.framework.indicator.NestedScrollHeader", sClassLoader, "onAttachedToWindow", new XC_MethodHook() {
-            @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                ReflectUtils.walkObjectFields(param.thisObject, ImageView.class, objField -> {
-                    ImageView iv = (ImageView) objField;
-                    iv.setVisibility(View.GONE);
-                    return false;
-                });
-            }
-        });
+//        XposedHelpers.findAndHookMethod("com.baidu.tieba.homepage.framework.indicator.NestedScrollHeader", sClassLoader, "onAttachedToWindow", new XC_MethodHook() {
+//            @Override
+//            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+//                ReflectUtils.walkObjectFields(param.thisObject, ImageView.class, objField -> {
+//                    ImageView iv = (ImageView) objField;
+//                    iv.setVisibility(View.GONE);
+//                    return false;
+//                });
+//            }
+//        });
         // 首页大家都在搜
         XposedHelpers.findAndHookMethod("com.baidu.tieba.enterForum.view.ForumHeaderView", sClassLoader, "setSearchHint", String.class, XC_MethodReplacement.returnConstant(null));
         // 进吧大家都在搜
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.homepage.framework.indicator.NestedScrollHeader", sClassLoader, "setSearchHint", String.class, XC_MethodReplacement.returnConstant(null));
+//        XposedHelpers.findAndHookMethod("com.baidu.tieba.homepage.framework.indicator.NestedScrollHeader", sClassLoader, "setSearchHint", String.class, XC_MethodReplacement.returnConstant(null));
         // 一键签到广告
         XposedHelpers.findAndHookMethod("com.baidu.tieba.signall.SignAllForumAdvertActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
             @Override
