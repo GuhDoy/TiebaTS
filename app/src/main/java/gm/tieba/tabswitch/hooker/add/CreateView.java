@@ -17,6 +17,8 @@ import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class CreateView extends XposedContext implements IHooker {
+
+    @Override
     public void hook() throws Throwable {
         var method = XposedHelpers.findMethodExactIfExists(
                 "com.baidu.tieba.enterForum.home.EnterForumTabFragment", sClassLoader,

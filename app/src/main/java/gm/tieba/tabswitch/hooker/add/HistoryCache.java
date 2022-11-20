@@ -28,6 +28,7 @@ import gm.tieba.tabswitch.widget.TbToast;
 public class HistoryCache extends XposedContext implements IHooker {
     private String mRegex = "";
 
+    @Override
     public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.myCollection.history.PbHistoryActivity", sClassLoader,
                 "onCreate", Bundle.class, new XC_MethodHook() {

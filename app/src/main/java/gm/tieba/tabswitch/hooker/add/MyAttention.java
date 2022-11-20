@@ -25,6 +25,7 @@ import gm.tieba.tabswitch.widget.TbDialog;
 import gm.tieba.tabswitch.widget.TbEditText;
 
 public class MyAttention extends XposedContext implements IHooker {
+
     public static LinearLayout createNotesPreference(Activity activity) {
         Preferences.putBoolean("my_attention", !Preferences.getNotes().isEmpty());
         TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
@@ -86,6 +87,7 @@ public class MyAttention extends XposedContext implements IHooker {
         editText.requestFocus();
     }
 
+    @Override
     public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod("tbclient.User$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override

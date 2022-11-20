@@ -16,34 +16,50 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
+import gm.tieba.tabswitch.hooker.Obfuscated;
+import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
+import gm.tieba.tabswitch.hooker.deobfuscation.SmaliMatcher;
+import gm.tieba.tabswitch.hooker.deobfuscation.StringMatcher;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
-public class Purge extends XposedContext implements IHooker {
+public class Purge extends XposedContext implements IHooker, Obfuscated {
+
+    @Override
+    public List<? extends Matcher> matchers() {
+        return List.of(
+                new SmaliMatcher("Lcom/baidu/tieba/recapp/lego/model/AdCard;-><init>(Lorg/json/JSONObject;)V"),
+                new StringMatcher("pic_amount"),
+                new StringMatcher("key_frs_dialog_ad_last_show_time"),
+                new StringMatcher("key_forum_rule_first_show_frs"),
+                new SmaliMatcher("Lcom/baidu/tieba/pb/pb/main/PbChildTitleViewHolder;-><init>(Landroid/view/View;)V")
+        );
+    }
+
+    @Override
     public void hook() throws Throwable {
-        AcRules.findRule(Constants.getMatchers().get(Purge.class), (AcRules.Callback) (matcher, clazz, method) -> {
+        AcRules.findRule(matchers(), (matcher, clazz, method) -> {
             switch (matcher) {
                 case "Lcom/baidu/tieba/recapp/lego/model/AdCard;-><init>(Lorg/json/JSONObject;)V": // 卡片广告
                     XposedBridge.hookAllMethods(XposedHelpers.findClass(clazz, sClassLoader), method, XC_MethodReplacement.returnConstant(null));
                     break;
-                case "\"pic_amount\"": // 图片广告：必须"recom_ala_info", "app", 可选"goods_info"
+                case "pic_amount": // 图片广告：必须"recom_ala_info", "app", 可选"goods_info"
                     for (var md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
                         if (Arrays.toString(md.getParameterTypes()).contains("JSONObject") && !md.getName().equals(method)) {
                             XposedBridge.hookMethod(md, XC_MethodReplacement.returnConstant(null));
                         }
                     }
                     break;
-                case "\"key_frs_dialog_ad_last_show_time\"": // 吧推广弹窗
+                case "key_frs_dialog_ad_last_show_time": // 吧推广弹窗
                     for (var md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
                         if (md.getName().equals(method) && md.getReturnType().equals(boolean.class)) {
                             XposedBridge.hookMethod(md, XC_MethodReplacement.returnConstant(true));
                         }
                     }
                     break;
-                case "\"key_forum_rule_first_show_frs\"": // 吧推广横幅
+                case "key_forum_rule_first_show_frs": // 吧推广横幅
                     for (var md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
                         var parameterTypes = md.getParameterTypes();
                         if (parameterTypes.length > 0 && parameterTypes[0].equals(List.class)) {

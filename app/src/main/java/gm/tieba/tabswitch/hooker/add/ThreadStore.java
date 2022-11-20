@@ -10,6 +10,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -19,15 +20,25 @@ import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
+import gm.tieba.tabswitch.hooker.Obfuscated;
+import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
+import gm.tieba.tabswitch.hooker.deobfuscation.StringMatcher;
 import gm.tieba.tabswitch.util.ReflectUtils;
 import gm.tieba.tabswitch.widget.NavigationBar;
 import gm.tieba.tabswitch.widget.TbDialog;
 import gm.tieba.tabswitch.widget.TbEditText;
 import gm.tieba.tabswitch.widget.TbToast;
 
-public class ThreadStore extends XposedContext implements IHooker {
+public class ThreadStore extends XposedContext implements IHooker, Obfuscated {
+
+    @Override
+    public List<? extends Matcher> matchers() {
+        return List.of(new StringMatcher("c/f/post/threadstore"));
+    }
+
     private String mRegex = "";
 
+    @Override
     public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.myCollection.CollectTabActivity", sClassLoader,
                 "onCreate", Bundle.class, new XC_MethodHook() {
@@ -39,7 +50,7 @@ public class ThreadStore extends XposedContext implements IHooker {
                                 .addTextButton("搜索", v -> showRegexDialog(activity));
                     }
                 });
-        AcRules.findRule(Constants.getMatchers().get(ThreadStore.class), (AcRules.Callback) (matcher, clazz, method) ->
+        AcRules.findRule(matchers(), (matcher, clazz, method) ->
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, Boolean[].class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {

@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import de.robv.android.xposed.XC_MethodHook;
@@ -33,6 +34,8 @@ import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.TSPreferenceHelper.SwitchButtonHolder;
 import gm.tieba.tabswitch.hooker.add.MyAttention;
 import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHelper;
+import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
+import gm.tieba.tabswitch.hooker.deobfuscation.StringMatcher;
 import gm.tieba.tabswitch.hooker.extra.TraceChecker;
 import gm.tieba.tabswitch.util.DisplayUtils;
 import gm.tieba.tabswitch.util.Parser;
@@ -40,7 +43,7 @@ import gm.tieba.tabswitch.widget.NavigationBar;
 import gm.tieba.tabswitch.widget.TbDialog;
 import gm.tieba.tabswitch.widget.TbToast;
 
-public class TSPreference extends XposedContext implements IHooker {
+public class TSPreference extends XposedContext implements IHooker, Obfuscated {
     public final static String MAIN = "贴吧TS设置";
     public final static String MODIFY_TAB = "修改页面";
     public final static String NOTES = "备注关注的人";
@@ -48,6 +51,12 @@ public class TSPreference extends XposedContext implements IHooker {
     private final static String PROXY_ACTIVITY = "com.baidu.tieba.setting.im.more.SecretSettingActivity";
     private static int sCount = 0;
 
+    @Override
+    public List<? extends Matcher> matchers() {
+        return List.of(new StringMatcher("reply_private_setting_switch"));
+    }
+
+    @Override
     public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod(Dialog.class, "dismissDialog", new XC_MethodHook() {
             @Override
@@ -76,7 +85,7 @@ public class TSPreference extends XposedContext implements IHooker {
                                 v -> startRootPreferenceActivity(activity)), 11);
                     }
                 });
-        AcRules.findRule(Constants.getMatchers().get(TSPreference.class), (AcRules.Callback) (matcher, clazz, method) -> {
+        AcRules.findRule(matchers(), (matcher, clazz, method) -> {
             try {
                 XposedHelpers.findAndHookConstructor(clazz, sClassLoader, XposedHelpers
                         .findClass(PROXY_ACTIVITY, sClassLoader), new XC_MethodHook() {

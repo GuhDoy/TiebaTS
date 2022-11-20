@@ -1,6 +1,5 @@
 package gm.tieba.tabswitch.hooker.deobfuscation
 
-import android.text.TextUtils
 import org.jf.baksmali.Adaptors.ClassDefinition
 import org.jf.baksmali.Adaptors.MethodDefinition
 import org.jf.baksmali.BaksmaliOptions
@@ -18,44 +17,45 @@ import java.io.ByteArrayOutputStream
 import java.io.OutputStreamWriter
 import java.nio.charset.StandardCharsets
 
-class DexBakSearcher {
-    private val stringMatchers = mutableListOf<String>()
-    private val literalMatchers = mutableListOf<Long>()
-    private val smaliMatchers = mutableListOf<String>()
+abstract class Matcher {
+    abstract override fun toString(): String
+}
 
-    constructor(genericMatchers: Iterable<String>) {
-        genericMatchers.forEach {
-            when {
-                it.startsWith('\"') && it.endsWith('\"') ->
-                    stringMatchers.add(it.substring(1, it.length - 1))
-                TextUtils.isDigitsOnly(it) ->
-                    literalMatchers.add(it.toLong())
-                else ->
-                    smaliMatchers.add(it)
+class StringMatcher(val str: String) : Matcher() {
+    override fun toString(): String = str
+}
+
+class SmaliMatcher(val str: String) : Matcher() {
+    override fun toString(): String = str
+}
+
+open class ResMatcher(var id: Long = 0) : Matcher() {
+    override fun toString(): String {
+        throw UnsupportedOperationException()
+    }
+}
+
+class StringResMatcher(val str: String) : ResMatcher() {
+    override fun toString(): String = str
+}
+
+class DexBakSearcher(matchers: Iterable<Matcher> = emptyList()) {
+    private val stringMatchers = mutableMapOf<String, StringMatcher>()
+    private val literalMatchers = mutableMapOf<Long, ResMatcher>()
+    private val smaliMatchers = mutableMapOf<String, SmaliMatcher>()
+
+    init {
+        for (matcher in matchers) {
+            when (matcher) {
+                is StringMatcher -> stringMatchers[matcher.str] = matcher
+                is ResMatcher -> literalMatchers[matcher.id] = matcher
+                is SmaliMatcher -> smaliMatchers[matcher.str] = matcher
             }
         }
     }
 
-    constructor(genericMatchers: Iterable<String>, literalMatchers: Iterable<Long>)
-            : this(genericMatchers) {
-        this.literalMatchers.addAll(literalMatchers)
-    }
-
-    constructor(
-        stringMatchers: Iterable<String> = emptyList(),
-        literalMatchers: Iterable<Long> = emptyList(),
-        smaliMatchers: Iterable<String> = emptyList()
-    ) {
-        this.stringMatchers.addAll(stringMatchers)
-        this.literalMatchers.addAll(literalMatchers)
-        this.smaliMatchers.addAll(smaliMatchers)
-    }
-
     // @see org.jf.baksmali.Adaptors.Format.InstructionMethodItem.writeTo()
     fun ClassDef.searchStringAndLiteral(l: MatcherListener) {
-        val stringMatchersSet = stringMatchers.toSet()
-        val literalMatchersSet = literalMatchers.toSet()
-
         for (method in methods) {
             val methodImpl = method.implementation ?: continue
             for (instruction in methodImpl.instructions) {
@@ -66,8 +66,8 @@ class DexBakSearcher {
                             reference.validateReference()
                             if (reference is StringReference) {
                                 val string = reference.string
-                                if (string in stringMatchersSet) {
-                                    l.onMatch("\"$string\"", type.convert(), method.name)
+                                stringMatchers[string]?.let {
+                                    l.onMatch(it, type.convert(), method.name)
                                 }
                             }
                         } catch (ignored: InvalidReferenceException) {
@@ -78,8 +78,8 @@ class DexBakSearcher {
                                 reference2.validateReference()
                                 if (reference2 is StringReference) {
                                     val string = reference2.string
-                                    if (string in stringMatchersSet) {
-                                        l.onMatch("\"$string\"", type.convert(), method.name)
+                                    stringMatchers[string]?.let {
+                                        l.onMatch(it, type.convert(), method.name)
                                     }
                                 }
                             } catch (ignored: InvalidReferenceException) {
@@ -95,8 +95,8 @@ class DexBakSearcher {
                         ) && instruction is WideLiteralInstruction
                     ) {
                         val wideLiteral = instruction.wideLiteral
-                        if (wideLiteral in literalMatchersSet) {
-                            l.onMatch(wideLiteral, type.convert(), method.name)
+                        literalMatchers[wideLiteral]?.let {
+                            l.onMatch(it, type.convert(), method.name)
                         }
                     }
                     else -> {
@@ -119,8 +119,8 @@ class DexBakSearcher {
                 writer.flush()
                 val smali = baos.toString()
                 smaliMatchers.forEach {
-                    if (smali.contains(it)) {
-                        l.onMatch(it, type.convert(), method.name)
+                    if (smali.contains(it.key)) {
+                        l.onMatch(it.value, type.convert(), method.name)
                     }
                 }
             }
@@ -132,7 +132,6 @@ class DexBakSearcher {
     fun String.revert() = "L" + replace(".", "/") + ";"
 
     abstract class MatcherListener {
-        open fun onMatch(matcher: String, clazz: String, method: String) {}
-        open fun onMatch(matcher: Long, clazz: String, method: String) {}
+        open fun onMatch(matcher: Matcher, clazz: String, method: String) {}
     }
 }

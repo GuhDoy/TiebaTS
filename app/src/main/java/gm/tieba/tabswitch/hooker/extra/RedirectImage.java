@@ -21,6 +21,8 @@ import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.util.FileUtils;
 
 public class RedirectImage extends XposedContext implements IHooker {
+
+    @Override
     public void hook() throws Throwable {
         // 0x4197d783fc000000L
         for (var md : XposedHelpers.findClass("com.baidu.tbadk.core.util.FileHelper", sClassLoader).getDeclaredMethods()) {

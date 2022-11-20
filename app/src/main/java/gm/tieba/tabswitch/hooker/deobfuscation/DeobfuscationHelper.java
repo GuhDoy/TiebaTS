@@ -17,30 +17,15 @@ import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 import java.util.zip.ZipFile;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.Constants;
-import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.util.DisplayUtils;
-import kotlin.collections.CollectionsKt;
 
 public class DeobfuscationHelper {
-    static List<String> matchers = Constants.getMatchers().values().stream()
-            .flatMap(Arrays::stream).collect(Collectors.toList());
-    static List<String> resourceMatchers = Constants.getResourceMatchers().values().stream()
-            .flatMap(Arrays::stream).collect(Collectors.toList());
-
-    public static List<String> getRulesLost() {
-        var list = CollectionsKt.plus(matchers, resourceMatchers);
-        list.removeIf(AcRules::isRuleFound);
-        return list;
-    }
 
     static byte[] calcSignature(InputStream dataStoreInput) throws IOException {
         MessageDigest md;
@@ -67,7 +52,7 @@ public class DeobfuscationHelper {
 
     public static boolean isVersionChanged(Context context) {
         SharedPreferences tsConfig = context.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
-        return !tsConfig.getString("anti-confusion_version", "unknown").equals(getTbVersion(context));
+        return !tsConfig.getString("deobfs_version", "unknown").equals(getTbVersion(context));
     }
 
     public static boolean isDexChanged(Context context) {
@@ -103,9 +88,9 @@ public class DeobfuscationHelper {
     }
 
     @SuppressLint("ApplySharedPref")
-    public static void saveAndRestart(Activity activity, String value, Class<?> trampoline) {
+    public static void saveAndRestart(Activity activity, String version, Class<?> trampoline) {
         SharedPreferences.Editor editor = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE).edit();
-        editor.putString("anti-confusion_version", value);
+        editor.putString("deobfs_version", version);
         editor.commit();
         if (trampoline == null) {
             DisplayUtils.restart(activity);

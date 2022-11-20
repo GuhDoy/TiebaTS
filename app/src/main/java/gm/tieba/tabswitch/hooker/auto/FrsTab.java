@@ -4,15 +4,24 @@ import java.util.List;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
+import gm.tieba.tabswitch.hooker.Obfuscated;
+import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
+import gm.tieba.tabswitch.hooker.deobfuscation.StringMatcher;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
-public class FrsTab extends XposedContext implements IHooker {
+public class FrsTab extends XposedContext implements IHooker, Obfuscated {
+
+    @Override
+    public List<? extends Matcher> matchers() {
+        return List.of(new StringMatcher("from_pb_or_person"));
+    }
+
     private int mPosition;
 
+    @Override
     public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod("tbclient.FrsPage.NavTabInfo$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
@@ -27,7 +36,7 @@ public class FrsTab extends XposedContext implements IHooker {
                 }
             }
         });
-        AcRules.findRule(Constants.getMatchers().get(FrsTab.class), (AcRules.Callback) (matcher, clazz, method) -> {
+        AcRules.findRule(matchers(), (matcher, clazz, method) -> {
             if (!"com.baidu.tieba.frs.vc.FrsTabViewController".equals(clazz)) return;
             XposedHelpers.findAndHookMethod("com.baidu.tieba.frs.vc.FrsTabViewController", sClassLoader, method, new XC_MethodHook() {
                 @Override

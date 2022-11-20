@@ -13,6 +13,8 @@ import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.widget.TbToast;
 
 public class FollowFilter extends XposedContext implements IHooker {
+
+    @Override
     public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod("tbclient.Personalized.DataRes$Builder", sClassLoader,
                 "build", boolean.class, new XC_MethodHook() {

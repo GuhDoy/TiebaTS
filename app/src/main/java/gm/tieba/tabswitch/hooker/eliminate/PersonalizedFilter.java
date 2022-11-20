@@ -12,12 +12,14 @@ import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.util.Parser;
 
 public class PersonalizedFilter extends XposedContext implements IHooker, RegexFilter {
+
     @NonNull
     @Override
     public String key() {
         return "personalized_filter";
     }
 
+    @Override
     public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod("tbclient.Personalized.DataRes$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override

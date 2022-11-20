@@ -5,9 +5,12 @@ import android.content.Context;
 import androidx.room.Room;
 
 import java.util.Arrays;
+import java.util.List;
+
+import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
 
 public class AcRules {
-    public static final String ACRULES_DATABASE_NAME = "AcRules.db";
+    public static final String ACRULES_DATABASE_NAME = "Deobfs.db";
     public static AcRuleDao sDao;
 
     public static void init(Context context) {
@@ -19,7 +22,7 @@ public class AcRules {
                 .acRuleDao();
     }
 
-    public static void dropRules() {
+    public static void dropAllRules() {
         sDao.getAll().forEach(it -> sDao.delete(it));
     }
 
@@ -27,27 +30,16 @@ public class AcRules {
         sDao.insertAll(AcRule.Companion.create(matcher, clazz, method));
     }
 
-    public static void findRule(Object... rulesAndCallback) {
-        if (rulesAndCallback.length != 0
-                && rulesAndCallback[rulesAndCallback.length - 1] instanceof Callback) {
-            var callback = (Callback) rulesAndCallback[rulesAndCallback.length - 1];
-            for (var rule : sDao.loadAllMatch(getParameterRules(rulesAndCallback))) {
-                callback.onRuleFound(rule.getMatcher(), rule.getClazz(), rule.getMethod());
-            }
-        } else {
-            throw new IllegalArgumentException("no callback defined");
+    public static void findRule(Matcher matcher, Callback callback) {
+        for (var rule : sDao.loadAllMatch(matcher.toString())) {
+            callback.onRuleFound(rule.getMatcher(), rule.getClazz(), rule.getMethod());
         }
     }
 
-    private static String[] getParameterRules(Object[] rulesAndCallback) {
-        if (rulesAndCallback[0] instanceof String[]) {
-            return (String[]) rulesAndCallback[0];
+    public static void findRule(List<? extends Matcher> matchers, Callback callback) {
+        for (var rule : sDao.loadAllMatch(matchers.stream().map(Matcher::toString).toArray(String[]::new))) {
+            callback.onRuleFound(rule.getMatcher(), rule.getClazz(), rule.getMethod());
         }
-        var rules = new String[rulesAndCallback.length - 1];
-        for (var i = 0; i < rulesAndCallback.length - 1; i++) {
-            rules[i] = (String) rulesAndCallback[i];
-        }
-        return rules;
     }
 
     public static boolean isRuleFound(String matcher) {

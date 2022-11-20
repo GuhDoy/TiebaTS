@@ -1,6 +1,5 @@
 package gm.tieba.tabswitch.hooker.extra;
 
-import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -8,22 +7,31 @@ import android.view.MotionEvent;
 import android.view.ViewGroup;
 
 import java.lang.reflect.Method;
+import java.util.List;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
+import gm.tieba.tabswitch.hooker.Obfuscated;
+import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
+import gm.tieba.tabswitch.hooker.deobfuscation.StringResMatcher;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
-@SuppressLint("ClickableViewAccessibility")
-public class ForbidGesture extends XposedContext implements IHooker {
+public class ForbidGesture extends XposedContext implements IHooker, Obfuscated {
+
+    @Override
+    public List<? extends Matcher> matchers() {
+        return List.of(new StringResMatcher("特大号字体"));
+    }
+
+    @Override
     public void hook() throws Throwable {
         // 帖子字号
-        AcRules.findRule(Constants.getResourceMatchers().get(ForbidGesture.class), (AcRules.Callback) (matcher, clazz, method) -> {
+        AcRules.findRule(matchers(), (matcher, clazz, method) -> {
                     XposedHelpers.findAndHookMethod(clazz, sClassLoader, "c", XC_MethodReplacement.returnConstant(null));
                     XposedHelpers.findAndHookMethod(clazz, sClassLoader, "d", XC_MethodReplacement.returnConstant(null));
                 }

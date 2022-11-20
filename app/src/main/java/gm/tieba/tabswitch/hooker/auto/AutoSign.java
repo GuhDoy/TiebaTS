@@ -32,6 +32,7 @@ public class AutoSign extends XposedContext implements IHooker {
     private String mTbs;
     private Integer mFollowNum = 201;
 
+    @Override
     public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader,
                 "onCreate", Bundle.class, new XC_MethodHook() {

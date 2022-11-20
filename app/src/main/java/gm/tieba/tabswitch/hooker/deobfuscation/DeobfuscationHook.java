@@ -16,31 +16,32 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
-import java.io.File;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.IHooker;
-import kotlin.collections.CollectionsKt;
 
 public class DeobfuscationHook extends XposedContext implements IHooker {
     private static final String TRAMPOLINE_ACTIVITY = "com.baidu.tieba.tblauncher.MainTabActivity";
     private final DeobfuscationViewModel viewModel = new DeobfuscationViewModel();
+    private final List<Matcher> mMatchers;
     private Activity mActivity;
     private TextView mMessage;
     private TextView mProgress;
     private RelativeLayout mProgressContainer;
     private LinearLayout mContentView;
 
+    public DeobfuscationHook(List<Matcher> matchers) {
+        mMatchers = matchers;
+    }
+
+    @Override
     public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.LogoActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
             @SuppressLint("ApplySharedPref")
@@ -59,9 +60,7 @@ public class DeobfuscationHook extends XposedContext implements IHooker {
                 }
 
                 if (DeobfuscationHelper.isDexChanged(mActivity)) {
-                    AcRules.dropRules();
-                } else if (!DeobfuscationHelper.getRulesLost().isEmpty()) {
-                    DeobfuscationHelper.matchers = DeobfuscationHelper.getRulesLost();
+                    AcRules.dropAllRules();
                 } else {
                     hooks.forEach(Unhook::unhook);
                     DeobfuscationHelper.saveAndRestart(mActivity,
@@ -80,33 +79,18 @@ public class DeobfuscationHook extends XposedContext implements IHooker {
                 new Thread(() -> {
                     try {
                         setMessage("(1/4) 解压");
-                        var packageResource = new File(mActivity.getPackageResourcePath());
-                        var dexDir = new File(mActivity.getCacheDir(), "app_dex");
-                        viewModel.unzip(packageResource, dexDir);
+                        viewModel.deobfuscationStep1(mActivity, mMatchers);
 
                         setMessage("(2/4) 解析资源");
-                        var idToMatcher = DeobfuscationViewModel.resolveIdentifier(
-                                DeobfuscationHelper.matchers, mActivity);
-                        var idToResMatcher = DeobfuscationViewModel.decodeArsc(
-                                Constants.getResourceMatchers().values().stream()
-                                        .flatMap(Arrays::stream).collect(Collectors.toSet()),
-                                packageResource);
-                        idToMatcher.putAll(idToResMatcher);
-                        DeobfuscationHelper.matchers.removeAll(idToMatcher.values());
+                        viewModel.deobfuscationStep2();
 
                         setMessage("(3/4) 搜索字符串和资源 id");
-                        var searcher = new DexBakSearcher(DeobfuscationHelper.matchers,
-                                idToMatcher.keySet().stream()
-                                        .map(Long::valueOf)
-                                        .collect(Collectors.toList())
-                        );
-                        var scope = viewModel.fastSearchAndFindScope(searcher, idToMatcher);
+                        var scope = viewModel.deobfuscationStep3();
 
-                        setMessage("(4/4) 在 " + scope.getMost() + " 中搜索代码");
-                        viewModel.searchSmali(searcher, scope);
+                        setMessage("(4/4) 在 " + scope.pkg + " 中搜索代码");
+                        viewModel.deobfuscationStep4();
 
-                        viewModel.saveDexSignatureHashCode();
-                        XposedBridge.log("anti-confusion accomplished, current version: "
+                        XposedBridge.log("deobfuscation accomplished, current version: "
                                 + DeobfuscationHelper.getTbVersion(mActivity));
                         hooks.forEach(Unhook::unhook);
                         DeobfuscationHelper.saveAndRestart(mActivity,
@@ -124,7 +108,7 @@ public class DeobfuscationHook extends XposedContext implements IHooker {
 
     @NonNull
     private List<XC_MethodHook.Unhook> disableStartAndFinishActivity() {
-        return CollectionsKt.listOf(
+        return List.of(
                 XposedHelpers.findAndHookMethod(Instrumentation.class, "execStartActivity",
                         Context.class, IBinder.class, IBinder.class, Activity.class, Intent.class,
                         int.class, Bundle.class, XC_MethodReplacement.returnConstant(null)),

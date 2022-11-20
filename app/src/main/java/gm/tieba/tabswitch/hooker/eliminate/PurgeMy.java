@@ -4,19 +4,28 @@ import android.view.View;
 import android.widget.ImageView;
 
 import java.util.Arrays;
+import java.util.List;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
+import gm.tieba.tabswitch.hooker.Obfuscated;
+import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
-public class PurgeMy extends XposedContext implements IHooker {
+public class PurgeMy extends XposedContext implements IHooker, Obfuscated {
+
+    @Override
+    public List<? extends Matcher> matchers() {
+        return null;
+    }
+
+    @Override
     public void hook() throws Throwable {
-        AcRules.findRule(Constants.getMatchers().get(PurgeMy.class), (AcRules.Callback) (matcher, clazz, method) -> {
+        AcRules.findRule(matchers(), (matcher, clazz, method) -> {
             switch (matcher) {
                 case "Lcom/baidu/tieba/R$drawable;->icon_pure_topbar_store44_svg:I": // 商店
                     XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, int.class, new XC_MethodHook() {

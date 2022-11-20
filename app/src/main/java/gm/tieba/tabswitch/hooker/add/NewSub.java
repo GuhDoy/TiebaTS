@@ -3,22 +3,33 @@ package gm.tieba.tabswitch.hooker.add;
 import android.app.Activity;
 import android.content.Intent;
 
+import java.util.List;
+
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
+import gm.tieba.tabswitch.hooker.Obfuscated;
+import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
+import gm.tieba.tabswitch.hooker.deobfuscation.StringMatcher;
 import gm.tieba.tabswitch.util.ReflectUtils;
 import gm.tieba.tabswitch.widget.NavigationBar;
 
-public class NewSub extends XposedContext implements IHooker {
+public class NewSub extends XposedContext implements IHooker, Obfuscated {
+
+    @Override
+    public List<? extends Matcher> matchers() {
+        return List.of(new StringMatcher("c0132"));
+    }
+
     private Object mThreadId;
     private Object mPostId;
 
+    @Override
     public void hook() throws Throwable {
-        AcRules.findRule(Constants.getMatchers().get(NewSub.class), (AcRules.Callback) (matcher, clazz, method) ->
+        AcRules.findRule(matchers(), (matcher, clazz, method) ->
                 XposedBridge.hookAllConstructors(XposedHelpers.findClass(clazz, sClassLoader), new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {

@@ -18,6 +18,7 @@ public class FrsPageFilter extends XposedContext implements IHooker, RegexFilter
         return "frs_page_filter";
     }
 
+    @Override
     public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod("tbclient.FrsPage.DataRes$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override

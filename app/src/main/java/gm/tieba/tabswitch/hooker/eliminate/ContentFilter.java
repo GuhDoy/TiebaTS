@@ -23,6 +23,7 @@ public class ContentFilter extends XposedContext implements IHooker, RegexFilter
         return "content_filter";
     }
 
+    @Override
     public void hook() throws Throwable {
         // 楼层
         XposedHelpers.findAndHookMethod("tbclient.PbPage.DataRes$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {

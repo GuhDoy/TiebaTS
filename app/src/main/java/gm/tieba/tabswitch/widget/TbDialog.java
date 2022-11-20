@@ -7,20 +7,31 @@ import android.view.Window;
 import android.widget.TextView;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.Consumer;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
+import gm.tieba.tabswitch.hooker.Obfuscated;
+import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
+import gm.tieba.tabswitch.hooker.deobfuscation.StringMatcher;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
-public class TbDialog extends XposedContext {
+public class TbDialog extends XposedContext implements Obfuscated {
     private Class<?> mClass;
     private Object mBdAlert;
     private Object mPageContext;
     private AlertDialog mDialog;
+
+    @Override
+    public List<? extends Matcher> matchers() {
+        return List.of(new StringMatcher("Dialog must be created by function create()!"));
+    }
+
+    public TbDialog() {
+    }
 
     public TbDialog(Activity activity, String title, String message, boolean cancelable, View contentView) {
         XposedHelpers.findAndHookMethod("com.baidu.tbadk.core.BaseFragment", sClassLoader,
@@ -30,7 +41,7 @@ public class TbDialog extends XposedContext {
                         mPageContext = param.getResult();
                     }
                 });
-        AcRules.findRule(Constants.getMatchers().get(TbDialog.class), (AcRules.Callback) (matcher, clazz, method) -> {
+        AcRules.findRule(matchers(), (matcher, clazz, method) -> {
             var cls = XposedHelpers.findClass(clazz, sClassLoader);
             if (cls.getDeclaredMethods().length < 20) {
                 return;

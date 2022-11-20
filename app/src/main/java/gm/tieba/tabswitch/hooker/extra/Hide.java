@@ -10,6 +10,7 @@ import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.hooker.IHooker;
 
 public class Hide extends XposedContext implements IHooker {
+
     /**
      * @deprecated hook VMStack_getThreadStackTrace instead.
      */

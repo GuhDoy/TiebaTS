@@ -14,6 +14,8 @@ import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.IHooker;
 
 public class OpenSign extends XposedContext implements IHooker {
+
+    @Override
     public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
             @Override

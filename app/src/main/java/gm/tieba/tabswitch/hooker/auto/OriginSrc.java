@@ -16,10 +16,12 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
+import gm.tieba.tabswitch.hooker.deobfuscation.StringMatcher;
 
 public class OriginSrc extends XposedContext implements IHooker {
+
     private static void doHook() {
-        AcRules.findRule("\"pic_amount\"", (AcRules.Callback) (matcher, clazz, method) ->
+        AcRules.findRule(new StringMatcher("pic_amount"), (matcher, clazz, method) ->
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, JSONObject.class, Boolean.class, new XC_MethodHook() {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
@@ -63,6 +65,7 @@ public class OriginSrc extends XposedContext implements IHooker {
     }
 
     @SuppressLint("MissingPermission")
+    @Override
     public void hook() throws Throwable {
         NetworkCallbackImpl networkCallback = new NetworkCallbackImpl();
         NetworkRequest.Builder builder = new NetworkRequest.Builder();

@@ -9,8 +9,10 @@ import android.os.Bundle;
 import android.text.TextUtils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.IXposedHookZygoteInit;
@@ -21,6 +23,8 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Adp;
 import gm.tieba.tabswitch.dao.Preferences;
+import gm.tieba.tabswitch.hooker.IHooker;
+import gm.tieba.tabswitch.hooker.Obfuscated;
 import gm.tieba.tabswitch.hooker.TSPreference;
 import gm.tieba.tabswitch.hooker.add.CreateView;
 import gm.tieba.tabswitch.hooker.add.HistoryCache;
@@ -37,6 +41,7 @@ import gm.tieba.tabswitch.hooker.auto.OpenSign;
 import gm.tieba.tabswitch.hooker.auto.OriginSrc;
 import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHelper;
 import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHook;
+import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
 import gm.tieba.tabswitch.hooker.eliminate.ContentFilter;
 import gm.tieba.tabswitch.hooker.eliminate.FollowFilter;
 import gm.tieba.tabswitch.hooker.eliminate.FragmentTab;
@@ -50,6 +55,8 @@ import gm.tieba.tabswitch.hooker.extra.Hide;
 import gm.tieba.tabswitch.hooker.extra.RedirectImage;
 import gm.tieba.tabswitch.hooker.extra.StackTrace;
 import gm.tieba.tabswitch.util.DisplayUtils;
+import gm.tieba.tabswitch.widget.TbDialog;
+import gm.tieba.tabswitch.widget.TbToast;
 
 public class XposedInit extends XposedContext implements IXposedHookZygoteInit, IXposedHookLoadPackage {
     @Override
@@ -69,6 +76,31 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                 sClassLoader = lpparam.classLoader;
                 Preferences.init(getContext());
                 AcRules.init(getContext());
+
+                var tsPref = new TSPreference();
+                var hookers = new ArrayList<IHooker>();
+                hookers.add(tsPref);
+                var matchers = new ArrayList<Obfuscated>();
+                matchers.add(tsPref);
+                matchers.add(new TbDialog());
+                matchers.add(new TbToast());
+                for (var entry : Preferences.getAll().entrySet()) {
+                    try {
+                        var hooker = maybeInitHooker(entry);
+                        if (hooker != null) {
+                            if (Boolean.FALSE != entry.getValue()) {
+                                hookers.add(hooker);
+                            }
+                            if (hooker instanceof Obfuscated) {
+                                matchers.add((Obfuscated) hooker);
+                            }
+                        }
+                    } catch (Throwable tr) {
+                        XposedBridge.log(tr);
+                        sExceptions.put(entry.getKey(), tr);
+                    }
+                }
+
                 if (DeobfuscationHelper.isVersionChanged(getContext())) {
                     if ("com.baidu.tieba".equals(lpparam.processName)) {
                         XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
@@ -81,11 +113,21 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                             }
                         });
                     }
-                    XposedBridge.log("AntiConfusion");
-                    new DeobfuscationHook().hook();
+                    XposedBridge.log("Deobfuscation");
+                    new DeobfuscationHook(
+                            matchers.stream()
+                                    .map(Obfuscated::matchers)
+                                    .flatMap(Collection::stream)
+                                    .collect(Collectors.toList())
+                    ).hook();
                     return;
                 }
-                var lostList = DeobfuscationHelper.getRulesLost();
+                var lostList = matchers.stream()
+                        .map(Obfuscated::matchers)
+                        .flatMap(Collection::stream)
+                        .map(Matcher::toString)
+                        .filter(matcher -> !AcRules.isRuleFound(matcher))
+                        .collect(Collectors.toList());
                 if (!lostList.isEmpty()) {
                     XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
                         @Override
@@ -102,104 +144,74 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                                     AlertDialog.THEME_DEVICE_DEFAULT_LIGHT : AlertDialog.THEME_DEVICE_DEFAULT_DARK)
                                     .setTitle("警告").setMessage(message).setCancelable(false)
                                     .setNegativeButton(activity.getString(android.R.string.cancel), null)
-                                    .setPositiveButton(activity.getString(android.R.string.ok), (dialogInterface, i) -> DeobfuscationHelper
-                                            .saveAndRestart(activity, "unknown", null))
+                                    .setPositiveButton(activity.getString(android.R.string.ok), (dialogInterface, i) -> {
+                                        Preferences.putSignature(0);
+                                        DeobfuscationHelper.saveAndRestart(activity, "unknown", null);
+                                    })
                                     .show();
                         }
                     });
                     return;
                 }
-
-                new TSPreference().hook();
                 new Adp();
-                for (var entry : Preferences.getAll().entrySet()) {
-                    try {
-                        initHooker(entry);
-                    } catch (Throwable tr) {
-                        XposedBridge.log(tr);
-                        sExceptions.put(entry.getKey(), tr);
-                    }
+                for (var hooker : hookers) {
+                    hooker.hook();
                 }
             }
 
-            private void initHooker(Map.Entry<String, ?> entry) throws Throwable {
+            private IHooker maybeInitHooker(Map.Entry<String, ?> entry) {
                 switch (entry.getKey()) {
                     case "home_recommend":
                     case "fragment_tab":
-                        new FragmentTab().hook();
-                        break;
+                        return new FragmentTab();
                     case "switch_manager":
-                        new SwitchManager().hook();
-                        break;
+                        return new SwitchManager();
                     case "purge":
-                        if ((Boolean) entry.getValue()) new Purge().hook();
-                        break;
+                        return new Purge();
                     case "purge_my":
-//                        if ((Boolean) entry.getValue()) new PurgeMy().hook();
-                        break;
+//                        return new PurgeMy();
                     case "red_tip":
-                        if ((Boolean) entry.getValue()) new RedTip().hook();
-                        break;
+                        return new RedTip();
                     case "follow_filter":
-                        if ((Boolean) entry.getValue()) new FollowFilter().hook();
-                        break;
+                        return new FollowFilter();
                     case "personalized_filter":
-                        new PersonalizedFilter().hook();
-                        break;
+                        return new PersonalizedFilter();
                     case "content_filter":
-                        new ContentFilter().hook();
-                        break;
+                        return new ContentFilter();
                     case "frs_page_filter":
-                        new FrsPageFilter().hook();
-                        break;
+                        return new FrsPageFilter();
                     case "create_view":
-                        if ((Boolean) entry.getValue()) new CreateView().hook();
-                        break;
+                        return new CreateView();
                     case "thread_store":
-                        if ((Boolean) entry.getValue()) new ThreadStore().hook();
-                        break;
+                        return new ThreadStore();
                     case "history_cache":
-                        if ((Boolean) entry.getValue()) new HistoryCache().hook();
-                        break;
+                        return new HistoryCache();
                     case "new_sub":
-                        if ((Boolean) entry.getValue()) new NewSub().hook();
-                        break;
+                        return new NewSub();
                     case "ripple":
-                        if ((Boolean) entry.getValue()) new Ripple().hook();
-                        break;
+                        return new Ripple();
                     case "save_images":
-                        if ((Boolean) entry.getValue()) new SaveImages().hook();
-                        break;
+                        return new SaveImages();
                     case "my_attention":
-                        if ((Boolean) entry.getValue()) new MyAttention().hook();
-                        break;
+                        return new MyAttention();
                     case "auto_sign":
-                        if ((Boolean) entry.getValue()) new AutoSign().hook();
-                        break;
+                        return new AutoSign();
                     case "open_sign":
-                        if ((Boolean) entry.getValue()) new OpenSign().hook();
-                        break;
+                        return new OpenSign();
                     case "eyeshield_mode":
-                        if ((Boolean) entry.getValue()) new EyeshieldMode().hook();
-                        break;
+                        return new EyeshieldMode();
                     case "origin_src":
-                        if ((Boolean) entry.getValue()) new OriginSrc().hook();
-                        break;
+                        return new OriginSrc();
                     case "redirect_image":
-                        if ((Boolean) entry.getValue()) new RedirectImage().hook();
-                        break;
+                        return new RedirectImage();
                     case "forbid_gesture":
-                        if ((Boolean) entry.getValue()) new ForbidGesture().hook();
-                        break;
+                        return new ForbidGesture();
                     case "agree_num":
-                        if ((Boolean) entry.getValue()) new AgreeNum().hook();
-                        break;
+                        return new AgreeNum();
                     case "frs_tab":
-                        if ((Boolean) entry.getValue()) new FrsTab().hook();
-                        break;
+                        return new FrsTab();
                     case "hide":
-                        if ((Boolean) entry.getValue()) new Hide().hook();
-                        break;
+                        return new Hide();
                     case "hide_native":
                         if ((Boolean) entry.getValue()) {
                             try {
@@ -211,8 +223,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                         }
                         break;
                     case "check_stack_trace":
-                        if ((Boolean) entry.getValue()) new StackTrace().hook();
-                        break;
+                        return new StackTrace();
                     case "check_xposed":
                     case "check_module":
                         // prevent from being removed
@@ -221,6 +232,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                         Preferences.remove(entry.getKey());
                         break;
                 }
+                return null;
             }
         });
     }

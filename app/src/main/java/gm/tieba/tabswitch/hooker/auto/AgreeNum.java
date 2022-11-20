@@ -6,6 +6,8 @@ import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.hooker.IHooker;
 
 public class AgreeNum extends XposedContext implements IHooker {
+
+    @Override
     public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod("tbclient.Agree$Builder", sClassLoader,
                 "build", boolean.class, new XC_MethodHook() {

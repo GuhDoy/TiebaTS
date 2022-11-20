@@ -6,6 +6,8 @@ import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.hooker.IHooker;
 
 public class RedTip extends XposedContext implements IHooker {
+
+    @Override
     public void hook() throws Throwable {
 //        XposedHelpers.findAndHookMethod("com.baidu.tbadk.widget.tab.PagerSlidingTabBaseStrip", sClassLoader,
 //                "setShowConcernRedTip", boolean.class, XC_MethodReplacement.returnConstant(null));

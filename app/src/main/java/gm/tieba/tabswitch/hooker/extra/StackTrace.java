@@ -13,6 +13,7 @@ import gm.tieba.tabswitch.hooker.IHooker;
 public class StackTrace extends XposedContext implements IHooker {
     public static List<String> sStes = new ArrayList<>();
 
+    @Override
     public void hook() throws Throwable {
         for (Method method : XposedHelpers.findClass("com.baidu.tieba.LogoActivity", sClassLoader).getDeclaredMethods()) {
             XposedBridge.hookMethod(method, new XC_MethodHook() {

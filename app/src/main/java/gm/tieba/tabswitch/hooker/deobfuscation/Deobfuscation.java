@@ -1,182 +1,246 @@
 package gm.tieba.tabswitch.hooker.deobfuscation;
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.app.Instrumentation;
 import android.content.Context;
-import android.content.Intent;
-import android.graphics.Color;
-import android.os.Bundle;
-import android.os.IBinder;
-import android.util.Log;
-import android.view.Gravity;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.dexbacked.raw.ClassDefItem;
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XC_MethodReplacement;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.zip.ZipFile;
+
+import brut.androlib.AndrolibException;
+import brut.androlib.res.data.value.ResStringValue;
+import brut.androlib.res.decoder.ARSCDecoder;
 import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.Constants;
-import gm.tieba.tabswitch.XposedContext;
+import gm.tieba.tabswitch.dao.AcRule;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
-import gm.tieba.tabswitch.hooker.IHooker;
+import gm.tieba.tabswitch.util.FileUtils;
+import gm.tieba.tabswitch.util.StringsKt;
+import io.reactivex.rxjava3.subjects.PublishSubject;
 import kotlin.collections.CollectionsKt;
 
-public class Deobfuscation extends XposedContext implements IHooker {
-    private static final String TRAMPOLINE_ACTIVITY = "com.baidu.tieba.tblauncher.MainTabActivity";
-    private final DeobfuscationViewModel viewModel = new DeobfuscationViewModel();
-    private Activity mActivity;
-    private TextView mMessage;
-    private TextView mProgress;
-    private RelativeLayout mProgressContainer;
-    private LinearLayout mContentView;
+public class Deobfuscation {
+    private File packageResource;
+    private File[] dexs;
+    private int dexCount;
+    private final List<Matcher> matchers = new ArrayList<>();
+    private DexBakSearcher searcher;
+    private final SearchScope scope = new SearchScope();
 
-    public void hook() throws Throwable {
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.LogoActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
-            @SuppressLint("ApplySharedPref")
-            @Override
-            public void afterHookedMethod(MethodHookParam param) throws Throwable {
-                var hooks = disableStartAndFinishActivity();
-                mActivity = (Activity) param.thisObject;
-                if (Preferences.getBoolean("purge")) {
-                    var editor = mActivity
-                            .getSharedPreferences("settings", Context.MODE_PRIVATE)
-                            .edit();
-                    editor.putString("key_location_request_dialog_last_show_version",
-                            DeobfuscationHelper.getTbVersion(mActivity)
-                    );
-                    editor.commit();
+    public void unzip(PublishSubject<Float> _progress, Context context) throws IOException {
+        packageResource = new File(context.getPackageResourcePath());
+        var dexDir = new File(context.getCacheDir(), "app_dex");
+        FileUtils.deleteRecursively(dexDir);
+        dexDir.mkdirs();
+
+        var zipFile = new ZipFile(packageResource);
+        var enumeration = zipFile.entries();
+        var entryCount = 0;
+        var entrySize = zipFile.size();
+        while (enumeration.hasMoreElements()) {
+            entryCount++;
+            _progress.onNext((float) entryCount / entrySize);
+
+            var ze = enumeration.nextElement();
+            if (ze.getName().matches("classes[0-9]*?\\.dex")) {
+                FileUtils.copy(zipFile.getInputStream(ze), new File(dexDir, ze.getName()));
+            }
+        }
+        zipFile.close();
+
+        var fs = dexDir.listFiles();
+        if (fs == null) {
+            throw new FileNotFoundException("解压失败");
+        }
+        Arrays.sort(fs, Comparator.comparingInt(it -> {
+            try {
+                return Integer.parseInt(it.getName().replaceAll("[a-z.]", ""));
+            } catch (NumberFormatException e) {
+                return 1;
+            }
+        }));
+        dexs = fs;
+        dexCount = dexs.length;
+    }
+
+    public void setMatchers(List<Matcher> matchers) {
+        this.matchers.clear();
+        this.matchers.addAll(matchers);
+    }
+
+    public Map<Integer, String> resolveIdentifier(List<String> source, Context context) {
+        var result = new HashMap<Integer, String>(source.size());
+        var resources = context.getResources();
+        var defPackage = context.getPackageName();
+        source.forEach(it -> {
+            var defType = StringsKt.substringBetween(it, "R$", ";->", "");
+            if (!TextUtils.isEmpty(defType)) {
+                var name = StringsKt.substringBetween(it, ";->", ":I", "");
+                var identifier = resources.getIdentifier(name, defType, defPackage);
+                if (identifier != 0) {
+                    result.put(identifier, it);
                 }
-
-                if (DeobfuscationHelper.isDexChanged(mActivity)) {
-                    AcRules.dropRules();
-                } else if (!DeobfuscationHelper.getRulesLost().isEmpty()) {
-                    DeobfuscationHelper.matchers = DeobfuscationHelper.getRulesLost();
-                } else {
-                    hooks.forEach(Unhook::unhook);
-                    DeobfuscationHelper.saveAndRestart(mActivity,
-                            DeobfuscationHelper.getTbVersion(mActivity),
-                            XposedHelpers.findClass(TRAMPOLINE_ACTIVITY, sClassLoader)
-                    );
-                    return;
-                }
-
-                initProgressIndicator();
-                mActivity.addContentView(mContentView, new LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT
-                ));
-                viewModel.progress.subscribe(progress -> setProgress(progress));
-
-                new Thread(() -> {
-                    try {
-                        setMessage("(1/4) 解压");
-                        var packageResource = new File(mActivity.getPackageResourcePath());
-                        var dexDir = new File(mActivity.getCacheDir(), "app_dex");
-                        viewModel.unzip(packageResource, dexDir);
-
-                        setMessage("(2/4) 解析资源");
-                        var idToMatcher = DeobfuscationViewModel.resolveIdentifier(
-                                DeobfuscationHelper.matchers, mActivity);
-                        var idToResMatcher = DeobfuscationViewModel.decodeArsc(
-                                Constants.getResourceMatchers().values().stream()
-                                        .flatMap(Arrays::stream).collect(Collectors.toSet()),
-                                packageResource);
-                        idToMatcher.putAll(idToResMatcher);
-                        DeobfuscationHelper.matchers.removeAll(idToMatcher.values());
-
-                        setMessage("(3/4) 搜索字符串和资源 id");
-                        var searcher = new DexBakSearcher(DeobfuscationHelper.matchers,
-                                idToMatcher.keySet().stream()
-                                        .map(Long::valueOf)
-                                        .collect(Collectors.toList())
-                        );
-                        var scope = viewModel.fastSearchAndFindScope(searcher, idToMatcher);
-
-                        setMessage("(4/4) 在 " + scope.getMost() + " 中搜索代码");
-                        viewModel.searchSmali(searcher, scope);
-
-                        viewModel.saveDexSignatureHashCode();
-                        XposedBridge.log("anti-confusion accomplished, current version: "
-                                + DeobfuscationHelper.getTbVersion(mActivity));
-                        hooks.forEach(Unhook::unhook);
-                        DeobfuscationHelper.saveAndRestart(mActivity,
-                                DeobfuscationHelper.getTbVersion(mActivity),
-                                XposedHelpers.findClass(TRAMPOLINE_ACTIVITY, sClassLoader)
-                        );
-                    } catch (Throwable e) {
-                        XposedBridge.log(e);
-                        setMessage("处理失败\n" + Log.getStackTraceString(e));
-                    }
-                }).start();
             }
         });
+        return result;
     }
 
-    @NonNull
-    private List<XC_MethodHook.Unhook> disableStartAndFinishActivity() {
-        return CollectionsKt.listOf(
-                XposedHelpers.findAndHookMethod(Instrumentation.class, "execStartActivity",
-                        Context.class, IBinder.class, IBinder.class, Activity.class, Intent.class,
-                        int.class, Bundle.class, XC_MethodReplacement.returnConstant(null)),
-                XposedHelpers.findAndHookMethod(Activity.class, "finish",
-                        int.class, XC_MethodReplacement.returnConstant(null)),
-                XposedHelpers.findAndHookMethod(Activity.class, "finishActivity",
-                        int.class, XC_MethodReplacement.returnConstant(null)),
-                XposedHelpers.findAndHookMethod(Activity.class, "finishAffinity",
-                        XC_MethodReplacement.returnConstant(null))
-        );
+    public void decodeArsc() throws IOException, AndrolibException {
+        var strToResMatcher = new HashMap<String, ResMatcher>();
+        for (var matcher : matchers) {
+            if (matcher instanceof ResMatcher) {
+                strToResMatcher.put(matcher.toString(), (ResMatcher) matcher);
+            }
+        }
+
+        var zipFile = new ZipFile(packageResource);
+        var ze = zipFile.getEntry("resources.arsc");
+        try (var in = zipFile.getInputStream(ze)) {
+            var pkg = ARSCDecoder.decode(in, true, true).getOnePackage();
+            pkg.listResSpecs().stream()
+                    .filter(resResSpec -> "string".equals(resResSpec.getType().toString()))
+                    .forEach(resResSpec -> {
+                        try {
+                            var maybeStr = resResSpec.getDefaultResource().getValue();
+                            if (maybeStr instanceof ResStringValue) {
+                                var str = ((ResStringValue) maybeStr).encodeAsResXmlValue();
+                                var matcher = strToResMatcher.get(str);
+                                if (matcher != null) {
+                                    matcher.setId(resResSpec.getId().id);
+                                }
+                            }
+                        } catch (AndrolibException e) {
+                            XposedBridge.log(e);
+                        }
+                    });
+        }
+        zipFile.close();
     }
 
-    @SuppressLint({"SetTextI18n"})
-    private void initProgressIndicator() {
-        var title = new TextView(mActivity);
-        title.setTextSize(16);
-        title.setPaddingRelative(0, 0, 0, 20);
-        title.setGravity(Gravity.CENTER);
-        title.setTextColor(Color.parseColor("#FF303030"));
-        title.setText("贴吧TS正在定位被混淆的类和方法，请耐心等待");
-        mMessage = new TextView(mActivity);
-        mMessage.setTextSize(16);
-        mMessage.setTextColor(Color.parseColor("#FF303030"));
-        mProgress = new TextView(mActivity);
-        mProgress.setBackgroundColor(Color.parseColor("#FFBEBEBE"));
-        mProgressContainer = new RelativeLayout(mActivity);
-        mProgressContainer.addView(mProgress);
-        mProgressContainer.addView(mMessage);
-        var tvLp = (RelativeLayout.LayoutParams) mMessage.getLayoutParams();
-        tvLp.addRule(RelativeLayout.CENTER_IN_PARENT);
-        mMessage.setLayoutParams(tvLp);
-        var rlLp = new RelativeLayout.LayoutParams(
-                RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-        mProgressContainer.setLayoutParams(rlLp);
-        mContentView = new LinearLayout(mActivity);
-        mContentView.setOrientation(LinearLayout.VERTICAL);
-        mContentView.setGravity(Gravity.CENTER);
-//        mContentView.setBackgroundColor(Color.WHITE);
-        mContentView.addView(title);
-        mContentView.addView(mProgressContainer);
-    }
+    public SearchScope fastSearchAndFindScope(PublishSubject<Float> _progress) throws IOException {
+        searcher = new DexBakSearcher(matchers);
+        var progress = 0F;
+        for (var f : dexs) {
+            try (var in = new BufferedInputStream(new FileInputStream(f))) {
+                var dex = DexBackedDexFile.fromInputStream(null, in);
+                var classDefs = new ArrayList<>(dex.getClasses());
+                for (int i = 0, classCount = classDefs.size(); i < classCount; i++) {
+                    progress += (float) 1 / dexCount / classCount;
+                    _progress.onNext(progress);
 
-    private void setMessage(String message) {
-        mActivity.runOnUiThread(() -> mMessage.setText(message));
-    }
+                    searcher.searchStringAndLiteral(classDefs.get(i), new DexBakSearcher.MatcherListener() {
+                        @Override
+                        public void onMatch(@NonNull Matcher matcher, @NonNull String clazz, @NonNull String method) {
+                            AcRules.putRule(matcher.toString(), clazz, method);
+                        }
+                    });
+                }
+            }
+        }
 
-    private void setProgress(float progress) {
-        mActivity.runOnUiThread(() -> {
-            var lp = mProgress.getLayoutParams();
-            lp.height = mMessage.getHeight();
-            lp.width = Math.round(mProgressContainer.getWidth() * progress);
-            mProgress.setLayoutParams(lp);
+        // find repackageclasses
+        var segments = new ArrayList<ArrayList<String>>();
+        AcRules.sDao.getAll().stream().map(AcRule::getClazz).forEach(cls -> {
+            var splits = cls.split("\\.");
+            for (int i = 0, length = splits.length; i < length; i++) {
+                var split = splits[i];
+                if (segments.size() <= i) {
+                    segments.add(new ArrayList<>());
+                }
+                segments.get(i).add(split);
+            }
         });
+        StringBuilder repackageclasses = new StringBuilder("L");
+        for (var segment : segments) {
+            var most = gm.tieba.tabswitch.util.CollectionsKt.most(segment);
+            if (CollectionsKt.count(segment, s -> s.equals(most)) < segments.get(0).size() / 2) {
+                break;
+            }
+            repackageclasses.append(most).append("/");
+        }
+        scope.pkg = repackageclasses.toString();
+
+        var numberOfClassesNeedToSearch = new int[dexCount];
+        for (var i = 0; i < dexCount; i++) {
+            try (var in = new BufferedInputStream(new FileInputStream(dexs[i]))) {
+                var dex = DexBackedDexFile.fromInputStream(null, in);
+                var classDefs = ClassDefItem.getClasses(dex);
+                var count = 0;
+                for (var classDef : classDefs) {
+                    if (scope.isInScope(classDef)) {
+                        count++;
+                    }
+                }
+                numberOfClassesNeedToSearch[i] = count;
+            }
+        }
+        scope.numberOfClassesNeedToSearch = numberOfClassesNeedToSearch;
+        return new SearchScope(scope);
+    }
+
+    public void searchSmali(PublishSubject<Float> _progress) throws IOException {
+        var searchedClassCount = 0;
+        var totalClassesNeedToSearch = Arrays.stream(scope.numberOfClassesNeedToSearch).sum();
+        for (var i = 0; i < dexCount; i++) {
+            if (scope.numberOfClassesNeedToSearch[i] == 0) {
+                continue;
+            }
+            try (var in = new BufferedInputStream(new FileInputStream(dexs[i]))) {
+                var dex = DexBackedDexFile.fromInputStream(null, in);
+                var classDefs = new ArrayList<>(dex.getClasses());
+                for (var classDef : classDefs) {
+                    var signature = classDef.getType();
+                    if (scope.isInScope(signature)) {
+                        searchedClassCount++;
+                        _progress.onNext((float) searchedClassCount / totalClassesNeedToSearch);
+
+                        searcher.searchSmali(classDef, new DexBakSearcher.MatcherListener() {
+                            @Override
+                            public void onMatch(@NonNull Matcher matcher, @NonNull String clazz, @NonNull String method) {
+                                AcRules.putRule(matcher.toString(), clazz, method);
+                            }
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+    public void saveDexSignatureHashCode() throws IOException {
+        try (var in = new FileInputStream(dexs[0])) {
+            var signatureHashCode = Arrays.hashCode(DeobfuscationHelper.calcSignature(in));
+            Preferences.putSignature(signatureHashCode);
+        }
+    }
+
+    public static class SearchScope {
+        public String pkg;
+        int[] numberOfClassesNeedToSearch;
+
+        SearchScope() {
+        }
+
+        SearchScope(SearchScope scope) {
+            pkg = scope.pkg;
+            numberOfClassesNeedToSearch = scope.numberOfClassesNeedToSearch;
+        }
+
+        boolean isInScope(String classDef) {
+            return classDef.startsWith(pkg);
+        }
     }
 }

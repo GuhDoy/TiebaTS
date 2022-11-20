@@ -15,6 +15,7 @@ import gm.tieba.tabswitch.util.ReflectUtils;
 public class EyeshieldMode extends XposedContext implements IHooker {
     private boolean mLastUiMode;
 
+    @Override
     public void hook() throws Throwable {
         mLastUiMode = DisplayUtils.isLightMode(getContext());
         SharedPreferences.Editor editor = getContext().getSharedPreferences("common_settings",
