@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hooker.anticonfusion;
+package gm.tieba.tabswitch.hooker.deobfuscation;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -32,9 +32,9 @@ import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.IHooker;
 import kotlin.collections.CollectionsKt;
 
-public class AntiConfusion extends XposedContext implements IHooker {
+public class Deobfuscation extends XposedContext implements IHooker {
     private static final String TRAMPOLINE_ACTIVITY = "com.baidu.tieba.tblauncher.MainTabActivity";
-    private final AntiConfusionViewModel viewModel = new AntiConfusionViewModel();
+    private final DeobfuscationViewModel viewModel = new DeobfuscationViewModel();
     private Activity mActivity;
     private TextView mMessage;
     private TextView mProgress;
@@ -53,19 +53,19 @@ public class AntiConfusion extends XposedContext implements IHooker {
                             .getSharedPreferences("settings", Context.MODE_PRIVATE)
                             .edit();
                     editor.putString("key_location_request_dialog_last_show_version",
-                            AntiConfusionHelper.getTbVersion(mActivity)
+                            DeobfuscationHelper.getTbVersion(mActivity)
                     );
                     editor.commit();
                 }
 
-                if (AntiConfusionHelper.isDexChanged(mActivity)) {
+                if (DeobfuscationHelper.isDexChanged(mActivity)) {
                     AcRules.dropRules();
-                } else if (!AntiConfusionHelper.getRulesLost().isEmpty()) {
-                    AntiConfusionHelper.matchers = AntiConfusionHelper.getRulesLost();
+                } else if (!DeobfuscationHelper.getRulesLost().isEmpty()) {
+                    DeobfuscationHelper.matchers = DeobfuscationHelper.getRulesLost();
                 } else {
                     hooks.forEach(Unhook::unhook);
-                    AntiConfusionHelper.saveAndRestart(mActivity,
-                            AntiConfusionHelper.getTbVersion(mActivity),
+                    DeobfuscationHelper.saveAndRestart(mActivity,
+                            DeobfuscationHelper.getTbVersion(mActivity),
                             XposedHelpers.findClass(TRAMPOLINE_ACTIVITY, sClassLoader)
                     );
                     return;
@@ -85,17 +85,17 @@ public class AntiConfusion extends XposedContext implements IHooker {
                         viewModel.unzip(packageResource, dexDir);
 
                         setMessage("(2/4) 解析资源");
-                        var idToMatcher = AntiConfusionViewModel.resolveIdentifier(
-                                AntiConfusionHelper.matchers, mActivity);
-                        var idToResMatcher = AntiConfusionViewModel.decodeArsc(
+                        var idToMatcher = DeobfuscationViewModel.resolveIdentifier(
+                                DeobfuscationHelper.matchers, mActivity);
+                        var idToResMatcher = DeobfuscationViewModel.decodeArsc(
                                 Constants.getResourceMatchers().values().stream()
                                         .flatMap(Arrays::stream).collect(Collectors.toSet()),
                                 packageResource);
                         idToMatcher.putAll(idToResMatcher);
-                        AntiConfusionHelper.matchers.removeAll(idToMatcher.values());
+                        DeobfuscationHelper.matchers.removeAll(idToMatcher.values());
 
                         setMessage("(3/4) 搜索字符串和资源 id");
-                        var searcher = new DexBakSearcher(AntiConfusionHelper.matchers,
+                        var searcher = new DexBakSearcher(DeobfuscationHelper.matchers,
                                 idToMatcher.keySet().stream()
                                         .map(Long::valueOf)
                                         .collect(Collectors.toList())
@@ -107,10 +107,10 @@ public class AntiConfusion extends XposedContext implements IHooker {
 
                         viewModel.saveDexSignatureHashCode();
                         XposedBridge.log("anti-confusion accomplished, current version: "
-                                + AntiConfusionHelper.getTbVersion(mActivity));
+                                + DeobfuscationHelper.getTbVersion(mActivity));
                         hooks.forEach(Unhook::unhook);
-                        AntiConfusionHelper.saveAndRestart(mActivity,
-                                AntiConfusionHelper.getTbVersion(mActivity),
+                        DeobfuscationHelper.saveAndRestart(mActivity,
+                                DeobfuscationHelper.getTbVersion(mActivity),
                                 XposedHelpers.findClass(TRAMPOLINE_ACTIVITY, sClassLoader)
                         );
                     } catch (Throwable e) {

@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hooker.anticonfusion;
+package gm.tieba.tabswitch.hooker.deobfuscation;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -30,7 +30,7 @@ import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.util.DisplayUtils;
 import kotlin.collections.CollectionsKt;
 
-public class AntiConfusionHelper {
+public class DeobfuscationHelper {
     static List<String> matchers = Constants.getMatchers().values().stream()
             .flatMap(Arrays::stream).collect(Collectors.toList());
     static List<String> resourceMatchers = Constants.getResourceMatchers().values().stream()

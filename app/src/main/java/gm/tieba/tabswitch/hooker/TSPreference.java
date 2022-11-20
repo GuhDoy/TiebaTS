@@ -32,7 +32,7 @@ import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.TSPreferenceHelper.SwitchButtonHolder;
 import gm.tieba.tabswitch.hooker.add.MyAttention;
-import gm.tieba.tabswitch.hooker.anticonfusion.AntiConfusionHelper;
+import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHelper;
 import gm.tieba.tabswitch.hooker.extra.TraceChecker;
 import gm.tieba.tabswitch.util.DisplayUtils;
 import gm.tieba.tabswitch.util.Parser;
@@ -105,7 +105,7 @@ public class TSPreference extends XposedContext implements IHooker {
                             var messages = new ArrayList<String>();
                             messages.add(Constants.getStrings().get("exception_init_preference"));
                             messages.add(String.format(Locale.CHINA, "tbversion: %s, module version: %d",
-                                    AntiConfusionHelper.getTbVersion(getContext()), BuildConfig.VERSION_CODE));
+                                    DeobfuscationHelper.getTbVersion(getContext()), BuildConfig.VERSION_CODE));
                             messages.add(Log.getStackTraceString(tr));
                             var message = TextUtils.join("\n", messages);
                             XposedBridge.log(message);

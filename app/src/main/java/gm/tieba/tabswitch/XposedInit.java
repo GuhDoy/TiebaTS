@@ -29,8 +29,6 @@ import gm.tieba.tabswitch.hooker.add.NewSub;
 import gm.tieba.tabswitch.hooker.add.Ripple;
 import gm.tieba.tabswitch.hooker.add.SaveImages;
 import gm.tieba.tabswitch.hooker.add.ThreadStore;
-import gm.tieba.tabswitch.hooker.anticonfusion.AntiConfusion;
-import gm.tieba.tabswitch.hooker.anticonfusion.AntiConfusionHelper;
 import gm.tieba.tabswitch.hooker.auto.AgreeNum;
 import gm.tieba.tabswitch.hooker.auto.AutoSign;
 import gm.tieba.tabswitch.hooker.auto.EyeshieldMode;
@@ -38,6 +36,8 @@ import gm.tieba.tabswitch.hooker.auto.FrsTab;
 import gm.tieba.tabswitch.hooker.auto.OpenSign;
 import gm.tieba.tabswitch.hooker.auto.OriginSrc;
 import gm.tieba.tabswitch.hooker.auto.RegisterInternalContentUri;
+import gm.tieba.tabswitch.hooker.deobfuscation.Deobfuscation;
+import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHelper;
 import gm.tieba.tabswitch.hooker.eliminate.ContentFilter;
 import gm.tieba.tabswitch.hooker.eliminate.FollowFilter;
 import gm.tieba.tabswitch.hooker.eliminate.FragmentTab;
@@ -71,7 +71,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                 sClassLoader = lpparam.classLoader;
                 Preferences.init(getContext());
                 AcRules.init(getContext());
-                if (AntiConfusionHelper.isVersionChanged(getContext())) {
+                if (DeobfuscationHelper.isVersionChanged(getContext())) {
                     if ("com.baidu.tieba".equals(lpparam.processName)) {
                         XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
                             @Override
@@ -84,10 +84,10 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                         });
                     }
                     XposedBridge.log("AntiConfusion");
-                    new AntiConfusion().hook();
+                    new Deobfuscation().hook();
                     return;
                 }
-                var lostList = AntiConfusionHelper.getRulesLost();
+                var lostList = DeobfuscationHelper.getRulesLost();
                 if (!lostList.isEmpty()) {
                     XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
                         @Override
@@ -96,7 +96,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                             var messages = new ArrayList<String>();
                             messages.add(Constants.getStrings().get("exception_rules_incomplete"));
                             messages.add(String.format(Locale.CHINA, "tbversion: %s, module version: %d",
-                                    AntiConfusionHelper.getTbVersion(getContext()), BuildConfig.VERSION_CODE));
+                                    DeobfuscationHelper.getTbVersion(getContext()), BuildConfig.VERSION_CODE));
                             messages.add(String.format(Locale.CHINA, "%d rule(s) lost: %s", lostList.size(), lostList));
                             var message = TextUtils.join("\n", messages);
                             XposedBridge.log(message);
@@ -104,7 +104,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                                     AlertDialog.THEME_DEVICE_DEFAULT_LIGHT : AlertDialog.THEME_DEVICE_DEFAULT_DARK)
                                     .setTitle("警告").setMessage(message).setCancelable(false)
                                     .setNegativeButton(activity.getString(android.R.string.cancel), null)
-                                    .setPositiveButton(activity.getString(android.R.string.ok), (dialogInterface, i) -> AntiConfusionHelper
+                                    .setPositiveButton(activity.getString(android.R.string.ok), (dialogInterface, i) -> DeobfuscationHelper
                                             .saveAndRestart(activity, "unknown", null))
                                     .show();
                         }

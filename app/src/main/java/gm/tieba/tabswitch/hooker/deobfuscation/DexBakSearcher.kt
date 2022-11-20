@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hooker.anticonfusion
+package gm.tieba.tabswitch.hooker.deobfuscation
 
 import android.text.TextUtils
 import org.jf.baksmali.Adaptors.ClassDefinition

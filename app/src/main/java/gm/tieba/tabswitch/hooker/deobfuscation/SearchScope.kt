@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hooker.anticonfusion
+package gm.tieba.tabswitch.hooker.deobfuscation
 
 data class SearchScope @JvmOverloads constructor(
     val most: String,

@@ -1,4 +1,4 @@
-package gm.tieba.tabswitch.hooker.anticonfusion;
+package gm.tieba.tabswitch.hooker.deobfuscation;
 
 import android.content.Context;
 import android.text.TextUtils;
@@ -35,7 +35,7 @@ import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 import kotlin.collections.CollectionsKt;
 
-public class AntiConfusionViewModel {
+public class DeobfuscationViewModel {
     private final PublishSubject<Float> _progress = PublishSubject.create();
     Observable<Float> progress = _progress;
     private File[] dexs;
@@ -211,7 +211,7 @@ public class AntiConfusionViewModel {
 
     public void saveDexSignatureHashCode() throws IOException {
         try (var in = new FileInputStream(dexs[0])) {
-            var signatureHashCode = Arrays.hashCode(AntiConfusionHelper.calcSignature(in));
+            var signatureHashCode = Arrays.hashCode(DeobfuscationHelper.calcSignature(in));
             Preferences.putSignature(signatureHashCode);
         }
     }
