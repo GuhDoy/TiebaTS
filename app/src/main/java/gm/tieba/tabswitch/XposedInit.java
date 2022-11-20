@@ -35,16 +35,14 @@ import gm.tieba.tabswitch.hooker.auto.EyeshieldMode;
 import gm.tieba.tabswitch.hooker.auto.FrsTab;
 import gm.tieba.tabswitch.hooker.auto.OpenSign;
 import gm.tieba.tabswitch.hooker.auto.OriginSrc;
-import gm.tieba.tabswitch.hooker.auto.RegisterInternalContentUri;
-import gm.tieba.tabswitch.hooker.deobfuscation.Deobfuscation;
 import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHelper;
+import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHook;
 import gm.tieba.tabswitch.hooker.eliminate.ContentFilter;
 import gm.tieba.tabswitch.hooker.eliminate.FollowFilter;
 import gm.tieba.tabswitch.hooker.eliminate.FragmentTab;
 import gm.tieba.tabswitch.hooker.eliminate.FrsPageFilter;
 import gm.tieba.tabswitch.hooker.eliminate.PersonalizedFilter;
 import gm.tieba.tabswitch.hooker.eliminate.Purge;
-import gm.tieba.tabswitch.hooker.eliminate.PurgeMy;
 import gm.tieba.tabswitch.hooker.eliminate.RedTip;
 import gm.tieba.tabswitch.hooker.eliminate.SwitchManager;
 import gm.tieba.tabswitch.hooker.extra.ForbidGesture;
@@ -84,7 +82,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                         });
                     }
                     XposedBridge.log("AntiConfusion");
-                    new Deobfuscation().hook();
+                    new DeobfuscationHook().hook();
                     return;
                 }
                 var lostList = DeobfuscationHelper.getRulesLost();
@@ -136,11 +134,8 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                     case "purge":
                         if ((Boolean) entry.getValue()) new Purge().hook();
                         break;
-                    case "purge_enter":
-//                        if ((Boolean) entry.getValue()) new PurgeEnter().hook();
-                        break;
                     case "purge_my":
-                        if ((Boolean) entry.getValue()) new PurgeMy().hook();
+//                        if ((Boolean) entry.getValue()) new PurgeMy().hook();
                         break;
                     case "red_tip":
                         if ((Boolean) entry.getValue()) new RedTip().hook();
@@ -198,9 +193,6 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                         break;
                     case "agree_num":
                         if ((Boolean) entry.getValue()) new AgreeNum().hook();
-                        break;
-                    case "register_internal_content_uri":
-                        if ((Boolean) entry.getValue()) new RegisterInternalContentUri().hook();
                         break;
                     case "frs_tab":
                         if ((Boolean) entry.getValue()) new FrsTab().hook();

@@ -6,8 +6,6 @@ import gm.tieba.tabswitch.hooker.add.ThreadStore
 import gm.tieba.tabswitch.hooker.auto.FrsTab
 import gm.tieba.tabswitch.hooker.eliminate.FragmentTab
 import gm.tieba.tabswitch.hooker.eliminate.Purge
-import gm.tieba.tabswitch.hooker.eliminate.PurgeEnter
-import gm.tieba.tabswitch.hooker.eliminate.PurgeMy
 import gm.tieba.tabswitch.hooker.extra.ForbidGesture
 import gm.tieba.tabswitch.widget.TbDialog
 import gm.tieba.tabswitch.widget.TbToast
@@ -37,14 +35,6 @@ object Constants {
             "\"key_frs_dialog_ad_last_show_time\"",
             "\"key_forum_rule_first_show_frs\"",
             "Lcom/baidu/tieba/pb/pb/main/PbChildTitleViewHolder;-><init>(Landroid/view/View;)V",
-        ),
-        PurgeEnter::class.java to arrayOf(
-//            "Lcom/baidu/tieba/R\$drawable;->ic_pic_mask_square:I",
-//            "Lcom/baidu/tieba/R\$drawable;->ic_icon_pure_createba16:I",
-        ),
-        PurgeMy::class.java to arrayOf(
-            "Lcom/baidu/tieba/R\$drawable;->icon_pure_topbar_store44_svg:I",
-            "Lcom/baidu/tieba/R\$drawable;->person_center_red_tip_shape:I",
         ),
         ThreadStore::class.java to arrayOf("\"c/f/post/threadstore\""),
         NewSub::class.java to arrayOf("\"c0132\""),

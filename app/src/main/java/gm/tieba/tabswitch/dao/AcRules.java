@@ -5,40 +5,29 @@ import android.content.Context;
 import androidx.room.Room;
 
 import java.util.Arrays;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import de.robv.android.xposed.XposedBridge;
 
 public class AcRules {
     public static final String ACRULES_DATABASE_NAME = "AcRules.db";
     public static AcRuleDao sDao;
-    private static final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public static void init(Context context) {
-        sDao = Room.databaseBuilder(context.getApplicationContext(), AcRuleDatabase.class, ACRULES_DATABASE_NAME)
-                .build().acRuleDao();
+        sDao = Room.databaseBuilder(
+                        context.getApplicationContext(), AcRuleDatabase.class, ACRULES_DATABASE_NAME
+                )
+                .allowMainThreadQueries()
+                .build()
+                .acRuleDao();
     }
 
     public static void dropRules() {
-        executor.submit(() -> sDao.getAll().forEach(it -> sDao.delete(it)));
+        sDao.getAll().forEach(it -> sDao.delete(it));
     }
 
     public static void putRule(String matcher, String clazz, String method) {
         sDao.insertAll(AcRule.Companion.create(matcher, clazz, method));
     }
 
-    public static Object findRule(Object... rulesAndCallback) {
-        try {
-            return executor.submit(() -> findRuleInternal(rulesAndCallback)).get();
-        } catch (ExecutionException | InterruptedException e) {
-            XposedBridge.log(e);
-            return null;
-        }
-    }
-
-    private static void findRuleInternal(Object... rulesAndCallback) {
+    public static void findRule(Object... rulesAndCallback) {
         if (rulesAndCallback.length != 0
                 && rulesAndCallback[rulesAndCallback.length - 1] instanceof Callback) {
             var callback = (Callback) rulesAndCallback[rulesAndCallback.length - 1];
@@ -62,12 +51,7 @@ public class AcRules {
     }
 
     public static boolean isRuleFound(String matcher) {
-        try {
-            return executor.submit(() -> !sDao.loadAllMatch(matcher).isEmpty()).get();
-        } catch (ExecutionException | InterruptedException e) {
-            XposedBridge.log(e);
-        }
-        return false;
+        return !sDao.loadAllMatch(matcher).isEmpty();
     }
 
     public static boolean isRuleFound(String... matchers) {
