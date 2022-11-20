@@ -79,18 +79,18 @@ public class DeobfuscationHook extends XposedContext implements IHooker {
                 new Thread(() -> {
                     try {
                         setMessage("(1/4) 解压");
-                        viewModel.deobfuscationStep1(mActivity, mMatchers);
+                        viewModel.deobfuscateStep1(mActivity, mMatchers);
 
                         setMessage("(2/4) 解析资源");
-                        viewModel.deobfuscationStep2();
+                        viewModel.deobfuscateStep2();
 
                         setMessage("(3/4) 搜索字符串和资源 id");
-                        var scope = viewModel.deobfuscationStep3();
+                        var scope = viewModel.deobfuscateStep3();
 
                         setMessage("(4/4) 在 " + scope.pkg + " 中搜索代码");
-                        viewModel.deobfuscationStep4();
+                        viewModel.deobfuscateStep4();
 
-                        XposedBridge.log("deobfuscation accomplished, current version: "
+                        XposedBridge.log("deobfuscate accomplished, current version: "
                                 + DeobfuscationHelper.getTbVersion(mActivity));
                         hooks.forEach(Unhook::unhook);
                         DeobfuscationHelper.saveAndRestart(mActivity,

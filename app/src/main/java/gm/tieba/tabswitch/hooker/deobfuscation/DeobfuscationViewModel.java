@@ -14,20 +14,20 @@ public class DeobfuscationViewModel {
     Observable<Float> progress = _progress;
     private final Deobfuscation deobfuscation = new Deobfuscation();
 
-    public void deobfuscationStep1(Context context, List<Matcher> matchers) throws IOException {
+    public void deobfuscateStep1(Context context, List<Matcher> matchers) throws IOException {
         deobfuscation.unzip(_progress, context);
         deobfuscation.setMatchers(matchers);
     }
 
-    public void deobfuscationStep2() throws IOException, AndrolibException {
+    public void deobfuscateStep2() throws IOException, AndrolibException {
         deobfuscation.decodeArsc();
     }
 
-    public Deobfuscation.SearchScope deobfuscationStep3() throws IOException {
+    public Deobfuscation.SearchScope deobfuscateStep3() throws IOException {
         return deobfuscation.fastSearchAndFindScope(_progress);
     }
 
-    public void deobfuscationStep4() throws IOException {
+    public void deobfuscateStep4() throws IOException {
         deobfuscation.searchSmali(_progress);
         deobfuscation.saveDexSignatureHashCode();
     }
