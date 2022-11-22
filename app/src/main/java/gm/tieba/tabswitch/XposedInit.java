@@ -7,6 +7,7 @@ import android.app.Instrumentation;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Pair;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -78,26 +79,21 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                 AcRules.init(getContext());
 
                 var tsPref = new TSPreference();
-                var hookers = new ArrayList<IHooker>();
-                hookers.add(tsPref);
+                var hookers = new ArrayList<Pair<IHooker, String>>();
+                hookers.add(new Pair<>(tsPref, ""));
                 var matchers = new ArrayList<Obfuscated>();
                 matchers.add(tsPref);
                 matchers.add(new TbDialog());
                 matchers.add(new TbToast());
                 for (var entry : Preferences.getAll().entrySet()) {
-                    try {
-                        var hooker = maybeInitHooker(entry);
-                        if (hooker != null) {
-                            if (Boolean.FALSE != entry.getValue()) {
-                                hookers.add(hooker);
-                            }
-                            if (hooker instanceof Obfuscated) {
-                                matchers.add((Obfuscated) hooker);
-                            }
+                    var hooker = maybeInitHooker(entry);
+                    if (hooker != null) {
+                        if (Boolean.FALSE != entry.getValue()) {
+                            hookers.add(new Pair<>(hooker, entry.getKey()));
                         }
-                    } catch (Throwable tr) {
-                        XposedBridge.log(tr);
-                        sExceptions.put(entry.getKey(), tr);
+                        if (hooker instanceof Obfuscated) {
+                            matchers.add((Obfuscated) hooker);
+                        }
                     }
                 }
 
@@ -155,7 +151,12 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                 }
                 new Adp();
                 for (var hooker : hookers) {
-                    hooker.hook();
+                    try {
+                        hooker.first.hook();
+                    } catch (Throwable tr) {
+                        XposedBridge.log(tr);
+                        sExceptions.put(hooker.second, tr);
+                    }
                 }
             }
 
