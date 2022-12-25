@@ -1,7 +1,6 @@
 package gm.tieba.tabswitch.widget;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.view.View;
 import android.view.Window;
 import android.widget.TextView;
@@ -23,7 +22,7 @@ public class TbDialog extends XposedContext implements Obfuscated {
     private Class<?> mClass;
     private Object mBdAlert;
     private Object mPageContext;
-    private AlertDialog mDialog;
+    private Object mDialog;
 
     @Override
     public List<? extends Matcher> matchers() {
@@ -147,15 +146,15 @@ public class TbDialog extends XposedContext implements Obfuscated {
             }
         }
         try {
-            mDialog = (AlertDialog) XposedHelpers.getObjectField(mBdAlert, "mDialog");
+            mDialog = XposedHelpers.getObjectField(mBdAlert, "mDialog");
         } catch (NoSuchFieldError e) {
-            mDialog = (AlertDialog) XposedHelpers.getObjectField(mBdAlert, "w");
+            mDialog = XposedHelpers.getObjectField(mBdAlert, "w");
         }
     }
 
     public Window getWindow() {
         if (mDialog == null) throw new IllegalStateException("you must call show before getWindow");
-        else return mDialog.getWindow();
+        else return (Window) XposedHelpers.callMethod(mDialog, "getWindow");
     }
 
     public void dismiss() {
