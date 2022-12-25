@@ -24,6 +24,7 @@ import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.util.FileUtils;
 import gm.tieba.tabswitch.util.ReflectUtils;
 import gm.tieba.tabswitch.widget.TbToast;
+import kotlin.text.StringsKt;
 
 public class SaveImages extends XposedContext implements IHooker {
     private List<String> mList;
@@ -62,12 +63,7 @@ public class SaveImages extends XposedContext implements IHooker {
                                     var title = mTitle;
                                     for (var i = 0; i < list.size(); i++) {
                                         var url = list.get(i);
-                                        try {
-                                            url = "http://tiebapic.baidu.com/forum/pic/item/" +
-                                                    url.substring(url.lastIndexOf("/") + 1);
-                                            url = url.substring(0, url.lastIndexOf("*"));
-                                        } catch (StringIndexOutOfBoundsException ignored) {
-                                        }
+                                        url = StringsKt.substringBeforeLast(url, "*", url);
                                         saveImage(url, title, i, context);
                                     }
                                     new Handler(Looper.getMainLooper()).post(() ->
