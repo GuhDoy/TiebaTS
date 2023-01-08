@@ -11,7 +11,7 @@ import android.util.Pair;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -80,9 +80,9 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                 AcRules.init(getContext());
 
                 var tsPref = new TSPreference();
-                var hookers = new HashSet<Pair<IHooker, String>>();
+                var hookers = new LinkedHashSet<Pair<IHooker, String>>();
                 hookers.add(new Pair<>(tsPref, ""));
-                var matchers = new HashSet<Obfuscated>();
+                var matchers = new LinkedHashSet<Obfuscated>();
                 matchers.add(tsPref);
                 matchers.add(new TbDialog());
                 matchers.add(new TbToast());
