@@ -1,6 +1,7 @@
 package gm.tieba.tabswitch.hooker.eliminate;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import de.robv.android.xposed.XC_MethodHook;
@@ -17,7 +18,6 @@ import gm.tieba.tabswitch.util.Parser;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class FragmentTab extends XposedContext implements IHooker, Obfuscated {
-    private static boolean sIsFirstHook = true;
 
     @Override
     public List<? extends Matcher> matchers() {
@@ -31,28 +31,24 @@ public class FragmentTab extends XposedContext implements IHooker, Obfuscated {
             XposedBridge.hookMethod(md, new XC_MethodHook() {
                 @Override
                 protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                    if (!sIsFirstHook) return;
-                    for (String fieldName : Parser.parseMainTabActivityConfig()) {
+                    for (var fieldName : Parser.parseMainTabActivityConfig()) {
                         if (Preferences.getStringSet("fragment_tab").contains(fieldName)) {
-                            Class<?> clazz = XposedHelpers.findClass(
+                            var clazz = XposedHelpers.findClass(
                                     "com.baidu.tbadk.core.atomData.MainTabActivityConfig", sClassLoader);
                             XposedHelpers.setStaticBooleanField(clazz, fieldName,
                                     !XposedHelpers.getStaticBooleanField(clazz, fieldName));
                         }
                     }
 
+                    var tabsToRemove = new HashSet<String>();
                     if (Preferences.getBoolean("home_recommend")) {
-                        ArrayList<?> list = (ArrayList<?>) param.args[0];
-                        for (Object tab : list) {
-                            if ("com.baidu.tieba.homepage.framework.RecommendFrsDelegateStatic"
-                                    .equals(tab.getClass().getName())) {
-                                list.remove(tab);
-                                break;
-                            }
-                        }
+                        tabsToRemove.add("com.baidu.tieba.homepage.framework.RecommendFrsDelegateStatic");
                     }
-
-                    sIsFirstHook = false;
+                    if (Preferences.getBoolean("write_thread")) {
+                        tabsToRemove.add("com.baidu.tieba.write.bottomButton.WriteThreadDelegateStatic");
+                    }
+                    var list = (ArrayList<?>) param.args[0];
+                    list.removeIf(tab -> tabsToRemove.contains(tab.getClass().getName()));
                 }
             });
         });

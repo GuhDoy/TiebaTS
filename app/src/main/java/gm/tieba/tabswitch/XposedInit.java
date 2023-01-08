@@ -163,6 +163,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
             private IHooker maybeInitHooker(Map.Entry<String, ?> entry) {
                 switch (entry.getKey()) {
                     case "home_recommend":
+                    case "write_thread":
                     case "fragment_tab":
                         return new FragmentTab();
                     case "switch_manager":

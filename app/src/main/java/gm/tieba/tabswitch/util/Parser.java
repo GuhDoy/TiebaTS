@@ -16,7 +16,9 @@ public class Parser extends XposedContext {
                     sClassLoader).getDeclaredFields()) {
                 if (!field.getType().equals(boolean.class)) continue;
                 String name = field.getName();
-                if (!name.equals("PERSON_TAB_AVAIBLE") && !name.equals("IS_BACK_CLOSE_ALL_ACTIVITY")) {
+                if (!name.equals("PERSON_TAB_AVAIBLE") &&
+                        !name.equals("IS_BACK_CLOSE_ALL_ACTIVITY") &&
+                        !name.equals("IS_MAIN_TAB_SPLASH_SHOW")) {
                     mainTabActivityConfig.add(field.getName());
                 }
             }

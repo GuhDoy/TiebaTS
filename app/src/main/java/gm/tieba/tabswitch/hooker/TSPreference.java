@@ -270,6 +270,7 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
     private LinearLayout createModifyTabPreference(Activity activity) {
         TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
         preferenceLayout.addView(TSPreferenceHelper.createTextView("主页导航栏"));
+        preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏发帖", "write_thread", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏首页", "home_recommend", SwitchButtonHolder.TYPE_SWITCH));
         for (String fieldName : Parser.parseMainTabActivityConfig()) {
             String text;
