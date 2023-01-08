@@ -11,6 +11,7 @@ import android.util.Pair;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -79,9 +80,9 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                 AcRules.init(getContext());
 
                 var tsPref = new TSPreference();
-                var hookers = new ArrayList<Pair<IHooker, String>>();
+                var hookers = new HashSet<Pair<IHooker, String>>();
                 hookers.add(new Pair<>(tsPref, ""));
-                var matchers = new ArrayList<Obfuscated>();
+                var matchers = new HashSet<Obfuscated>();
                 matchers.add(tsPref);
                 matchers.add(new TbDialog());
                 matchers.add(new TbToast());
@@ -163,8 +164,9 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
             private IHooker maybeInitHooker(Map.Entry<String, ?> entry) {
                 switch (entry.getKey()) {
                     case "home_recommend":
+                    case "enter_forum":
                     case "write_thread":
-                    case "fragment_tab":
+                    case "im_message":
                         return new FragmentTab();
                     case "switch_manager":
                         return new SwitchManager();

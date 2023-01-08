@@ -38,7 +38,6 @@ import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
 import gm.tieba.tabswitch.hooker.deobfuscation.StringMatcher;
 import gm.tieba.tabswitch.hooker.extra.TraceChecker;
 import gm.tieba.tabswitch.util.DisplayUtils;
-import gm.tieba.tabswitch.util.Parser;
 import gm.tieba.tabswitch.widget.NavigationBar;
 import gm.tieba.tabswitch.widget.TbDialog;
 import gm.tieba.tabswitch.widget.TbToast;
@@ -270,38 +269,10 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
     private LinearLayout createModifyTabPreference(Activity activity) {
         TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
         preferenceLayout.addView(TSPreferenceHelper.createTextView("主页导航栏"));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏发帖", "write_thread", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏首页", "home_recommend", SwitchButtonHolder.TYPE_SWITCH));
-        for (String fieldName : Parser.parseMainTabActivityConfig()) {
-            String text;
-            switch (fieldName) {
-                case "ENTER_FORUM_DELEGATE_AVAILABLE":
-                    text = "隐藏进吧";
-                    break;
-                case "ENTER_FORUM_TAB_AVAIBLE":
-                    text = "隐藏进吧（Flutter）";
-                    break;
-                case "NEW_CATEGORY_TAB_AVAIBLE":
-                    text = "隐藏频道（Flutter）";
-                    break;
-                case "VIDEO_CHANNEL_TAB_AVAILABLE":
-                    text = "隐藏视频";
-                    break;
-                case "IMMESSAGE_CENTER_DELEGATE_AVAIBLE":
-                    text = "隐藏消息";
-                    break;
-                case "MEMBER_CENTER_TAB_AVAILABLE":
-                    text = "隐藏会员中心";
-                    break;
-                case "IS_INDICATOR_BOTTOM":
-                    text = "顶部导航栏";
-                    break;
-                default:
-                    text = fieldName;
-                    break;
-            }
-            preferenceLayout.addView(new SwitchButtonHolder(activity, text, fieldName, SwitchButtonHolder.TYPE_SET_MAIN));
-        }
+        preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏进吧", "enter_forum", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏发帖", "write_thread", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏消息", "im_message", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(TSPreferenceHelper.createTextView("禁用 Flutter"));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "我关注的吧", "flutter_concern_forum_enable_android", SwitchButtonHolder.TYPE_SET_FLUTTER));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "吧资料", "flutter_forum_detail_enable_android_112", SwitchButtonHolder.TYPE_SET_FLUTTER));
