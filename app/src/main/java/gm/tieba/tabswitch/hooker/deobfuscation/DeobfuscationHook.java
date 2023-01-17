@@ -10,6 +10,8 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -32,9 +34,9 @@ public class DeobfuscationHook extends XposedContext implements IHooker {
     private final DeobfuscationViewModel viewModel = new DeobfuscationViewModel();
     private final List<Matcher> mMatchers;
     private Activity mActivity;
+    private View mProgress;
     private TextView mMessage;
-    private TextView mProgress;
-    private RelativeLayout mProgressContainer;
+    private FrameLayout mProgressContainer;
     private LinearLayout mContentView;
 
     public DeobfuscationHook(List<Matcher> matchers) {
@@ -125,30 +127,37 @@ public class DeobfuscationHook extends XposedContext implements IHooker {
     private void initProgressIndicator() {
         var title = new TextView(mActivity);
         title.setTextSize(16);
-        title.setPaddingRelative(0, 0, 0, 20);
-        title.setGravity(Gravity.CENTER);
+        title.setPaddingRelative(0, 0, 0, 8);
+        title.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
         title.setTextColor(Color.parseColor("#FF303030"));
         title.setText("贴吧TS正在定位被混淆的类和方法，请耐心等待");
+        mProgress = new View(mActivity);
+        mProgress.setBackgroundColor(Color.parseColor("#FFBEBEBE"));
         mMessage = new TextView(mActivity);
+        mMessage.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
         mMessage.setTextSize(16);
         mMessage.setTextColor(Color.parseColor("#FF303030"));
-        mProgress = new TextView(mActivity);
-        mProgress.setBackgroundColor(Color.parseColor("#FFBEBEBE"));
-        mProgressContainer = new RelativeLayout(mActivity);
+        var messageLayoutParams = new FrameLayout.LayoutParams(
+                RelativeLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+        mMessage.setLayoutParams(messageLayoutParams);
+        mProgressContainer = new FrameLayout(mActivity);
         mProgressContainer.addView(mProgress);
         mProgressContainer.addView(mMessage);
-        var tvLp = (RelativeLayout.LayoutParams) mMessage.getLayoutParams();
-        tvLp.addRule(RelativeLayout.CENTER_IN_PARENT);
-        mMessage.setLayoutParams(tvLp);
-        var rlLp = new RelativeLayout.LayoutParams(
-                RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-        mProgressContainer.setLayoutParams(rlLp);
+        var frameLayoutParams = new FrameLayout.LayoutParams(
+                RelativeLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+        mProgressContainer.setLayoutParams(frameLayoutParams);
+        var progressIndicator = new LinearLayout(mActivity);
+        progressIndicator.setOrientation(LinearLayout.VERTICAL);
+        progressIndicator.setBackgroundColor(Color.WHITE);
+        progressIndicator.addView(title);
+        progressIndicator.addView(mProgressContainer);
+        progressIndicator.setPaddingRelative(0, 16, 0, 16);
+        var linearLayoutParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        progressIndicator.setLayoutParams(linearLayoutParams);
         mContentView = new LinearLayout(mActivity);
-        mContentView.setOrientation(LinearLayout.VERTICAL);
         mContentView.setGravity(Gravity.CENTER);
-//        mContentView.setBackgroundColor(Color.WHITE);
-        mContentView.addView(title);
-        mContentView.addView(mProgressContainer);
+        mContentView.addView(progressIndicator);
     }
 
     private void setMessage(String message) {
