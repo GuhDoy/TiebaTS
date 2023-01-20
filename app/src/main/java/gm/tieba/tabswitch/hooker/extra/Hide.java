@@ -1,5 +1,7 @@
 package gm.tieba.tabswitch.hooker.extra;
 
+import androidx.annotation.NonNull;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,6 +12,12 @@ import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.hooker.IHooker;
 
 public class Hide extends XposedContext implements IHooker {
+
+    @NonNull
+    @Override
+    public String key() {
+        return "hide";
+    }
 
     /**
      * @deprecated hook VMStack_getThreadStackTrace instead.

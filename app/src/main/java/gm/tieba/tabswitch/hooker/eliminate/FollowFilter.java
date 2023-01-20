@@ -2,6 +2,8 @@ package gm.tieba.tabswitch.hooker.eliminate;
 
 import android.os.Looper;
 
+import androidx.annotation.NonNull;
+
 import java.util.List;
 import java.util.Set;
 
@@ -13,6 +15,12 @@ import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.widget.TbToast;
 
 public class FollowFilter extends XposedContext implements IHooker {
+
+    @NonNull
+    @Override
+    public String key() {
+        return "follow_filter";
+    }
 
     @Override
     public void hook() throws Throwable {

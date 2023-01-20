@@ -1,11 +1,15 @@
 package gm.tieba.tabswitch.hooker.eliminate;
 
+import androidx.annotation.NonNull;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
 import de.robv.android.xposed.XC_MethodHook;
+import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
+import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
@@ -13,18 +17,28 @@ import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.hooker.Obfuscated;
 import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
 import gm.tieba.tabswitch.hooker.deobfuscation.StringMatcher;
+import gm.tieba.tabswitch.hooker.deobfuscation.ZipEntryMatcher;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class FragmentTab extends XposedContext implements IHooker, Obfuscated {
 
+    @NonNull
+    @Override
+    public String key() {
+        return "fragment_tab";
+    }
+
     @Override
     public List<? extends Matcher> matchers() {
-        return List.of(new StringMatcher("has_show_message_tab_tips"));
+        return List.of(
+                new StringMatcher("has_show_message_tab_tips"),
+                new ZipEntryMatcher(5580)
+        );
     }
 
     @Override
     public void hook() throws Throwable {
-        AcRules.findRule(matchers(), (matcher, clazz, method) -> {
+        AcRules.findRule(new StringMatcher("has_show_message_tab_tips"), (matcher, clazz, method) -> {
             var md = ReflectUtils.findFirstMethodByExactType(clazz, ArrayList.class);
             XposedBridge.hookMethod(md, new XC_MethodHook() {
                 @Override
@@ -38,6 +52,11 @@ public class FragmentTab extends XposedContext implements IHooker, Obfuscated {
                     }
                     if (Preferences.getBoolean("write_thread")) {
                         tabsToRemove.add("com.baidu.tieba.write.bottomButton.WriteThreadDelegateStatic");
+                        AcRules.findRule(new ZipEntryMatcher(5580), (matcher, clazz, method) -> {
+                            if (!"com.baidu.tieba.write.bottomButton.WriteThreadDelegateStatic".equals(clazz)) {
+                                XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, XC_MethodReplacement.returnConstant(null));
+                            }
+                        });
                     }
                     if (Preferences.getBoolean("im_message")) {
                         tabsToRemove.add("com.baidu.tieba.imMessageCenter.im.chat.notify.ImMessageCenterDelegateStatic");

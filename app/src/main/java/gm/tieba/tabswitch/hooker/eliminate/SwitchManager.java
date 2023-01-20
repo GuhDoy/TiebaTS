@@ -1,5 +1,7 @@
 package gm.tieba.tabswitch.hooker.eliminate;
 
+import androidx.annotation.NonNull;
+
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.XposedContext;
@@ -7,6 +9,14 @@ import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.IHooker;
 
 public class SwitchManager extends XposedContext implements IHooker {
+
+    @NonNull
+    @Override
+    public String key() {
+        return "switch_manager";
+    }
+
+    @Override
     public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod("com.baidu.adp.lib.featureSwitch.SwitchManager", sClassLoader,
                 "findType", String.class, new XC_MethodHook() {

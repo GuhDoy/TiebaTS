@@ -1,7 +1,6 @@
 package gm.tieba.tabswitch.hooker.deobfuscation;
 
 import android.content.Context;
-import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 
@@ -18,10 +17,10 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.zip.ZipFile;
 
 import brut.androlib.AndrolibException;
+import brut.androlib.res.data.value.ResFileValue;
 import brut.androlib.res.data.value.ResStringValue;
 import brut.androlib.res.decoder.ARSCDecoder;
 import de.robv.android.xposed.XposedBridge;
@@ -29,7 +28,6 @@ import gm.tieba.tabswitch.dao.AcRule;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.util.FileUtils;
-import gm.tieba.tabswitch.util.StringsKt;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 import kotlin.collections.CollectionsKt;
 
@@ -41,11 +39,24 @@ public class Deobfuscation {
     private DexBakSearcher searcher;
     private final SearchScope scope = new SearchScope();
 
+    public void setMatchers(List<Matcher> matchers) {
+        this.matchers.clear();
+        this.matchers.addAll(matchers);
+    }
+
     public void unzip(PublishSubject<Float> _progress, Context context) throws IOException {
         packageResource = new File(context.getPackageResourcePath());
         var dexDir = new File(context.getCacheDir(), "app_dex");
         FileUtils.deleteRecursively(dexDir);
         dexDir.mkdirs();
+
+        var sizeToZipEntryMatcher = new HashMap<Long, ZipEntryMatcher>();
+        for (var matcher : matchers) {
+            if (matcher instanceof ZipEntryMatcher) {
+                var zipEntryMatcher = (ZipEntryMatcher) matcher;
+                sizeToZipEntryMatcher.put(zipEntryMatcher.getSize(), zipEntryMatcher);
+            }
+        }
 
         var zipFile = new ZipFile(packageResource);
         var enumeration = zipFile.entries();
@@ -58,6 +69,11 @@ public class Deobfuscation {
             var ze = enumeration.nextElement();
             if (ze.getName().matches("classes[0-9]*?\\.dex")) {
                 FileUtils.copy(zipFile.getInputStream(ze), new File(dexDir, ze.getName()));
+            } else {
+                var matcher = sizeToZipEntryMatcher.get(ze.getSize());
+                if (matcher != null) {
+                    matcher.setEntryName(ze.getName());
+                }
             }
         }
         zipFile.close();
@@ -77,33 +93,17 @@ public class Deobfuscation {
         dexCount = dexs.length;
     }
 
-    public void setMatchers(List<Matcher> matchers) {
-        this.matchers.clear();
-        this.matchers.addAll(matchers);
-    }
-
-    public Map<Integer, String> resolveIdentifier(List<String> source, Context context) {
-        var result = new HashMap<Integer, String>(source.size());
-        var resources = context.getResources();
-        var defPackage = context.getPackageName();
-        source.forEach(it -> {
-            var defType = StringsKt.substringBetween(it, "R$", ";->", "");
-            if (!TextUtils.isEmpty(defType)) {
-                var name = StringsKt.substringBetween(it, ";->", ":I", "");
-                var identifier = resources.getIdentifier(name, defType, defPackage);
-                if (identifier != 0) {
-                    result.put(identifier, it);
-                }
-            }
-        });
-        return result;
-    }
-
     public void decodeArsc() throws IOException, AndrolibException {
         var strToResMatcher = new HashMap<String, ResMatcher>();
+        var entryNameToZipEntryMatcher = new HashMap<String, ZipEntryMatcher>();
         for (var matcher : matchers) {
             if (matcher instanceof ResMatcher) {
-                strToResMatcher.put(matcher.toString(), (ResMatcher) matcher);
+                if (matcher instanceof ZipEntryMatcher) {
+                    var zipEntryMatcher = (ZipEntryMatcher) matcher;
+                    entryNameToZipEntryMatcher.put(zipEntryMatcher.getEntryName(), zipEntryMatcher);
+                } else {
+                    strToResMatcher.put(matcher.toString(), (ResMatcher) matcher);
+                }
             }
         }
 
@@ -111,22 +111,28 @@ public class Deobfuscation {
         var ze = zipFile.getEntry("resources.arsc");
         try (var in = zipFile.getInputStream(ze)) {
             var pkg = ARSCDecoder.decode(in, true, true).getOnePackage();
-            pkg.listResSpecs().stream()
-                    .filter(resResSpec -> "string".equals(resResSpec.getType().toString()))
-                    .forEach(resResSpec -> {
-                        try {
-                            var maybeStr = resResSpec.getDefaultResource().getValue();
-                            if (maybeStr instanceof ResStringValue) {
-                                var str = ((ResStringValue) maybeStr).encodeAsResXmlValue();
-                                var matcher = strToResMatcher.get(str);
-                                if (matcher != null) {
-                                    matcher.setId(resResSpec.getId().id);
-                                }
+            pkg.listResSpecs().forEach(resResSpec -> {
+                if (resResSpec.hasDefaultResource()) {
+                    try {
+                        var resValue = resResSpec.getDefaultResource().getValue();
+                        if (resValue instanceof ResStringValue) {
+                            var str = ((ResStringValue) resValue).encodeAsResXmlValue();
+                            var matcher = strToResMatcher.get(str);
+                            if (matcher != null) {
+                                matcher.setId(resResSpec.getId().id);
                             }
-                        } catch (AndrolibException e) {
-                            XposedBridge.log(e);
+                        } else if (resValue instanceof ResFileValue) {
+                            var path = resValue.toString();
+                            var matcher = entryNameToZipEntryMatcher.get(path);
+                            if (matcher != null) {
+                                matcher.setId(resResSpec.getId().id);
+                            }
                         }
-                    });
+                    } catch (AndrolibException e) {
+                        XposedBridge.log(e);
+                    }
+                }
+            });
         }
         zipFile.close();
     }

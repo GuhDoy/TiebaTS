@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 
+import androidx.annotation.NonNull;
+
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.XposedContext;
@@ -14,6 +16,12 @@ import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class EyeshieldMode extends XposedContext implements IHooker {
     private boolean mLastUiMode;
+
+    @NonNull
+    @Override
+    public String key() {
+        return "eyeshield_mode";
+    }
 
     @Override
     public void hook() throws Throwable {

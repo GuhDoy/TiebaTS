@@ -39,6 +39,11 @@ class StringResMatcher(val str: String) : ResMatcher() {
     override fun toString(): String = str
 }
 
+class ZipEntryMatcher(val size: Long) : ResMatcher() {
+    var entryName: String = ""
+    override fun toString(): String = size.toString()
+}
+
 class DexBakSearcher(matchers: Iterable<Matcher> = emptyList()) {
     private val stringMatchers = mutableMapOf<String, StringMatcher>()
     private val literalMatchers = mutableMapOf<Long, ResMatcher>()

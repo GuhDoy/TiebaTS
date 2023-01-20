@@ -7,11 +7,10 @@ import android.app.Instrumentation;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Pair;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -25,7 +24,6 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Adp;
 import gm.tieba.tabswitch.dao.Preferences;
-import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.hooker.Obfuscated;
 import gm.tieba.tabswitch.hooker.TSPreference;
 import gm.tieba.tabswitch.hooker.add.CreateView;
@@ -42,7 +40,7 @@ import gm.tieba.tabswitch.hooker.auto.FrsTab;
 import gm.tieba.tabswitch.hooker.auto.OpenSign;
 import gm.tieba.tabswitch.hooker.auto.OriginSrc;
 import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHelper;
-import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHook;
+import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHooker;
 import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
 import gm.tieba.tabswitch.hooker.eliminate.ContentFilter;
 import gm.tieba.tabswitch.hooker.eliminate.FollowFilter;
@@ -79,22 +77,41 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                 Preferences.init(getContext());
                 AcRules.init(getContext());
 
-                var tsPref = new TSPreference();
-                var hookers = new LinkedHashSet<Pair<IHooker, String>>();
-                hookers.add(new Pair<>(tsPref, ""));
-                var matchers = new LinkedHashSet<Obfuscated>();
-                matchers.add(tsPref);
+                var hookers = List.of(
+                        new TSPreference(),
+                        new FragmentTab(),
+                        new SwitchManager(),
+                        new Purge(),
+//                        new PurgeMy(),
+                        new RedTip(),
+                        new FollowFilter(),
+                        new PersonalizedFilter(),
+                        new ContentFilter(),
+                        new FrsPageFilter(),
+                        new CreateView(),
+                        new ThreadStore(),
+                        new HistoryCache(),
+                        new NewSub(),
+                        new Ripple(),
+                        new SaveImages(),
+                        new MyAttention(),
+                        new AutoSign(),
+                        new OpenSign(),
+                        new EyeshieldMode(),
+                        new OriginSrc(),
+                        new RedirectImage(),
+                        new ForbidGesture(),
+                        new AgreeNum(),
+                        new FrsTab(),
+                        new Hide(),
+                        new StackTrace()
+                );
+                var matchers = new ArrayList<Obfuscated>(hookers.size() + 2);
                 matchers.add(new TbDialog());
                 matchers.add(new TbToast());
-                for (var entry : Preferences.getAll().entrySet()) {
-                    var hooker = maybeInitHooker(entry);
-                    if (hooker != null) {
-                        if (Boolean.FALSE != entry.getValue()) {
-                            hookers.add(new Pair<>(hooker, entry.getKey()));
-                        }
-                        if (hooker instanceof Obfuscated) {
-                            matchers.add((Obfuscated) hooker);
-                        }
+                for (var hooker : hookers) {
+                    if (hooker instanceof Obfuscated) {
+                        matchers.add((Obfuscated) hooker);
                     }
                 }
 
@@ -111,7 +128,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                         });
                     }
                     XposedBridge.log("Deobfuscation");
-                    new DeobfuscationHook(
+                    new DeobfuscationHooker(
                             matchers.stream()
                                     .map(Obfuscated::matchers)
                                     .flatMap(Collection::stream)
@@ -150,93 +167,31 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                     });
                     return;
                 }
+
                 new Adp();
-                for (var hooker : hookers) {
+                if (Preferences.getBoolean("hide_native")) {
                     try {
-                        hooker.first.hook();
-                    } catch (Throwable tr) {
-                        XposedBridge.log(tr);
-                        sExceptions.put(hooker.second, tr);
+                        System.loadLibrary("hide");
+                    } catch (UnsatisfiedLinkError e) {
+                        XposedBridge.log(e);
                     }
                 }
-            }
-
-            private IHooker maybeInitHooker(Map.Entry<String, ?> entry) {
-                switch (entry.getKey()) {
-                    case "home_recommend":
-                    case "enter_forum":
-                    case "write_thread":
-                    case "im_message":
-                        return new FragmentTab();
-                    case "switch_manager":
-                        return new SwitchManager();
-                    case "purge":
-                        return new Purge();
-                    case "purge_my":
-//                        return new PurgeMy();
-                    case "red_tip":
-                        return new RedTip();
-                    case "follow_filter":
-                        return new FollowFilter();
-                    case "personalized_filter":
-                        return new PersonalizedFilter();
-                    case "content_filter":
-                        return new ContentFilter();
-                    case "frs_page_filter":
-                        return new FrsPageFilter();
-                    case "create_view":
-                        return new CreateView();
-                    case "thread_store":
-                        return new ThreadStore();
-                    case "history_cache":
-                        return new HistoryCache();
-                    case "new_sub":
-                        return new NewSub();
-                    case "ripple":
-                        return new Ripple();
-                    case "save_images":
-                        return new SaveImages();
-                    case "my_attention":
-                        return new MyAttention();
-                    case "auto_sign":
-                        return new AutoSign();
-                    case "open_sign":
-                        return new OpenSign();
-                    case "eyeshield_mode":
-                        return new EyeshieldMode();
-                    case "origin_src":
-                        return new OriginSrc();
-                    case "redirect_image":
-                        return new RedirectImage();
-                    case "forbid_gesture":
-                        return new ForbidGesture();
-                    case "agree_num":
-                        return new AgreeNum();
-                    case "frs_tab":
-                        return new FrsTab();
-                    case "hide":
-                        return new Hide();
-                    case "hide_native":
-                        if ((Boolean) entry.getValue()) {
-                            try {
-                                System.loadLibrary("hide");
-                            } catch (UnsatisfiedLinkError e) {
-                                XposedBridge.log(e);
-                                Preferences.remove(entry.getKey());
-                            }
+                var activeHookerKeys = Preferences.getAll().entrySet().stream()
+                        .filter(entry -> Boolean.FALSE != entry.getValue())
+                        .map(Map.Entry::getKey)
+                        .collect(Collectors.toSet());
+                activeHookerKeys.add("ts_pref");
+                activeHookerKeys.add("fragment_tab");
+                for (var hooker : hookers) {
+                    try {
+                        if (activeHookerKeys.contains(hooker.key())) {
+                            hooker.hook();
                         }
-                        break;
-                    case "check_stack_trace":
-                        return new StackTrace();
-                    case "check_xposed":
-                    case "check_module":
-                        // prevent from being removed
-                        break;
-                    default:
-                        Preferences.remove(entry.getKey());
-                        break;
+                    } catch (Throwable tr) {
+                        XposedBridge.log(tr);
+                        sExceptions.put(hooker.key(), tr);
+                    }
                 }
-                return null;
             }
         });
     }

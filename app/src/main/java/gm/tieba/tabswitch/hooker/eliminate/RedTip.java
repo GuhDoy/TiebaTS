@@ -1,11 +1,19 @@
 package gm.tieba.tabswitch.hooker.eliminate;
 
+import androidx.annotation.NonNull;
+
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.hooker.IHooker;
 
 public class RedTip extends XposedContext implements IHooker {
+
+    @NonNull
+    @Override
+    public String key() {
+        return "red_tip";
+    }
 
     @Override
     public void hook() throws Throwable {

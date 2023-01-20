@@ -1,5 +1,7 @@
 package gm.tieba.tabswitch.hooker.eliminate;
 
+import androidx.annotation.NonNull;
+
 import java.util.regex.Pattern;
 
 import gm.tieba.tabswitch.dao.Preferences;
@@ -8,6 +10,7 @@ interface RegexFilter {
     String[] regex = new String[1];
     Pattern[] pattern = new Pattern[1];
 
+    @NonNull
     String key();
 
     default Pattern getPattern() {

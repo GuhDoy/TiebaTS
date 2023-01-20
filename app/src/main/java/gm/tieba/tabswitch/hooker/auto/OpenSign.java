@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
+import androidx.annotation.NonNull;
+
 import java.util.Calendar;
 
 import de.robv.android.xposed.XC_MethodHook;
@@ -14,6 +16,12 @@ import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.IHooker;
 
 public class OpenSign extends XposedContext implements IHooker {
+
+    @NonNull
+    @Override
+    public String key() {
+        return "open_sign";
+    }
 
     @Override
     public void hook() throws Throwable {

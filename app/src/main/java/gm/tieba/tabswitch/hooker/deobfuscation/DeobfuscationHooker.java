@@ -29,7 +29,7 @@ import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.IHooker;
 
-public class DeobfuscationHook extends XposedContext implements IHooker {
+public class DeobfuscationHooker extends XposedContext implements IHooker {
     private static final String TRAMPOLINE_ACTIVITY = "com.baidu.tieba.tblauncher.MainTabActivity";
     private final DeobfuscationViewModel viewModel = new DeobfuscationViewModel();
     private final List<Matcher> mMatchers;
@@ -39,8 +39,14 @@ public class DeobfuscationHook extends XposedContext implements IHooker {
     private FrameLayout mProgressContainer;
     private LinearLayout mContentView;
 
-    public DeobfuscationHook(List<Matcher> matchers) {
+    public DeobfuscationHooker(List<Matcher> matchers) {
         mMatchers = matchers;
+    }
+
+    @NonNull
+    @Override
+    public String key() {
+        return "deobfs";
     }
 
     @Override

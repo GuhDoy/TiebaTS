@@ -12,6 +12,7 @@ import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.util.Parser;
 
 public class FrsPageFilter extends XposedContext implements IHooker, RegexFilter {
+
     @NonNull
     @Override
     public String key() {

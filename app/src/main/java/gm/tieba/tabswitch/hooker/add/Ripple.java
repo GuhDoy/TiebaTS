@@ -10,6 +10,8 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
+import androidx.annotation.NonNull;
+
 import java.lang.reflect.Method;
 
 import de.robv.android.xposed.XC_MethodHook;
@@ -21,6 +23,13 @@ import gm.tieba.tabswitch.util.DisplayUtils;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class Ripple extends XposedContext implements IHooker {
+
+    @NonNull
+    @Override
+    public String key() {
+        return "ripple";
+    }
+
     public void hook() throws Throwable {
         var subPbLayoutClass = XposedHelpers.findClass("com.baidu.tieba.pb.pb.sub.SubPbLayout", sClassLoader);
         // 楼中楼

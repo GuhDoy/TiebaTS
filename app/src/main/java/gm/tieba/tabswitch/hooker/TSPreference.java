@@ -16,6 +16,8 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 
+import androidx.annotation.NonNull;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -49,6 +51,12 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
     public final static String TRACE = "痕迹";
     private final static String PROXY_ACTIVITY = "com.baidu.tieba.setting.im.more.SecretSettingActivity";
     private static int sCount = 0;
+
+    @NonNull
+    @Override
+    public String key() {
+        return "ts_pref";
+    }
 
     @Override
     public List<? extends Matcher> matchers() {

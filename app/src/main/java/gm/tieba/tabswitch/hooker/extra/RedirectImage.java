@@ -6,6 +6,8 @@ import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 
+import androidx.annotation.NonNull;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,6 +23,12 @@ import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.util.FileUtils;
 
 public class RedirectImage extends XposedContext implements IHooker {
+
+    @NonNull
+    @Override
+    public String key() {
+        return "redirect_image";
+    }
 
     @Override
     public void hook() throws Throwable {

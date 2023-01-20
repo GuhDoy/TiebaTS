@@ -2,6 +2,8 @@ package gm.tieba.tabswitch.hooker.auto;
 
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -31,6 +33,12 @@ public class AutoSign extends XposedContext implements IHooker {
     private final List<String> mSuccess = new ArrayList<>();
     private String mTbs;
     private Integer mFollowNum = 201;
+
+    @NonNull
+    @Override
+    public String key() {
+        return "auto_sign";
+    }
 
     @Override
     public void hook() throws Throwable {

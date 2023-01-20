@@ -8,6 +8,8 @@ import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
 
+import androidx.annotation.NonNull;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -19,6 +21,12 @@ import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.hooker.deobfuscation.StringMatcher;
 
 public class OriginSrc extends XposedContext implements IHooker {
+
+    @NonNull
+    @Override
+    public String key() {
+        return "origin_src";
+    }
 
     private static void doHook() {
         AcRules.findRule(new StringMatcher("pic_amount"), (matcher, clazz, method) ->

@@ -6,6 +6,8 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
+
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -22,6 +24,12 @@ import gm.tieba.tabswitch.hooker.deobfuscation.StringResMatcher;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class ForbidGesture extends XposedContext implements IHooker, Obfuscated {
+
+    @NonNull
+    @Override
+    public String key() {
+        return "forbid_gesture";
+    }
 
     @Override
     public List<? extends Matcher> matchers() {

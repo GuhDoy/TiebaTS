@@ -9,6 +9,8 @@ import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 
+import androidx.annotation.NonNull;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -30,6 +32,12 @@ import gm.tieba.tabswitch.widget.TbEditText;
 import gm.tieba.tabswitch.widget.TbToast;
 
 public class ThreadStore extends XposedContext implements IHooker, Obfuscated {
+
+    @NonNull
+    @Override
+    public String key() {
+        return "thread_store";
+    }
 
     @Override
     public List<? extends Matcher> matchers() {

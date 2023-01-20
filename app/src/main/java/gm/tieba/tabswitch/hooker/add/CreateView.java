@@ -9,6 +9,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
+import androidx.annotation.NonNull;
+
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
@@ -17,6 +19,12 @@ import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class CreateView extends XposedContext implements IHooker {
+
+    @NonNull
+    @Override
+    public String key() {
+        return "create_view";
+    }
 
     @Override
     public void hook() throws Throwable {

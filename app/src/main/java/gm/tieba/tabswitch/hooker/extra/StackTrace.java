@@ -1,5 +1,7 @@
 package gm.tieba.tabswitch.hooker.extra;
 
+import androidx.annotation.NonNull;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +14,12 @@ import gm.tieba.tabswitch.hooker.IHooker;
 
 public class StackTrace extends XposedContext implements IHooker {
     public static List<String> sStes = new ArrayList<>();
+
+    @NonNull
+    @Override
+    public String key() {
+        return "check_stack_trace";
+    }
 
     @Override
     public void hook() throws Throwable {

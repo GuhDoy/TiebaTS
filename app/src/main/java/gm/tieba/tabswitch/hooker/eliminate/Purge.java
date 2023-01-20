@@ -6,6 +6,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
 
+import androidx.annotation.NonNull;
+
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -26,6 +28,12 @@ import gm.tieba.tabswitch.hooker.deobfuscation.StringMatcher;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class Purge extends XposedContext implements IHooker, Obfuscated {
+
+    @NonNull
+    @Override
+    public String key() {
+        return "purge";
+    }
 
     @Override
     public List<? extends Matcher> matchers() {

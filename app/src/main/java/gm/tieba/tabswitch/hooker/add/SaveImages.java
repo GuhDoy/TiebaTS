@@ -9,6 +9,8 @@ import android.os.Looper;
 import android.provider.MediaStore;
 import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -29,6 +31,12 @@ import kotlin.text.StringsKt;
 public class SaveImages extends XposedContext implements IHooker {
     private List<String> mList;
     private String mTitle;
+
+    @NonNull
+    @Override
+    public String key() {
+        return "save_images";
+    }
 
     public void hook() throws Throwable {
         var method = ReflectUtils.findFirstMethodByExactType(

@@ -15,8 +15,8 @@ public class DeobfuscationViewModel {
     private final Deobfuscation deobfuscation = new Deobfuscation();
 
     public void deobfuscateStep1(Context context, List<Matcher> matchers) throws IOException {
-        deobfuscation.unzip(_progress, context);
         deobfuscation.setMatchers(matchers);
+        deobfuscation.unzip(_progress, context);
     }
 
     public void deobfuscateStep2() throws IOException, AndrolibException {

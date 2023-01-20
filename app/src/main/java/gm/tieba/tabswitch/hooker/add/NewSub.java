@@ -3,6 +3,8 @@ package gm.tieba.tabswitch.hooker.add;
 import android.app.Activity;
 import android.content.Intent;
 
+import androidx.annotation.NonNull;
+
 import java.util.List;
 
 import de.robv.android.xposed.XC_MethodHook;
@@ -18,6 +20,12 @@ import gm.tieba.tabswitch.util.ReflectUtils;
 import gm.tieba.tabswitch.widget.NavigationBar;
 
 public class NewSub extends XposedContext implements IHooker, Obfuscated {
+
+    @NonNull
+    @Override
+    public String key() {
+        return "new_sub";
+    }
 
     @Override
     public List<? extends Matcher> matchers() {

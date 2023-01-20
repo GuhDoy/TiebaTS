@@ -10,6 +10,8 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
+import androidx.annotation.NonNull;
+
 import java.util.Collections;
 import java.util.Set;
 
@@ -25,6 +27,12 @@ import gm.tieba.tabswitch.widget.TbDialog;
 import gm.tieba.tabswitch.widget.TbEditText;
 
 public class MyAttention extends XposedContext implements IHooker {
+
+    @NonNull
+    @Override
+    public String key() {
+        return "my_attention";
+    }
 
     public static LinearLayout createNotesPreference(Activity activity) {
         Preferences.putBoolean("my_attention", !Preferences.getNotes().isEmpty());

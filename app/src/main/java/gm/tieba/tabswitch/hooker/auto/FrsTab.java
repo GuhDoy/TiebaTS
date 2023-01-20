@@ -1,5 +1,7 @@
 package gm.tieba.tabswitch.hooker.auto;
 
+import androidx.annotation.NonNull;
+
 import java.util.List;
 
 import de.robv.android.xposed.XC_MethodHook;
@@ -13,6 +15,12 @@ import gm.tieba.tabswitch.hooker.deobfuscation.StringMatcher;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class FrsTab extends XposedContext implements IHooker, Obfuscated {
+
+    @NonNull
+    @Override
+    public String key() {
+        return "frs_tab";
+    }
 
     @Override
     public List<? extends Matcher> matchers() {

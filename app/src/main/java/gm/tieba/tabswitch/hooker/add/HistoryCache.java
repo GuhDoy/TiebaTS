@@ -9,6 +9,8 @@ import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 
+import androidx.annotation.NonNull;
+
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -27,6 +29,12 @@ import gm.tieba.tabswitch.widget.TbToast;
 
 public class HistoryCache extends XposedContext implements IHooker {
     private String mRegex = "";
+
+    @NonNull
+    @Override
+    public String key() {
+        return "history_cache";
+    }
 
     @Override
     public void hook() throws Throwable {

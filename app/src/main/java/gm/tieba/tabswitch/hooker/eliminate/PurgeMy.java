@@ -3,6 +3,8 @@ package gm.tieba.tabswitch.hooker.eliminate;
 import android.view.View;
 import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -16,7 +18,14 @@ import gm.tieba.tabswitch.hooker.Obfuscated;
 import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
+@Deprecated
 public class PurgeMy extends XposedContext implements IHooker, Obfuscated {
+
+    @NonNull
+    @Override
+    public String key() {
+        return "purge_my";
+    }
 
     @Override
     public List<? extends Matcher> matchers() {
