@@ -34,7 +34,6 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 new SmaliMatcher("Lcom/baidu/tieba/lego/card/model/BaseCardInfo;-><init>(Lorg/json/JSONObject;)V"),
                 new StringMatcher("pic_amount"),
                 new StringMatcher("key_frs_dialog_ad_last_show_time"),
-                new StringMatcher("key_forum_rule_first_show_frs"),
                 new SmaliMatcher("Lcom/baidu/tieba/pb/pb/main/PbChildTitleViewHolder;-><init>(Landroid/view/View;)V")
         );
     }
@@ -58,19 +57,6 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                     for (var md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
                         if (md.getName().equals(method) && md.getReturnType().equals(boolean.class)) {
                             XposedBridge.hookMethod(md, XC_MethodReplacement.returnConstant(true));
-                        }
-                    }
-                    break;
-                case "key_forum_rule_first_show_frs": // 吧推广横幅
-                    for (var md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
-                        var parameterTypes = md.getParameterTypes();
-                        if (parameterTypes.length > 0 && parameterTypes[0].equals(List.class)) {
-                            XposedBridge.hookMethod(md, new XC_MethodHook() {
-                                @Override
-                                protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                                    param.args[1] = null;
-                                }
-                            });
                         }
                     }
                     break;
