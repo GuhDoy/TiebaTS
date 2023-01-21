@@ -129,7 +129,7 @@ public class Deobfuscation {
                             }
                         }
                     } catch (AndrolibException e) {
-                        XposedBridge.log(e);
+                        // should not happen
                     }
                 }
             });
