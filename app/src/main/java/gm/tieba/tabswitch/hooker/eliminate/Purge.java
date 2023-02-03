@@ -41,8 +41,7 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 new SmaliMatcher("Lcom/baidu/tieba/recapp/lego/model/AdCard;-><init>(Lorg/json/JSONObject;)V"),
                 new SmaliMatcher("Lcom/baidu/tieba/lego/card/model/BaseCardInfo;-><init>(Lorg/json/JSONObject;)V"),
                 new StringMatcher("pic_amount"),
-                new StringMatcher("key_frs_dialog_ad_last_show_time"),
-                new SmaliMatcher("Lcom/baidu/tieba/pb/pb/main/PbChildTitleViewHolder;-><init>(Landroid/view/View;)V")
+                new StringMatcher("key_frs_dialog_ad_last_show_time")
         );
     }
 
@@ -66,35 +65,6 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                         if (md.getName().equals(method) && md.getReturnType().equals(boolean.class)) {
                             XposedBridge.hookMethod(md, XC_MethodReplacement.returnConstant(true));
                         }
-                    }
-                    break;
-                case "Lcom/baidu/tieba/pb/pb/main/PbChildTitleViewHolder;-><init>(Landroid/view/View;)V": // 视频相关推荐
-                    if ("com.baidu.tieba.pb.videopb.fragment.DetailInfoAndReplyFragment".equals(clazz)) {
-                        break;
-                    }
-                    var clazz2 = XposedHelpers.findClass("com.baidu.adp.widget.ListView.BdTypeRecyclerView", sClassLoader);
-                    try {
-                        Method md;
-                        try {
-                            md = clazz2.getDeclaredMethod("addAdapters", List.class);
-                        } catch (NoSuchMethodException e) {
-                            md = clazz2.getDeclaredMethod("a", List.class);
-                        }
-                        XposedBridge.hookMethod(md, new XC_MethodHook() {
-                            @Override
-                            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                                var list = (List<?>) param.args[0];
-                                for (var i = 0; i < list.size(); i++) {
-                                    if (list.get(i) != null && clazz.equals(list.get(i).getClass().getName())) {
-                                        list.remove(i);
-                                        list.remove(i);
-                                        return;
-                                    }
-                                }
-                            }
-                        });
-                    } catch (NoSuchMethodException e) {
-                        XposedBridge.log(e);
                     }
                     break;
             }
