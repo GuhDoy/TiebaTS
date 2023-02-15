@@ -60,6 +60,7 @@ public class FragmentTab extends XposedContext implements IHooker, Obfuscated {
                     }
                     if (Preferences.getBoolean("im_message")) {
                         tabsToRemove.add("com.baidu.tieba.imMessageCenter.im.chat.notify.ImMessageCenterDelegateStatic");
+                        tabsToRemove.add("com.baidu.tieba.immessagecenter.im.chat.notify.ImMessageCenterDelegateStatic");
                     }
                     var list = (ArrayList<?>) param.args[0];
                     list.removeIf(tab -> tabsToRemove.contains(tab.getClass().getName()));
