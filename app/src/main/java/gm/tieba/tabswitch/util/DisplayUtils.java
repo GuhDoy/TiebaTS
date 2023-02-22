@@ -25,9 +25,8 @@ public class DisplayUtils {
         var sp = context.getSharedPreferences("common_settings", Context.MODE_PRIVATE);
         switch (sp.getString("skin_", "0")) {
             case "4":
-                return "_2";
             case "1":
-                return "_1";
+                return "_2";
             case "0":
             default:
                 return "";

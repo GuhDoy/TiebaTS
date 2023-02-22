@@ -35,7 +35,6 @@ import gm.tieba.tabswitch.hooker.add.SaveImages;
 import gm.tieba.tabswitch.hooker.add.ThreadStore;
 import gm.tieba.tabswitch.hooker.auto.AgreeNum;
 import gm.tieba.tabswitch.hooker.auto.AutoSign;
-import gm.tieba.tabswitch.hooker.auto.EyeshieldMode;
 import gm.tieba.tabswitch.hooker.auto.FrsTab;
 import gm.tieba.tabswitch.hooker.auto.OpenSign;
 import gm.tieba.tabswitch.hooker.auto.OriginSrc;
@@ -97,7 +96,6 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                         new MyAttention(),
                         new AutoSign(),
                         new OpenSign(),
-                        new EyeshieldMode(),
                         new OriginSrc(),
                         new RedirectImage(),
                         new ForbidGesture(),
