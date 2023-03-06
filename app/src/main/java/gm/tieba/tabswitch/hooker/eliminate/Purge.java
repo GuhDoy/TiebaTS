@@ -90,13 +90,6 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 }
             }
         });
-        // 广告sdk
-//        for (Method method : XposedHelpers.findClass("com.fun.ad.sdk.FunAdSdk", sClassLoader).getDeclaredMethods()) {
-//            if (method.getName().equals("init")) {
-//                XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(
-//                        method.getReturnType().equals(boolean.class) ? true : null));
-//            }
-//        }
         // 帖子底部推荐
         Class<?> clazz;
         try {
@@ -175,6 +168,9 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                     Object worksInfo = XposedHelpers.getObjectField(o, "works_info");
                     return worksInfo != null && (Integer) XposedHelpers.getObjectField(worksInfo, "is_works") == 1;
                 });
+
+                // 万人直播互动 吧友开黑组队中
+                XposedHelpers.setObjectField(param.thisObject, "live_fuse_forum", new ArrayList<>());
             }
         });
         // 吧小程序
