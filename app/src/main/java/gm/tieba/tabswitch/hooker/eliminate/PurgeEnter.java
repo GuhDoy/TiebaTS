@@ -55,8 +55,10 @@ public class PurgeEnter extends XposedContext implements IHooker, Obfuscated {
                                     if (mRecommendHotForumTitle != null) {
                                         var list = (List<?>) param.args[0];
                                         var index = list.indexOf(mRecommendHotForumTitle);
-                                        while (list.size() > index) {
-                                            list.remove(index);
+                                        if (index != -1) {
+                                            while (list.size() > index) {
+                                                list.remove(index);
+                                            }
                                         }
                                     }
                                 }
