@@ -22,14 +22,19 @@ public class DisplayUtils {
     }
 
     public static String getTbSkin(Context context) {
-        var sp = context.getSharedPreferences("common_settings", Context.MODE_PRIVATE);
-        switch (sp.getString("skin_", "0")) {
-            case "4":
-            case "1":
-                return "_2";
-            case "0":
-            default:
-                return "";
+        final var settings = context.getSharedPreferences("settings", Context.MODE_PRIVATE);
+        if (settings.getBoolean("key_is_follow_system_mode", false)) {
+            return isLightMode(context) ? "" : "_2";
+        } else {
+            final var commonSettings = context.getSharedPreferences(
+                    "common_settings", Context.MODE_PRIVATE);
+            switch (commonSettings.getString("skin_", "0")) {
+                case "4":
+                    return "_2";
+                case "0":
+                default:
+                    return "";
+            }
         }
     }
 
