@@ -27,15 +27,15 @@ public class FollowFilter extends XposedContext implements IHooker {
         XposedHelpers.findAndHookMethod("tbclient.Personalized.DataRes$Builder", sClassLoader,
                 "build", boolean.class, new XC_MethodHook() {
                     @Override
-                    public void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                        Set<String> forums = Preferences.getLikeForum();
+                    public void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+                        final Set<String> forums = Preferences.getLikeForum();
                         if (forums == null) {
                             Looper.prepare();
                             TbToast.showTbToast("暂未获取到关注列表", TbToast.LENGTH_LONG);
                             Looper.loop();
                             return;
                         }
-                        List<?> list = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");
+                        final List<?> list = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");
                         if (list == null) return;
                         list.removeIf(o -> !forums.contains((String) XposedHelpers.getObjectField(o, "fname")));
                     }

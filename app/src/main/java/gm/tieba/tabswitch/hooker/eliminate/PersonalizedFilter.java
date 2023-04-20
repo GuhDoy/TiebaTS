@@ -23,7 +23,7 @@ public class PersonalizedFilter extends XposedContext implements IHooker, RegexF
     public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod("tbclient.Personalized.DataRes$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
                 final var threadList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");
                 if (threadList == null) return;
                 final var pattern = getPattern();

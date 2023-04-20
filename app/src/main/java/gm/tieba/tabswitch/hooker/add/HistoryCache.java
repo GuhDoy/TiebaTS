@@ -41,19 +41,19 @@ public class HistoryCache extends XposedContext implements IHooker {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.myCollection.history.PbHistoryActivity", sClassLoader,
                 "onCreate", Bundle.class, new XC_MethodHook() {
                     @Override
-                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        var activity = (Activity) param.thisObject;
+                    protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
+                        final var activity = (Activity) param.thisObject;
                         new NavigationBar(param.thisObject)
                                 .addTextButton("搜索", v -> showRegexDialog(activity));
                     }
                 });
-        var method = ReflectUtils.findFirstMethodByExactType(
+        final var method = ReflectUtils.findFirstMethodByExactType(
                 "com.baidu.tieba.myCollection.history.PbHistoryActivity", List.class
         );
         XposedBridge.hookMethod(method, new XC_MethodHook() {
             @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                var list = (List<?>) param.args[0];
+            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+                final var list = (List<?>) param.args[0];
                 if (list == null) return;
 
                 final var pattern = Pattern.compile(mRegex);
@@ -62,11 +62,11 @@ public class HistoryCache extends XposedContext implements IHooker {
                     try {
                         strings = new String[]{(String) XposedHelpers.getObjectField(o, "forumName"),
                                 (String) XposedHelpers.getObjectField(o, "threadName")};
-                    } catch (NoSuchFieldError e) {
+                    } catch (final NoSuchFieldError e) {
                         strings = new String[]{(String) ReflectUtils.getObjectField(o, 3),
                                 (String) ReflectUtils.getObjectField(o, 2)};
                     }
-                    for (var string : strings) {
+                    for (final var string : strings) {
                         if (pattern.matcher(string).find()) {
                             return false;
                         }
@@ -77,32 +77,32 @@ public class HistoryCache extends XposedContext implements IHooker {
         });
     }
 
-    private void showRegexDialog(Activity activity) {
-        EditText editText = new TbEditText(activity);
+    private void showRegexDialog(final Activity activity) {
+        final EditText editText = new TbEditText(activity);
         editText.setHint(Constants.getStrings().get("regex_hint"));
         editText.setText(mRegex);
         editText.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            public void beforeTextChanged(final CharSequence s, final int start, final int count, final int after) {
             }
 
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            public void onTextChanged(final CharSequence s, final int start, final int before, final int count) {
             }
 
             @Override
-            public void afterTextChanged(Editable s) {
+            public void afterTextChanged(final Editable s) {
                 mRegex = s.toString();
             }
         });
-        TbDialog bdAlert = new TbDialog(activity, null, null, true, editText);
+        final TbDialog bdAlert = new TbDialog(activity, null, null, true, editText);
         bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
         bdAlert.setOnYesButtonClickListener(v -> {
             try {
                 Pattern.compile(editText.getText().toString());
                 bdAlert.dismiss();
                 activity.recreate();
-            } catch (PatternSyntaxException e) {
+            } catch (final PatternSyntaxException e) {
                 TbToast.showTbToast(e.getMessage(), TbToast.LENGTH_SHORT);
             }
         });

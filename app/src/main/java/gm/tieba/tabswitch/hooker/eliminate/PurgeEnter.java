@@ -40,21 +40,21 @@ public class PurgeEnter extends XposedContext implements IHooker, Obfuscated {
                 case "热门吧精选":
                     XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
                         @Override
-                        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
                             mRecommendHotForumTitle = param.getResult();
                         }
                     });
                     break;
                 case "c13378":
-                    for (var md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
-                        var paramTypes = md.getParameterTypes();
+                    for (final var md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
+                        final var paramTypes = md.getParameterTypes();
                         if (paramTypes.length == 2 && paramTypes[0] == List.class) {
                             XposedBridge.hookMethod(md, new XC_MethodHook() {
                                 @Override
-                                protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                                protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
                                     if (mRecommendHotForumTitle != null) {
-                                        var list = (List<?>) param.args[0];
-                                        var index = list.indexOf(mRecommendHotForumTitle);
+                                        final var list = (List<?>) param.args[0];
+                                        final var index = list.indexOf(mRecommendHotForumTitle);
                                         if (index != -1) {
                                             while (list.size() > index) {
                                                 list.remove(index);

@@ -14,7 +14,7 @@ public class DeobfuscationViewModel {
     Observable<Float> progress = _progress;
     private final Deobfuscation deobfuscation = new Deobfuscation();
 
-    public void deobfuscateStep1(Context context, List<Matcher> matchers) throws IOException {
+    public void deobfuscateStep1(final Context context, final List<Matcher> matchers) throws IOException {
         deobfuscation.setMatchers(matchers);
         deobfuscation.unzip(_progress, context);
     }

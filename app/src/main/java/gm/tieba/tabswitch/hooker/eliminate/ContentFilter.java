@@ -28,7 +28,7 @@ public class ContentFilter extends XposedContext implements IHooker, RegexFilter
         // 楼层
         XposedHelpers.findAndHookMethod("tbclient.PbPage.DataRes$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
                 final var postList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "post_list");
                 if (postList == null) return;
                 final var pattern = getPattern();
@@ -42,7 +42,7 @@ public class ContentFilter extends XposedContext implements IHooker, RegexFilter
         // 楼中楼：[\u202e|\ud83c\udd10-\ud83c\udd89]
         XposedHelpers.findAndHookMethod("tbclient.SubPost$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
                 final var subPostList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "sub_post_list");
                 if (subPostList == null) return;
                 final var pattern = getPattern();
@@ -53,7 +53,7 @@ public class ContentFilter extends XposedContext implements IHooker, RegexFilter
         // 楼层回复
         XposedHelpers.findAndHookMethod("tbclient.PbFloor.DataRes$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
                 final var subpostList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "subpost_list");
                 if (subpostList == null) return;
                 final var pattern = getPattern();
@@ -71,9 +71,9 @@ public class ContentFilter extends XposedContext implements IHooker, RegexFilter
         });
     }
 
-    private void initIdList(Object thisObject, Pattern pattern) {
+    private void initIdList(final Object thisObject, final Pattern pattern) {
         final var userList = (List<?>) XposedHelpers.getObjectField(thisObject, "user_list");
-        for (var user : userList) {
+        for (final var user : userList) {
             final var authors = new String[]{(String) XposedHelpers.getObjectField(user, "name"),
                     (String) XposedHelpers.getObjectField(user, "name_show")};
             if (Arrays.stream(authors).anyMatch(s -> pattern.matcher(s).find())) {

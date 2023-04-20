@@ -25,14 +25,14 @@ public class Hide extends XposedContext implements IHooker {
     @Deprecated
     @Override
     public void hook() throws Throwable {
-        for (Class<?> clazz : new Class<?>[]{Throwable.class, Thread.class}) {
+        for (final Class<?> clazz : new Class<?>[]{Throwable.class, Thread.class}) {
             XposedHelpers.findAndHookMethod(clazz, "getStackTrace", new XC_MethodHook() {
                 @Override
-                protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                    StackTraceElement[] stes = (StackTraceElement[]) param.getResult();
-                    List<StackTraceElement> filtered = new ArrayList<>();
-                    for (StackTraceElement ste : stes) {
-                        String name = ste.getClassName();
+                protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
+                    final StackTraceElement[] stes = (StackTraceElement[]) param.getResult();
+                    final List<StackTraceElement> filtered = new ArrayList<>();
+                    for (final StackTraceElement ste : stes) {
+                        final String name = ste.getClassName();
                         if (!name.contains("posed") && !name.contains("Hooker")
                                 && !name.contains(BuildConfig.APPLICATION_ID)
                                 && !name.equals("java.lang.reflect.Method")) {
@@ -40,7 +40,7 @@ public class Hide extends XposedContext implements IHooker {
                         }
                     }
 
-                    StackTraceElement[] result = new StackTraceElement[filtered.size()];
+                    final StackTraceElement[] result = new StackTraceElement[filtered.size()];
                     for (int i = 0; i < filtered.size(); i++) {
                         result[i] = filtered.get(i);
                     }

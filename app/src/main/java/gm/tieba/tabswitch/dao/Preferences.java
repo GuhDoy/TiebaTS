@@ -16,7 +16,7 @@ public class Preferences {
     private static SharedPreferences sTsConfig;
     private static SharedPreferences sTsNotes;
 
-    public static void init(Context context) {
+    public static void init(final Context context) {
         sTsPreferences = context.getSharedPreferences("TS_preferences", Context.MODE_PRIVATE);
         sTsConfig = context.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
         sTsNotes = context.getSharedPreferences("TS_notes", Context.MODE_PRIVATE);
@@ -27,49 +27,49 @@ public class Preferences {
         return sTsPreferences.getAll();
     }
 
-    public static void remove(String key) {
-        SharedPreferences.Editor editor = sTsPreferences.edit();
+    public static void remove(final String key) {
+        final SharedPreferences.Editor editor = sTsPreferences.edit();
         editor.remove(key);
         editor.apply();
     }
 
-    public static void putBoolean(String key, boolean value) {
-        SharedPreferences.Editor editor = sTsPreferences.edit();
+    public static void putBoolean(final String key, final boolean value) {
+        final SharedPreferences.Editor editor = sTsPreferences.edit();
         editor.putBoolean(key, value);
         editor.apply();
     }
 
-    public static boolean getBoolean(String key) {
+    public static boolean getBoolean(final String key) {
         return sTsPreferences.getBoolean(key, false);
     }
 
-    public static void putString(String key, String value) {
-        SharedPreferences.Editor editor = sTsPreferences.edit();
+    public static void putString(final String key, final String value) {
+        final SharedPreferences.Editor editor = sTsPreferences.edit();
         editor.putString(key, value);
         editor.apply();
     }
 
-    public static String getString(String key) {
+    public static String getString(final String key) {
         return sTsPreferences.getString(key, null);
     }
 
-    public static void putStringSet(String key, String value, boolean isContain) {
-        List<String> list = new ArrayList<>(getStringSet(key));
+    public static void putStringSet(final String key, final String value, final boolean isContain) {
+        final List<String> list = new ArrayList<>(getStringSet(key));
         if (!isContain) list.remove(value);
         else if (!list.contains(value)) list.add(value);
 
-        SharedPreferences.Editor editor = sTsPreferences.edit();
+        final SharedPreferences.Editor editor = sTsPreferences.edit();
         editor.putStringSet(key, new HashSet<>(list));
         editor.apply();
     }
 
-    public static Set<String> getStringSet(String key) {
+    public static Set<String> getStringSet(final String key) {
         return sTsPreferences.getStringSet(key, new HashSet<>());
     }
 
     // Config
     public static void putEULAAccepted() {
-        SharedPreferences.Editor editor = sTsConfig.edit();
+        final SharedPreferences.Editor editor = sTsConfig.edit();
         editor.putBoolean("EULA", true);
         editor.apply();
     }
@@ -79,7 +79,7 @@ public class Preferences {
     }
 
     public static void putAutoSignEnabled() {
-        SharedPreferences.Editor editor = sTsConfig.edit();
+        final SharedPreferences.Editor editor = sTsConfig.edit();
         editor.putBoolean("auto_sign", true);
         editor.apply();
     }
@@ -90,7 +90,7 @@ public class Preferences {
 
     @SuppressLint("ApplySharedPref")
     public static void putPurgeEnabled() {
-        SharedPreferences.Editor editor = sTsConfig.edit();
+        final SharedPreferences.Editor editor = sTsConfig.edit();
         editor.putBoolean("ze", true);
         editor.commit();
     }
@@ -100,8 +100,8 @@ public class Preferences {
     }
 
     @SuppressLint("ApplySharedPref")
-    public static void putSignature(int i) {
-        SharedPreferences.Editor editor = sTsConfig.edit();
+    public static void putSignature(final int i) {
+        final SharedPreferences.Editor editor = sTsConfig.edit();
         editor.putInt("signature", i);
         editor.commit();
     }
@@ -110,8 +110,8 @@ public class Preferences {
         return sTsConfig.getInt("signature", 0);
     }
 
-    public static void putLikeForum(Set<String> follow) {
-        SharedPreferences.Editor editor = sTsConfig.edit();
+    public static void putLikeForum(final Set<String> follow) {
+        final SharedPreferences.Editor editor = sTsConfig.edit();
         editor.putStringSet("like_forum", follow);
         editor.apply();
     }
@@ -121,7 +121,7 @@ public class Preferences {
     }
 
     public static void putSignDate() {
-        SharedPreferences.Editor editor = sTsConfig.edit();
+        final SharedPreferences.Editor editor = sTsConfig.edit();
         editor.putInt("sign_date", Calendar.getInstance().get(Calendar.DAY_OF_YEAR));
         editor.apply();
     }
@@ -135,7 +135,7 @@ public class Preferences {
         return sTsNotes.getAll();
     }
 
-    public static String getNote(String name) {
+    public static String getNote(final String name) {
         return sTsNotes.getString(name, null);
     }
 

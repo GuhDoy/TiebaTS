@@ -20,7 +20,7 @@ public class AgreeNum extends XposedContext implements IHooker {
         XposedHelpers.findAndHookMethod("tbclient.Agree$Builder", sClassLoader,
                 "build", boolean.class, new XC_MethodHook() {
                     @Override
-                    public void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                    public void beforeHookedMethod(final MethodHookParam param) throws Throwable {
                         XposedHelpers.setObjectField(param.thisObject, "agree_num",
                                 XposedHelpers.getObjectField(param.thisObject, "diff_agree_num"));
                     }

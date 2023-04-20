@@ -39,36 +39,36 @@ public class SaveImages extends XposedContext implements IHooker {
     }
 
     public void hook() throws Throwable {
-        var method = ReflectUtils.findFirstMethodByExactType(
+        final var method = ReflectUtils.findFirstMethodByExactType(
                 "com.baidu.tbadk.coreExtra.view.ImagePagerAdapter", ArrayList.class
         );
         XposedBridge.hookMethod(method, new XC_MethodHook() {
             @Override
-            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+            protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
                 mList = (ArrayList<String>) param.args[0];
             }
         });
         XposedHelpers.findAndHookMethod("com.baidu.tbadk.widget.richText.TbRichText",
                 sClassLoader, "toString", new XC_MethodHook() {
                     @Override
-                    protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+                    protected void afterHookedMethod(final XC_MethodHook.MethodHookParam param) throws Throwable {
                         if (param.getResult() != null) mTitle = (String) param.getResult();
                     }
                 });
         XposedHelpers.findAndHookConstructor("com.baidu.tbadk.coreExtra.view.ImageViewerBottomLayout",
                 sClassLoader, Context.class, new XC_MethodHook() {
                     @Override
-                    protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-                        var context = ((Context) param.args[0]).getApplicationContext();
+                    protected void afterHookedMethod(final XC_MethodHook.MethodHookParam param) throws Throwable {
+                        final var context = ((Context) param.args[0]).getApplicationContext();
                         // R.id.download_icon
-                        var imageView = (ImageView) ReflectUtils.getObjectField(param.thisObject, 11);
+                        final var imageView = (ImageView) ReflectUtils.getObjectField(param.thisObject, 11);
                         imageView.setOnLongClickListener(v -> {
                             TbToast.showTbToast(String.format(Locale.CHINA,
                                     "开始下载%d张图片", mList.size()), TbToast.LENGTH_SHORT);
                             new Thread(() -> {
                                 try {
-                                    var list = new ArrayList<>(mList);
-                                    var title = mTitle;
+                                    final var list = new ArrayList<>(mList);
+                                    final var title = mTitle;
                                     for (var i = 0; i < list.size(); i++) {
                                         var url = list.get(i);
                                         url = StringsKt.substringBeforeLast(url, "*", url);
@@ -78,7 +78,7 @@ public class SaveImages extends XposedContext implements IHooker {
                                             TbToast.showTbToast(String.format(Locale.CHINA,
                                                             "已保存%d张图片至手机相册", list.size()),
                                                     TbToast.LENGTH_SHORT));
-                                } catch (IOException | NullPointerException e) {
+                                } catch (final IOException | NullPointerException e) {
                                     new Handler(Looper.getMainLooper()).post(() ->
                                             TbToast.showTbToast("保存失败", TbToast.LENGTH_SHORT));
                                 }
@@ -89,15 +89,15 @@ public class SaveImages extends XposedContext implements IHooker {
                 });
     }
 
-    private static void saveImage(String url, String title, int i, Context context) throws IOException {
-        try (var is = new URL(url).openStream()) {
-            var bb = FileUtils.toByteBuffer(is);
-            var imageDetails = new ContentValues();
+    private static void saveImage(final String url, final String title, final int i, final Context context) throws IOException {
+        try (final var is = new URL(url).openStream()) {
+            final var bb = FileUtils.toByteBuffer(is);
+            final var imageDetails = new ContentValues();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 imageDetails.put(MediaStore.MediaColumns.RELATIVE_PATH,
                         Environment.DIRECTORY_PICTURES + File.separator + "tieba" + File.separator + title);
             } else {
-                var path = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                final var path = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
                         "tieba" + File.separator + title);
                 path.mkdirs();
                 imageDetails.put(MediaStore.MediaColumns.DATA, path + File.separator
@@ -105,9 +105,9 @@ public class SaveImages extends XposedContext implements IHooker {
             }
             imageDetails.put(MediaStore.MediaColumns.DISPLAY_NAME, String.format(Locale.CHINA, "%02d", i));
             imageDetails.put(MediaStore.MediaColumns.MIME_TYPE, "image/" + FileUtils.getExtension(bb));
-            var resolver = context.getContentResolver();
-            var imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, imageDetails);
-            var descriptor = resolver.openFileDescriptor(imageUri, "w");
+            final var resolver = context.getContentResolver();
+            final var imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, imageDetails);
+            final var descriptor = resolver.openFileDescriptor(imageUri, "w");
             FileUtils.copy(bb, descriptor.getFileDescriptor());
         }
     }

@@ -51,9 +51,9 @@ public class ThreadStore extends XposedContext implements IHooker, Obfuscated {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.myCollection.CollectTabActivity", sClassLoader,
                 "onCreate", Bundle.class, new XC_MethodHook() {
                     @Override
-                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        var controller = ReflectUtils.getObjectField(param.thisObject, 1);
-                        var activity = (Activity) param.thisObject;
+                    protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
+                        final var controller = ReflectUtils.getObjectField(param.thisObject, 1);
+                        final var activity = (Activity) param.thisObject;
                         new NavigationBar(controller)
                                 .addTextButton("搜索", v -> showRegexDialog(activity));
                     }
@@ -61,16 +61,16 @@ public class ThreadStore extends XposedContext implements IHooker, Obfuscated {
         AcRules.findRule(matchers(), (matcher, clazz, method) ->
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, Boolean[].class, new XC_MethodHook() {
                     @Override
-                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        var list = ReflectUtils.getObjectField(param.getResult(), ArrayList.class);
+                    protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
+                        final var list = ReflectUtils.getObjectField(param.getResult(), ArrayList.class);
                         if (list == null) return;
                         final Pattern pattern = Pattern.compile(mRegex);
                         list.removeIf(o -> {
                             // com.baidu.tbadk.baseEditMark.MarkData
-                            String[] strings = new String[]{(String) XposedHelpers.getObjectField(o, "mTitle"),
+                            final String[] strings = new String[]{(String) XposedHelpers.getObjectField(o, "mTitle"),
                                     (String) XposedHelpers.getObjectField(o, "mForumName"),
                                     (String) XposedHelpers.getObjectField(o, "mAuthorName")};
-                            for (String string : strings) {
+                            for (final String string : strings) {
                                 if (pattern.matcher(string).find()) {
                                     return false;
                                 }
@@ -86,32 +86,32 @@ public class ThreadStore extends XposedContext implements IHooker, Obfuscated {
                 }));
     }
 
-    private void showRegexDialog(Activity activity) {
-        EditText editText = new TbEditText(activity);
+    private void showRegexDialog(final Activity activity) {
+        final EditText editText = new TbEditText(activity);
         editText.setHint(Constants.getStrings().get("regex_hint"));
         editText.setText(mRegex);
         editText.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            public void beforeTextChanged(final CharSequence s, final int start, final int count, final int after) {
             }
 
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            public void onTextChanged(final CharSequence s, final int start, final int before, final int count) {
             }
 
             @Override
-            public void afterTextChanged(Editable s) {
+            public void afterTextChanged(final Editable s) {
                 mRegex = s.toString();
             }
         });
-        TbDialog bdAlert = new TbDialog(activity, null, null, true, editText);
+        final TbDialog bdAlert = new TbDialog(activity, null, null, true, editText);
         bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
         bdAlert.setOnYesButtonClickListener(v -> {
             try {
                 Pattern.compile(editText.getText().toString());
                 bdAlert.dismiss();
                 activity.recreate();
-            } catch (PatternSyntaxException e) {
+            } catch (final PatternSyntaxException e) {
                 TbToast.showTbToast(e.getMessage(), TbToast.LENGTH_SHORT);
             }
         });

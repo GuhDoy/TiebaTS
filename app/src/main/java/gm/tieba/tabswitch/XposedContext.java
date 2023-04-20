@@ -15,7 +15,7 @@ public abstract class XposedContext {
     protected static String sPath;
     private static Handler sHandler;
 
-    protected static void attachBaseContext(Context context) {
+    protected static void attachBaseContext(final Context context) {
         if (sContextRef != null) {
             throw new IllegalStateException("Base context already set");
         }
@@ -27,7 +27,7 @@ public abstract class XposedContext {
         return sContextRef.get();
     }
 
-    protected static void runOnUiThread(Runnable r) {
+    protected static void runOnUiThread(final Runnable r) {
         sHandler.post(r);
     }
 }

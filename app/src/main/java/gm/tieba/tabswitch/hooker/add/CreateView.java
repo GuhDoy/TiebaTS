@@ -40,12 +40,12 @@ public class CreateView extends XposedContext implements IHooker {
         }
         XposedBridge.hookMethod(method, new XC_MethodHook() {
             @Override
-            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                var controller = ReflectUtils.getObjectField(param.thisObject, 1);
-                var signButton = ReflectUtils.getObjectField(controller, ImageView.class);
-                var activity = (Activity) XposedHelpers.callMethod(param.thisObject, "requireActivity");
-                var parent = (RelativeLayout) signButton.getParent();
-                var signButtonLayoutParams = (RelativeLayout.LayoutParams) signButton.getLayoutParams();
+            protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
+                final var controller = ReflectUtils.getObjectField(param.thisObject, 1);
+                final var signButton = ReflectUtils.getObjectField(controller, ImageView.class);
+                final var activity = (Activity) XposedHelpers.callMethod(param.thisObject, "requireActivity");
+                final var parent = (RelativeLayout) signButton.getParent();
+                final var signButtonLayoutParams = (RelativeLayout.LayoutParams) signButton.getLayoutParams();
                 signButtonLayoutParams.leftMargin = 0;
                 signButton.setLayoutParams(signButtonLayoutParams);
                 // historyButton
@@ -53,18 +53,18 @@ public class CreateView extends XposedContext implements IHooker {
                 historyDrawable.setImageResource(
                         ReflectUtils.getDrawableId("icon_mask_wo_list_history24_svg"));
                 final var historyButton = new RelativeLayout(activity);
-                var historyLayoutParams = new RelativeLayout.LayoutParams(
+                final var historyLayoutParams = new RelativeLayout.LayoutParams(
                         signButtonLayoutParams.height, RelativeLayout.LayoutParams.MATCH_PARENT);
                 historyLayoutParams.addRule(RelativeLayout.LEFT_OF, signButton.getId());
                 historyButton.setLayoutParams(historyLayoutParams);
                 historyButton.setId(View.generateViewId());
                 historyButton.addView(historyDrawable);
-                var drawableLayoutParams = (RelativeLayout.LayoutParams) historyDrawable.getLayoutParams();
+                final var drawableLayoutParams = (RelativeLayout.LayoutParams) historyDrawable.getLayoutParams();
                 drawableLayoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
                 historyDrawable.setLayoutParams(drawableLayoutParams);
                 parent.addView(historyButton);
                 historyButton.setOnClickListener(view -> {
-                    var intent = new Intent().setClassName(activity,
+                    final var intent = new Intent().setClassName(activity,
                             "com.baidu.tieba.myCollection.history.PbHistoryActivity");
                     activity.startActivity(intent);
                 });
@@ -73,7 +73,7 @@ public class CreateView extends XposedContext implements IHooker {
                 collectDrawable.setImageResource(
                         ReflectUtils.getDrawableId("icon_mask_wo_list_collect24_svg"));
                 final var collectButton = new RelativeLayout(activity);
-                var collectButtonLayoutParams = new RelativeLayout.LayoutParams(
+                final var collectButtonLayoutParams = new RelativeLayout.LayoutParams(
                         signButtonLayoutParams.height, RelativeLayout.LayoutParams.MATCH_PARENT);
                 collectButtonLayoutParams.addRule(RelativeLayout.LEFT_OF, historyButton.getId());
                 collectButton.setLayoutParams(collectButtonLayoutParams);
@@ -81,7 +81,7 @@ public class CreateView extends XposedContext implements IHooker {
                 collectDrawable.setLayoutParams(drawableLayoutParams);
                 parent.addView(collectButton);
                 collectButton.setOnClickListener(view -> {
-                    var intent = new Intent().setClassName(activity,
+                    final var intent = new Intent().setClassName(activity,
                             "com.baidu.tieba.myCollection.CollectTabActivity");
                     activity.startActivity(intent);
                 });

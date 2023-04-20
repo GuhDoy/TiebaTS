@@ -10,11 +10,11 @@ import gm.tieba.tabswitch.util.ReflectUtils;
 
 @SuppressLint("AppCompatCustomView")
 public class TbEditText extends EditText {
-    public TbEditText(Context context) {
+    public TbEditText(final Context context) {
         super(context);
         setFocusable(true);
         setFocusableInTouchMode(true);
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+        final LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         setLayoutParams(layoutParams);
         setTextColor(ReflectUtils.getColor("CAM_X0105"));

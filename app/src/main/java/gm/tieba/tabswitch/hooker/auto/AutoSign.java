@@ -8,6 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -45,10 +46,10 @@ public class AutoSign extends XposedContext implements IHooker {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader,
                 "onCreate", Bundle.class, new XC_MethodHook() {
                     @Override
-                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                    protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
                         if (Preferences.getIsSigned()) return;
                         new Thread(() -> {
-                            String result = main(Adp.getInstance().BDUSS);
+                            final String result = main(Adp.getInstance().BDUSS);
                             if (result.endsWith("全部签到成功")) {
                                 Preferences.putSignDate();
                                 Preferences.putLikeForum(new HashSet<>(mSuccess));
@@ -59,14 +60,14 @@ public class AutoSign extends XposedContext implements IHooker {
                 });
     }
 
-    private String main(String BDUSS) {
+    private String main(final String BDUSS) {
         if (BDUSS == null) return "暂未获取到 BDUSS";
         AutoSignHelper.setCookie(BDUSS);
         getTbs();
         getFollow();
         runSign();
-        int failNum = mFollowNum - mSuccess.size();
-        String result = "共 {" + mFollowNum + "} 个吧 - 成功: {" + mSuccess.size() + "} - 失败: {" + failNum + "}";
+        final int failNum = mFollowNum - mSuccess.size();
+        final String result = "共 {" + mFollowNum + "} 个吧 - 成功: {" + mSuccess.size() + "} - 失败: {" + failNum + "}";
         XposedBridge.log(result);
         if (failNum == 0) return "共 {" + mFollowNum + "} 个吧 - 全部签到成功";
         else return result;
@@ -76,21 +77,21 @@ public class AutoSign extends XposedContext implements IHooker {
         mTbs = Adp.getInstance().tbs;
         if (mTbs != null) return;
         try {
-            JSONObject jsonObject = AutoSignHelper.get(TBS_URL);
+            final JSONObject jsonObject = AutoSignHelper.get(TBS_URL);
             if ("1".equals(jsonObject.getString("is_login"))) {
                 XposedBridge.log("获取tbs成功");
                 mTbs = jsonObject.getString("tbs");
             } else XposedBridge.log("获取tbs失败 -- " + jsonObject);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             XposedBridge.log("获取tbs部分出现错误 -- " + e);
         }
     }
 
     private void getFollow() {
         try {
-            JSONObject jsonObject = AutoSignHelper.get(LIKE_URL);
+            final JSONObject jsonObject = AutoSignHelper.get(LIKE_URL);
             XposedBridge.log("获取贴吧列表成功");
-            JSONArray jsonArray = jsonObject.getJSONObject("data").getJSONArray("like_forum");
+            final JSONArray jsonArray = jsonObject.getJSONObject("data").getJSONArray("like_forum");
             mFollowNum = jsonArray.length();
             // 获取用户所有关注的贴吧
             for (int i = 0; i < jsonArray.length(); i++) {
@@ -100,7 +101,7 @@ public class AutoSign extends XposedContext implements IHooker {
                     mSuccess.add(jsonArray.optJSONObject(i).getString("forum_name"));
                 }
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             XposedBridge.log("获取贴吧列表部分出现错误 -- " + e);
         }
     }
@@ -110,12 +111,12 @@ public class AutoSign extends XposedContext implements IHooker {
         int flag = 3;
         try {
             while (mSuccess.size() < mFollowNum && flag-- > 0) {
-                Iterator<String> iterator = mFollow.iterator();
+                final Iterator<String> iterator = mFollow.iterator();
                 while (iterator.hasNext()) {
-                    String s = iterator.next();
-                    String body = "kw=" + URLEncoder.encode(s, "UTF-8") + "&tbs=" + mTbs + "&sign=" +
+                    final String s = iterator.next();
+                    final String body = "kw=" + URLEncoder.encode(s, StandardCharsets.UTF_8) + "&tbs=" + mTbs + "&sign=" +
                             AutoSignHelper.enCodeMd5("kw=" + s + "tbs=" + mTbs + "tiebaclient!!!");
-                    JSONObject post = AutoSignHelper.post(SIGN_URL, body);
+                    final JSONObject post = AutoSignHelper.post(SIGN_URL, body);
                     if ("0".equals(post.getString("error_code"))) {
                         iterator.remove();
                         mSuccess.add(s);
@@ -129,7 +130,7 @@ public class AutoSign extends XposedContext implements IHooker {
                     getTbs();
                 }
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             XposedBridge.log("签到部分出现错误 -- " + e);
         }
     }

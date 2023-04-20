@@ -54,14 +54,14 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                     XposedBridge.hookAllMethods(XposedHelpers.findClass(clazz, sClassLoader), method, XC_MethodReplacement.returnConstant(null));
                     break;
                 case "pic_amount": // 图片广告：必须"recom_ala_info", "app", 可选"goods_info"
-                    for (var md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
+                    for (final var md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
                         if (Arrays.toString(md.getParameterTypes()).contains("JSONObject") && !md.getName().equals(method)) {
                             XposedBridge.hookMethod(md, XC_MethodReplacement.returnConstant(null));
                         }
                     }
                     break;
                 case "key_frs_dialog_ad_last_show_time": // 吧推广弹窗
-                    for (var md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
+                    for (final var md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
                         if (md.getName().equals(method) && md.getReturnType().equals(boolean.class)) {
                             XposedBridge.hookMethod(md, XC_MethodReplacement.returnConstant(true));
                         }
@@ -72,8 +72,8 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
         // 启动广告
         XposedHelpers.findAndHookMethod("com.baidu.adp.framework.MessageManager", sClassLoader, "findTask", int.class, new XC_MethodHook() {
             @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                int task = (int) param.args[0];
+            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+                final int task = (int) param.args[0];
                 if (task == 2016555 || task == 2921390) {
                     param.setResult(null);
                 }
@@ -83,8 +83,8 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
         XposedBridge.hookAllMethods(XposedHelpers.findClass("com.baidu.adp.framework.MessageManager",
                 sClassLoader), "dispatchResponsedMessage", new XC_MethodHook() {
             @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                Object responsedMessage = param.args[0];
+            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+                final Object responsedMessage = param.args[0];
                 if ((int) XposedHelpers.getObjectField(responsedMessage, "mCmd") == 2016520) {
                     param.setResult(null);
                 }
@@ -94,24 +94,24 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
         Class<?> clazz;
         try {
             clazz = XposedHelpers.findClass("com.baidu.tieba.pb.pb.main.AbsPbActivity", sClassLoader);
-        } catch (XposedHelpers.ClassNotFoundError e) {
+        } catch (final XposedHelpers.ClassNotFoundError e) {
             clazz = XposedHelpers.findClass("com.baidu.tieba.pb.pb.main.PbActivity", sClassLoader);
         }
         XposedHelpers.findAndHookMethod(clazz, "onCreate", Bundle.class, new XC_MethodHook() {
             @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                Activity activity = (Activity) param.thisObject;
-                Bundle bundle = activity.getIntent().getExtras();
-                Intent intent = new Intent();
-                for (String key : bundle.keySet()) {
+            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+                final Activity activity = (Activity) param.thisObject;
+                final Bundle bundle = activity.getIntent().getExtras();
+                final Intent intent = new Intent();
+                for (final String key : bundle.keySet()) {
                     if /* 为您推荐 */ (key.equals("key_start_from")) {
-                        int startFrom = (int) bundle.get(key);
+                        final int startFrom = (int) bundle.get(key);
                         if (startFrom == 2 || startFrom == 3) intent.putExtra(key, 0);
                     } else if /* 浏览器打开热门推荐 */ (key.equals("key_uri")) {
-                        Uri uri = (Uri) bundle.get(key);
+                        final Uri uri = (Uri) bundle.get(key);
                         intent.putExtra("thread_id", uri.getQueryParameter("tid"));
                     } else {
-                        Object value = bundle.get(key);
+                        final Object value = bundle.get(key);
                         if (value instanceof Serializable) {
                             intent.putExtra(key, (Serializable) value);
                         } else {
@@ -125,12 +125,12 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
         // 帖子直播推荐：在 com/baidu/tieba/pb/pb/main/ 中搜索 tbclient/AlaLiveInfo
         XposedHelpers.findAndHookMethod("tbclient.AlaLiveInfo$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
                 XposedHelpers.setObjectField(param.thisObject, "user_info", null);
             }
         });
         // 首页直播推荐卡片：R.layout.card_home_page_ala_live_item_new
-        for (Method method : XposedHelpers.findClass("com.baidu.tieba.homepage.personalize.adapter.HomePageAlaLiveThreadAdapter", sClassLoader).getDeclaredMethods()) {
+        for (final Method method : XposedHelpers.findClass("com.baidu.tieba.homepage.personalize.adapter.HomePageAlaLiveThreadAdapter", sClassLoader).getDeclaredMethods()) {
             if (method.getReturnType().toString().endsWith("HomePageAlaLiveThreadViewHolder")) {
                 XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(null));
             }
@@ -138,15 +138,15 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
         // 首页推荐
         XposedHelpers.findAndHookMethod("tbclient.Personalized.DataRes$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                List<?> threadList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");
+            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+                final List<?> threadList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");
                 if (threadList == null) return;
                 threadList.removeIf(o -> {
                     if (XposedHelpers.getObjectField(o, "forum_info") == null) {
                         return true;
                     }
 
-                    Object worksInfo = XposedHelpers.getObjectField(o, "works_info");
+                    final Object worksInfo = XposedHelpers.getObjectField(o, "works_info");
                     return worksInfo != null && (Integer) XposedHelpers.getObjectField(worksInfo, "is_works") == 1;
                 });
             }
@@ -154,18 +154,18 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
         // 吧页面
         XposedHelpers.findAndHookMethod("tbclient.FrsPage.DataRes$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
                 // 吧公告
                 XposedHelpers.setObjectField(param.thisObject, "star_enter", new ArrayList<>());
 
-                List<?> threadList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");
+                final List<?> threadList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");
                 if (threadList == null) return;
                 threadList.removeIf(o -> {
                     if (XposedHelpers.getObjectField(o, "ala_info") != null) {
                         return true;
                     }
 
-                    Object worksInfo = XposedHelpers.getObjectField(o, "works_info");
+                    final Object worksInfo = XposedHelpers.getObjectField(o, "works_info");
                     return worksInfo != null && (Integer) XposedHelpers.getObjectField(worksInfo, "is_works") == 1;
                 });
 
@@ -178,14 +178,14 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
         // 吧友直播
         XposedHelpers.findAndHookMethod("tbclient.FrsPage.NavTabInfo$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                List<?> list = (List<?>) XposedHelpers.getObjectField(param.thisObject, "tab");
+            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+                final List<?> list = (List<?>) XposedHelpers.getObjectField(param.thisObject, "tab");
                 if (list == null) return;
                 list.removeIf(o -> (Integer) XposedHelpers.getObjectField(o, "tab_type") == 92);
             }
         });
         // 你可能感兴趣的人：initUI()
-        var md = ReflectUtils.findFirstMethodByExactType("com.baidu.tieba.homepage.concern.view.ConcernRecommendLayout");
+        final var md = ReflectUtils.findFirstMethodByExactType("com.baidu.tieba.homepage.concern.view.ConcernRecommendLayout");
         XposedBridge.hookMethod(md, XC_MethodReplacement.returnConstant(null));
         // 首页任务中心：R.id.task TbImageView
 //        XposedHelpers.findAndHookMethod("com.baidu.tieba.homepage.framework.indicator.NestedScrollHeader", sClassLoader, "onAttachedToWindow", new XC_MethodHook() {
@@ -205,13 +205,13 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
         // 一键签到广告
         XposedHelpers.findAndHookMethod("com.baidu.tieba.signall.SignAllForumAdvertActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
             @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                Activity activity = (Activity) param.thisObject;
+            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+                final Activity activity = (Activity) param.thisObject;
                 activity.finish();
             }
         });
         // 首页推荐右侧悬浮
-        for (var method : XposedHelpers.findClass("com.baidu.tbadk.widget.RightFloatLayerView", sClassLoader).getDeclaredMethods()) {
+        for (final var method : XposedHelpers.findClass("com.baidu.tbadk.widget.RightFloatLayerView", sClassLoader).getDeclaredMethods()) {
             if (method.getParameterTypes().length == 0 && method.getReturnType() == boolean.class) {
                 XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(false));
             }

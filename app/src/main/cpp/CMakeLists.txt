@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.18.1)
+project(TS)
 set(CMAKE_CXX_STANDARD 20)
 
 set(C_FLAGS "-Werror=format -fdata-sections -ffunction-sections -fno-exceptions -fno-rtti -fno-threadsafe-statics")

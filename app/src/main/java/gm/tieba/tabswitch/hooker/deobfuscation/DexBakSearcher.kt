@@ -91,6 +91,7 @@ class DexBakSearcher(matchers: Iterable<Matcher> = emptyList()) {
                             }
                         }
                     }
+
                     Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST, Opcode.CONST_HIGH16,
                     Opcode.CONST_WIDE_16, Opcode.CONST_WIDE_32, Opcode.CONST_WIDE,
                     Opcode.CONST_WIDE_HIGH16 -> if (instruction.opcode.format in arrayOf(
@@ -104,6 +105,7 @@ class DexBakSearcher(matchers: Iterable<Matcher> = emptyList()) {
                             l.onMatch(it, type.convert(), method.name)
                         }
                     }
+
                     else -> {
                         // do nothing.
                     }

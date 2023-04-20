@@ -67,12 +67,12 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
     public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod(Dialog.class, "dismissDialog", new XC_MethodHook() {
             @Override
-            protected void beforeHookedMethod(MethodHookParam param) {
-                Dialog dialog = (Dialog) param.thisObject;
+            protected void beforeHookedMethod(final MethodHookParam param) {
+                final Dialog dialog = (Dialog) param.thisObject;
                 if (dialog.isShowing()) {
-                    View view = dialog.getWindow().getCurrentFocus();
+                    final View view = dialog.getWindow().getCurrentFocus();
                     if (view != null) {
-                        InputMethodManager imm = (InputMethodManager) view.getContext()
+                        final InputMethodManager imm = (InputMethodManager) view.getContext()
                                 .getSystemService(Activity.INPUT_METHOD_SERVICE);
                         imm.hideSoftInputFromWindow(view.getRootView().getWindowToken(), 0);
                     }
@@ -82,12 +82,12 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.setting.more.MoreActivity", sClassLoader,
                 "onCreate", Bundle.class, new XC_MethodHook() {
                     @Override
-                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        var activity = (Activity) param.thisObject;
-                        var contentView = (ViewGroup) activity.findViewById(android.R.id.content);
-                        var parent = (RelativeLayout) contentView.getChildAt(0);
-                        var scroll = (ScrollView) parent.getChildAt(0);
-                        var containerView = (LinearLayout) scroll.getChildAt(0);
+                    protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
+                        final var activity = (Activity) param.thisObject;
+                        final var contentView = (ViewGroup) activity.findViewById(android.R.id.content);
+                        final var parent = (RelativeLayout) contentView.getChildAt(0);
+                        final var scroll = (ScrollView) parent.getChildAt(0);
+                        final var containerView = (LinearLayout) scroll.getChildAt(0);
                         containerView.addView(TSPreferenceHelper.createButton(MAIN, null, true,
                                 v -> startRootPreferenceActivity(activity)), 11);
                     }
@@ -97,11 +97,11 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
                 XposedHelpers.findAndHookConstructor(clazz, sClassLoader, XposedHelpers
                         .findClass(PROXY_ACTIVITY, sClassLoader), new XC_MethodHook() {
                     @Override
-                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        var activity = (Activity) param.args[0];
+                    protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
+                        final var activity = (Activity) param.args[0];
                         try {
-                            var navigationBar = new NavigationBar(param.thisObject);
-                            var proxyPage = activity.getIntent().getStringExtra("proxyPage");
+                            final var navigationBar = new NavigationBar(param.thisObject);
+                            final var proxyPage = activity.getIntent().getStringExtra("proxyPage");
                             if (proxyPage == null) return;
                             switch (proxyPage) {
                                 case MAIN:
@@ -117,13 +117,13 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
                                     proxyPage(activity, navigationBar, TRACE, createHidePreference(activity));
                                     break;
                             }
-                        } catch (Throwable tr) {
-                            var messages = new ArrayList<String>();
+                        } catch (final Throwable tr) {
+                            final var messages = new ArrayList<String>();
                             messages.add(Constants.getStrings().get("exception_init_preference"));
                             messages.add(String.format(Locale.CHINA, "tbversion: %s, module version: %d",
                                     DeobfuscationHelper.getTbVersion(getContext()), BuildConfig.VERSION_CODE));
                             messages.add(Log.getStackTraceString(tr));
-                            var message = TextUtils.join("\n", messages);
+                            final var message = TextUtils.join("\n", messages);
                             XposedBridge.log(message);
                             new AlertDialog.Builder(activity, AlertDialog.THEME_DEVICE_DEFAULT_LIGHT)
                                     .setTitle("警告").setMessage(message).setCancelable(false)
@@ -132,32 +132,32 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
                         }
                     }
                 });
-            } catch (NoSuchMethodError ignored) {
+            } catch (final NoSuchMethodError ignored) {
             }
         });
     }
 
-    private void proxyPage(Activity activity, NavigationBar navigationBar, String title,
-                           LinearLayout preferenceLayout) throws Throwable {
+    private void proxyPage(final Activity activity, final NavigationBar navigationBar, final String title,
+                           final LinearLayout preferenceLayout) throws Throwable {
         navigationBar.setTitleText(title);
         navigationBar.addTextButton("重启", v -> DisplayUtils.restart(activity));
-        var contentView = (ViewGroup) activity.findViewById(android.R.id.content);
-        var parent = (LinearLayout) contentView.getChildAt(0);
-        var mainScroll = (ScrollView) parent.getChildAt(1);
-        var containerView = (LinearLayout) mainScroll.getChildAt(0);
+        final var contentView = (ViewGroup) activity.findViewById(android.R.id.content);
+        final var parent = (LinearLayout) contentView.getChildAt(0);
+        final var mainScroll = (ScrollView) parent.getChildAt(1);
+        final var containerView = (LinearLayout) mainScroll.getChildAt(0);
         containerView.removeAllViews();
         containerView.addView(preferenceLayout);
     }
 
-    private void startRootPreferenceActivity(Activity activity) {
+    private void startRootPreferenceActivity(final Activity activity) {
         if (!Preferences.getIsEULAAccepted()) {
-            StringBuilder stringBuilder = new StringBuilder().append(Constants.getStrings().get("EULA"));
+            final StringBuilder stringBuilder = new StringBuilder().append(Constants.getStrings().get("EULA"));
             if (BuildConfig.VERSION_NAME.contains("alpha") || BuildConfig.VERSION_NAME.contains("beta")) {
                 stringBuilder.append("\n\n").append(Constants.getStrings().get("dev_tip"));
             }
-            TbDialog bdAlert = new TbDialog(activity, "使用协议", stringBuilder.toString(), true, null);
+            final TbDialog bdAlert = new TbDialog(activity, "使用协议", stringBuilder.toString(), true, null);
             bdAlert.setOnNoButtonClickListener(v -> {
-                Intent intent = new Intent();
+                final Intent intent = new Intent();
                 intent.setAction(Intent.ACTION_DELETE);
                 intent.setData(Uri.parse("package:" + (sPath.contains(BuildConfig.APPLICATION_ID)
                         && new File(sPath).exists() ?
@@ -171,20 +171,20 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
             });
             bdAlert.show();
         } else {
-            Intent intent = new Intent().setClassName(activity, PROXY_ACTIVITY);
+            final Intent intent = new Intent().setClassName(activity, PROXY_ACTIVITY);
             intent.putExtra("proxyPage", MAIN);
             activity.startActivity(intent);
         }
     }
 
     @NotNull
-    private LinearLayout createRootPreference(Activity activity) {
-        boolean isPurgeEnabled = Preferences.getIsPurgeEnabled();
-        TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
+    private LinearLayout createRootPreference(final Activity activity) {
+        final boolean isPurgeEnabled = Preferences.getIsPurgeEnabled();
+        final TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
 
         preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurgeEnabled ? "轻车简从" : "净化界面"));
         preferenceLayout.addView(TSPreferenceHelper.createButton(MODIFY_TAB, null, true, v -> {
-            Intent intent = new Intent().setClassName(activity, PROXY_ACTIVITY);
+            final Intent intent = new Intent().setClassName(activity, PROXY_ACTIVITY);
             intent.putExtra("proxyPage", MODIFY_TAB);
             activity.startActivity(intent);
         }));
@@ -207,16 +207,16 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
         preferenceLayout.addView(new SwitchButtonHolder(activity, "楼层增加点按效果", "ripple", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "长按下载保存全部图片", "save_images", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(TSPreferenceHelper.createButton(NOTES, null, true, v -> {
-            Intent intent = new Intent().setClassName(activity, PROXY_ACTIVITY);
+            final Intent intent = new Intent().setClassName(activity, PROXY_ACTIVITY);
             intent.putExtra("proxyPage", NOTES);
             activity.startActivity(intent);
         }));
 
         preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurgeEnabled ? "垂手可得" : "自动化"));
-        SwitchButtonHolder autoSign = new SwitchButtonHolder(activity, "自动签到", "auto_sign", SwitchButtonHolder.TYPE_SWITCH);
+        final SwitchButtonHolder autoSign = new SwitchButtonHolder(activity, "自动签到", "auto_sign", SwitchButtonHolder.TYPE_SWITCH);
         if (!Preferences.getIsAutoSignEnabled()) {
             autoSign.setOnButtonClickListener(v -> {
-                TbDialog bdalert = new TbDialog(activity, "提示",
+                final TbDialog bdalert = new TbDialog(activity, "提示",
                         "这是一个需要网络请求并且有封号风险的功能，您需要自行承担使用此功能的风险，请谨慎使用！", true, null);
                 bdalert.setOnNoButtonClickListener(v2 -> bdalert.dismiss());
                 bdalert.setOnYesButtonClickListener(v2 -> {
@@ -237,26 +237,26 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
         preferenceLayout.addView(new SwitchButtonHolder(activity, "禁用帖子手势", "forbid_gesture", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "用赞踩差数代替赞数", "agree_num", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(TSPreferenceHelper.createButton(TRACE, "希望有一天不再需要贴吧TS", true, v -> {
-            Intent intent = new Intent().setClassName(activity, PROXY_ACTIVITY);
+            final Intent intent = new Intent().setClassName(activity, PROXY_ACTIVITY);
             intent.putExtra("proxyPage", TRACE);
             activity.startActivity(intent);
         }));
 
         preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurgeEnabled ? "关于就是关于" : "关于"));
         preferenceLayout.addView(TSPreferenceHelper.createButton("版本", BuildConfig.VERSION_NAME, true, v -> {
-            Intent intent = new Intent();
+            final Intent intent = new Intent();
             intent.setAction("android.intent.action.VIEW");
             intent.setData(Uri.parse("https://github.com/GuhDoy/TiebaTS/releases/latest"));
             activity.startActivity(intent);
         }));
         preferenceLayout.addView(TSPreferenceHelper.createButton("源代码", "想要小星星", true, v -> {
-            Intent intent = new Intent();
+            final Intent intent = new Intent();
             intent.setAction("android.intent.action.VIEW");
             intent.setData(Uri.parse("https://github.com/GuhDoy/TiebaTS"));
             activity.startActivity(intent);
         }));
         preferenceLayout.addView(TSPreferenceHelper.createButton("TG群", "及时获取更新", true, v -> {
-            Intent intent = new Intent();
+            final Intent intent = new Intent();
             intent.setAction("android.intent.action.VIEW");
             intent.setData(Uri.parse("https://t.me/TabSwitch"));
             activity.startActivity(intent);
@@ -274,8 +274,8 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
         return preferenceLayout;
     }
 
-    private LinearLayout createModifyTabPreference(Activity activity) {
-        TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
+    private LinearLayout createModifyTabPreference(final Activity activity) {
+        final TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
         preferenceLayout.addView(TSPreferenceHelper.createTextView("主页导航栏"));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏首页", "home_recommend", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏进吧", "enter_forum", SwitchButtonHolder.TYPE_SWITCH));
@@ -291,9 +291,9 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
         return preferenceLayout;
     }
 
-    private LinearLayout createHidePreference(Activity activity) {
-        boolean isPurgeEnabled = Preferences.getIsPurgeEnabled();
-        TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
+    private LinearLayout createHidePreference(final Activity activity) {
+        final boolean isPurgeEnabled = Preferences.getIsPurgeEnabled();
+        final TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
         if (isPurgeEnabled || BuildConfig.DEBUG) {
             preferenceLayout.addView(TSPreferenceHelper.createTextView(null));
             preferenceLayout.addView(new SwitchButtonHolder(activity, isPurgeEnabled ? "藏起尾巴" : "隐藏模块", "hide", SwitchButtonHolder.TYPE_SWITCH));

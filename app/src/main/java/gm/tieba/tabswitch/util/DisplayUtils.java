@@ -6,13 +6,13 @@ import android.content.Intent;
 import android.content.res.Configuration;
 
 public class DisplayUtils {
-    public static boolean isLightMode(Context context) {
+    public static boolean isLightMode(final Context context) {
         return (context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
                 == Configuration.UI_MODE_NIGHT_NO;
     }
 
-    public static void restart(Activity activity) {
-        var intent = activity.getPackageManager().getLaunchIntentForPackage(activity
+    public static void restart(final Activity activity) {
+        final var intent = activity.getPackageManager().getLaunchIntentForPackage(activity
                 .getPackageName());
         if (intent != null) {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -21,7 +21,7 @@ public class DisplayUtils {
         }
     }
 
-    public static String getTbSkin(Context context) {
+    public static String getTbSkin(final Context context) {
         final var settings = context.getSharedPreferences("settings", Context.MODE_PRIVATE);
         if (settings.getBoolean("key_is_follow_system_mode", false)) {
             return isLightMode(context) ? "" : "_2";
@@ -38,12 +38,12 @@ public class DisplayUtils {
         }
     }
 
-    public static int dipToPx(Context context, float dipValue) {
+    public static int dipToPx(final Context context, final float dipValue) {
         final float scale = context.getResources().getDisplayMetrics().density;
         return (int) (dipValue * scale + 0.5f);
     }
 
-    public static int pxToDip(Context context, float pxValue) {
+    public static int pxToDip(final Context context, final float pxValue) {
         final float scale = context.getResources().getDisplayMetrics().density;
         return (int) (pxValue / scale + 0.5f);
     }

@@ -60,24 +60,24 @@ import gm.tieba.tabswitch.widget.TbToast;
 
 public class XposedInit extends XposedContext implements IXposedHookZygoteInit, IXposedHookLoadPackage {
     @Override
-    public void initZygote(IXposedHookZygoteInit.StartupParam startupParam) throws Throwable {
+    public void initZygote(final IXposedHookZygoteInit.StartupParam startupParam) throws Throwable {
         sPath = startupParam.modulePath;
     }
 
     @Override
-    public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
+    public void handleLoadPackage(final XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
         if (!"com.baidu.tieba".equals(lpparam.packageName) && XposedHelpers.findClassIfExists(
                 "com.baidu.tieba.tblauncher.MainTabActivity", lpparam.classLoader) == null) return;
         XposedHelpers.findAndHookMethod(Instrumentation.class, "callApplicationOnCreate", Application.class, new XC_MethodHook() {
             @Override
-            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+            protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
                 if (!(param.args[0] instanceof Application)) return;
                 attachBaseContext((Application) param.args[0]);
                 sClassLoader = lpparam.classLoader;
                 Preferences.init(getContext());
                 AcRules.init(getContext());
 
-                var hookers = List.of(
+                final var hookers = List.of(
                         new TSPreference(),
                         new FragmentTab(),
                         new SwitchManager(),
@@ -106,10 +106,10 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                         new Hide(),
                         new StackTrace()
                 );
-                var matchers = new ArrayList<Obfuscated>(hookers.size() + 2);
+                final var matchers = new ArrayList<Obfuscated>(hookers.size() + 2);
                 matchers.add(new TbDialog());
                 matchers.add(new TbToast());
-                for (var hooker : hookers) {
+                for (final var hooker : hookers) {
                     if (hooker instanceof Obfuscated) {
                         matchers.add((Obfuscated) hooker);
                     }
@@ -119,9 +119,9 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                     if ("com.baidu.tieba".equals(lpparam.processName)) {
                         XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
                             @Override
-                            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                                var activity = (Activity) param.thisObject;
-                                var intent = new Intent(activity, XposedHelpers.findClass("com.baidu.tieba.LogoActivity", sClassLoader));
+                            protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
+                                final var activity = (Activity) param.thisObject;
+                                final var intent = new Intent(activity, XposedHelpers.findClass("com.baidu.tieba.LogoActivity", sClassLoader));
                                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                 activity.startActivity(intent);
                             }
@@ -136,7 +136,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                     ).hook();
                     return;
                 }
-                var lostList = matchers.stream()
+                final var lostList = matchers.stream()
                         .map(Obfuscated::matchers)
                         .flatMap(Collection::stream)
                         .map(Matcher::toString)
@@ -145,14 +145,14 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                 if (!lostList.isEmpty()) {
                     XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
                         @Override
-                        protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                            var activity = (Activity) param.thisObject;
-                            var messages = new ArrayList<String>();
+                        protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+                            final var activity = (Activity) param.thisObject;
+                            final var messages = new ArrayList<String>();
                             messages.add(Constants.getStrings().get("exception_rules_incomplete"));
                             messages.add(String.format(Locale.CHINA, "tbversion: %s, module version: %d",
                                     DeobfuscationHelper.getTbVersion(getContext()), BuildConfig.VERSION_CODE));
                             messages.add(String.format(Locale.CHINA, "%d rule(s) lost: %s", lostList.size(), lostList));
-                            var message = TextUtils.join("\n", messages);
+                            final var message = TextUtils.join("\n", messages);
                             XposedBridge.log(message);
                             new AlertDialog.Builder(activity, DisplayUtils.isLightMode(getContext()) ?
                                     AlertDialog.THEME_DEVICE_DEFAULT_LIGHT : AlertDialog.THEME_DEVICE_DEFAULT_DARK)
@@ -172,22 +172,22 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                 if (Preferences.getBoolean("hide_native")) {
                     try {
                         System.loadLibrary("hide");
-                    } catch (UnsatisfiedLinkError e) {
+                    } catch (final UnsatisfiedLinkError e) {
                         XposedBridge.log(e);
                     }
                 }
-                var activeHookerKeys = Preferences.getAll().entrySet().stream()
+                final var activeHookerKeys = Preferences.getAll().entrySet().stream()
                         .filter(entry -> Boolean.FALSE != entry.getValue())
                         .map(Map.Entry::getKey)
                         .collect(Collectors.toSet());
                 activeHookerKeys.add("ts_pref");
                 activeHookerKeys.add("fragment_tab");
-                for (var hooker : hookers) {
+                for (final var hooker : hookers) {
                     try {
                         if (activeHookerKeys.contains(hooker.key())) {
                             hooker.hook();
                         }
-                    } catch (Throwable tr) {
+                    } catch (final Throwable tr) {
                         XposedBridge.log(tr);
                         sExceptions.put(hooker.key(), tr);
                     }

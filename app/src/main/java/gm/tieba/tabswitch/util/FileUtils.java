@@ -11,8 +11,8 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 public class FileUtils {
-    public static void copy(Object input, Object output) throws IOException {
-        InputStream is;
+    public static void copy(final Object input, final Object output) throws IOException {
+        final InputStream is;
         if (input instanceof InputStream) {
             is = (InputStream) input;
         } else if (input instanceof File) {
@@ -23,7 +23,7 @@ public class FileUtils {
             is = new FileInputStream((String) input);
         } else throw new IllegalArgumentException("unknown input type");
 
-        OutputStream os;
+        final OutputStream os;
         if (output instanceof OutputStream) {
             os = (OutputStream) output;
         } else if (output instanceof File) {
@@ -37,8 +37,8 @@ public class FileUtils {
         copy(is, os);
     }
 
-    private static void copy(InputStream is, OutputStream os) throws IOException {
-        byte[] buffer = new byte[8192];
+    private static void copy(final InputStream is, final OutputStream os) throws IOException {
+        final byte[] buffer = new byte[8192];
         int byteCount;
         while ((byteCount = is.read(buffer)) != -1) {
             os.write(buffer, 0, byteCount);
@@ -48,8 +48,8 @@ public class FileUtils {
         os.close();
     }
 
-    public static void copy(ByteBuffer bb, Object output) throws IOException {
-        OutputStream os;
+    public static void copy(final ByteBuffer bb, final Object output) throws IOException {
+        final OutputStream os;
         if (output instanceof OutputStream) {
             os = (OutputStream) output;
         } else if (output instanceof File) {
@@ -63,14 +63,14 @@ public class FileUtils {
         os.write(bb.array());
     }
 
-    public static ByteBuffer toByteBuffer(InputStream is) throws IOException {
-        var baos = new ByteArrayOutputStream();
+    public static ByteBuffer toByteBuffer(final InputStream is) throws IOException {
+        final var baos = new ByteArrayOutputStream();
         copy(is, baos);
         return ByteBuffer.wrap(baos.toByteArray());
     }
 
-    public static String getExtension(ByteBuffer bb) throws IOException {
-        var chunk = new String(bb.array(), 0, 6);
+    public static String getExtension(final ByteBuffer bb) throws IOException {
+        final var chunk = new String(bb.array(), 0, 6);
         try {
             if (chunk.contains("GIF")) return "gif";
             else if (chunk.contains("PNG")) return "png";
@@ -80,16 +80,16 @@ public class FileUtils {
         }
     }
 
-    public static String getParent(String path) {
-        int index = path.lastIndexOf(File.separatorChar);
+    public static String getParent(final String path) {
+        final int index = path.lastIndexOf(File.separatorChar);
         return path.substring(0, index);
     }
 
-    public static void deleteRecursively(File file) {
+    public static void deleteRecursively(final File file) {
         if (file.isDirectory()) {
-            File[] files = file.listFiles();
+            final File[] files = file.listFiles();
             if (files != null) {
-                for (File f : files) {
+                for (final File f : files) {
                     deleteRecursively(f);
                 }
             }

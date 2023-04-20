@@ -32,16 +32,16 @@ public class TbDialog extends XposedContext implements Obfuscated {
     public TbDialog() {
     }
 
-    public TbDialog(Activity activity, String title, String message, boolean cancelable, View contentView) {
+    public TbDialog(final Activity activity, final String title, final String message, final boolean cancelable, final View contentView) {
         XposedHelpers.findAndHookMethod("com.baidu.tbadk.core.BaseFragment", sClassLoader,
                 "getPageContext", new XC_MethodHook() {
                     @Override
-                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                    protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
                         mPageContext = param.getResult();
                     }
                 });
         AcRules.findRule(matchers(), (matcher, clazz, method) -> {
-            var cls = XposedHelpers.findClass(clazz, sClassLoader);
+            final var cls = XposedHelpers.findClass(clazz, sClassLoader);
             if (cls.getDeclaredMethods().length < 20) {
                 return;
             }
@@ -52,7 +52,7 @@ public class TbDialog extends XposedContext implements Obfuscated {
                 XposedHelpers.setObjectField(mBdAlert, "mMessage", message);
                 XposedHelpers.setObjectField(mBdAlert, "mCancelable", cancelable);
                 XposedHelpers.setObjectField(mBdAlert, "mContentView", contentView);
-            } catch (NoSuchFieldError e) {
+            } catch (final NoSuchFieldError e) {
                 XposedHelpers.setObjectField(mBdAlert, "f", title);
                 XposedHelpers.setObjectField(mBdAlert, "h", message);
                 XposedHelpers.setObjectField(mBdAlert, "C", cancelable);
@@ -60,14 +60,14 @@ public class TbDialog extends XposedContext implements Obfuscated {
             }
 
             initButtonStyle(param -> {
-                int color = ReflectUtils.getColor("CAM_X0204");
+                final int color = ReflectUtils.getColor("CAM_X0204");
                 // R.id.bdDialog_divider_line
-                var bdDialogDividerLine = (View) XposedHelpers.getObjectField(mBdAlert, "bdDialog_divider_line");
+                final var bdDialogDividerLine = (View) XposedHelpers.getObjectField(mBdAlert, "bdDialog_divider_line");
                 if (bdDialogDividerLine != null) {
                     bdDialogDividerLine.setBackgroundColor(color);
                 }
                 // R.id.divider_yes_no_button
-                var dividerWithButton = (View) XposedHelpers.getObjectField(mBdAlert, "dividerWithButton");
+                final var dividerWithButton = (View) XposedHelpers.getObjectField(mBdAlert, "dividerWithButton");
                 if (dividerWithButton != null) {
                     dividerWithButton.setBackgroundColor(color);
                 }
@@ -76,40 +76,40 @@ public class TbDialog extends XposedContext implements Obfuscated {
     }
 
     // called in create()
-    private void initButtonStyle(Consumer<XC_MethodHook.MethodHookParam> consumer) {
+    private void initButtonStyle(final Consumer<XC_MethodHook.MethodHookParam> consumer) {
         XposedHelpers.findAndHookMethod(mClass, "initButtonStyle", new XC_MethodHook() {
             @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
                 consumer.accept(param);
             }
         });
     }
 
-    public void setOnNoButtonClickListener(View.OnClickListener l) {
+    public void setOnNoButtonClickListener(final View.OnClickListener l) {
         initButtonStyle(param -> {
-            var cancel = getContext().getString(android.R.string.cancel);
+            final var cancel = getContext().getString(android.R.string.cancel);
             try {
                 XposedHelpers.setObjectField(mBdAlert, "mNegativeButtonTip", cancel);
-            } catch (NoSuchFieldError e) {
+            } catch (final NoSuchFieldError e) {
                 XposedHelpers.setObjectField(mBdAlert, "m", cancel);
             }
             // R.id.no
-            var noButton = (TextView) XposedHelpers.getObjectField(mBdAlert, "noButton");
+            final var noButton = (TextView) XposedHelpers.getObjectField(mBdAlert, "noButton");
             if (noButton != null) {
                 noButton.setOnClickListener(l);
             }
         });
     }
 
-    public void setOnYesButtonClickListener(View.OnClickListener l) {
+    public void setOnYesButtonClickListener(final View.OnClickListener l) {
         initButtonStyle(param -> {
-            var ok = getContext().getString(android.R.string.ok);
+            final var ok = getContext().getString(android.R.string.ok);
             try {
                 XposedHelpers.setObjectField(mBdAlert, "mPositiveButtonTip", ok);
-            } catch (NoSuchFieldError e) {
+            } catch (final NoSuchFieldError e) {
                 XposedHelpers.setObjectField(mBdAlert, "l", ok);
             }
-            var yesButton = (TextView) findYesButton();
+            final var yesButton = (TextView) findYesButton();
             if (yesButton != null) {
                 yesButton.setOnClickListener(l);
             }
@@ -122,8 +122,8 @@ public class TbDialog extends XposedContext implements Obfuscated {
     }
 
     public void show() {
-        for (var md : mClass.getDeclaredMethods()) {
-            var parameterTypesString = Arrays.toString(md.getParameterTypes());
+        for (final var md : mClass.getDeclaredMethods()) {
+            final var parameterTypesString = Arrays.toString(md.getParameterTypes());
             if (parameterTypesString.startsWith("[interface") &&
                     !parameterTypesString.contains("$")) {
                 ReflectUtils.callMethod(md, mBdAlert, mPageContext); // create()
@@ -139,7 +139,7 @@ public class TbDialog extends XposedContext implements Obfuscated {
 //                }
 //            }
 //        }
-        for (var method : mClass.getDeclaredMethods()) {
+        for (final var method : mClass.getDeclaredMethods()) {
             if (method.getParameterTypes().length == 0 && mClass.equals(method.getReturnType())) {
                 ReflectUtils.callMethod(method, mBdAlert); // show()
                 break;
@@ -147,7 +147,7 @@ public class TbDialog extends XposedContext implements Obfuscated {
         }
         try {
             mDialog = XposedHelpers.getObjectField(mBdAlert, "mDialog");
-        } catch (NoSuchFieldError e) {
+        } catch (final NoSuchFieldError e) {
             mDialog = XposedHelpers.getObjectField(mBdAlert, "w");
         }
     }
@@ -160,7 +160,7 @@ public class TbDialog extends XposedContext implements Obfuscated {
     public void dismiss() {
         try {
             XposedHelpers.callMethod(mBdAlert, "dismiss");
-        } catch (NoSuchMethodError e) {
+        } catch (final NoSuchMethodError e) {
             XposedHelpers.callMethod(mBdAlert, "k");
         }
     }

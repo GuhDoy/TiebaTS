@@ -40,24 +40,24 @@ public class NewSub extends XposedContext implements IHooker, Obfuscated {
         AcRules.findRule(matchers(), (matcher, clazz, method) ->
                 XposedBridge.hookAllConstructors(XposedHelpers.findClass(clazz, sClassLoader), new XC_MethodHook() {
                     @Override
-                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                    protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
                         try {
-                            var activity = (Activity) ReflectUtils.getObjectField(param.thisObject,
+                            final var activity = (Activity) ReflectUtils.getObjectField(param.thisObject,
                                     "com.baidu.tieba.pb.pb.sub.NewSubPbActivity");
                             if (activity.getIntent().getStringExtra("st_type").equals("search_post")) {
                                 new NavigationBar(param.thisObject)
                                         .addTextButton("查看主题贴", v -> startPbActivity(activity));
                             }
-                        } catch (NoSuchFieldError ignored) {
+                        } catch (final NoSuchFieldError ignored) {
                         }
                     }
                 }));
         XposedHelpers.findAndHookMethod("tbclient.PbFloor.DataRes$Builder", sClassLoader,
                 "build", boolean.class, new XC_MethodHook() {
                     @Override
-                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                        var thread = XposedHelpers.getObjectField(param.thisObject, "thread");
-                        var post = XposedHelpers.getObjectField(param.thisObject, "post");
+                    protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+                        final var thread = XposedHelpers.getObjectField(param.thisObject, "thread");
+                        final var post = XposedHelpers.getObjectField(param.thisObject, "post");
                         // null when post is omitted
                         if (thread != null && post != null) {
                             mThreadId = XposedHelpers.getObjectField(thread, "id");
@@ -68,8 +68,8 @@ public class NewSub extends XposedContext implements IHooker, Obfuscated {
     }
 
     // "com.baidu.tieba.pb.pb.main.PbModel", "initWithIntent"
-    private void startPbActivity(Activity activity) {
-        var intent = new Intent().setClassName(activity, "com.baidu.tieba.pb.pb.main.PbActivity");
+    private void startPbActivity(final Activity activity) {
+        final var intent = new Intent().setClassName(activity, "com.baidu.tieba.pb.pb.main.PbActivity");
         intent.putExtra("thread_id", String.valueOf(mThreadId));
         intent.putExtra("post_id", String.valueOf(mPostId));
         activity.startActivity(intent);

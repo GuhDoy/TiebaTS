@@ -39,7 +39,7 @@ public class DeobfuscationHooker extends XposedContext implements IHooker {
     private FrameLayout mProgressContainer;
     private LinearLayout mContentView;
 
-    public DeobfuscationHooker(List<Matcher> matchers) {
+    public DeobfuscationHooker(final List<Matcher> matchers) {
         mMatchers = matchers;
     }
 
@@ -54,11 +54,11 @@ public class DeobfuscationHooker extends XposedContext implements IHooker {
         XposedHelpers.findAndHookMethod("com.baidu.tieba.LogoActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
             @SuppressLint("ApplySharedPref")
             @Override
-            public void afterHookedMethod(MethodHookParam param) throws Throwable {
-                var hooks = disableStartAndFinishActivity();
+            public void afterHookedMethod(final MethodHookParam param) throws Throwable {
+                final var hooks = disableStartAndFinishActivity();
                 mActivity = (Activity) param.thisObject;
                 if (Preferences.getBoolean("purge")) {
-                    var editor = mActivity
+                    final var editor = mActivity
                             .getSharedPreferences("settings", Context.MODE_PRIVATE)
                             .edit();
                     editor.putString("key_location_request_dialog_last_show_version",
@@ -93,7 +93,7 @@ public class DeobfuscationHooker extends XposedContext implements IHooker {
                         viewModel.deobfuscateStep2();
 
                         setMessage("(3/4) 搜索字符串和资源 id");
-                        var scope = viewModel.deobfuscateStep3();
+                        final var scope = viewModel.deobfuscateStep3();
 
                         setMessage("(4/4) 在 " + scope.pkg + " 中搜索代码");
                         viewModel.deobfuscateStep4();
@@ -105,7 +105,7 @@ public class DeobfuscationHooker extends XposedContext implements IHooker {
                                 DeobfuscationHelper.getTbVersion(mActivity),
                                 XposedHelpers.findClass(TRAMPOLINE_ACTIVITY, sClassLoader)
                         );
-                    } catch (Throwable e) {
+                    } catch (final Throwable e) {
                         XposedBridge.log(e);
                         setMessage("处理失败\n" + Log.getStackTraceString(e));
                     }
@@ -131,7 +131,7 @@ public class DeobfuscationHooker extends XposedContext implements IHooker {
 
     @SuppressLint({"SetTextI18n"})
     private void initProgressIndicator() {
-        var title = new TextView(mActivity);
+        final var title = new TextView(mActivity);
         title.setTextSize(16);
         title.setPaddingRelative(0, 0, 0, 8);
         title.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
@@ -143,22 +143,22 @@ public class DeobfuscationHooker extends XposedContext implements IHooker {
         mMessage.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
         mMessage.setTextSize(16);
         mMessage.setTextColor(Color.parseColor("#FF303030"));
-        var messageLayoutParams = new FrameLayout.LayoutParams(
+        final var messageLayoutParams = new FrameLayout.LayoutParams(
                 RelativeLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
         mMessage.setLayoutParams(messageLayoutParams);
         mProgressContainer = new FrameLayout(mActivity);
         mProgressContainer.addView(mProgress);
         mProgressContainer.addView(mMessage);
-        var frameLayoutParams = new FrameLayout.LayoutParams(
+        final var frameLayoutParams = new FrameLayout.LayoutParams(
                 RelativeLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
         mProgressContainer.setLayoutParams(frameLayoutParams);
-        var progressIndicator = new LinearLayout(mActivity);
+        final var progressIndicator = new LinearLayout(mActivity);
         progressIndicator.setOrientation(LinearLayout.VERTICAL);
         progressIndicator.setBackgroundColor(Color.WHITE);
         progressIndicator.addView(title);
         progressIndicator.addView(mProgressContainer);
         progressIndicator.setPaddingRelative(0, 16, 0, 16);
-        var linearLayoutParams = new LinearLayout.LayoutParams(
+        final var linearLayoutParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         progressIndicator.setLayoutParams(linearLayoutParams);
         mContentView = new LinearLayout(mActivity);
@@ -166,13 +166,13 @@ public class DeobfuscationHooker extends XposedContext implements IHooker {
         mContentView.addView(progressIndicator);
     }
 
-    private void setMessage(String message) {
+    private void setMessage(final String message) {
         mActivity.runOnUiThread(() -> mMessage.setText(message));
     }
 
-    private void setProgress(float progress) {
+    private void setProgress(final float progress) {
         mActivity.runOnUiThread(() -> {
-            var lp = mProgress.getLayoutParams();
+            final var lp = mProgress.getLayoutParams();
             lp.height = mMessage.getHeight();
             lp.width = Math.round(mProgressContainer.getWidth() * progress);
             mProgress.setLayoutParams(lp);

@@ -33,12 +33,12 @@ public class RedirectImage extends XposedContext implements IHooker {
     @Override
     public void hook() throws Throwable {
         // 0x4197d783fc000000L
-        for (var md : XposedHelpers.findClass("com.baidu.tbadk.core.util.FileHelper", sClassLoader).getDeclaredMethods()) {
+        for (final var md : XposedHelpers.findClass("com.baidu.tbadk.core.util.FileHelper", sClassLoader).getDeclaredMethods()) {
             switch (Arrays.toString(md.getParameterTypes())) {
                 case "[class java.lang.String, class [B, class android.content.Context]":
                     XposedBridge.hookMethod(md, new XC_MethodReplacement() {
                         @Override
-                        protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
+                        protected Object replaceHookedMethod(final MethodHookParam param) throws Throwable {
                             return saveImage((String) param.args[0], new ByteArrayInputStream(
                                     (byte[]) param.args[1]), (Context) param.args[2]);
                         }
@@ -47,7 +47,7 @@ public class RedirectImage extends XposedContext implements IHooker {
                 case "[class java.lang.String, class java.lang.String, class android.content.Context]":
                     XposedBridge.hookMethod(md, new XC_MethodReplacement() {
                         @Override
-                        protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
+                        protected Object replaceHookedMethod(final MethodHookParam param) throws Throwable {
                             return saveImage((String) param.args[1], new FileInputStream(
                                     (String) param.args[0]), (Context) param.args[2]);
                         }
@@ -57,17 +57,17 @@ public class RedirectImage extends XposedContext implements IHooker {
         }
     }
 
-    private int saveImage(String url, InputStream is, Context context) {
-        var appContext = context.getApplicationContext();
-        var fileName = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("."));
+    private int saveImage(final String url, final InputStream is, final Context context) {
+        final var appContext = context.getApplicationContext();
+        final var fileName = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("."));
         try {
-            var bb = FileUtils.toByteBuffer(is);
-            var imageDetails = new ContentValues();
+            final var bb = FileUtils.toByteBuffer(is);
+            final var imageDetails = new ContentValues();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 imageDetails.put(MediaStore.MediaColumns.RELATIVE_PATH,
                         Environment.DIRECTORY_PICTURES + File.separator + "tieba");
             } else {
-                var path = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                final var path = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
                         "tieba");
                 path.mkdirs();
                 imageDetails.put(MediaStore.MediaColumns.DATA, path + File.separator
@@ -75,13 +75,13 @@ public class RedirectImage extends XposedContext implements IHooker {
             }
             imageDetails.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
             imageDetails.put(MediaStore.MediaColumns.MIME_TYPE, "image/" + FileUtils.getExtension(bb));
-            var resolver = appContext.getContentResolver();
-            var imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, imageDetails);
-            var descriptor = resolver.openFileDescriptor(imageUri, "w");
+            final var resolver = appContext.getContentResolver();
+            final var imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, imageDetails);
+            final var descriptor = resolver.openFileDescriptor(imageUri, "w");
             FileUtils.copy(bb, descriptor.getFileDescriptor());
             is.close();
             return 0;
-        } catch (IOException | NullPointerException e) {
+        } catch (final IOException | NullPointerException e) {
             XposedBridge.log(e);
             return -1;
         }

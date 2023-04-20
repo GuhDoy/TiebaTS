@@ -8,16 +8,16 @@ import gm.tieba.tabswitch.XposedContext;
 @SuppressLint("UnsafeDynamicallyLoadedCode")
 public class NativeCheck extends XposedContext {
     static {
-        var soPaths = new String[]{
+        final var soPaths = new String[]{
                 sPath + "!/lib/armeabi-v7a/libcheck.so",
                 sPath + "!/lib/arm64-v8a/libcheck.so",
         };
         for (int i = 0; i < 3; i++) {
-            for (var soPath : soPaths) {
+            for (final var soPath : soPaths) {
                 try {
                     System.load(soPath);
                     break;
-                } catch (UnsatisfiedLinkError e) {
+                } catch (final UnsatisfiedLinkError e) {
                     XposedBridge.log(i + soPath);
                     XposedBridge.log(e);
                 }

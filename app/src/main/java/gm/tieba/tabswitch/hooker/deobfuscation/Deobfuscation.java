@@ -23,7 +23,6 @@ import brut.androlib.AndrolibException;
 import brut.androlib.res.data.value.ResFileValue;
 import brut.androlib.res.data.value.ResStringValue;
 import brut.androlib.res.decoder.ARSCDecoder;
-import de.robv.android.xposed.XposedBridge;
 import gm.tieba.tabswitch.dao.AcRule;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
@@ -39,38 +38,37 @@ public class Deobfuscation {
     private DexBakSearcher searcher;
     private final SearchScope scope = new SearchScope();
 
-    public void setMatchers(List<Matcher> matchers) {
+    public void setMatchers(final List<Matcher> matchers) {
         this.matchers.clear();
         this.matchers.addAll(matchers);
     }
 
-    public void unzip(PublishSubject<Float> _progress, Context context) throws IOException {
+    public void unzip(final PublishSubject<Float> _progress, final Context context) throws IOException {
         packageResource = new File(context.getPackageResourcePath());
-        var dexDir = new File(context.getCacheDir(), "app_dex");
+        final var dexDir = new File(context.getCacheDir(), "app_dex");
         FileUtils.deleteRecursively(dexDir);
         dexDir.mkdirs();
 
-        var sizeToZipEntryMatcher = new HashMap<Long, ZipEntryMatcher>();
-        for (var matcher : matchers) {
-            if (matcher instanceof ZipEntryMatcher) {
-                var zipEntryMatcher = (ZipEntryMatcher) matcher;
+        final var sizeToZipEntryMatcher = new HashMap<Long, ZipEntryMatcher>();
+        for (final var matcher : matchers) {
+            if (matcher instanceof final ZipEntryMatcher zipEntryMatcher) {
                 sizeToZipEntryMatcher.put(zipEntryMatcher.getSize(), zipEntryMatcher);
             }
         }
 
-        var zipFile = new ZipFile(packageResource);
-        var enumeration = zipFile.entries();
+        final var zipFile = new ZipFile(packageResource);
+        final var enumeration = zipFile.entries();
         var entryCount = 0;
-        var entrySize = zipFile.size();
+        final var entrySize = zipFile.size();
         while (enumeration.hasMoreElements()) {
             entryCount++;
             _progress.onNext((float) entryCount / entrySize);
 
-            var ze = enumeration.nextElement();
+            final var ze = enumeration.nextElement();
             if (ze.getName().matches("classes[0-9]*?\\.dex")) {
                 FileUtils.copy(zipFile.getInputStream(ze), new File(dexDir, ze.getName()));
             } else {
-                var matcher = sizeToZipEntryMatcher.get(ze.getSize());
+                final var matcher = sizeToZipEntryMatcher.get(ze.getSize());
                 if (matcher != null) {
                     matcher.setEntryName(ze.getName());
                 }
@@ -78,14 +76,14 @@ public class Deobfuscation {
         }
         zipFile.close();
 
-        var fs = dexDir.listFiles();
+        final var fs = dexDir.listFiles();
         if (fs == null) {
             throw new FileNotFoundException("解压失败");
         }
         Arrays.sort(fs, Comparator.comparingInt(it -> {
             try {
                 return Integer.parseInt(it.getName().replaceAll("[a-z.]", ""));
-            } catch (NumberFormatException e) {
+            } catch (final NumberFormatException e) {
                 return 1;
             }
         }));
@@ -94,12 +92,11 @@ public class Deobfuscation {
     }
 
     public void decodeArsc() throws IOException, AndrolibException {
-        var strToResMatcher = new HashMap<String, ResMatcher>();
-        var entryNameToZipEntryMatcher = new HashMap<String, ZipEntryMatcher>();
-        for (var matcher : matchers) {
+        final var strToResMatcher = new HashMap<String, ResMatcher>();
+        final var entryNameToZipEntryMatcher = new HashMap<String, ZipEntryMatcher>();
+        for (final var matcher : matchers) {
             if (matcher instanceof ResMatcher) {
-                if (matcher instanceof ZipEntryMatcher) {
-                    var zipEntryMatcher = (ZipEntryMatcher) matcher;
+                if (matcher instanceof final ZipEntryMatcher zipEntryMatcher) {
                     entryNameToZipEntryMatcher.put(zipEntryMatcher.getEntryName(), zipEntryMatcher);
                 } else {
                     strToResMatcher.put(matcher.toString(), (ResMatcher) matcher);
@@ -107,28 +104,28 @@ public class Deobfuscation {
             }
         }
 
-        var zipFile = new ZipFile(packageResource);
-        var ze = zipFile.getEntry("resources.arsc");
-        try (var in = zipFile.getInputStream(ze)) {
-            var pkg = ARSCDecoder.decode(in, true, true).getOnePackage();
+        final var zipFile = new ZipFile(packageResource);
+        final var ze = zipFile.getEntry("resources.arsc");
+        try (final var in = zipFile.getInputStream(ze)) {
+            final var pkg = ARSCDecoder.decode(in, true, true).getOnePackage();
             pkg.listResSpecs().forEach(resResSpec -> {
                 if (resResSpec.hasDefaultResource()) {
                     try {
-                        var resValue = resResSpec.getDefaultResource().getValue();
-                        if (resValue instanceof ResStringValue) {
-                            var str = ((ResStringValue) resValue).encodeAsResXmlValue();
-                            var matcher = strToResMatcher.get(str);
+                        final var resValue = resResSpec.getDefaultResource().getValue();
+                        if (resValue instanceof final ResStringValue resStringValue) {
+                            final var str = resStringValue.encodeAsResXmlValue();
+                            final var matcher = strToResMatcher.get(str);
                             if (matcher != null) {
                                 matcher.setId(resResSpec.getId().id);
                             }
                         } else if (resValue instanceof ResFileValue) {
-                            var path = resValue.toString();
-                            var matcher = entryNameToZipEntryMatcher.get(path);
+                            final var path = resValue.toString();
+                            final var matcher = entryNameToZipEntryMatcher.get(path);
                             if (matcher != null) {
                                 matcher.setId(resResSpec.getId().id);
                             }
                         }
-                    } catch (AndrolibException e) {
+                    } catch (final AndrolibException e) {
                         // should not happen
                     }
                 }
@@ -137,20 +134,20 @@ public class Deobfuscation {
         zipFile.close();
     }
 
-    public SearchScope fastSearchAndFindScope(PublishSubject<Float> _progress) throws IOException {
+    public SearchScope fastSearchAndFindScope(final PublishSubject<Float> _progress) throws IOException {
         searcher = new DexBakSearcher(matchers);
         var progress = 0F;
-        for (var f : dexs) {
-            try (var in = new BufferedInputStream(new FileInputStream(f))) {
-                var dex = DexBackedDexFile.fromInputStream(null, in);
-                var classDefs = new ArrayList<>(dex.getClasses());
+        for (final var f : dexs) {
+            try (final var in = new BufferedInputStream(new FileInputStream(f))) {
+                final var dex = DexBackedDexFile.fromInputStream(null, in);
+                final var classDefs = new ArrayList<>(dex.getClasses());
                 for (int i = 0, classCount = classDefs.size(); i < classCount; i++) {
                     progress += (float) 1 / dexCount / classCount;
                     _progress.onNext(progress);
 
                     searcher.searchStringAndLiteral(classDefs.get(i), new DexBakSearcher.MatcherListener() {
                         @Override
-                        public void onMatch(@NonNull Matcher matcher, @NonNull String clazz, @NonNull String method) {
+                        public void onMatch(@NonNull final Matcher matcher, @NonNull final String clazz, @NonNull final String method) {
                             AcRules.putRule(matcher.toString(), clazz, method);
                         }
                     });
@@ -159,20 +156,20 @@ public class Deobfuscation {
         }
 
         // find repackageclasses
-        var segments = new ArrayList<ArrayList<String>>();
+        final var segments = new ArrayList<ArrayList<String>>();
         AcRules.sDao.getAll().stream().map(AcRule::getClazz).forEach(cls -> {
-            var splits = cls.split("\\.");
+            final var splits = cls.split("\\.");
             for (int i = 0, length = splits.length; i < length; i++) {
-                var split = splits[i];
+                final var split = splits[i];
                 if (segments.size() <= i) {
                     segments.add(new ArrayList<>());
                 }
                 segments.get(i).add(split);
             }
         });
-        StringBuilder repackageclasses = new StringBuilder("L");
-        for (var segment : segments) {
-            var most = gm.tieba.tabswitch.util.CollectionsKt.most(segment);
+        final var repackageclasses = new StringBuilder("L");
+        for (final var segment : segments) {
+            final var most = gm.tieba.tabswitch.util.CollectionsKt.most(segment);
             if (CollectionsKt.count(segment, s -> s.equals(most)) < segments.get(0).size() / 2) {
                 break;
             }
@@ -180,13 +177,13 @@ public class Deobfuscation {
         }
         scope.pkg = repackageclasses.toString();
 
-        var numberOfClassesNeedToSearch = new int[dexCount];
+        final var numberOfClassesNeedToSearch = new int[dexCount];
         for (var i = 0; i < dexCount; i++) {
-            try (var in = new BufferedInputStream(new FileInputStream(dexs[i]))) {
-                var dex = DexBackedDexFile.fromInputStream(null, in);
-                var classDefs = ClassDefItem.getClasses(dex);
+            try (final var in = new BufferedInputStream(new FileInputStream(dexs[i]))) {
+                final var dex = DexBackedDexFile.fromInputStream(null, in);
+                final var classDefs = ClassDefItem.getClasses(dex);
                 var count = 0;
-                for (var classDef : classDefs) {
+                for (final var classDef : classDefs) {
                     if (scope.isInScope(classDef)) {
                         count++;
                     }
@@ -198,25 +195,25 @@ public class Deobfuscation {
         return new SearchScope(scope);
     }
 
-    public void searchSmali(PublishSubject<Float> _progress) throws IOException {
+    public void searchSmali(final PublishSubject<Float> _progress) throws IOException {
         var searchedClassCount = 0;
-        var totalClassesNeedToSearch = Arrays.stream(scope.numberOfClassesNeedToSearch).sum();
+        final var totalClassesNeedToSearch = Arrays.stream(scope.numberOfClassesNeedToSearch).sum();
         for (var i = 0; i < dexCount; i++) {
             if (scope.numberOfClassesNeedToSearch[i] == 0) {
                 continue;
             }
-            try (var in = new BufferedInputStream(new FileInputStream(dexs[i]))) {
-                var dex = DexBackedDexFile.fromInputStream(null, in);
-                var classDefs = new ArrayList<>(dex.getClasses());
-                for (var classDef : classDefs) {
-                    var signature = classDef.getType();
+            try (final var in = new BufferedInputStream(new FileInputStream(dexs[i]))) {
+                final var dex = DexBackedDexFile.fromInputStream(null, in);
+                final var classDefs = new ArrayList<>(dex.getClasses());
+                for (final var classDef : classDefs) {
+                    final var signature = classDef.getType();
                     if (scope.isInScope(signature)) {
                         searchedClassCount++;
                         _progress.onNext((float) searchedClassCount / totalClassesNeedToSearch);
 
                         searcher.searchSmali(classDef, new DexBakSearcher.MatcherListener() {
                             @Override
-                            public void onMatch(@NonNull Matcher matcher, @NonNull String clazz, @NonNull String method) {
+                            public void onMatch(@NonNull final Matcher matcher, @NonNull final String clazz, @NonNull final String method) {
                                 AcRules.putRule(matcher.toString(), clazz, method);
                             }
                         });
@@ -227,8 +224,8 @@ public class Deobfuscation {
     }
 
     public void saveDexSignatureHashCode() throws IOException {
-        try (var in = new FileInputStream(dexs[0])) {
-            var signatureHashCode = Arrays.hashCode(DeobfuscationHelper.calcSignature(in));
+        try (final var in = new FileInputStream(dexs[0])) {
+            final var signatureHashCode = Arrays.hashCode(DeobfuscationHelper.calcSignature(in));
             Preferences.putSignature(signatureHashCode);
         }
     }
@@ -240,12 +237,12 @@ public class Deobfuscation {
         SearchScope() {
         }
 
-        SearchScope(SearchScope scope) {
+        SearchScope(final SearchScope scope) {
             pkg = scope.pkg;
             numberOfClassesNeedToSearch = scope.numberOfClassesNeedToSearch;
         }
 
-        boolean isInScope(String classDef) {
+        boolean isInScope(final String classDef) {
             return classDef.startsWith(pkg);
         }
     }

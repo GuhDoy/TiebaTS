@@ -48,8 +48,8 @@ public class ForbidGesture extends XposedContext implements IHooker, Obfuscated 
         XposedHelpers.findAndHookMethod("com.baidu.tieba.pb.videopb.fragment.DetailInfoAndReplyFragment", sClassLoader,
                 "onCreateView", LayoutInflater.class, ViewGroup.class, Bundle.class, new XC_MethodHook() {
                     @Override
-                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        ViewGroup recyclerView = (ViewGroup) ReflectUtils.getObjectField(param.thisObject,
+                    protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
+                        final ViewGroup recyclerView = (ViewGroup) ReflectUtils.getObjectField(param.thisObject,
                                 "com.baidu.adp.widget.ListView.BdTypeRecyclerView");
                         recyclerView.setOnTouchListener((v, event) -> false);
                     }
@@ -58,21 +58,21 @@ public class ForbidGesture extends XposedContext implements IHooker, Obfuscated 
         XposedHelpers.findAndHookMethod("com.baidu.tieba.pb.pb.main.PbLandscapeListView", sClassLoader,
                 "dispatchTouchEvent", MotionEvent.class, new XC_MethodHook() {
                     @Override
-                    protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+                    protected void beforeHookedMethod(final XC_MethodHook.MethodHookParam param) throws Throwable {
                         XposedHelpers.callMethod(param.thisObject, "setForbidDragListener", true);
                     }
                 });
         // 图片缩放倍数
-        Class<?> clazz = XposedHelpers.findClass("com.baidu.tbadk.widget.DragImageView", sClassLoader);
+        final Class<?> clazz = XposedHelpers.findClass("com.baidu.tbadk.widget.DragImageView", sClassLoader);
         Method method;
         try {
             method = clazz.getDeclaredMethod("getMaxScaleValue", Bitmap.class);
-        } catch (NoSuchMethodException e) {
+        } catch (final NoSuchMethodException e) {
             method = clazz.getDeclaredMethod("U", Bitmap.class);
         }
         XposedBridge.hookMethod(method, new XC_MethodHook() {
             @Override
-            protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+            protected void afterHookedMethod(final XC_MethodHook.MethodHookParam param) throws Throwable {
                 param.setResult(3 * (float) param.getResult());
             }
         });

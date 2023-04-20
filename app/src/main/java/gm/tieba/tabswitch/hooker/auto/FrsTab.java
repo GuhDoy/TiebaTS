@@ -33,8 +33,8 @@ public class FrsTab extends XposedContext implements IHooker, Obfuscated {
     public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod("tbclient.FrsPage.NavTabInfo$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
-            public void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                List<?> list = (List<?>) XposedHelpers.getObjectField(param.thisObject, "tab");
+            public void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+                final List<?> list = (List<?>) XposedHelpers.getObjectField(param.thisObject, "tab");
                 if (list == null) return;
                 for (int i = 0; i < list.size(); i++) {
                     if ((Integer) XposedHelpers.getObjectField(list.get(i), "tab_type") == 14) {
@@ -48,8 +48,8 @@ public class FrsTab extends XposedContext implements IHooker, Obfuscated {
             if (!"com.baidu.tieba.frs.vc.FrsTabViewController".equals(clazz)) return;
             XposedHelpers.findAndHookMethod("com.baidu.tieba.frs.vc.FrsTabViewController", sClassLoader, method, new XC_MethodHook() {
                 @Override
-                public void afterHookedMethod(MethodHookParam param) throws Throwable {
-                    Object viewPager = ReflectUtils.getObjectField(param.thisObject, "com.baidu.tieba.frs.FrsTabViewPager");
+                public void afterHookedMethod(final MethodHookParam param) throws Throwable {
+                    final Object viewPager = ReflectUtils.getObjectField(param.thisObject, "com.baidu.tieba.frs.FrsTabViewPager");
                     XposedHelpers.callMethod(viewPager, "setCurrentItem", mPosition, false);
                 }
             });

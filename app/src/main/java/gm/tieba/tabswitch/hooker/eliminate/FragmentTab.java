@@ -39,11 +39,11 @@ public class FragmentTab extends XposedContext implements IHooker, Obfuscated {
     @Override
     public void hook() throws Throwable {
         AcRules.findRule(new StringMatcher("has_show_message_tab_tips"), (matcher, clazz, method) -> {
-            var md = ReflectUtils.findFirstMethodByExactType(clazz, ArrayList.class);
+            final var md = ReflectUtils.findFirstMethodByExactType(clazz, ArrayList.class);
             XposedBridge.hookMethod(md, new XC_MethodHook() {
                 @Override
-                protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                    var tabsToRemove = new HashSet<String>();
+                protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+                    final var tabsToRemove = new HashSet<String>();
                     if (Preferences.getBoolean("home_recommend")) {
                         tabsToRemove.add("com.baidu.tieba.homepage.framework.RecommendFrsDelegateStatic");
                     }
@@ -62,7 +62,7 @@ public class FragmentTab extends XposedContext implements IHooker, Obfuscated {
                         tabsToRemove.add("com.baidu.tieba.imMessageCenter.im.chat.notify.ImMessageCenterDelegateStatic");
                         tabsToRemove.add("com.baidu.tieba.immessagecenter.im.chat.notify.ImMessageCenterDelegateStatic");
                     }
-                    var list = (ArrayList<?>) param.args[0];
+                    final var list = (ArrayList<?>) param.args[0];
                     list.removeIf(tab -> tabsToRemove.contains(tab.getClass().getName()));
                 }
             });
@@ -71,8 +71,8 @@ public class FragmentTab extends XposedContext implements IHooker, Obfuscated {
             XposedBridge.hookAllMethods(XposedHelpers.findClass("com.baidu.adp.framework.MessageManager",
                     sClassLoader), "dispatchResponsedMessage", new XC_MethodHook() {
                 @Override
-                protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                    Object responsedMessage = param.args[0];
+                protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+                    final Object responsedMessage = param.args[0];
                     if ((int) XposedHelpers.getObjectField(responsedMessage, "mCmd") == 2921551) {
                         param.setResult(null);
                     }

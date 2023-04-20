@@ -31,34 +31,34 @@ public class Ripple extends XposedContext implements IHooker {
     }
 
     public void hook() throws Throwable {
-        var subPbLayoutClass = XposedHelpers.findClass("com.baidu.tieba.pb.pb.sub.SubPbLayout", sClassLoader);
+        final var subPbLayoutClass = XposedHelpers.findClass("com.baidu.tieba.pb.pb.sub.SubPbLayout", sClassLoader);
         // 楼中楼
         try {
             Method md;
             try {
                 md = subPbLayoutClass.getDeclaredFields()[4].getType().getDeclaredMethod("createView");
-            } catch (NoSuchMethodException e) {
+            } catch (final NoSuchMethodException e) {
                 md = subPbLayoutClass.getDeclaredFields()[4].getType().getDeclaredMethod("b");
             }
             XposedBridge.hookMethod(md, new XC_MethodHook() {
                 @Override
-                protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                    var newSubPbListItem = (View) param.getResult();
-                    var tag = (SparseArray) newSubPbListItem.getTag();
-                    var b = tag.valueAt(0);
+                protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
+                    final var newSubPbListItem = (View) param.getResult();
+                    final var tag = (SparseArray) newSubPbListItem.getTag();
+                    final var b = tag.valueAt(0);
                     // R.id.new_sub_pb_list_richText
-                    var view = (View) ReflectUtils.getObjectField(b, "com.baidu.tbadk.widget.richText.TbRichTextView");
+                    final var view = (View) ReflectUtils.getObjectField(b, "com.baidu.tbadk.widget.richText.TbRichTextView");
                     view.setBackground(createSubPbBackground());
                 }
             });
-        } catch (NoSuchMethodException e) {
+        } catch (final NoSuchMethodException e) {
             XposedBridge.log(e);
         }
         // 查看全部回复
         XposedHelpers.findAndHookConstructor(subPbLayoutClass, Context.class, AttributeSet.class, new XC_MethodHook() {
             @Override
-            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                var view = ReflectUtils.getObjectField(param.thisObject, RelativeLayout.class);
+            protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
+                final var view = ReflectUtils.getObjectField(param.thisObject, RelativeLayout.class);
                 view.setBackground(createSubPbBackground());
             }
         });
@@ -66,16 +66,16 @@ public class Ripple extends XposedContext implements IHooker {
         XposedHelpers.findAndHookConstructor("com.baidu.tieba.pb.pb.main.PbCommenFloorItemViewHolder", sClassLoader,
                 XposedHelpers.findClass("com.baidu.tbadk.TbPageContext", sClassLoader), View.class, int.class, new XC_MethodHook() {
                     @Override
-                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                    protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
                         // R.id.all_content
-                        var mAllContent = ReflectUtils.getObjectField(param.thisObject, LinearLayout.class);
+                        final var mAllContent = ReflectUtils.getObjectField(param.thisObject, LinearLayout.class);
                         mAllContent.setBackground(createBackground());
                     }
                 });
     }
 
     private StateListDrawable createBackground() {
-        StateListDrawable sld = new StateListDrawable();
+        final StateListDrawable sld = new StateListDrawable();
         sld.addState(new int[]{android.R.attr.state_pressed},
                 new ColorDrawable(ReflectUtils.getColor("CAM_X0204")));
         return sld;
@@ -85,7 +85,7 @@ public class Ripple extends XposedContext implements IHooker {
         if (!DisplayUtils.getTbSkin(getContext()).equals("")) {
             return createBackground();
         } else {
-            StateListDrawable sld = new StateListDrawable();
+            final StateListDrawable sld = new StateListDrawable();
             sld.addState(new int[]{android.R.attr.state_pressed}, new ColorDrawable(Color.WHITE));
             return sld;
         }

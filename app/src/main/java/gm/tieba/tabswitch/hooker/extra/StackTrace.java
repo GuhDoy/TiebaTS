@@ -23,22 +23,22 @@ public class StackTrace extends XposedContext implements IHooker {
 
     @Override
     public void hook() throws Throwable {
-        for (Method method : XposedHelpers.findClass("com.baidu.tieba.LogoActivity", sClassLoader).getDeclaredMethods()) {
+        for (final Method method : XposedHelpers.findClass("com.baidu.tieba.LogoActivity", sClassLoader).getDeclaredMethods()) {
             XposedBridge.hookMethod(method, new XC_MethodHook() {
                 @Override
-                protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                    List<String> sts = new ArrayList<>();
-                    StackTraceElement[] stes = Thread.currentThread().getStackTrace();
+                protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+                    final List<String> sts = new ArrayList<>();
+                    final StackTraceElement[] stes = Thread.currentThread().getStackTrace();
                     boolean isXposedStackTrace = false;
-                    for (StackTraceElement ste : stes) {
-                        String name = ste.getClassName();
+                    for (final StackTraceElement ste : stes) {
+                        final String name = ste.getClassName();
                         if (name.contains("Activity")
                                 || name.equals("android.app.Instrumentation")) break;
                         if (isXposedStackTrace) sts.add(name);
                         if (name.equals("java.lang.Thread")) isXposedStackTrace = true;
                     }
 
-                    for (String st : sts) {
+                    for (final String st : sts) {
                         if (!sStes.contains(st)) sStes.add(st);
                     }
                 }

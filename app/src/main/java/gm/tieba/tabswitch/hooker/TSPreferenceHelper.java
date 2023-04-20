@@ -37,12 +37,12 @@ import gm.tieba.tabswitch.widget.TbEditText;
 import gm.tieba.tabswitch.widget.TbToast;
 
 public class TSPreferenceHelper extends XposedContext {
-    public static TextView createTextView(String text) {
-        TextView textView = new TextView(getContext());
+    public static TextView createTextView(final String text) {
+        final TextView textView = new TextView(getContext());
         textView.setText(text);
         textView.setTextColor(ReflectUtils.getColor("CAM_X0108"));
         textView.setTextSize(ReflectUtils.getDimenDip("fontsize28"));
-        LinearLayout.LayoutParams layoutParams;
+        final LinearLayout.LayoutParams layoutParams;
         if (text != null) {
             textView.setPaddingRelative((int) ReflectUtils.getDimen("ds30"),
                     (int) ReflectUtils.getDimen("ds32"), 0,
@@ -57,18 +57,18 @@ public class TSPreferenceHelper extends XposedContext {
         return textView;
     }
 
-    public static LinearLayout createButton(String text, String tip, boolean showArrow, View.OnClickListener l) {
-        Object textTipView = XposedHelpers.newInstance(XposedHelpers.findClass(
+    public static LinearLayout createButton(final String text, final String tip, final boolean showArrow, final View.OnClickListener l) {
+        final Object textTipView = XposedHelpers.newInstance(XposedHelpers.findClass(
                 "com.baidu.tbadk.coreExtra.view.TbSettingTextTipView", sClassLoader), getContext());
         XposedHelpers.callMethod(textTipView, "setText", text);
         XposedHelpers.callMethod(textTipView, "setTip", tip);
         if (!showArrow) {
             // R.id.arrow2
-            var imageView = ReflectUtils.getObjectField(textTipView, ImageView.class);
+            final var imageView = ReflectUtils.getObjectField(textTipView, ImageView.class);
             imageView.setVisibility(View.GONE);
         }
 
-        var newButton = ReflectUtils.getObjectField(textTipView, LinearLayout.class);
+        final var newButton = ReflectUtils.getObjectField(textTipView, LinearLayout.class);
         ((ViewGroup) newButton.getParent()).removeView(newButton);
         newButton.setBackgroundColor(ReflectUtils.getColor("CAM_X0201"));
         if (l != null) newButton.setOnClickListener(l);
@@ -93,12 +93,12 @@ public class TSPreferenceHelper extends XposedContext {
     }
 
     public static class PreferenceLayout extends LinearLayout {
-        public PreferenceLayout(Context context) {
+        public PreferenceLayout(final Context context) {
             super(context);
             setOrientation(LinearLayout.VERTICAL);
         }
 
-        public void addView(SwitchButtonHolder view) {
+        public void addView(final SwitchButtonHolder view) {
             addView(view.switchButton);
         }
     }
@@ -113,11 +113,11 @@ public class TSPreferenceHelper extends XposedContext {
         public Switch bdSwitch;
         public LinearLayout switchButton;
 
-        SwitchButtonHolder(Activity activity, String text, String key, int type) {
+        SwitchButtonHolder(final Activity activity, final String text, final String key, final int type) {
             mKey = key;
             if (sExceptions.containsKey(key)) {
                 switchButton = createButton(text, "此功能初始化失败", false, v -> {
-                    Throwable tr = sExceptions.get(key);
+                    final Throwable tr = sExceptions.get(key);
                     XposedBridge.log(tr);
                     Toast.makeText(activity, Log.getStackTraceString(tr), Toast.LENGTH_SHORT).show();
                 });
@@ -125,7 +125,7 @@ public class TSPreferenceHelper extends XposedContext {
             }
             bdSwitch = new Switch();
             bdSwitch.setOnSwitchStateChangeListener(new SwitchStatusChangeHandler());
-            View bdSwitchView = bdSwitch.bdSwitch;
+            final View bdSwitchView = bdSwitch.bdSwitch;
             bdSwitchView.setLayoutParams(new LinearLayout.LayoutParams(bdSwitchView.getWidth(),
                     bdSwitchView.getHeight(), 0.16F));
             bdSwitchView.setId(View.generateViewId());
@@ -152,16 +152,16 @@ public class TSPreferenceHelper extends XposedContext {
             switchButton.addView(bdSwitchView);
         }
 
-        void setOnButtonClickListener(View.OnClickListener l) {
+        void setOnButtonClickListener(final View.OnClickListener l) {
             switchButton.setOnClickListener(l);
             bdSwitch.bdSwitch.setOnTouchListener((View v, MotionEvent event) -> false);
         }
 
-        private void showRegexDialog(Activity activity) {
-            EditText editText = new TbEditText(getContext());
+        private void showRegexDialog(final Activity activity) {
+            final EditText editText = new TbEditText(getContext());
             editText.setHint(Constants.getStrings().get("regex_hint"));
             editText.setText(Preferences.getString(mKey));
-            TbDialog bdAlert = new TbDialog(activity, null, null, true, editText);
+            final TbDialog bdAlert = new TbDialog(activity, null, null, true, editText);
             bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
             bdAlert.setOnYesButtonClickListener(v -> {
                 try {
@@ -174,7 +174,7 @@ public class TSPreferenceHelper extends XposedContext {
                         bdSwitch.turnOn();
                     }
                     bdAlert.dismiss();
-                } catch (PatternSyntaxException e) {
+                } catch (final PatternSyntaxException e) {
                     TbToast.showTbToast(e.getMessage(), TbToast.LENGTH_SHORT);
                 }
             });
@@ -195,9 +195,9 @@ public class TSPreferenceHelper extends XposedContext {
         private static class SwitchStatusChangeHandler implements InvocationHandler {
             @SuppressWarnings("SuspiciousInvocationHandlerImplementation")
             @Override
-            public Object invoke(Object proxy, Method method, Object[] args) {
-                View view = (View) args[0];
-                var tag = sIdToTag.get(view.getId());
+            public Object invoke(final Object proxy, final Method method, final Object[] args) {
+                final View view = (View) args[0];
+                final var tag = sIdToTag.get(view.getId());
                 if (tag != null) {
                     switch (Integer.parseInt(tag.substring(0, 1))) {
                         case TYPE_SWITCH:

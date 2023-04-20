@@ -34,25 +34,25 @@ public class MyAttention extends XposedContext implements IHooker {
         return "my_attention";
     }
 
-    public static LinearLayout createNotesPreference(Activity activity) {
+    public static LinearLayout createNotesPreference(final Activity activity) {
         Preferences.putBoolean("my_attention", !Preferences.getNotes().isEmpty());
-        TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
+        final TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
         Set<String> follows = Collections.emptySet();
         try {
             follows = Adp.getInstance().parseDatabase().follows;
             preferenceLayout.addView(TSPreferenceHelper.createTextView(null));
-        } catch (Throwable e) {
+        } catch (final Throwable e) {
             XposedBridge.log(e);
             preferenceLayout.addView(TSPreferenceHelper.createTextView("读取数据库缓存失败\n"
                     + Log.getStackTraceString(e)));
         }
-        for (String follow : follows) {
+        for (final String follow : follows) {
             preferenceLayout.addView(TSPreferenceHelper.createButton(follow, Preferences.getNote(follow),
                     true, v -> showNoteDialog(activity, follow)));
         }
 
         boolean isAdd = true;
-        for (String follow : Preferences.getNotes().keySet()) {
+        for (final String follow : Preferences.getNotes().keySet()) {
             if (follows.contains(follow)) continue;
             if (isAdd) {
                 preferenceLayout.addView(TSPreferenceHelper.createTextView("已取消关注的人"));
@@ -64,14 +64,14 @@ public class MyAttention extends XposedContext implements IHooker {
         return preferenceLayout;
     }
 
-    private static void showNoteDialog(Activity activity, String name) {
-        EditText editText = new TbEditText(activity);
-        String note = Preferences.getNote(name);
+    private static void showNoteDialog(final Activity activity, final String name) {
+        final EditText editText = new TbEditText(activity);
+        final String note = Preferences.getNote(name);
         editText.setText(note != null ? note : name);
-        TbDialog bdAlert = new TbDialog(activity, null, null, true, editText);
+        final TbDialog bdAlert = new TbDialog(activity, null, null, true, editText);
         bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
         bdAlert.setOnYesButtonClickListener(v -> {
-            SharedPreferences.Editor editor = Preferences.getTsNotesEditor();
+            final SharedPreferences.Editor editor = Preferences.getTsNotesEditor();
             if (TextUtils.isEmpty(editText.getText()) || editText.getText().toString().equals(name)) {
                 editor.remove(name);
             } else editor.putString(name, editText.getText().toString());
@@ -99,8 +99,8 @@ public class MyAttention extends XposedContext implements IHooker {
     public void hook() throws Throwable {
         XposedHelpers.findAndHookMethod("tbclient.User$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                String nameShow = (String) XposedHelpers.getObjectField(param.thisObject, "name_show");
+            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+                final String nameShow = (String) XposedHelpers.getObjectField(param.thisObject, "name_show");
                 if (Preferences.getNote(nameShow) != null) {
                     XposedHelpers.setObjectField(param.thisObject, "name_show",
                             String.format("%s(%s)", Preferences.getNote(nameShow), nameShow));

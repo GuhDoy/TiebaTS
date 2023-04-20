@@ -31,7 +31,7 @@ public class RedTip extends XposedContext implements IHooker {
         try {
             XposedHelpers.findAndHookMethod("com.baidu.tbadk.core.view.MessageRedDotView", sClassLoader,
                     "onChangeSkinType", XC_MethodReplacement.returnConstant(null));
-        } catch (NoSuchMethodError e) {
+        } catch (final NoSuchMethodError e) {
             XposedHelpers.findAndHookMethod("com.baidu.tbadk.core.view.MessageRedDotView", sClassLoader,
                     "e", XC_MethodReplacement.returnConstant(null));
         }

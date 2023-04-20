@@ -15,30 +15,30 @@ public class Switch extends XposedContext {
     private Method[] mMethods;
 
     public Switch() {
-        var cls = XposedHelpers.findClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView", sClassLoader);
+        final var cls = XposedHelpers.findClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView", sClassLoader);
         bdSwitch = (View) XposedHelpers.newInstance(cls, getContext());
         mMethods = cls.getDeclaredMethods();
     }
 
-    public Switch(View bdSwitch) {
+    public Switch(final View bdSwitch) {
         this.bdSwitch = bdSwitch;
     }
 
-    public void setOnSwitchStateChangeListener(InvocationHandler l) {
+    public void setOnSwitchStateChangeListener(final InvocationHandler l) {
         Class<?> clazz;
         try {
             clazz = XposedHelpers.findClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView$b", sClassLoader);
-        } catch (XposedHelpers.ClassNotFoundError e) {
+        } catch (final XposedHelpers.ClassNotFoundError e) {
             clazz = XposedHelpers.findClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView$a", sClassLoader);
         }
-        Object proxy = Proxy.newProxyInstance(sClassLoader, new Class<?>[]{clazz}, l);
+        final Object proxy = Proxy.newProxyInstance(sClassLoader, new Class<?>[]{clazz}, l);
         XposedHelpers.callMethod(bdSwitch, "setOnSwitchStateChangeListener", proxy);
     }
 
     public boolean isOn() {
         try {
             return (Boolean) XposedHelpers.callMethod(bdSwitch, "isOn");
-        } catch (NoSuchMethodError e) {
+        } catch (final NoSuchMethodError e) {
             return (Boolean) ReflectUtils.callMethod(mMethods[6], bdSwitch);
         }
     }
@@ -46,7 +46,7 @@ public class Switch extends XposedContext {
     public void changeState() {
         try {
             XposedHelpers.callMethod(bdSwitch, "changeState");
-        } catch (NoSuchMethodError e) {
+        } catch (final NoSuchMethodError e) {
             ReflectUtils.callMethod(mMethods[3], bdSwitch);
         }
     }
@@ -54,7 +54,7 @@ public class Switch extends XposedContext {
     public void turnOn() {
         try {
             XposedHelpers.callMethod(bdSwitch, "turnOn");
-        } catch (NoSuchMethodError e) {
+        } catch (final NoSuchMethodError e) {
             ReflectUtils.callMethod(mMethods[11], bdSwitch);
         }
     }
@@ -62,7 +62,7 @@ public class Switch extends XposedContext {
     public void turnOff() {
         try {
             XposedHelpers.callMethod(bdSwitch, "turnOff");
-        } catch (NoSuchMethodError e) {
+        } catch (final NoSuchMethodError e) {
             ReflectUtils.callMethod(mMethods[8], bdSwitch);
         }
     }

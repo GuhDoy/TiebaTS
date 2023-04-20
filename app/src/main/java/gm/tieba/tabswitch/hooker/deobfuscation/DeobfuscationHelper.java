@@ -27,50 +27,50 @@ import gm.tieba.tabswitch.util.DisplayUtils;
 
 public class DeobfuscationHelper {
 
-    static byte[] calcSignature(InputStream dataStoreInput) throws IOException {
-        MessageDigest md;
+    static byte[] calcSignature(final InputStream dataStoreInput) throws IOException {
+        final MessageDigest md;
         try {
             md = MessageDigest.getInstance("SHA-1");
-        } catch (NoSuchAlgorithmException ex) {
+        } catch (final NoSuchAlgorithmException ex) {
             throw new RuntimeException(ex);
         }
 
         dataStoreInput.skip(HeaderItem.SIGNATURE_DATA_START_OFFSET);
-        byte[] buffer = new byte[4 * 1024];
+        final byte[] buffer = new byte[4 * 1024];
         int bytesRead = dataStoreInput.read(buffer);
         while (bytesRead >= 0) {
             md.update(buffer, 0, bytesRead);
             bytesRead = dataStoreInput.read(buffer);
         }
 
-        byte[] signature = md.digest();
+        final byte[] signature = md.digest();
         if (signature.length != HeaderItem.SIGNATURE_SIZE) {
             throw new RuntimeException("unexpected digest write: " + signature.length + " bytes");
         }
         return signature;
     }
 
-    public static boolean isVersionChanged(Context context) {
-        SharedPreferences tsConfig = context.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
+    public static boolean isVersionChanged(final Context context) {
+        final SharedPreferences tsConfig = context.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
         return !tsConfig.getString("deobfs_version", "unknown").equals(getTbVersion(context));
     }
 
-    public static boolean isDexChanged(Context context) {
+    public static boolean isDexChanged(final Context context) {
         try {
-            ZipFile zipFile = new ZipFile(new File(context.getPackageResourcePath()));
-            try (InputStream in = zipFile.getInputStream(zipFile.getEntry("classes.dex"))) {
+            final ZipFile zipFile = new ZipFile(new File(context.getPackageResourcePath()));
+            try (final InputStream in = zipFile.getInputStream(zipFile.getEntry("classes.dex"))) {
                 return Arrays.hashCode(calcSignature(in)) != Preferences.getSignature();
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             XposedBridge.log(e);
         }
         return false;
     }
 
-    public static String getTbVersion(Context context) {
-        PackageManager pm = context.getPackageManager();
+    public static String getTbVersion(final Context context) {
+        final PackageManager pm = context.getPackageManager();
         try {
-            ApplicationInfo applicationInfo = pm.getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
+            final ApplicationInfo applicationInfo = pm.getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
             switch ((Integer) applicationInfo.metaData.get("versionType")) {
                 case 3:
                     return pm.getPackageInfo(context.getPackageName(), 0).versionName;
@@ -81,27 +81,27 @@ public class DeobfuscationHelper {
                 default:
                     throw new PackageManager.NameNotFoundException("unknown tb version");
             }
-        } catch (PackageManager.NameNotFoundException e) {
+        } catch (final PackageManager.NameNotFoundException e) {
             XposedBridge.log(e);
             return "unknown";
         }
     }
 
     @SuppressLint("ApplySharedPref")
-    public static void saveAndRestart(Activity activity, String version, Class<?> trampoline) {
-        SharedPreferences.Editor editor = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE).edit();
+    public static void saveAndRestart(final Activity activity, final String version, final Class<?> trampoline) {
+        final SharedPreferences.Editor editor = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE).edit();
         editor.putString("deobfs_version", version);
         editor.commit();
         if (trampoline == null) {
             DisplayUtils.restart(activity);
         } else {
             XposedHelpers.findAndHookMethod(trampoline, "onCreate", Bundle.class, new XC_MethodHook() {
-                protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                    Activity activity = (Activity) param.thisObject;
+                protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+                    final Activity activity = (Activity) param.thisObject;
                     DisplayUtils.restart(activity);
                 }
             });
-            Intent intent = new Intent(activity, trampoline);
+            final Intent intent = new Intent(activity, trampoline);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
             activity.startActivity(intent);
         }

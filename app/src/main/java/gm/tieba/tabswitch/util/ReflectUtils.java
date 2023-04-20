@@ -12,22 +12,22 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.XposedContext;
 
 public class ReflectUtils extends XposedContext {
-    public static int getR(String innerClassName, String fieldName) {
+    public static int getR(final String innerClassName, final String fieldName) {
         return getContext().getResources()
                 .getIdentifier(fieldName, innerClassName, getContext().getPackageName());
     }
 
-    public static int getId(String fieldName) {
+    public static int getId(final String fieldName) {
         return getR("id", fieldName);
     }
 
     @ColorInt
-    public static int getColor(String fieldName) {
+    public static int getColor(final String fieldName) {
         return getContext().getColor(
                 getR("color", fieldName + DisplayUtils.getTbSkin(getContext())));
     }
 
-    public static float getDimen(String fieldName) {
+    public static float getDimen(final String fieldName) {
         switch (fieldName) {
             case "ds10":
                 return DisplayUtils.dipToPx(getContext(), 5F);
@@ -41,7 +41,7 @@ public class ReflectUtils extends XposedContext {
         return getContext().getResources().getDimension(getR("dimen", fieldName));
     }
 
-    public static float getDimenDip(String fieldName) {
+    public static float getDimenDip(final String fieldName) {
         switch (fieldName) {
             case "fontsize28":
                 return 14F;
@@ -51,7 +51,7 @@ public class ReflectUtils extends XposedContext {
         return DisplayUtils.pxToDip(getContext(), getDimen(fieldName));
     }
 
-    public static int getDrawableId(String fieldName) {
+    public static int getDrawableId(final String fieldName) {
         return getR("drawable", fieldName);
     }
 
@@ -64,41 +64,41 @@ public class ReflectUtils extends XposedContext {
      * @return A reference to the first field of the given type.
      * @throws NoSuchFieldError In case no matching field was not found.
      */
-    public static <T> T getObjectField(Object instance, Class<T> type) {
+    public static <T> T getObjectField(final Object instance, final Class<T> type) {
         try {
             return type.cast(XposedHelpers.findFirstFieldByExactType(instance.getClass(), type)
                     .get(instance));
-        } catch (IllegalAccessException e) {
+        } catch (final IllegalAccessException e) {
             XposedBridge.log(e);
             throw new IllegalAccessError(e.getMessage());
         }
     }
 
-    public static Object getObjectField(Object instance, String className) {
+    public static Object getObjectField(final Object instance, final String className) {
         try {
             return XposedHelpers.findFirstFieldByExactType(instance.getClass(), XposedHelpers.findClass(className, sClassLoader))
                     .get(instance);
-        } catch (IllegalAccessException e) {
+        } catch (final IllegalAccessException e) {
             XposedBridge.log(e);
             throw new IllegalAccessError(e.getMessage());
         }
     }
 
-    public static void setObjectField(Object instance, Class<?> type, Object value) {
+    public static void setObjectField(final Object instance, final Class<?> type, final Object value) {
         try {
             XposedHelpers.findFirstFieldByExactType(instance.getClass(), type)
                     .set(instance, value);
-        } catch (IllegalAccessException e) {
+        } catch (final IllegalAccessException e) {
             XposedBridge.log(e);
             throw new IllegalAccessError(e.getMessage());
         }
     }
 
-    public static void setObjectField(Object instance, String className, Object value) {
+    public static void setObjectField(final Object instance, final String className, final Object value) {
         try {
             XposedHelpers.findFirstFieldByExactType(instance.getClass(), XposedHelpers.findClass(className, sClassLoader))
                     .set(instance, value);
-        } catch (IllegalAccessException e) {
+        } catch (final IllegalAccessException e) {
             XposedBridge.log(e);
             throw new IllegalAccessError(e.getMessage());
         }
@@ -113,23 +113,23 @@ public class ReflectUtils extends XposedContext {
      * @return A reference to the first field of the given type.
      * @throws NoSuchFieldError In case no matching field was not found.
      */
-    public static Object getObjectField(Object instance, int position) {
+    public static Object getObjectField(final Object instance, final int position) {
         try {
-            var field = instance.getClass().getDeclaredFields()[position];
+            final var field = instance.getClass().getDeclaredFields()[position];
             field.setAccessible(true);
             return field.get(instance);
-        } catch (IllegalAccessException e) {
+        } catch (final IllegalAccessException e) {
             XposedBridge.log(e);
             throw new IllegalAccessError(e.getMessage());
         }
     }
 
-    public static void setObjectField(Object instance, int position, Object value) {
+    public static void setObjectField(final Object instance, final int position, final Object value) {
         try {
-            var field = instance.getClass().getDeclaredFields()[position];
+            final var field = instance.getClass().getDeclaredFields()[position];
             field.setAccessible(true);
             field.set(instance, value);
-        } catch (IllegalAccessException e) {
+        } catch (final IllegalAccessException e) {
             XposedBridge.log(e);
             throw new IllegalAccessError(e.getMessage());
         }
@@ -143,39 +143,39 @@ public class ReflectUtils extends XposedContext {
         boolean onFieldFound(Object objField);
     }
 
-    public static void walkField(Object instance, Class<?> cls, Callback handle) {
+    public static void walkField(final Object instance, final Class<?> cls, final Callback handle) {
         try {
-            Field[] declaredFields = instance.getClass().getDeclaredFields();
-            for (Field field : declaredFields) {
+            final Field[] declaredFields = instance.getClass().getDeclaredFields();
+            for (final Field field : declaredFields) {
                 field.setAccessible(true);
-                Object objField = field.get(instance);
+                final Object objField = field.get(instance);
                 if (objField != null && cls.equals(objField.getClass())
                         && handle.onFieldFound(objField)) {
                     return;
                 }
             }
-            for (Field field : declaredFields) {
-                Object objField = field.get(instance);
+            for (final Field field : declaredFields) {
+                final Object objField = field.get(instance);
                 if (objField != null && cls.isAssignableFrom(objField.getClass())
                         && handle.onFieldFound(objField)) {
                     return;
                 }
             }
-        } catch (IllegalAccessException e) {
+        } catch (final IllegalAccessException e) {
             throw new IllegalAccessError(e.getMessage());
         }
     }
 
-    public static void walkObjectFields(Object instance, Class<?> cls, Callback handle) {
+    public static void walkObjectFields(final Object instance, final Class<?> cls, final Callback handle) {
         walkField(instance, cls, handle);
     }
 
-    public static void walkObjectFields(Object instance, String className, Callback handle) {
+    public static void walkObjectFields(final Object instance, final String className, final Callback handle) {
         walkField(instance, XposedHelpers.findClass(className, sClassLoader), handle);
     }
 
-    public static Method findFirstMethodByExactType(Class<?> cls, Class<?>... paramTypes) {
-        for (var method : cls.getDeclaredMethods()) {
+    public static Method findFirstMethodByExactType(final Class<?> cls, final Class<?>... paramTypes) {
+        for (final var method : cls.getDeclaredMethods()) {
             if (Arrays.equals(method.getParameterTypes(), paramTypes)) {
                 return method;
             }
@@ -183,21 +183,21 @@ public class ReflectUtils extends XposedContext {
         throw new NoSuchMethodError(Arrays.toString(paramTypes));
     }
 
-    public static Method findFirstMethodByExactType(String className, Class<?>... paramTypes) {
+    public static Method findFirstMethodByExactType(final String className, final Class<?>... paramTypes) {
         return findFirstMethodByExactType(XposedHelpers.findClass(className, sClassLoader), paramTypes);
     }
 
-    public static Object callMethod(Method method, Object instance, Object... args) {
+    public static Object callMethod(final Method method, final Object instance, final Object... args) {
         try {
             method.setAccessible(true);
             return method.invoke(instance, args);
-        } catch (IllegalAccessException | InvocationTargetException e) {
+        } catch (final IllegalAccessException | InvocationTargetException e) {
             XposedBridge.log(e);
             throw new IllegalArgumentException(e);
         }
     }
 
-    public static Object callStaticMethod(Method method, Object... args) {
+    public static Object callStaticMethod(final Method method, final Object... args) {
         return callMethod(method, null, args);
     }
 }

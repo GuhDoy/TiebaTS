@@ -24,14 +24,14 @@ public class TbToast extends XposedContext implements Obfuscated {
     }
 
     @MainThread
-    public static void showTbToast(String text, int duration) {
+    public static void showTbToast(final String text, final int duration) {
         AcRules.findRule(new TbToast().matchers(), (matcher, clazz, method) -> {
             try {
-                var md = ReflectUtils.findFirstMethodByExactType(clazz, Context.class, String.class, int.class);
+                final var md = ReflectUtils.findFirstMethodByExactType(clazz, Context.class, String.class, int.class);
                 runOnUiThread(() -> ReflectUtils.callStaticMethod(md, getContext(), text, duration));
-            } catch (NoSuchMethodError e) {
+            } catch (final NoSuchMethodError e) {
                 // 12.32.3.0 +
-                var md = ReflectUtils.findFirstMethodByExactType(clazz, String.class, int.class, boolean.class);
+                final var md = ReflectUtils.findFirstMethodByExactType(clazz, String.class, int.class, boolean.class);
                 runOnUiThread(() -> ReflectUtils.callStaticMethod(md, text, duration, true));
             }
         });

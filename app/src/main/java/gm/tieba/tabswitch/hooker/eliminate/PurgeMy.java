@@ -39,9 +39,9 @@ public class PurgeMy extends XposedContext implements IHooker, Obfuscated {
                 case "Lcom/baidu/tieba/R$drawable;->icon_pure_topbar_store44_svg:I": // 商店
                     XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, int.class, new XC_MethodHook() {
                         @Override
-                        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
                             // R.id.person_navigation_dressup_img
-                            var imageView = (ImageView) ReflectUtils.getObjectField(param.thisObject, 4);
+                            final var imageView = (ImageView) ReflectUtils.getObjectField(param.thisObject, 4);
                             imageView.setVisibility(View.GONE);
                         }
                     });
@@ -50,13 +50,13 @@ public class PurgeMy extends XposedContext implements IHooker, Obfuscated {
                     if ("com.baidu.tieba.post.PersonPostActivity".equals(clazz)) {
                         break;
                     }
-                    for (var md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
+                    for (final var md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
                         if (Arrays.toString(md.getParameterTypes()).equals("[interface com.baidu.tbadk.TbPageContext, int]")) {
                             XposedBridge.hookMethod(md, new XC_MethodHook() {
                                 @Override
-                                protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                                protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
                                     // R.id.function_item_bottom_divider
-                                    var view = (View) ReflectUtils.getObjectField(param.thisObject, 10);
+                                    final var view = (View) ReflectUtils.getObjectField(param.thisObject, 10);
                                     view.setVisibility(View.GONE);
                                 }
                             });
