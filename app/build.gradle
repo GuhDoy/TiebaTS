@@ -52,7 +52,7 @@ android {
             excludes += ['/META-INF/**', '/kotlin/**', '/okhttp3/**']
         }
         jniLibs {
-            excludes += ['**/liblog.so']
+            excludes += ['**/liblog.so', '/lib/x86/**', '/lib/x86_64/**']
         }
     }
     buildFeatures {
