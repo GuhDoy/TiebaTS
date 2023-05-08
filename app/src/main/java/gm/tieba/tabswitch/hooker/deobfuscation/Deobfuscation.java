@@ -18,7 +18,7 @@ import gm.tieba.tabswitch.dao.AcRule;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
 import io.luckypray.dexkit.DexKitBridge;
-import io.luckypray.dexkit.builder.MethodInvokingArgs;
+import io.luckypray.dexkit.builder.MethodCallerArgs;
 import io.luckypray.dexkit.builder.MethodUsingNumberArgs;
 import io.luckypray.dexkit.builder.MethodUsingStringArgs;
 import io.reactivex.rxjava3.subjects.PublishSubject;
@@ -168,9 +168,8 @@ public class Deobfuscation extends XposedContext {
                 .filter(SmaliMatcher.class::isInstance)
                 .map(SmaliMatcher.class::cast)
                 .forEach(matcher -> {
-                    final var ret = bridge.findMethodInvoking(
-                            new MethodInvokingArgs.Builder()
-                                    .methodDeclareClass(scope.pkg)
+                    final var ret = bridge.findMethodCaller(
+                            new MethodCallerArgs.Builder()
                                     .methodDescriptor(matcher.getStr())
                                     .build()
                     );

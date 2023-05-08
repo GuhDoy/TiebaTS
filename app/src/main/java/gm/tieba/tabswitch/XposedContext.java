@@ -9,6 +9,7 @@ import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import de.robv.android.xposed.XposedBridge;
 
@@ -32,15 +33,19 @@ public abstract class XposedContext {
     }
 
     protected static void load(final String filename) {
-        Arrays.stream(Build.SUPPORTED_ABIS)
+        final var soPaths = Arrays.stream(Build.SUPPORTED_ABIS)
                 .map(abi -> sPath + "!/lib/" + abi + "/lib" + filename + ".so")
-                .forEach(soPath -> {
-                    try {
-                        System.load(soPath);
-                    } catch (final UnsatisfiedLinkError e) {
-                        XposedBridge.log(e);
-                    }
-                });
+                .collect(Collectors.toList());
+        UnsatisfiedLinkError err = null;
+        for (final var soPath : soPaths) {
+            try {
+                System.load(soPath);
+                return;
+            } catch (final UnsatisfiedLinkError e) {
+                err = e;
+            }
+        }
+        XposedBridge.log(err);
     }
 
     protected static void runOnUiThread(final Runnable r) {
