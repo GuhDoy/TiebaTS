@@ -11,7 +11,7 @@ import io.reactivex.rxjava3.subjects.PublishSubject;
 
 public class DeobfuscationViewModel {
     private final PublishSubject<Float> _progress = PublishSubject.create();
-    Observable<Float> progress = _progress;
+    public final Observable<Float> progress = _progress;
     private final Deobfuscation deobfuscation = new Deobfuscation();
 
     public void deobfuscateStep1(final Context context, final List<Matcher> matchers) throws IOException {
@@ -20,10 +20,10 @@ public class DeobfuscationViewModel {
     }
 
     public void deobfuscateStep2() throws IOException, AndrolibException {
-        deobfuscation.decodeArsc();
+        deobfuscation.decodeArsc(_progress);
     }
 
-    public Deobfuscation.SearchScope deobfuscateStep3() throws IOException {
+    public Deobfuscation.SearchScope deobfuscateStep3() {
         return deobfuscation.fastSearchAndFindScope(_progress);
     }
 

@@ -1,12 +1,16 @@
 package gm.tieba.tabswitch;
 
 import android.content.Context;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 
 import java.lang.ref.WeakReference;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+
+import de.robv.android.xposed.XposedBridge;
 
 public abstract class XposedContext {
     private static WeakReference<Context> sContextRef;
@@ -25,6 +29,18 @@ public abstract class XposedContext {
 
     protected static Context getContext() {
         return sContextRef.get();
+    }
+
+    protected static void load(final String filename) {
+        Arrays.stream(Build.SUPPORTED_ABIS)
+                .map(abi -> sPath + "!/lib/" + abi + "/lib" + filename + ".so")
+                .forEach(soPath -> {
+                    try {
+                        System.load(soPath);
+                    } catch (final UnsatisfiedLinkError e) {
+                        XposedBridge.log(e);
+                    }
+                });
     }
 
     protected static void runOnUiThread(final Runnable r) {

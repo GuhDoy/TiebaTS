@@ -9,8 +9,6 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
-import org.jf.dexlib2.dexbacked.raw.HeaderItem;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,6 +24,8 @@ import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.util.DisplayUtils;
 
 public class DeobfuscationHelper {
+    private static final int SIGNATURE_DATA_START_OFFSET = 32;
+    private static final int SIGNATURE_SIZE = 20;
 
     static byte[] calcSignature(final InputStream dataStoreInput) throws IOException {
         final MessageDigest md;
@@ -35,7 +35,7 @@ public class DeobfuscationHelper {
             throw new RuntimeException(ex);
         }
 
-        dataStoreInput.skip(HeaderItem.SIGNATURE_DATA_START_OFFSET);
+        dataStoreInput.skip(SIGNATURE_DATA_START_OFFSET);
         final byte[] buffer = new byte[4 * 1024];
         int bytesRead = dataStoreInput.read(buffer);
         while (bytesRead >= 0) {
@@ -44,7 +44,7 @@ public class DeobfuscationHelper {
         }
 
         final byte[] signature = md.digest();
-        if (signature.length != HeaderItem.SIGNATURE_SIZE) {
+        if (signature.length != SIGNATURE_SIZE) {
             throw new RuntimeException("unexpected digest write: " + signature.length + " bytes");
         }
         return signature;

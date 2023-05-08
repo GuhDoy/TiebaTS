@@ -66,7 +66,7 @@ android {
 
 dependencies {
     compileOnly 'de.robv.android.xposed:api:82'
-    api 'androidx.annotation:annotation:1.5.0'
+    api 'androidx.annotation:annotation:1.6.0'
     def room_version = '2.5.1'
     implementation "androidx.room:room-runtime:$room_version"
     annotationProcessor "androidx.room:room-compiler:$room_version"
@@ -74,9 +74,9 @@ dependencies {
     kapt "androidx.room:room-compiler:$room_version"
 
     implementation 'io.reactivex.rxjava3:rxjava:3.1.2'
-    implementation 'org.smali:baksmali:2.5.2'
+    implementation 'org.luckypray:DexKit:1.1.6'
     // https://stackoverflow.com/questions/61195038/excluding-dependency-from-implementation-files
-    implementation files('apktool_2.6.1.jar')
+    implementation files('apktool_2.7.0.jar')
     implementation 'com.squareup.okhttp3:okhttp:5.0.0-alpha.5'
     implementation 'dev.rikka.ndk.thirdparty:cxx:1.2.0'
 }
