@@ -8,7 +8,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -114,7 +113,7 @@ public class AutoSign extends XposedContext implements IHooker {
                 final Iterator<String> iterator = mFollow.iterator();
                 while (iterator.hasNext()) {
                     final String s = iterator.next();
-                    final String body = "kw=" + URLEncoder.encode(s, StandardCharsets.UTF_8) + "&tbs=" + mTbs + "&sign=" +
+                    final String body = "kw=" + URLEncoder.encode(s, "UTF-8") + "&tbs=" + mTbs + "&sign=" +
                             AutoSignHelper.enCodeMd5("kw=" + s + "tbs=" + mTbs + "tiebaclient!!!");
                     final JSONObject post = AutoSignHelper.post(SIGN_URL, body);
                     if ("0".equals(post.getString("error_code"))) {
