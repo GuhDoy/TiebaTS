@@ -17,7 +17,7 @@ android {
         minSdk 24
         targetSdk sdk
         versionCode gitCommitCount
-        versionName '2.8.5'
+        versionName '2.8.6-beta'
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         externalNativeBuild {
@@ -74,7 +74,7 @@ dependencies {
     kapt "androidx.room:room-compiler:$room_version"
 
     implementation 'io.reactivex.rxjava3:rxjava:3.1.2'
-    implementation 'org.luckypray:DexKit:1.1.6'
+    implementation 'org.luckypray:DexKit:1.1.7'
     // https://stackoverflow.com/questions/61195038/excluding-dependency-from-implementation-files
     implementation files('apktool_2.7.0.jar')
     implementation 'com.squareup.okhttp3:okhttp:5.0.0-alpha.5'

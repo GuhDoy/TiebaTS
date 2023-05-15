@@ -23,12 +23,8 @@ public class DeobfuscationViewModel {
         deobfuscation.decodeArsc(_progress);
     }
 
-    public Deobfuscation.SearchScope deobfuscateStep3() {
-        return deobfuscation.fastSearchAndFindScope(_progress);
-    }
-
-    public void deobfuscateStep4() throws IOException {
-        deobfuscation.searchSmali(_progress);
+    public void deobfuscateStep3() throws IOException {
+        deobfuscation.dexkit(_progress);
         deobfuscation.saveDexSignatureHashCode();
     }
 }
