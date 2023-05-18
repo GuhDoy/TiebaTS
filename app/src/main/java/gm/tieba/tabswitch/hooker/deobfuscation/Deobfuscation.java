@@ -23,6 +23,7 @@ import io.luckypray.dexkit.DexKitBridge;
 import io.luckypray.dexkit.builder.MethodCallerArgs;
 import io.luckypray.dexkit.builder.MethodUsingNumberArgs;
 import io.luckypray.dexkit.builder.MethodUsingStringArgs;
+import io.luckypray.dexkit.descriptor.member.DexMethodDescriptor;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 
 public class Deobfuscation extends XposedContext {
@@ -76,6 +77,7 @@ public class Deobfuscation extends XposedContext {
 
     public void decodeArsc(final PublishSubject<Float> progress)
             throws IOException, AndrolibException {
+        progress.onNext(0F);
         final var strToResMatcher = new HashMap<String, ResMatcher>();
         final var entryNameToZipEntryMatcher = new HashMap<String, ZipEntryMatcher>();
         for (final var matcher : matchers) {
@@ -124,31 +126,28 @@ public class Deobfuscation extends XposedContext {
         Objects.requireNonNull(bridge);
 
         forEachProgressed(progress, matchers, matcher -> {
+            Collection<DexMethodDescriptor> ret = null;
             if (matcher instanceof final StringMatcher stringMatcher) {
-                final var ret = bridge.findMethodUsingString(
+                ret = bridge.findMethodUsingString(
                         new MethodUsingStringArgs.Builder()
                                 .usingString(stringMatcher.getStr())
                                 .build()
                 );
-                for (final var d : ret) {
-                    AcRules.putRule(matcher.toString(), d.getDeclaringClassName(), d.getName());
-                }
             } else if (matcher instanceof final ResMatcher resMatcher) {
-                final var ret = bridge.findMethodUsingNumber(
+                ret = bridge.findMethodUsingNumber(
                         new MethodUsingNumberArgs.Builder()
                                 .usingNumber(resMatcher.getId())
                                 .build()
                 );
-                for (final var d : ret) {
-                    AcRules.putRule(matcher.toString(), d.getDeclaringClassName(), d.getName());
-                }
             } else if (matcher instanceof final SmaliMatcher smaliMatcher) {
-                final var ret = bridge.findMethodCaller(
+                ret = bridge.findMethodCaller(
                         new MethodCallerArgs.Builder()
                                 .methodDescriptor(smaliMatcher.toString())
                                 .build()
-                );
-                for (final var d : ret.keySet()) {
+                ).keySet();
+            }
+            if (ret != null) {
+                for (final var d : ret) {
                     AcRules.putRule(matcher.toString(), d.getDeclaringClassName(), d.getName());
                 }
             }
