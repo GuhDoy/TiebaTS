@@ -49,6 +49,7 @@ import gm.tieba.tabswitch.hooker.eliminate.PersonalizedFilter;
 import gm.tieba.tabswitch.hooker.eliminate.Purge;
 import gm.tieba.tabswitch.hooker.eliminate.PurgeEnter;
 import gm.tieba.tabswitch.hooker.eliminate.RedTip;
+import gm.tieba.tabswitch.hooker.eliminate.RemoveUpdate;
 import gm.tieba.tabswitch.hooker.eliminate.SwitchManager;
 import gm.tieba.tabswitch.hooker.extra.ForbidGesture;
 import gm.tieba.tabswitch.hooker.extra.Hide;
@@ -104,7 +105,8 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                         new AgreeNum(),
                         new FrsTab(),
                         new Hide(),
-                        new StackTrace()
+                        new StackTrace(),
+                        new RemoveUpdate()
                 );
                 final var matchers = new ArrayList<Obfuscated>(hookers.size() + 2);
                 matchers.add(new TbDialog());
