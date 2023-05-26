@@ -187,6 +187,20 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
         // 你可能感兴趣的人：initUI()
         final var md = ReflectUtils.findFirstMethodByExactType("com.baidu.tieba.homepage.concern.view.ConcernRecommendLayout");
         XposedBridge.hookMethod(md, XC_MethodReplacement.returnConstant(null));
+        try {
+            // 12.41.5.1+
+            XposedHelpers.findAndHookMethod("com.baidu.tieba.feed.list.TemplateAdapter", sClassLoader, "setList", List.class, new XC_MethodHook() {
+                @Override
+                protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+                    final var list = (List<?>) param.args[0];
+                    list.removeIf(o -> {
+                        final var type = (String) XposedHelpers.callMethod(o, "a");
+                        return "sideway_card".equals(type);
+                    });
+                }
+            });
+        } catch (final XposedHelpers.ClassNotFoundError ignored) {
+        }
         // 首页任务中心：R.id.task TbImageView
 //        XposedHelpers.findAndHookMethod("com.baidu.tieba.homepage.framework.indicator.NestedScrollHeader", sClassLoader, "onAttachedToWindow", new XC_MethodHook() {
 //            @Override

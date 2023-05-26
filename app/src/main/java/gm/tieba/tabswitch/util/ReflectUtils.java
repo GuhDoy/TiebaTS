@@ -59,8 +59,8 @@ public class ReflectUtils extends XposedContext {
      * Returns the first field of the given type in a class.
      * Might be useful for Proguard'ed classes to identify fields with unique types.
      *
-     * @param clazz The class which either declares or inherits the field.
-     * @param type  The type of the field.
+     * @param instance The class which either declares or inherits the field.
+     * @param type     The type of the field.
      * @return A reference to the first field of the given type.
      * @throws NoSuchFieldError In case no matching field was not found.
      */
@@ -108,7 +108,7 @@ public class ReflectUtils extends XposedContext {
      * Returns the field at the given position in a class.
      * Might be useful for Proguard'ed classes to identify fields with fixed position.
      *
-     * @param clazz    The class which either declares or inherits the field.
+     * @param instance The class which either declares or inherits the field.
      * @param position The position of the field.
      * @return A reference to the first field of the given type.
      * @throws NoSuchFieldError In case no matching field was not found.
