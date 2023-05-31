@@ -40,12 +40,16 @@ public abstract class XposedContext {
         for (final var soPath : soPaths) {
             try {
                 System.load(soPath);
-                return;
+                err = null;
+                break;
             } catch (final UnsatisfiedLinkError e) {
                 err = e;
             }
         }
-        XposedBridge.log(err);
+        if (err != null) {
+            XposedBridge.log(err);
+            throw err;
+        }
     }
 
     protected static void runOnUiThread(final Runnable r) {
