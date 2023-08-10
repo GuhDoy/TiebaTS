@@ -7,7 +7,6 @@ import android.graphics.drawable.StateListDrawable;
 import android.util.AttributeSet;
 import android.util.SparseArray;
 import android.view.View;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import androidx.annotation.NonNull;
@@ -62,16 +61,6 @@ public class Ripple extends XposedContext implements IHooker {
                 view.setBackground(createSubPbBackground());
             }
         });
-        // 楼层
-        XposedHelpers.findAndHookConstructor("com.baidu.tieba.pb.pb.main.PbCommenFloorItemViewHolder", sClassLoader,
-                XposedHelpers.findClass("com.baidu.tbadk.TbPageContext", sClassLoader), View.class, int.class, new XC_MethodHook() {
-                    @Override
-                    protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
-                        // R.id.all_content
-                        final var mAllContent = ReflectUtils.getObjectField(param.thisObject, LinearLayout.class);
-                        mAllContent.setBackground(createBackground());
-                    }
-                });
     }
 
     private StateListDrawable createBackground() {

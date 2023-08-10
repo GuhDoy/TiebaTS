@@ -1,7 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
-    id "org.jetbrains.kotlin.kapt"
+    id 'com.google.devtools.ksp'
 }
 
 def gitCommitCount = Integer.parseInt('git rev-list --count HEAD'.execute([], project.rootDir).text.trim())
@@ -9,7 +9,7 @@ def sdk = 33
 
 android {
     compileSdk sdk
-    buildToolsVersion '33.0.2'
+    buildToolsVersion = '33.0.2'
     ndkVersion '25.2.9519653'
 
     defaultConfig {
@@ -67,11 +67,11 @@ android {
 dependencies {
     compileOnly 'de.robv.android.xposed:api:82'
     api 'androidx.annotation:annotation:1.6.0'
-    def room_version = '2.5.1'
-    implementation "androidx.room:room-runtime:$room_version"
-    annotationProcessor "androidx.room:room-compiler:$room_version"
-    implementation "androidx.room:room-ktx:$room_version"
-    kapt "androidx.room:room-compiler:$room_version"
+    def roomVersion = '2.5.2'
+    implementation "androidx.room:room-runtime:$roomVersion"
+    annotationProcessor "androidx.room:room-compiler:$roomVersion"
+    implementation "androidx.room:room-ktx:$roomVersion"
+    ksp "androidx.room:room-compiler:$roomVersion"
 
     implementation 'io.reactivex.rxjava3:rxjava:3.1.2'
     implementation 'org.luckypray:DexKit:1.1.8'
