@@ -41,7 +41,8 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 new SmaliMatcher("Lcom/baidu/tieba/recapp/lego/model/AdCard;-><init>(Lorg/json/JSONObject;)V"),
                 new SmaliMatcher("Lcom/baidu/tieba/lego/card/model/BaseCardInfo;-><init>(Lorg/json/JSONObject;)V"),
                 new StringMatcher("pic_amount"),
-                new StringMatcher("key_frs_dialog_ad_last_show_time")
+                new StringMatcher("key_frs_dialog_ad_last_show_time"),
+                new StringMatcher("准备展示精灵动画提示控件")
         );
     }
 
@@ -49,8 +50,8 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
     public void hook() throws Throwable {
         AcRules.findRule(matchers(), (matcher, clazz, method) -> {
             switch (matcher) {
-                case "Lcom/baidu/tieba/recapp/lego/model/AdCard;-><init>(Lorg/json/JSONObject;)V": // 卡片广告
-                case "Lcom/baidu/tieba/lego/card/model/BaseCardInfo;-><init>(Lorg/json/JSONObject;)V":
+                case "Lcom/baidu/tieba/recapp/lego/model/AdCard;-><init>(Lorg/json/JSONObject;)V":
+                case "Lcom/baidu/tieba/lego/card/model/BaseCardInfo;-><init>(Lorg/json/JSONObject;)V": // 卡片广告
                     XposedBridge.hookAllMethods(XposedHelpers.findClass(clazz, sClassLoader), method, XC_MethodReplacement.returnConstant(null));
                     break;
                 case "pic_amount": // 图片广告：必须"recom_ala_info", "app", 可选"goods_info"
@@ -66,6 +67,9 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                             XposedBridge.hookMethod(md, XC_MethodReplacement.returnConstant(true));
                         }
                     }
+                    break;
+                case "准备展示精灵动画提示控件": // 吧内%s新贴热议中
+                    XposedBridge.hookAllMethods(XposedHelpers.findClass(clazz, sClassLoader), method, XC_MethodReplacement.returnConstant(false));
                     break;
             }
         });
