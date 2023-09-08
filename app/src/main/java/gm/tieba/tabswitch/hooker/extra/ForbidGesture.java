@@ -68,7 +68,12 @@ public class ForbidGesture extends XposedContext implements IHooker, Obfuscated 
         try {
             method = clazz.getDeclaredMethod("getMaxScaleValue", Bitmap.class);
         } catch (final NoSuchMethodException e) {
-            method = clazz.getDeclaredMethod("U", Bitmap.class);
+            try {
+                method = clazz.getDeclaredMethod("U", Bitmap.class);
+            } catch (final NoSuchMethodException e2) {
+                // 12.47.0.2+
+                method = clazz.getDeclaredMethod("V", Bitmap.class);
+            }
         }
         XposedBridge.hookMethod(method, new XC_MethodHook() {
             @Override

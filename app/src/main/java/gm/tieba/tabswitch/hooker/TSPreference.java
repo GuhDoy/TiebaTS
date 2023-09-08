@@ -37,7 +37,7 @@ import gm.tieba.tabswitch.hooker.TSPreferenceHelper.SwitchButtonHolder;
 import gm.tieba.tabswitch.hooker.add.MyAttention;
 import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHelper;
 import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
-import gm.tieba.tabswitch.hooker.deobfuscation.StringMatcher;
+import gm.tieba.tabswitch.hooker.deobfuscation.StringResMatcher;
 import gm.tieba.tabswitch.hooker.extra.TraceChecker;
 import gm.tieba.tabswitch.util.DisplayUtils;
 import gm.tieba.tabswitch.widget.NavigationBar;
@@ -60,7 +60,7 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
 
     @Override
     public List<? extends Matcher> matchers() {
-        return List.of(new StringMatcher("reply_private_setting_switch"));
+        return List.of(new StringResMatcher("隐私设置"));
     }
 
     @Override
