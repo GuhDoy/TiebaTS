@@ -2,6 +2,11 @@ package gm.tieba.tabswitch.hooker.deobfuscation;
 
 import android.content.Context;
 
+import org.luckypray.dexkit.DexKitBridge;
+import org.luckypray.dexkit.query.FindMethod;
+import org.luckypray.dexkit.query.MethodDataList;
+import org.luckypray.dexkit.query.matchers.MethodMatcher;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,11 +24,6 @@ import brut.androlib.res.decoder.ARSCDecoder;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
-import io.luckypray.dexkit.DexKitBridge;
-import io.luckypray.dexkit.builder.MethodCallerArgs;
-import io.luckypray.dexkit.builder.MethodUsingNumberArgs;
-import io.luckypray.dexkit.builder.MethodUsingStringArgs;
-import io.luckypray.dexkit.descriptor.member.DexMethodDescriptor;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 
 public class Deobfuscation extends XposedContext {
@@ -126,29 +126,32 @@ public class Deobfuscation extends XposedContext {
         Objects.requireNonNull(bridge);
 
         forEachProgressed(progress, matchers, matcher -> {
-            Collection<DexMethodDescriptor> ret = null;
+            MethodDataList ret = null;
             if (matcher instanceof final StringMatcher stringMatcher) {
-                ret = bridge.findMethodUsingString(
-                        new MethodUsingStringArgs.Builder()
-                                .usingString(stringMatcher.getStr())
-                                .build()
+                ret = bridge.findMethod(
+                        FindMethod.create().matcher(
+                                MethodMatcher.create().usingStrings(stringMatcher.getStr())
+                        )
                 );
             } else if (matcher instanceof final ResMatcher resMatcher) {
-                ret = bridge.findMethodUsingNumber(
-                        new MethodUsingNumberArgs.Builder()
-                                .usingNumber(resMatcher.getId())
-                                .build()
+                ret = bridge.findMethod(
+                        FindMethod.create().matcher(
+                                MethodMatcher.create().usingNumbers(resMatcher.getId())
+                        )
                 );
             } else if (matcher instanceof final SmaliMatcher smaliMatcher) {
-                ret = bridge.findMethodCaller(
-                        new MethodCallerArgs.Builder()
-                                .methodDescriptor(smaliMatcher.toString())
-                                .build()
-                ).keySet();
+                ret = bridge.findMethod(
+                        FindMethod.create().matcher(
+                                MethodMatcher.create().addInvoke(
+                                        MethodMatcher.create().descriptor(smaliMatcher.toString())
+                                )
+                        )
+                );
             }
             if (ret != null) {
-                for (final var d : ret) {
-                    AcRules.putRule(matcher.toString(), d.getDeclaringClassName(), d.getName());
+                for (final var methodData : ret) {
+                    AcRules.putRule(
+                            matcher.toString(), methodData.getClassName(), methodData.getName());
                 }
             }
         });
