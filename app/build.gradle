@@ -74,7 +74,7 @@ dependencies {
     ksp "androidx.room:room-compiler:$roomVersion"
 
     implementation 'io.reactivex.rxjava3:rxjava:3.1.7'
-    implementation 'org.luckypray:dexkit:2.0.0-rc2'
+    implementation 'org.luckypray:dexkit:2.0.0-rc3'
     // https://stackoverflow.com/questions/61195038/excluding-dependency-from-implementation-files
     implementation files('apktool_2.7.0.jar')
     implementation 'com.squareup.okhttp3:okhttp:4.11.0'
