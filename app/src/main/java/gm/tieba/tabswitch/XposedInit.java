@@ -53,7 +53,6 @@ import gm.tieba.tabswitch.hooker.eliminate.RemoveUpdate;
 import gm.tieba.tabswitch.hooker.eliminate.SwitchManager;
 import gm.tieba.tabswitch.hooker.extra.ForbidGesture;
 import gm.tieba.tabswitch.hooker.extra.Hide;
-import gm.tieba.tabswitch.hooker.extra.RedirectImage;
 import gm.tieba.tabswitch.hooker.extra.StackTrace;
 import gm.tieba.tabswitch.util.DisplayUtils;
 import gm.tieba.tabswitch.widget.TbDialog;
@@ -100,7 +99,6 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                         new AutoSign(),
                         new OpenSign(),
                         new OriginSrc(),
-                        new RedirectImage(),
                         new ForbidGesture(),
                         new AgreeNum(),
                         new FrsTab(),
