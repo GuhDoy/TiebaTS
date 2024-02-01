@@ -2,17 +2,23 @@ package gm.tieba.tabswitch.hooker.eliminate;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 
 import androidx.annotation.NonNull;
+
+import org.json.JSONObject;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
@@ -42,10 +48,38 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 new SmaliMatcher("Lcom/baidu/tieba/lego/card/model/BaseCardInfo;-><init>(Lorg/json/JSONObject;)V"),
                 new StringMatcher("pic_amount"),
                 new StringMatcher("key_frs_dialog_ad_last_show_time"),
-                new StringMatcher("准备展示精灵动画提示控件")
+                new StringMatcher("准备展示精灵动画提示控件"),
+                new StringMatcher("TbChannelJsInterfaceNew")
         );
     }
-
+    final String jsRemoveOtherCardResponse = """
+            (function (send) {
+              XMLHttpRequest.prototype.send = function () {
+                var callback = this.onreadystatechange;
+                this.onreadystatechange = function () {
+                  if (
+                    this.readyState == 4 &&
+                    this.responseURL.match(
+                      /https?:\\/\\/tieba\\.baidu\\.com\\/mo\\/q\\/frs\\/bottomPage.*/g
+                    )
+                  ) {
+                    res = JSON.parse(this.response);
+                    res.data.card_activity.small_card = [];
+                    res.data.friend_forum = [];
+                    Object.defineProperty(this, "response", { writable: true });
+                    Object.defineProperty(this, "responseText", {
+                      writable: true,
+                    });
+                    this.response = this.responseText = JSON.stringify(res);
+                  }
+                  if (callback) {
+                    callback.apply(this, arguments);
+                  }
+                };
+                send.apply(this, arguments);
+              };
+            })(XMLHttpRequest.prototype.send);
+            """;
     @Override
     public void hook() throws Throwable {
         AcRules.findRule(matchers(), (matcher, clazz, method) -> {
@@ -70,6 +104,18 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                     break;
                 case "准备展示精灵动画提示控件": // 吧内%s新贴热议中
                     XposedBridge.hookAllMethods(XposedHelpers.findClass(clazz, sClassLoader), method, XC_MethodReplacement.returnConstant(false));
+                    break;
+                case "TbChannelJsInterfaceNew":  // 吧友直播
+                    if (method.equals("getInitData")) {
+                        XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
+                            @Override
+                            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                                JSONObject resultJson = new JSONObject((String) param.getResult());
+                                resultJson.getJSONObject("baseData").put("clientVersion", "undefined");
+                                param.setResult(resultJson.toString());
+                            }
+                        });
+                    }
                     break;
             }
         });
@@ -153,6 +199,9 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                     final Object worksInfo = XposedHelpers.getObjectField(o, "works_info");
                     return worksInfo != null && (Integer) XposedHelpers.getObjectField(worksInfo, "is_works") == 1;
                 });
+
+                // 推荐置顶广告
+                XposedHelpers.setObjectField(param.thisObject, "live_answer", null);
             }
         });
         // 吧页面
@@ -175,6 +224,18 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
 
                 // 万人直播互动 吧友开黑组队中
                 XposedHelpers.setObjectField(param.thisObject, "live_fuse_forum", new ArrayList<>());
+
+                // AI 聊天
+                XposedHelpers.setObjectField(param.thisObject, "ai_chatroom_guide", null);
+
+                // 聊天室
+                XposedHelpers.setObjectField(param.thisObject, "frs_bottom", null);
+
+                // 吧友直播
+                final List<?> frsMainTabList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "frs_main_tab_list");
+                if (frsMainTabList != null) {
+                    frsMainTabList.removeIf(o -> (Integer) XposedHelpers.getObjectField(o, "tab_type") == 92);
+                }
             }
         });
         // 吧小程序
@@ -234,5 +295,24 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(false));
             }
         }
+        // 更多板块 (吧友直播，友情吧)
+        XposedHelpers.findAndHookMethod(
+                "com.baidu.tieba.browser.webview.monitor.MonitorWebView",
+                sClassLoader,
+                "loadUrl",
+                String.class,
+                Map.class,
+                new XC_MethodHook() {
+                    @Override
+                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                        WebView webView = (WebView) param.thisObject;
+                        webView.setWebViewClient(new WebViewClient() {
+                            @Override
+                            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                                webView.evaluateJavascript(jsRemoveOtherCardResponse, null);
+                            }
+                        });
+                    }
+                });
     }
 }
