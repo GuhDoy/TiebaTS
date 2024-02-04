@@ -52,7 +52,8 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 new StringMatcher("准备展示精灵动画提示控件"),
                 new StringMatcher("TbChannelJsInterfaceNew"),
                 new StringMatcher("bottom_bubble_config"),
-                new StringMatcher("index_tab_info")
+                new StringMatcher("index_tab_info"),
+                new SmaliMatcher("Lcom/baidu/tbadk/coreExtra/floatCardView/AlaLiveTipView;-><init>(Landroid/content/Context;)V")
         );
     }
     final String jsRemoveOtherCardResponse = """
@@ -147,6 +148,10 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                             }
                         });
                     }
+                    break;
+                case "Lcom/baidu/tbadk/coreExtra/floatCardView/AlaLiveTipView;-><init>(Landroid/content/Context;)V":    // 首页左上直播
+                    XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, "android.view.ViewGroup",
+                            XC_MethodReplacement.returnConstant(null));
                     break;
             }
         });
