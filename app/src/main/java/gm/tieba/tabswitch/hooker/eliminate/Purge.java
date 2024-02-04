@@ -11,6 +11,7 @@ import android.webkit.WebViewClient;
 
 import androidx.annotation.NonNull;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.Serializable;
@@ -49,7 +50,9 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 new StringMatcher("pic_amount"),
                 new StringMatcher("key_frs_dialog_ad_last_show_time"),
                 new StringMatcher("准备展示精灵动画提示控件"),
-                new StringMatcher("TbChannelJsInterfaceNew")
+                new StringMatcher("TbChannelJsInterfaceNew"),
+                new StringMatcher("bottom_bubble_config"),
+                new StringMatcher("index_tab_info")
         );
     }
     final String jsRemoveOtherCardResponse = """
@@ -113,6 +116,34 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                                 JSONObject resultJson = new JSONObject((String) param.getResult());
                                 resultJson.getJSONObject("baseData").put("clientVersion", "undefined");
                                 param.setResult(resultJson.toString());
+                            }
+                        });
+                    }
+                    break;
+                case "bottom_bubble_config":    // 底部导航栏特殊图标
+                    XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
+                        @Override
+                        protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                            JSONObject syncData = (JSONObject) ReflectUtils.getObjectField(param.thisObject, JSONObject.class);
+                            syncData.put("bottom_bubble_config", null);
+                        }
+                    });
+                    break;
+                case "index_tab_info":  // 首页特殊Tab
+                    if (method.equals("invoke")) {
+                        XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
+                            @Override
+                            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                                JSONObject syncData = (JSONObject) ReflectUtils.getObjectField(param.thisObject, JSONObject.class);
+                                JSONArray indexTabInfo = syncData.getJSONArray("index_tab_info");
+                                JSONArray newIndexTabInfo = new JSONArray();
+                                for (int i = 0; i < indexTabInfo.length(); i++) {
+                                    JSONObject currTab = indexTabInfo.getJSONObject(i);
+                                    if (!currTab.getString("tab_type").equals("202")) {
+                                        newIndexTabInfo.put(currTab);
+                                    }
+                                }
+                                syncData.put("index_tab_info", newIndexTabInfo);
                             }
                         });
                     }
