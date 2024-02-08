@@ -71,6 +71,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
     public void handleLoadPackage(final XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
         if (!"com.baidu.tieba".equals(lpparam.packageName) && XposedHelpers.findClassIfExists(
                 "com.baidu.tieba.tblauncher.MainTabActivity", lpparam.classLoader) == null) return;
+        sClassLoader = lpparam.classLoader;
 
         // Workaround to address an issue with LSPatch (unable to open personal homepage)
         // com.baidu.tieba.flutter.base.view.FlutterPageActivity must be instantiated by com.baidu.nps.hook.component.NPSComponentFactory
@@ -78,15 +79,14 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
         // (see https://github.com/LSPosed/LSPatch/blob/bbe8d93fb9230f7b04babaf1c4a11642110f55a6/patch-loader/src/main/java/org/lsposed/lspatch/loader/LSPApplication.java#L173)
         // TODO: Report issue to upstream
         XposedHelpers.findAndHookMethod(
-                "android.app.Instrumentation",
-                lpparam.classLoader,
+                Instrumentation.class,
                 "getFactory",
                 String.class,
                 new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                         if (mAppComponentFactory == null) {
-                            mAppComponentFactory = (AppComponentFactory) lpparam.classLoader.loadClass("com.baidu.nps.hook.component.NPSComponentFactory").newInstance();
+                            mAppComponentFactory = (AppComponentFactory) sClassLoader.loadClass("com.baidu.nps.hook.component.NPSComponentFactory").newInstance();
                         }
                         param.setResult(mAppComponentFactory);
                     }
@@ -97,7 +97,6 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
             protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
                 if (!(param.args[0] instanceof Application)) return;
                 attachBaseContext((Application) param.args[0]);
-                sClassLoader = lpparam.classLoader;
                 Preferences.init(getContext());
                 AcRules.init(getContext());
 
