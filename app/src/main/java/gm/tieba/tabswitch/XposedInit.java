@@ -85,10 +85,12 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                 new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        if (mAppComponentFactory == null) {
-                            mAppComponentFactory = (AppComponentFactory) sClassLoader.loadClass("com.baidu.nps.hook.component.NPSComponentFactory").newInstance();
+                        if (param.args[0].toString().equals("com.baidu.tieba")) {
+                            if (mAppComponentFactory == null) {
+                                mAppComponentFactory = (AppComponentFactory) sClassLoader.loadClass("com.baidu.nps.hook.component.NPSComponentFactory").newInstance();
+                            }
+                            param.setResult(mAppComponentFactory);
                         }
-                        param.setResult(mAppComponentFactory);
                     }
                 });
 
