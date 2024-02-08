@@ -238,6 +238,9 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
 
                 // 推荐置顶广告
                 XposedHelpers.setObjectField(param.thisObject, "live_answer", null);
+
+                // 圈层热贴
+                XposedHelpers.setObjectField(param.thisObject, "hot_card", null);
             }
         });
         // 吧页面
