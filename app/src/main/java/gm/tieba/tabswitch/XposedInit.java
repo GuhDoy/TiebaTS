@@ -2,6 +2,7 @@ package gm.tieba.tabswitch;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.AppComponentFactory;
 import android.app.Application;
 import android.app.Instrumentation;
 import android.content.Intent;
@@ -64,10 +65,33 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
         sPath = startupParam.modulePath;
     }
 
+    private AppComponentFactory mAppComponentFactory = null;
+
     @Override
     public void handleLoadPackage(final XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
         if (!"com.baidu.tieba".equals(lpparam.packageName) && XposedHelpers.findClassIfExists(
                 "com.baidu.tieba.tblauncher.MainTabActivity", lpparam.classLoader) == null) return;
+
+        // Workaround to address an issue with LSPatch (unable to open personal homepage)
+        // com.baidu.tieba.flutter.base.view.FlutterPageActivity must be instantiated by com.baidu.nps.hook.component.NPSComponentFactory
+        // However, LSPatch incorrectly sets appComponentFactory to null, causing android.app.Instrumentation.getFactory to fall back to AppComponentFactory.DEFAULT
+        // (see https://github.com/LSPosed/LSPatch/blob/bbe8d93fb9230f7b04babaf1c4a11642110f55a6/patch-loader/src/main/java/org/lsposed/lspatch/loader/LSPApplication.java#L173)
+        // TODO: Report issue to upstream
+        XposedHelpers.findAndHookMethod(
+                "android.app.Instrumentation",
+                lpparam.classLoader,
+                "getFactory",
+                String.class,
+                new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        if (mAppComponentFactory == null) {
+                            mAppComponentFactory = (AppComponentFactory) lpparam.classLoader.loadClass("com.baidu.nps.hook.component.NPSComponentFactory").newInstance();
+                        }
+                        param.setResult(mAppComponentFactory);
+                    }
+                });
+
         XposedHelpers.findAndHookMethod(Instrumentation.class, "callApplicationOnCreate", Application.class, new XC_MethodHook() {
             @Override
             protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
