@@ -43,6 +43,7 @@ import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHelper;
 import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHooker;
 import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
 import gm.tieba.tabswitch.hooker.eliminate.ContentFilter;
+import gm.tieba.tabswitch.hooker.eliminate.FoldTopCardView;
 import gm.tieba.tabswitch.hooker.eliminate.FollowFilter;
 import gm.tieba.tabswitch.hooker.eliminate.FragmentTab;
 import gm.tieba.tabswitch.hooker.eliminate.FrsPageFilter;
@@ -129,7 +130,8 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                         new FrsTab(),
                         new Hide(),
                         new StackTrace(),
-                        new RemoveUpdate()
+                        new RemoveUpdate(),
+                        new FoldTopCardView()
                 );
                 final var matchers = new ArrayList<Obfuscated>(hookers.size() + 2);
                 matchers.add(new TbDialog());
