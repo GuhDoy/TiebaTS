@@ -262,14 +262,9 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
 
                 final List<?> threadList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");
                 if (threadList == null) return;
-                threadList.removeIf(o -> {
-                    if (XposedHelpers.getObjectField(o, "ala_info") != null) {
-                        return true;
-                    }
 
-                    final Object worksInfo = XposedHelpers.getObjectField(o, "works_info");
-                    return worksInfo != null && (Integer) XposedHelpers.getObjectField(worksInfo, "is_works") == 1;
-                });
+                // 话题贴
+                threadList.removeIf(o -> (Integer) XposedHelpers.getObjectField(o, "thread_type") == 41);
 
                 // 万人直播互动 吧友开黑组队中
                 XposedHelpers.setObjectField(param.thisObject, "live_fuse_forum", new ArrayList<>());
@@ -285,6 +280,12 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 if (frsMainTabList != null) {
                     frsMainTabList.removeIf(o -> (Integer) XposedHelpers.getObjectField(o, "tab_type") == 92);
                 }
+
+                // 弹出广告
+                XposedHelpers.setObjectField(param.thisObject, "business_promot", null);
+
+                // 顶部背景
+                XposedHelpers.setObjectField(param.thisObject, "activityhead", null);
             }
         });
         // 吧小程序
@@ -363,5 +364,28 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                         });
                     }
                 });
+        // 吧页面头条贴
+        XposedHelpers.findAndHookMethod("tbclient.FrsPage.PageData$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+                List<?> feedList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "feed_list");
+                if (feedList != null) {
+                    feedList.removeIf(
+                            o -> {
+                                Object currFeed = XposedHelpers.getObjectField(o, "feed");
+                                if (currFeed != null) {
+                                    List<?> businessInfo = (List<?>) XposedHelpers.getObjectField(currFeed, "business_info");
+                                    for (var feedKV : businessInfo) {
+                                        if (XposedHelpers.getObjectField(feedKV, "key").toString().equals("thread_type")) {
+                                            return XposedHelpers.getObjectField(feedKV, "value").toString().equals("41");
+                                        }
+                                    }
+                                }
+                                return false;
+                            }
+                    );
+                }
+            }
+        });
     }
 }
