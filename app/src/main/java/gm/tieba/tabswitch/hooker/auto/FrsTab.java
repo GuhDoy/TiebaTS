@@ -76,7 +76,12 @@ public class FrsTab extends XposedContext implements IHooker, Obfuscated {
                             new XC_MethodHook() {
                                 @Override
                                 protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                                    XposedHelpers.setObjectField(param.args[0], "sortType", 0);
+                                    if ((Integer) XposedHelpers.getObjectField(param.args[0], "sortType") == -1) {
+                                        Object sharedPrefHelper = XposedHelpers.callStaticMethod(
+                                                XposedHelpers.findClass("com.baidu.tbadk.core.sharedPref.SharedPrefHelper", sClassLoader), "getInstance");
+                                        Integer lastSortType = (Integer) XposedHelpers.callMethod(sharedPrefHelper, "getInt", "key_forum_last_sort_type", 0);
+                                        XposedHelpers.setObjectField(param.args[0], "sortType", lastSortType);
+                                    }
                                 }
                             });
                     break;
