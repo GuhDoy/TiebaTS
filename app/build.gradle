@@ -66,15 +66,15 @@ android {
 
 dependencies {
     compileOnly 'de.robv.android.xposed:api:82'
-    api 'androidx.annotation:annotation:1.7.0'
-    def roomVersion = '2.6.0'
+    api 'androidx.annotation:annotation:1.7.1'
+    def roomVersion = '2.6.1'
     implementation "androidx.room:room-runtime:$roomVersion"
     annotationProcessor "androidx.room:room-compiler:$roomVersion"
     implementation "androidx.room:room-ktx:$roomVersion"
     ksp "androidx.room:room-compiler:$roomVersion"
 
     implementation 'io.reactivex.rxjava3:rxjava:3.1.7'
-    implementation 'org.luckypray:dexkit:2.0.0-rc8'
+    implementation 'org.luckypray:dexkit:2.0.0'
     // https://stackoverflow.com/questions/61195038/excluding-dependency-from-implementation-files
     implementation files('apktool_2.7.0.jar')
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
