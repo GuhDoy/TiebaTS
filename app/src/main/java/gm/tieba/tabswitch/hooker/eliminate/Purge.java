@@ -2,17 +2,24 @@ package gm.tieba.tabswitch.hooker.eliminate;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 
 import androidx.annotation.NonNull;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
@@ -42,10 +49,42 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 new SmaliMatcher("Lcom/baidu/tieba/lego/card/model/BaseCardInfo;-><init>(Lorg/json/JSONObject;)V"),
                 new StringMatcher("pic_amount"),
                 new StringMatcher("key_frs_dialog_ad_last_show_time"),
-                new StringMatcher("准备展示精灵动画提示控件")
+                new StringMatcher("准备展示精灵动画提示控件"),
+                new StringMatcher("TbChannelJsInterfaceNew"),
+                new StringMatcher("bottom_bubble_config"),
+                new StringMatcher("top_level_navi"),
+                new StringMatcher("index_tab_info"),
+                new SmaliMatcher("Lcom/baidu/tbadk/coreExtra/floatCardView/AlaLiveTipView;-><init>(Landroid/content/Context;)V")
         );
     }
-
+    final String jsRemoveOtherCardResponse = """
+            (function (send) {
+              XMLHttpRequest.prototype.send = function () {
+                var callback = this.onreadystatechange;
+                this.onreadystatechange = function () {
+                  if (
+                    this.readyState == 4 &&
+                    this.responseURL.match(
+                      /https?:\\/\\/tieba\\.baidu\\.com\\/mo\\/q\\/frs\\/bottomPage.*/g
+                    )
+                  ) {
+                    res = JSON.parse(this.response);
+                    res.data.card_activity.small_card = [];
+                    res.data.friend_forum = [];
+                    Object.defineProperty(this, "response", { writable: true });
+                    Object.defineProperty(this, "responseText", {
+                      writable: true,
+                    });
+                    this.response = this.responseText = JSON.stringify(res);
+                  }
+                  if (callback) {
+                    callback.apply(this, arguments);
+                  }
+                };
+                send.apply(this, arguments);
+              };
+            })(XMLHttpRequest.prototype.send);
+            """;
     @Override
     public void hook() throws Throwable {
         AcRules.findRule(matchers(), (matcher, clazz, method) -> {
@@ -71,6 +110,59 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 case "准备展示精灵动画提示控件": // 吧内%s新贴热议中
                     XposedBridge.hookAllMethods(XposedHelpers.findClass(clazz, sClassLoader), method, XC_MethodReplacement.returnConstant(false));
                     break;
+                case "TbChannelJsInterfaceNew":  // 吧友直播
+                    if (method.equals("getInitData")) {
+                        XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
+                            @Override
+                            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                                JSONObject resultJson = new JSONObject((String) param.getResult());
+                                resultJson.getJSONObject("baseData").put("clientVersion", "undefined");
+                                param.setResult(resultJson.toString());
+                            }
+                        });
+                    }
+                    break;
+                case "bottom_bubble_config":    // 底部导航栏活动图标
+                    XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
+                        @Override
+                        protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                            JSONObject syncData = (JSONObject) ReflectUtils.getObjectField(param.thisObject, JSONObject.class);
+                            syncData.put("bottom_bubble_config", null);
+                        }
+                    });
+                    break;
+                case "top_level_navi":  // 首页活动背景
+                    XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
+                        @Override
+                        protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                            JSONObject syncData = (JSONObject) ReflectUtils.getObjectField(param.thisObject, JSONObject.class);
+                            syncData.put("top_level_navi", null);
+                        }
+                    });
+                    break;
+                case "index_tab_info":  // 首页活动Tab
+                    if (method.equals("invoke")) {
+                        XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
+                            @Override
+                            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                                JSONObject syncData = (JSONObject) ReflectUtils.getObjectField(param.thisObject, JSONObject.class);
+                                JSONArray indexTabInfo = syncData.getJSONArray("index_tab_info");
+                                JSONArray newIndexTabInfo = new JSONArray();
+                                for (int i = 0; i < indexTabInfo.length(); i++) {
+                                    JSONObject currTab = indexTabInfo.getJSONObject(i);
+                                    if (!currTab.getString("tab_type").equals("202")) {
+                                        newIndexTabInfo.put(currTab);
+                                    }
+                                }
+                                syncData.put("index_tab_info", newIndexTabInfo);
+                            }
+                        });
+                    }
+                    break;
+                case "Lcom/baidu/tbadk/coreExtra/floatCardView/AlaLiveTipView;-><init>(Landroid/content/Context;)V":    // 首页左上直播
+                    XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, "android.view.ViewGroup",
+                            XC_MethodReplacement.returnConstant(null));
+                    break;
             }
         });
         // 启动广告
@@ -84,16 +176,8 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
             }
         });
         // 热启动闪屏
-        XposedBridge.hookAllMethods(XposedHelpers.findClass("com.baidu.adp.framework.MessageManager",
-                sClassLoader), "dispatchResponsedMessage", new XC_MethodHook() {
-            @Override
-            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
-                final Object responsedMessage = param.args[0];
-                if ((int) XposedHelpers.getObjectField(responsedMessage, "mCmd") == 2016520) {
-                    param.setResult(null);
-                }
-            }
-        });
+        XposedHelpers.findAndHookMethod("com.baidu.tbadk.TbSingleton", sClassLoader, "isPushLaunch4SplashAd", XC_MethodReplacement.returnConstant(true));
+        XposedHelpers.findAndHookMethod("com.baidu.tbadk.abtest.UbsABTestHelper", sClassLoader, "isPushLaunchWithoutSplashAdA", XC_MethodReplacement.returnConstant(true));
         // 帖子底部推荐
         Class<?> clazz;
         try {
@@ -153,6 +237,12 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                     final Object worksInfo = XposedHelpers.getObjectField(o, "works_info");
                     return worksInfo != null && (Integer) XposedHelpers.getObjectField(worksInfo, "is_works") == 1;
                 });
+
+                // 推荐置顶广告
+                XposedHelpers.setObjectField(param.thisObject, "live_answer", null);
+
+                // 圈层热贴
+                XposedHelpers.setObjectField(param.thisObject, "hot_card", null);
             }
         });
         // 吧页面
@@ -164,17 +254,30 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
 
                 final List<?> threadList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");
                 if (threadList == null) return;
-                threadList.removeIf(o -> {
-                    if (XposedHelpers.getObjectField(o, "ala_info") != null) {
-                        return true;
-                    }
 
-                    final Object worksInfo = XposedHelpers.getObjectField(o, "works_info");
-                    return worksInfo != null && (Integer) XposedHelpers.getObjectField(worksInfo, "is_works") == 1;
-                });
+                // 话题贴
+                threadList.removeIf(o -> (Integer) XposedHelpers.getObjectField(o, "thread_type") == 41);
 
                 // 万人直播互动 吧友开黑组队中
                 XposedHelpers.setObjectField(param.thisObject, "live_fuse_forum", new ArrayList<>());
+
+                // AI 聊天
+                XposedHelpers.setObjectField(param.thisObject, "ai_chatroom_guide", null);
+
+                // 聊天室
+                XposedHelpers.setObjectField(param.thisObject, "frs_bottom", null);
+
+                // 吧友直播
+                final List<?> frsMainTabList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "frs_main_tab_list");
+                if (frsMainTabList != null) {
+                    frsMainTabList.removeIf(o -> (Integer) XposedHelpers.getObjectField(o, "tab_type") == 92);
+                }
+
+                // 弹出广告
+                XposedHelpers.setObjectField(param.thisObject, "business_promot", null);
+
+                // 顶部背景
+                XposedHelpers.setObjectField(param.thisObject, "activityhead", null);
             }
         });
         // 吧小程序
@@ -234,5 +337,47 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(false));
             }
         }
+        // 更多板块 (吧友直播，友情吧)
+        XposedHelpers.findAndHookMethod(
+                "com.baidu.tieba.browser.webview.monitor.MonitorWebView",
+                sClassLoader,
+                "loadUrl",
+                String.class,
+                Map.class,
+                new XC_MethodHook() {
+                    @Override
+                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                        WebView webView = (WebView) param.thisObject;
+                        webView.setWebViewClient(new WebViewClient() {
+                            @Override
+                            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                                webView.evaluateJavascript(jsRemoveOtherCardResponse, null);
+                            }
+                        });
+                    }
+                });
+        // 吧页面头条贴
+        XposedHelpers.findAndHookMethod("tbclient.FrsPage.PageData$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+                List<?> feedList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "feed_list");
+                if (feedList != null) {
+                    feedList.removeIf(
+                            o -> {
+                                Object currFeed = XposedHelpers.getObjectField(o, "feed");
+                                if (currFeed != null) {
+                                    List<?> businessInfo = (List<?>) XposedHelpers.getObjectField(currFeed, "business_info");
+                                    for (var feedKV : businessInfo) {
+                                        if (XposedHelpers.getObjectField(feedKV, "key").toString().equals("thread_type")) {
+                                            return XposedHelpers.getObjectField(feedKV, "value").toString().equals("41");
+                                        }
+                                    }
+                                }
+                                return false;
+                            }
+                    );
+                }
+            }
+        });
     }
 }

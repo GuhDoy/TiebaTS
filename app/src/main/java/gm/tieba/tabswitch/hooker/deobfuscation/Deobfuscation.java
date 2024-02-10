@@ -80,10 +80,13 @@ public class Deobfuscation extends XposedContext {
         progress.onNext(0F);
         final var strToResMatcher = new HashMap<String, ResMatcher>();
         final var entryNameToZipEntryMatcher = new HashMap<String, ZipEntryMatcher>();
+        final var resIdentifierToResMatcher = new HashMap<String, ResIdentifierMatcher>();
         for (final var matcher : matchers) {
             if (matcher instanceof ResMatcher) {
                 if (matcher instanceof final ZipEntryMatcher zipEntryMatcher) {
                     entryNameToZipEntryMatcher.put(zipEntryMatcher.getEntryName(), zipEntryMatcher);
+                } else if (matcher instanceof final ResIdentifierMatcher resIdentifierMatcher) {
+                    resIdentifierToResMatcher.put(resIdentifierMatcher.toString(), resIdentifierMatcher);
                 } else {
                     strToResMatcher.put(matcher.toString(), (ResMatcher) matcher);
                 }
@@ -95,7 +98,10 @@ public class Deobfuscation extends XposedContext {
         try (final var in = zipFile.getInputStream(ze)) {
             final var pkg = ARSCDecoder.decode(in, true, true).getOnePackage();
             forEachProgressed(progress, pkg.listResSpecs(), resResSpec -> {
-                if (resResSpec.hasDefaultResource()) {
+                final var identifierMatcher = resIdentifierToResMatcher.get(String.format("%s.%s", resResSpec.getType().getName(), resResSpec.getName()));
+                if (identifierMatcher != null) {
+                    identifierMatcher.setId(resResSpec.getId().id);
+                } else if (resResSpec.hasDefaultResource()) {
                     try {
                         final var resValue = resResSpec.getDefaultResource().getValue();
                         if (resValue instanceof final ResStringValue resStringValue) {

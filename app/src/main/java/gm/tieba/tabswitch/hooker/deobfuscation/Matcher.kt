@@ -26,3 +26,7 @@ class ZipEntryMatcher(val size: Long) : ResMatcher() {
     var entryName: String = ""
     override fun toString(): String = size.toString()
 }
+
+class ResIdentifierMatcher(val name: String, val defType: String) : ResMatcher() {
+    override fun toString(): String = String.format("%s.%s", defType, name)
+}
