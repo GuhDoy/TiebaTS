@@ -57,6 +57,7 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 new SmaliMatcher("Lcom/baidu/tbadk/coreExtra/floatCardView/AlaLiveTipView;-><init>(Landroid/content/Context;)V")
         );
     }
+
     final String jsRemoveOtherCardResponse = """
             (function (send) {
               XMLHttpRequest.prototype.send = function () {
@@ -85,6 +86,7 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
               };
             })(XMLHttpRequest.prototype.send);
             """;
+
     @Override
     public void hook() throws Throwable {
         AcRules.findRule(matchers(), (matcher, clazz, method) -> {
@@ -243,6 +245,16 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
 
                 // 圈层热贴
                 XposedHelpers.setObjectField(param.thisObject, "hot_card", null);
+            }
+        });
+        // 帖子 AI 聊天
+        XposedHelpers.findAndHookMethod("tbclient.PbPage.DataRes$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+                final var postList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "post_list");
+                if (postList == null) return;
+
+                postList.removeIf(o -> XposedHelpers.getObjectField(o, "aichat_bot_comment_card") != null);
             }
         });
         // 吧页面
