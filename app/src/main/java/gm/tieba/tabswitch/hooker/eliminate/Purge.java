@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.view.KeyEvent;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -176,16 +177,19 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
             }
         });
         // 热启动闪屏
-        XposedBridge.hookAllMethods(XposedHelpers.findClass("com.baidu.adp.framework.MessageManager",
-                sClassLoader), "dispatchResponsedMessage", new XC_MethodHook() {
-            @Override
-            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
-                final Object responsedMessage = param.args[0];
-                if ((int) XposedHelpers.getObjectField(responsedMessage, "mCmd") == 2921812) {
-                    param.setResult(null);
-                }
-            }
-        });
+        XposedHelpers.findAndHookMethod(
+                "com.baidu.tieba.tblauncher.MainTabActivity",
+                sClassLoader,
+                "dispatchKeyEvent",
+                KeyEvent.class,
+                new XC_MethodHook() {
+                    @Override
+                    protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+                        XposedHelpers.setStaticBooleanField(XposedHelpers.findClass("com.baidu.tbadk.core.atomData.MainTabActivityConfig", sClassLoader), "IS_MAIN_TAB_SPLASH_SHOW", false);
+                    }
+                });
+        XposedHelpers.findAndHookMethod("com.baidu.tbadk.TbSingleton", sClassLoader, "isPushLaunch4SplashAd", XC_MethodReplacement.returnConstant(true));
+        XposedHelpers.findAndHookMethod("com.baidu.tbadk.abtest.UbsABTestHelper", sClassLoader, "isPushLaunchWithoutSplashAdA", XC_MethodReplacement.returnConstant(true));
         // 帖子底部推荐
         Class<?> clazz;
         try {
