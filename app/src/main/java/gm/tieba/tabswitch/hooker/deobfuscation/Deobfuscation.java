@@ -84,14 +84,13 @@ public class Deobfuscation extends XposedContext {
         final var entryNameToZipEntryMatcher = new HashMap<String, ZipEntryMatcher>();
         final var resIdentifierToResMatcher = new HashMap<String, ResIdentifierMatcher>();
         for (final var matcher : matchers) {
-            var currMatcher = matcher instanceof PackageMatcher ? ((PackageMatcher) matcher).getSubMatcher() : matcher;
-            if (currMatcher instanceof ResMatcher) {
-                if (currMatcher instanceof final ZipEntryMatcher zipEntryMatcher) {
+            if (matcher instanceof ResMatcher) {
+                if (matcher instanceof final ZipEntryMatcher zipEntryMatcher) {
                     entryNameToZipEntryMatcher.put(zipEntryMatcher.getEntryName(), zipEntryMatcher);
-                } else if (currMatcher instanceof final ResIdentifierMatcher resIdentifierMatcher) {
-                    resIdentifierToResMatcher.put(resIdentifierMatcher.toString(), resIdentifierMatcher);
+                } else if (matcher instanceof final ResIdentifierMatcher resIdentifierMatcher) {
+                    resIdentifierToResMatcher.put(resIdentifierMatcher.toResIdentifier(), resIdentifierMatcher);
                 } else {
-                    strToResMatcher.put(currMatcher.toString(), (ResMatcher) currMatcher);
+                    strToResMatcher.put(((StringResMatcher) matcher).toResIdentifier(), (ResMatcher) matcher);
                 }
             }
         }
@@ -136,10 +135,10 @@ public class Deobfuscation extends XposedContext {
 
         forEachProgressed(progress, matchers, matcher -> {
             MethodDataList ret = new MethodDataList();
-            if (matcher instanceof final PackageMatcher packageMatcher) {
-                ClassDataList retClassList = bridge.findClass(FindClass.create().matcher(packageMatcher.getClassMatcher()));
+            if (matcher.getClassMatcher() != null) {
+                ClassDataList retClassList = bridge.findClass(FindClass.create().matcher(matcher.getClassMatcher().getMatcher()));
                 for (var retClass: retClassList) {
-                    ret.addAll(findMethod(bridge, FindMethod.create().searchPackages(retClass.getName()), packageMatcher.getSubMatcher()));
+                    ret.addAll(findMethod(bridge, FindMethod.create().searchPackages(retClass.getName()), matcher));
                 }
             } else {
                 ret.addAll(findMethod(bridge, FindMethod.create(), matcher));

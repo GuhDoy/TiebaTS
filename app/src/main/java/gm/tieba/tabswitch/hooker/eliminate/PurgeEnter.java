@@ -5,24 +5,20 @@ import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 
-import org.luckypray.dexkit.query.matchers.ClassMatcher;
-import org.luckypray.dexkit.query.matchers.MethodMatcher;
-import org.luckypray.dexkit.query.matchers.MethodsMatcher;
-
 import java.lang.reflect.Modifier;
 import java.util.List;
 
 import de.robv.android.xposed.XC_MethodReplacement;
+import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.hooker.Obfuscated;
+import gm.tieba.tabswitch.hooker.deobfuscation.ClassMatcherHelper;
 import gm.tieba.tabswitch.hooker.deobfuscation.MethodNameMatcher;
-import gm.tieba.tabswitch.hooker.deobfuscation.PackageMatcher;
 import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
 import gm.tieba.tabswitch.hooker.deobfuscation.ResIdentifierMatcher;
-import gm.tieba.tabswitch.hooker.deobfuscation.StringMatcher;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class PurgeEnter extends XposedContext implements IHooker, Obfuscated {
@@ -32,10 +28,6 @@ public class PurgeEnter extends XposedContext implements IHooker, Obfuscated {
         return "purge_enter";
     }
 
-    private final ClassMatcher mRecForumClassMatcher =
-            ClassMatcher.create().methods(
-                    MethodsMatcher.create().methods(
-                            List.of(MethodMatcher.create().usingStrings("enter_forum_login_tip"))));
     private int mInitLayoutHeight = -1;
     private final int mLayoutOffset = (int) ReflectUtils.getDimen("tbds50");
     private String mRecForumClassName, mRecForumSetNextPageMethodName;
@@ -43,12 +35,8 @@ public class PurgeEnter extends XposedContext implements IHooker, Obfuscated {
     @Override
     public List<? extends Matcher> matchers() {
         return List.of(
-                new PackageMatcher(mRecForumClassMatcher,
-                        "enter_forum_login_tip",
-                        new ResIdentifierMatcher("tbds400", "dimen")),
-                new PackageMatcher(mRecForumClassMatcher,
-                        "enter_forum_login_tip",
-                        new MethodNameMatcher("onSuccess"))
+                new ResIdentifierMatcher("tbds400", "dimen", ClassMatcherHelper.fromString("enter_forum_login_tip")),
+                new MethodNameMatcher("onSuccess", ClassMatcherHelper.fromString("enter_forum_login_tip"))
         );
     }
 
