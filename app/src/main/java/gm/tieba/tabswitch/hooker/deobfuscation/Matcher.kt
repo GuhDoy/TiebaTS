@@ -1,5 +1,7 @@
 package gm.tieba.tabswitch.hooker.deobfuscation
 
+import org.luckypray.dexkit.query.matchers.ClassMatcher
+
 abstract class Matcher {
     abstract override fun toString(): String
 }
@@ -29,4 +31,12 @@ class ZipEntryMatcher(val size: Long) : ResMatcher() {
 
 class ResIdentifierMatcher(val name: String, val defType: String) : ResMatcher() {
     override fun toString(): String = String.format("%s.%s", defType, name)
+}
+
+class PackageMatcher(val classMatcher: ClassMatcher, val classMatcherIdentifier: String, val subMatcher: Matcher) : Matcher() {
+    override fun toString(): String = String.format("%s/%s", classMatcherIdentifier, subMatcher.toString())
+}
+
+class MethodNameMatcher(val name: String) : Matcher() {
+    override fun toString(): String = name
 }

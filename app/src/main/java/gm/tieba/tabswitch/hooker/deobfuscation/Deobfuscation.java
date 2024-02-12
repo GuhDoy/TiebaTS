@@ -3,8 +3,10 @@ package gm.tieba.tabswitch.hooker.deobfuscation;
 import android.content.Context;
 
 import org.luckypray.dexkit.DexKitBridge;
+import org.luckypray.dexkit.query.FindClass;
 import org.luckypray.dexkit.query.FindMethod;
 import org.luckypray.dexkit.query.matchers.MethodMatcher;
+import org.luckypray.dexkit.result.ClassDataList;
 import org.luckypray.dexkit.result.MethodDataList;
 
 import java.io.IOException;
@@ -82,13 +84,14 @@ public class Deobfuscation extends XposedContext {
         final var entryNameToZipEntryMatcher = new HashMap<String, ZipEntryMatcher>();
         final var resIdentifierToResMatcher = new HashMap<String, ResIdentifierMatcher>();
         for (final var matcher : matchers) {
-            if (matcher instanceof ResMatcher) {
-                if (matcher instanceof final ZipEntryMatcher zipEntryMatcher) {
+            var currMatcher = matcher instanceof PackageMatcher ? ((PackageMatcher) matcher).getSubMatcher() : matcher;
+            if (currMatcher instanceof ResMatcher) {
+                if (currMatcher instanceof final ZipEntryMatcher zipEntryMatcher) {
                     entryNameToZipEntryMatcher.put(zipEntryMatcher.getEntryName(), zipEntryMatcher);
-                } else if (matcher instanceof final ResIdentifierMatcher resIdentifierMatcher) {
+                } else if (currMatcher instanceof final ResIdentifierMatcher resIdentifierMatcher) {
                     resIdentifierToResMatcher.put(resIdentifierMatcher.toString(), resIdentifierMatcher);
                 } else {
-                    strToResMatcher.put(matcher.toString(), (ResMatcher) matcher);
+                    strToResMatcher.put(currMatcher.toString(), (ResMatcher) currMatcher);
                 }
             }
         }
@@ -132,37 +135,54 @@ public class Deobfuscation extends XposedContext {
         Objects.requireNonNull(bridge);
 
         forEachProgressed(progress, matchers, matcher -> {
-            MethodDataList ret = null;
-            if (matcher instanceof final StringMatcher stringMatcher) {
-                ret = bridge.findMethod(
-                        FindMethod.create().matcher(
-                                MethodMatcher.create().usingStrings(stringMatcher.getStr())
-                        )
-                );
-            } else if (matcher instanceof final ResMatcher resMatcher) {
-                ret = bridge.findMethod(
-                        FindMethod.create().matcher(
-                                MethodMatcher.create().usingNumbers(resMatcher.getId())
-                        )
-                );
-            } else if (matcher instanceof final SmaliMatcher smaliMatcher) {
-                ret = bridge.findMethod(
-                        FindMethod.create().matcher(
-                                MethodMatcher.create().addInvoke(
-                                        MethodMatcher.create().descriptor(smaliMatcher.toString())
-                                )
-                        )
-                );
-            }
-            if (ret != null) {
-                for (final var methodData : ret) {
-                    AcRules.putRule(
-                            matcher.toString(), methodData.getClassName(), methodData.getName());
+            MethodDataList ret = new MethodDataList();
+            if (matcher instanceof final PackageMatcher packageMatcher) {
+                ClassDataList retClassList = bridge.findClass(FindClass.create().matcher(packageMatcher.getClassMatcher()));
+                for (var retClass: retClassList) {
+                    ret.addAll(findMethod(bridge, FindMethod.create().searchPackages(retClass.getName()), packageMatcher.getSubMatcher()));
                 }
+            } else {
+                ret.addAll(findMethod(bridge, FindMethod.create(), matcher));
+            }
+            for (final var methodData : ret) {
+                AcRules.putRule(
+                        matcher.toString(), methodData.getClassName(), methodData.getName());
             }
         });
 
         bridge.close();
+    }
+
+    private MethodDataList findMethod(DexKitBridge bridge, FindMethod baseMethodQuery, Matcher matcher) {
+        MethodDataList ret = null;
+        if (matcher instanceof final StringMatcher stringMatcher) {
+            ret = bridge.findMethod(
+                    baseMethodQuery.matcher(
+                            MethodMatcher.create().usingStrings(stringMatcher.getStr())
+                    )
+            );
+        } else if (matcher instanceof final ResMatcher resMatcher) {
+            ret = bridge.findMethod(
+                    baseMethodQuery.matcher(
+                            MethodMatcher.create().usingNumbers(resMatcher.getId())
+                    )
+            );
+        } else if (matcher instanceof final SmaliMatcher smaliMatcher) {
+            ret = bridge.findMethod(
+                    baseMethodQuery.matcher(
+                            MethodMatcher.create().addInvoke(
+                                    MethodMatcher.create().descriptor(smaliMatcher.toString())
+                            )
+                    )
+            );
+        } else if (matcher instanceof final MethodNameMatcher methodNameMatcher) {
+            ret = bridge.findMethod(
+                    baseMethodQuery.matcher(
+                            MethodMatcher.create().name(methodNameMatcher.getName())
+                    )
+            );
+        }
+        return ret;
     }
 
     public void saveDexSignatureHashCode() throws IOException {
