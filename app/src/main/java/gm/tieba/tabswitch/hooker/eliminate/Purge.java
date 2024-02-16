@@ -176,8 +176,16 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
             }
         });
         // 热启动闪屏
-        XposedHelpers.findAndHookMethod("com.baidu.tbadk.TbSingleton", sClassLoader, "isPushLaunch4SplashAd", XC_MethodReplacement.returnConstant(true));
-        XposedHelpers.findAndHookMethod("com.baidu.tbadk.abtest.UbsABTestHelper", sClassLoader, "isPushLaunchWithoutSplashAdA", XC_MethodReplacement.returnConstant(true));
+        XposedBridge.hookAllMethods(XposedHelpers.findClass("com.baidu.adp.framework.MessageManager",
+                sClassLoader), "dispatchResponsedMessage", new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+                final Object responsedMessage = param.args[0];
+                if ((int) XposedHelpers.getObjectField(responsedMessage, "mCmd") == 2921812) {
+                    param.setResult(null);
+                }
+            }
+        });
         // 帖子底部推荐
         Class<?> clazz;
         try {

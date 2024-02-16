@@ -7,7 +7,7 @@ class ClassMatcherHelper(val matcher: ClassMatcher, val id: String) {
 
     companion object {
         @JvmStatic
-        fun fromString(str: String): ClassMatcherHelper {
+        fun usingString(str: String): ClassMatcherHelper {
             val matcher = ClassMatcher.create().usingStrings(str)
             return ClassMatcherHelper(matcher, str)
         }

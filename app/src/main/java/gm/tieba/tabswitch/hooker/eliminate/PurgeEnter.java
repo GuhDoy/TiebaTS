@@ -35,8 +35,8 @@ public class PurgeEnter extends XposedContext implements IHooker, Obfuscated {
     @Override
     public List<? extends Matcher> matchers() {
         return List.of(
-                new ResIdentifierMatcher("tbds400", "dimen", ClassMatcherHelper.fromString("enter_forum_login_tip")),
-                new MethodNameMatcher("onSuccess", ClassMatcherHelper.fromString("enter_forum_login_tip"))
+                new ResIdentifierMatcher("tbds400", "dimen", ClassMatcherHelper.usingString("enter_forum_login_tip")),
+                new MethodNameMatcher("onSuccess", ClassMatcherHelper.usingString("enter_forum_login_tip"))
         );
     }
 
