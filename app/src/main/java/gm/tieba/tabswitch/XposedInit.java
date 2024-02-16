@@ -50,6 +50,7 @@ import gm.tieba.tabswitch.hooker.eliminate.FrsPageFilter;
 import gm.tieba.tabswitch.hooker.eliminate.PersonalizedFilter;
 import gm.tieba.tabswitch.hooker.eliminate.Purge;
 import gm.tieba.tabswitch.hooker.eliminate.PurgeEnter;
+import gm.tieba.tabswitch.hooker.eliminate.PurgeMy;
 import gm.tieba.tabswitch.hooker.eliminate.RedTip;
 import gm.tieba.tabswitch.hooker.eliminate.RemoveUpdate;
 import gm.tieba.tabswitch.hooker.eliminate.SwitchManager;
@@ -109,7 +110,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                         new SwitchManager(),
                         new Purge(),
                         new PurgeEnter(),
-//                        new PurgeMy(),
+                        new PurgeMy(),
                         new RedTip(),
                         new FollowFilter(),
                         new PersonalizedFilter(),
