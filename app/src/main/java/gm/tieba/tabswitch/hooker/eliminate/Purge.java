@@ -277,10 +277,13 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 XposedHelpers.setObjectField(param.thisObject, "star_enter", new ArrayList<>());
 
                 final List<?> threadList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");
-                if (threadList == null) return;
-
-                // 话题贴
-                threadList.removeIf(o -> (Integer) XposedHelpers.getObjectField(o, "thread_type") == 41);
+                if (threadList != null) {
+                    // 吧页面头条贴(41), 直播贴(69)
+                    threadList.removeIf(o -> {
+                        var threadType = (Integer) XposedHelpers.getObjectField(o, "thread_type");
+                        return threadType == 41 || threadType == 69;
+                    });
+                }
 
                 // 万人直播互动 吧友开黑组队中
                 XposedHelpers.setObjectField(param.thisObject, "live_fuse_forum", new ArrayList<>());
@@ -380,7 +383,7 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                         });
                     }
                 });
-        // 吧页面头条贴
+        // 吧页面头条贴(41), 直播贴(69)
         XposedHelpers.findAndHookMethod("tbclient.FrsPage.PageData$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
@@ -393,7 +396,8 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                                     List<?> businessInfo = (List<?>) XposedHelpers.getObjectField(currFeed, "business_info");
                                     for (var feedKV : businessInfo) {
                                         if (XposedHelpers.getObjectField(feedKV, "key").toString().equals("thread_type")) {
-                                            return XposedHelpers.getObjectField(feedKV, "value").toString().equals("41");
+                                            var threadType = XposedHelpers.getObjectField(feedKV, "value").toString();
+                                            return threadType.equals("41") || threadType.equals("69");
                                         }
                                     }
                                 }
