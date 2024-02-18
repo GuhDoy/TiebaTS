@@ -412,5 +412,13 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 }
             }
         });
+        // 聊天-AI角色
+        XposedHelpers.findAndHookMethod("com.baidu.tieba.immessagecenter.chatgroup.data.ChatGroupInfo", sClassLoader, "parse", JSONObject.class, new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                JSONObject chatGroupInfo = (JSONObject) param.args[0];
+                chatGroupInfo.put("aichat_entrance_info", null);
+            }
+        });
     }
 }
