@@ -380,12 +380,21 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                         WebView webView = (WebView) param.thisObject;
-                        webView.setWebViewClient(new WebViewClient() {
-                            @Override
-                            public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                                webView.evaluateJavascript(jsRemoveOtherCardResponse, null);
-                            }
-                        });
+                        WebViewClient oldWebViewClient = webView.getWebViewClient();
+
+                        // Only hook once
+                        Boolean isHooked = (Boolean) XposedHelpers.getAdditionalInstanceField(oldWebViewClient, "isHooked");
+                        if (isHooked != null && !isHooked) {
+                            webView.setWebViewClient(new WebViewClient() {
+                                @Override
+                                public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                                    oldWebViewClient.onPageStarted(view, url, favicon);
+                                    webView.evaluateJavascript(jsRemoveOtherCardResponse, null);
+                                }
+                            });
+
+                            XposedHelpers.setAdditionalInstanceField(oldWebViewClient, "isHooked", true);
+                        }
                     }
                 });
         // 吧页面头条贴(41), 直播贴(69)
