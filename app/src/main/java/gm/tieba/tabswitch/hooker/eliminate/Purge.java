@@ -55,7 +55,8 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 new StringMatcher("bottom_bubble_config"),
                 new StringMatcher("top_level_navi"),
                 new StringMatcher("index_tab_info"),
-                new SmaliMatcher("Lcom/baidu/tbadk/coreExtra/floatCardView/AlaLiveTipView;-><init>(Landroid/content/Context;)V")
+                new SmaliMatcher("Lcom/baidu/tbadk/coreExtra/floatCardView/AlaLiveTipView;-><init>(Landroid/content/Context;)V"),
+                new SmaliMatcher("Lcom/baidu/tbadk/editortools/meme/pan/SpriteMemePan;-><init>(Landroid/content/Context;)V")
         );
     }
 
@@ -164,6 +165,10 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                     break;
                 case "Lcom/baidu/tbadk/coreExtra/floatCardView/AlaLiveTipView;-><init>(Landroid/content/Context;)V":    // 首页左上直播
                     XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, "android.view.ViewGroup",
+                            XC_MethodReplacement.returnConstant(null));
+                    break;
+                case "Lcom/baidu/tbadk/editortools/meme/pan/SpriteMemePan;-><init>(Landroid/content/Context;)V":    // 点我快速配图经验+3
+                    XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, "android.content.Context",
                             XC_MethodReplacement.returnConstant(null));
                     break;
             }
