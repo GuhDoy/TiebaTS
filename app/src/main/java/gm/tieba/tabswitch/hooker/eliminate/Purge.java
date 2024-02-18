@@ -385,15 +385,15 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                         // Only hook once
                         Boolean isHooked = (Boolean) XposedHelpers.getAdditionalInstanceField(oldWebViewClient, "isHooked");
                         if (isHooked != null && !isHooked) {
-                            webView.setWebViewClient(new WebViewClient() {
+                            WebViewClient newWebViewClient = new WebViewClient() {
                                 @Override
                                 public void onPageStarted(WebView view, String url, Bitmap favicon) {
                                     oldWebViewClient.onPageStarted(view, url, favicon);
                                     webView.evaluateJavascript(jsRemoveOtherCardResponse, null);
                                 }
-                            });
-
-                            XposedHelpers.setAdditionalInstanceField(oldWebViewClient, "isHooked", true);
+                            };
+                            XposedHelpers.setAdditionalInstanceField(newWebViewClient, "isHooked", true);
+                            webView.setWebViewClient(newWebViewClient);
                         }
                     }
                 });
