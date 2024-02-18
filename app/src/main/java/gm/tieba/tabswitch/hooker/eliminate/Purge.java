@@ -370,33 +370,13 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
             }
         }
         // 更多板块 (吧友直播，友情吧)
-        XposedHelpers.findAndHookMethod(
-                "com.baidu.tieba.browser.webview.monitor.MonitorWebView",
-                sClassLoader,
-                "loadUrl",
-                String.class,
-                Map.class,
-                new XC_MethodHook() {
-                    @Override
-                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                        WebView webView = (WebView) param.thisObject;
-                        WebViewClient oldWebViewClient = webView.getWebViewClient();
-
-                        // Only hook once
-                        Boolean isHooked = (Boolean) XposedHelpers.getAdditionalInstanceField(oldWebViewClient, "isHooked");
-                        if (isHooked != null && !isHooked) {
-                            WebViewClient newWebViewClient = new WebViewClient() {
-                                @Override
-                                public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                                    oldWebViewClient.onPageStarted(view, url, favicon);
-                                    webView.evaluateJavascript(jsRemoveOtherCardResponse, null);
-                                }
-                            };
-                            XposedHelpers.setAdditionalInstanceField(newWebViewClient, "isHooked", true);
-                            webView.setWebViewClient(newWebViewClient);
-                        }
-                    }
-                });
+        XposedHelpers.findAndHookMethod(WebViewClient.class, "onPageStarted", WebView.class, String.class, Bitmap.class, new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                WebView webView = (WebView) param.args[0];
+                webView.evaluateJavascript(jsRemoveOtherCardResponse, null);
+            }
+        });
         // 吧页面头条贴(41), 直播贴(69)
         XposedHelpers.findAndHookMethod("tbclient.FrsPage.PageData$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
