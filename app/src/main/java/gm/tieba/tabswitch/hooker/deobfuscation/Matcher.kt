@@ -24,6 +24,7 @@ class StringMatcher @JvmOverloads constructor(val str: String, classMatcher: Cla
 
 class SmaliMatcher @JvmOverloads constructor(val str: String, classMatcher: ClassMatcherHelper? = null) : Matcher(classMatcher) {
     override fun toString(): String = super.toString() + str
+    fun getDescriptor(): String = str;
 }
 
 class MethodNameMatcher @JvmOverloads constructor(val name: String, classMatcher: ClassMatcherHelper? = null) : Matcher(classMatcher) {

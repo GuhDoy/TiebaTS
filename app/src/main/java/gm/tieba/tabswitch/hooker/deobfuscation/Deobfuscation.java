@@ -170,7 +170,7 @@ public class Deobfuscation extends XposedContext {
             ret = bridge.findMethod(
                     baseMethodQuery.matcher(
                             MethodMatcher.create().addInvoke(
-                                    MethodMatcher.create().descriptor(smaliMatcher.toString())
+                                    MethodMatcher.create().descriptor(smaliMatcher.getDescriptor())
                             )
                     )
             );
