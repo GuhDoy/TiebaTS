@@ -9,16 +9,15 @@ import java.lang.reflect.Modifier;
 import java.util.List;
 
 import de.robv.android.xposed.XC_MethodReplacement;
-import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.hooker.Obfuscated;
-import gm.tieba.tabswitch.hooker.deobfuscation.ClassMatcherHelper;
 import gm.tieba.tabswitch.hooker.deobfuscation.MethodNameMatcher;
 import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
 import gm.tieba.tabswitch.hooker.deobfuscation.ResIdentifierMatcher;
+import gm.tieba.tabswitch.util.ClassMatcherUtils;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class PurgeEnter extends XposedContext implements IHooker, Obfuscated {
@@ -35,8 +34,8 @@ public class PurgeEnter extends XposedContext implements IHooker, Obfuscated {
     @Override
     public List<? extends Matcher> matchers() {
         return List.of(
-                new ResIdentifierMatcher("tbds400", "dimen", ClassMatcherHelper.usingString("enter_forum_login_tip")),
-                new MethodNameMatcher("onSuccess", ClassMatcherHelper.usingString("enter_forum_login_tip"))
+                new ResIdentifierMatcher("tbds400", "dimen", ClassMatcherUtils.usingString("enter_forum_login_tip")),
+                new MethodNameMatcher("onSuccess", ClassMatcherUtils.usingString("enter_forum_login_tip"))
         );
     }
 

@@ -29,7 +29,6 @@ import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.hooker.Obfuscated;
-import gm.tieba.tabswitch.hooker.deobfuscation.ClassMatcherHelper;
 import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
 import gm.tieba.tabswitch.hooker.deobfuscation.SmaliMatcher;
 import gm.tieba.tabswitch.hooker.deobfuscation.StringMatcher;
@@ -56,8 +55,7 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 new StringMatcher("top_level_navi"),
                 new StringMatcher("index_tab_info"),
                 new SmaliMatcher("Lcom/baidu/tbadk/coreExtra/floatCardView/AlaLiveTipView;-><init>(Landroid/content/Context;)V"),
-                new SmaliMatcher("Lcom/baidu/tbadk/editortools/meme/pan/SpriteMemePan;-><init>(Landroid/content/Context;)V"),
-                new SmaliMatcher("Lcom/baidu/nadcore/download/basic/AdAppStateManager;->instance()Lcom/baidu/nadcore/download/basic/AdAppStateManager;", ClassMatcherHelper.usingString("隐私设置"))
+                new SmaliMatcher("Lcom/baidu/tbadk/editortools/meme/pan/SpriteMemePan;-><init>(Landroid/content/Context;)V")
         );
     }
 
@@ -171,10 +169,6 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 case "Lcom/baidu/tbadk/editortools/meme/pan/SpriteMemePan;-><init>(Landroid/content/Context;)V":    // 点我快速配图经验+3
                     XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, "android.content.Context",
                             XC_MethodReplacement.returnConstant(null));
-                    break;
-                // 个人页面空行
-                case "隐私设置/Lcom/baidu/nadcore/download/basic/AdAppStateManager;->instance()Lcom/baidu/nadcore/download/basic/AdAppStateManager;":
-                    XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, XC_MethodReplacement.returnConstant(null));
                     break;
             }
         });
