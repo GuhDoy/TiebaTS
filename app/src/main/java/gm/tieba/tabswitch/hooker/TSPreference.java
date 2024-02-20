@@ -192,8 +192,8 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
             preferenceLayout.addView(new SwitchButtonHolder(activity, "真正的净化界面", "purge", SwitchButtonHolder.TYPE_SWITCH));
         }
         preferenceLayout.addView(new SwitchButtonHolder(activity, "净化进吧", "purge_enter", SwitchButtonHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "净化置顶帖", "fold_top_card_view", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "净化我的", "purge_my", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(activity, "净化置顶帖", "fold_top_card_view", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏小红点", "red_tip", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "禁用更新提示", "remove_update", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "只推荐已关注的吧", "follow_filter", SwitchButtonHolder.TYPE_SWITCH));
@@ -208,11 +208,11 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
         preferenceLayout.addView(new SwitchButtonHolder(activity, "搜索楼中楼增加查看主题贴", "new_sub", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "楼层增加点按效果", "ripple", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "长按下载保存全部图片", "save_images", SwitchButtonHolder.TYPE_SWITCH));
-        preferenceLayout.addView(TSPreferenceHelper.createButton(NOTES, null, true, v -> {
-            final Intent intent = new Intent().setClassName(activity, PROXY_ACTIVITY);
-            intent.putExtra("proxyPage", NOTES);
-            activity.startActivity(intent);
-        }));
+//        preferenceLayout.addView(TSPreferenceHelper.createButton(NOTES, null, true, v -> {
+//            final Intent intent = new Intent().setClassName(activity, PROXY_ACTIVITY);
+//            intent.putExtra("proxyPage", NOTES);
+//            activity.startActivity(intent);
+//        }));
 
         preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurgeEnabled ? "垂手可得" : "自动化"));
         final SwitchButtonHolder autoSign = new SwitchButtonHolder(activity, "自动签到", "auto_sign", SwitchButtonHolder.TYPE_SWITCH);
@@ -283,7 +283,8 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
         preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏进吧", "enter_forum", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏发帖", "write_thread", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏消息", "im_message", SwitchButtonHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "禁用动态样式", "dynamic_style", SwitchButtonHolder.TYPE_SWITCH));
+        // Merged with Purge
+//        preferenceLayout.addView(new SwitchButtonHolder(activity, "禁用动态样式", "dynamic_style", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(TSPreferenceHelper.createTextView("禁用 Flutter"));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "我关注的吧", "flutter_concern_forum_enable_android", SwitchButtonHolder.TYPE_SET_FLUTTER));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "吧资料", "flutter_forum_detail_enable_android_112", SwitchButtonHolder.TYPE_SET_FLUTTER));

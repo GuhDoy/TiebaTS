@@ -280,14 +280,15 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 // 吧公告
                 XposedHelpers.setObjectField(param.thisObject, "star_enter", new ArrayList<>());
 
-                final List<?> threadList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");
-                if (threadList != null) {
-                    // 吧页面头条贴(41), 直播贴(69)
-                    threadList.removeIf(o -> {
-                        var threadType = (Integer) XposedHelpers.getObjectField(o, "thread_type");
-                        return threadType == 41 || threadType == 69;
-                    });
-                }
+                // thread_list is deprecated
+//                final List<?> threadList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");
+//                if (threadList != null) {
+//                    // 吧页面头条贴(41), 直播贴(69)
+//                    threadList.removeIf(o -> {
+//                        var threadType = (Integer) XposedHelpers.getObjectField(o, "thread_type");
+//                        return threadType == 41 || threadType == 69;
+//                    });
+//                }
 
                 // 万人直播互动 吧友开黑组队中
                 XposedHelpers.setObjectField(param.thisObject, "live_fuse_forum", new ArrayList<>());

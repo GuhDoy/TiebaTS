@@ -26,6 +26,7 @@ import gm.tieba.tabswitch.hooker.TSPreferenceHelper;
 import gm.tieba.tabswitch.widget.TbDialog;
 import gm.tieba.tabswitch.widget.TbEditText;
 
+@Deprecated
 public class MyAttention extends XposedContext implements IHooker {
 
     @NonNull
