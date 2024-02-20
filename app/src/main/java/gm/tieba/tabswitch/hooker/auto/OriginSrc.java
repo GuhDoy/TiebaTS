@@ -17,6 +17,7 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
+import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.hooker.deobfuscation.StringMatcher;
 
@@ -28,9 +29,15 @@ public class OriginSrc extends XposedContext implements IHooker {
         return "origin_src";
     }
 
+    private static boolean isHooked;
+    private static XC_MethodHook.Unhook picListUnhook;
+    private static XC_MethodHook.Unhook pbContentUnhook;
+    private static XC_MethodHook.Unhook mediaUnhook;
+
     private static void doHook() {
+        if (isHooked) return;
         AcRules.findRule(new StringMatcher("pic_amount"), (matcher, clazz, method) ->
-                XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, JSONObject.class, Boolean.class, new XC_MethodHook() {
+                picListUnhook = XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, JSONObject.class, Boolean.class, new XC_MethodHook() {
                     @Override
                     protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
                         final JSONObject jsonObject = (JSONObject) param.args[0];
@@ -48,7 +55,7 @@ public class OriginSrc extends XposedContext implements IHooker {
                         jsonObject.put("pic_list", picList);
                     }
                 }));
-        XposedHelpers.findAndHookMethod("tbclient.PbContent$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
+        pbContentUnhook = XposedHelpers.findAndHookMethod("tbclient.PbContent$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(final XC_MethodHook.MethodHookParam param) throws Throwable {
                 XposedHelpers.setObjectField(param.thisObject, "show_original_btn", 0);
@@ -59,7 +66,7 @@ public class OriginSrc extends XposedContext implements IHooker {
                 }
             }
         });
-        XposedHelpers.findAndHookMethod("tbclient.Media$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
+        mediaUnhook = XposedHelpers.findAndHookMethod("tbclient.Media$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(final XC_MethodHook.MethodHookParam param) throws Throwable {
                 XposedHelpers.setObjectField(param.thisObject, "show_original_btn", 0);
@@ -70,17 +77,39 @@ public class OriginSrc extends XposedContext implements IHooker {
                 }
             }
         });
+        isHooked = true;
+    }
+
+    private static void doUnHook() {
+        if (!isHooked) return;
+        if (picListUnhook != null) {
+            picListUnhook.unhook();
+            picListUnhook = null;
+        }
+        if (pbContentUnhook != null) {
+            pbContentUnhook.unhook();
+            pbContentUnhook = null;
+        }
+        if (mediaUnhook != null) {
+            mediaUnhook.unhook();
+            mediaUnhook = null;
+        }
+        isHooked = false;
     }
 
     @SuppressLint("MissingPermission")
     @Override
     public void hook() throws Throwable {
-        final NetworkCallbackImpl networkCallback = new NetworkCallbackImpl();
-        final NetworkRequest.Builder builder = new NetworkRequest.Builder();
-        final NetworkRequest request = builder.build();
-        final ConnectivityManager connMgr = (ConnectivityManager) getContext().getSystemService(
-                Context.CONNECTIVITY_SERVICE);
-        if (connMgr != null) connMgr.registerNetworkCallback(request, networkCallback);
+        if (Preferences.getBoolean("origin_src_only_wifi")) {
+            final NetworkCallbackImpl networkCallback = new NetworkCallbackImpl();
+            final NetworkRequest.Builder builder = new NetworkRequest.Builder();
+            final NetworkRequest request = builder.build();
+            final ConnectivityManager connMgr = (ConnectivityManager) getContext().getSystemService(
+                    Context.CONNECTIVITY_SERVICE);
+            if (connMgr != null) connMgr.registerNetworkCallback(request, networkCallback);
+        } else {
+            doHook();
+        }
     }
 
     private static class NetworkCallbackImpl extends ConnectivityManager.NetworkCallback {
@@ -93,6 +122,8 @@ public class OriginSrc extends XposedContext implements IHooker {
             if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
                     && networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
                 doHook();
+            } else {
+                doUnHook();
             }
         }
     }
