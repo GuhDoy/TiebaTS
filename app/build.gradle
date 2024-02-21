@@ -18,6 +18,7 @@ android {
         targetSdk sdk
         versionCode gitCommitCount
         versionName '2.9.5'
+        buildConfigField "String", "TARGET_VERSION", "\"12.53.1.0\""
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         externalNativeBuild {

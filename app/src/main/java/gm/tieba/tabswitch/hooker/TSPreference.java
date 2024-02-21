@@ -280,7 +280,7 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
             intent.setData(Uri.parse("https://t.me/TabSwitch"));
             activity.startActivity(intent);
         }));
-        preferenceLayout.addView(TSPreferenceHelper.createButton("版本", BuildConfig.VERSION_NAME, true, v -> {
+        preferenceLayout.addView(TSPreferenceHelper.createButton("版本（适配版本）", String.format("%s_%d (%s)", BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE, BuildConfig.TARGET_VERSION), true, v -> {
             final Intent intent = new Intent();
             intent.setAction("android.intent.action.VIEW");
             intent.setData(Uri.parse("https://github.com/GuhDoy/TiebaTS/releases/latest"));

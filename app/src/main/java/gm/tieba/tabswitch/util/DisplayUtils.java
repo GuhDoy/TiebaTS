@@ -61,4 +61,8 @@ public class DisplayUtils extends XposedContext {
         final float scale = context.getResources().getDisplayMetrics().density;
         return (int) (pxValue / scale + 0.5f);
     }
+
+    public static int getDisplayWidth(final Context context) {
+        return context.getResources().getDisplayMetrics().widthPixels;
+    }
 }

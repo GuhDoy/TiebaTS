@@ -8,6 +8,7 @@ import android.app.Instrumentation;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.WindowManager;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -178,21 +179,25 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                         protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
                             final var activity = (Activity) param.thisObject;
                             final var messages = new ArrayList<String>();
-                            messages.add(Constants.getStrings().get("exception_rules_incomplete"));
+                            messages.add(String.format(Constants.getStrings().get("exception_rules_incomplete"), BuildConfig.TARGET_VERSION));
                             messages.add(String.format(Locale.CHINA, "tbversion: %s, module version: %d",
                                     DeobfuscationHelper.getTbVersion(getContext()), BuildConfig.VERSION_CODE));
                             messages.add(String.format(Locale.CHINA, "%d rule(s) lost: %s", lostList.size(), lostList));
                             final var message = TextUtils.join("\n", messages);
                             XposedBridge.log(message);
-                            new AlertDialog.Builder(activity, DisplayUtils.isLightMode(getContext()) ?
-                                    AlertDialog.THEME_DEVICE_DEFAULT_LIGHT : AlertDialog.THEME_DEVICE_DEFAULT_DARK)
+                            AlertDialog alert = new AlertDialog.Builder(activity, DisplayUtils.isLightMode(getContext()) ?
+                                    android.R.style.Theme_DeviceDefault_Light_Dialog_Alert : android.R.style.Theme_DeviceDefault_Dialog_Alert)
                                     .setTitle("警告").setMessage(message).setCancelable(false)
                                     .setNegativeButton(activity.getString(android.R.string.cancel), null)
                                     .setPositiveButton(activity.getString(android.R.string.ok), (dialogInterface, i) -> {
                                         Preferences.putSignature(0);
                                         DeobfuscationHelper.saveAndRestart(activity, "unknown", null);
-                                    })
-                                    .show();
+                                    }).create();
+                            alert.show();
+                            WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
+                            layoutParams.copyFrom(alert.getWindow().getAttributes());
+                            layoutParams.width = DisplayUtils.getDisplayWidth(getContext());
+                            alert.getWindow().setAttributes(layoutParams);
                         }
                     });
                     return;
