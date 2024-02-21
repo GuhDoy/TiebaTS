@@ -31,4 +31,8 @@ public class NavigationBar extends XposedContext {
     public void setTitleText(final String title) {
         XposedHelpers.callMethod(mNavigationBar, "setTitleText", title);
     }
+
+    public void setCenterTextTitle(final String title) {
+        XposedHelpers.callMethod(mNavigationBar, "setCenterTextTitle", title);
+    }
 }

@@ -41,12 +41,12 @@ public class TSPreferenceHelper extends XposedContext {
         final TextView textView = new TextView(getContext());
         textView.setText(text);
         textView.setTextColor(ReflectUtils.getColor("CAM_X0108"));
-        textView.setTextSize(ReflectUtils.getDimenDip("fontsize28"));
+        textView.setTextSize(ReflectUtils.getDimenDip("fontsize22"));
         final LinearLayout.LayoutParams layoutParams;
         if (text != null) {
             textView.setPaddingRelative((int) ReflectUtils.getDimen("ds30"),
-                    (int) ReflectUtils.getDimen("ds32"), 0,
-                    (int) ReflectUtils.getDimen("ds10"));
+                    (int) ReflectUtils.getDimen("ds20"), 0,
+                    (int) ReflectUtils.getDimen("ds20"));
             layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT);
         } else {
@@ -154,7 +154,10 @@ public class TSPreferenceHelper extends XposedContext {
 
         void setOnButtonClickListener(final View.OnClickListener l) {
             switchButton.setOnClickListener(l);
-            bdSwitch.bdSwitch.setOnTouchListener((View v, MotionEvent event) -> false);
+            bdSwitch.bdSwitch.setOnTouchListener((View v, MotionEvent event) -> {
+                XposedHelpers.callMethod(bdSwitch.getVibrator(), "vibrate", 30L);
+                return false;
+            });
         }
 
         private void showRegexDialog(final Activity activity) {

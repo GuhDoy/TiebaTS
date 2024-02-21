@@ -81,7 +81,13 @@ public class Preferences {
     public static void putAutoSignEnabled() {
         final SharedPreferences.Editor editor = sTsConfig.edit();
         editor.putBoolean("auto_sign", true);
-        editor.apply();
+        editor.commit();
+    }
+
+    public static void putAutoSignDisabled() {
+        final SharedPreferences.Editor editor = sTsConfig.edit();
+        editor.putBoolean("auto_sign", false);
+        editor.commit();
     }
 
     public static boolean getIsAutoSignEnabled() {
@@ -92,6 +98,13 @@ public class Preferences {
     public static void putPurgeEnabled() {
         final SharedPreferences.Editor editor = sTsConfig.edit();
         editor.putBoolean("ze", true);
+        editor.commit();
+    }
+
+    @SuppressLint("ApplySharedPref")
+    public static void putPurgeDisabled() {
+        final SharedPreferences.Editor editor = sTsConfig.edit();
+        editor.putBoolean("ze", false);
         editor.commit();
     }
 

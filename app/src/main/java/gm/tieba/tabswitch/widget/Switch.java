@@ -1,5 +1,6 @@
 package gm.tieba.tabswitch.widget;
 
+import android.os.Vibrator;
 import android.view.View;
 
 import java.lang.reflect.InvocationHandler;
@@ -65,5 +66,9 @@ public class Switch extends XposedContext {
         } catch (final NoSuchMethodError e) {
             ReflectUtils.callMethod(mMethods[8], bdSwitch);
         }
+    }
+
+    public Vibrator getVibrator() {
+        return ReflectUtils.getObjectField(bdSwitch, Vibrator.class);
     }
 }

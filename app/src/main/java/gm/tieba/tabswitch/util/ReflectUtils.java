@@ -31,6 +31,8 @@ public class ReflectUtils extends XposedContext {
         switch (fieldName) {
             case "ds10":
                 return DisplayUtils.dipToPx(getContext(), 5F);
+            case "ds20":
+                return DisplayUtils.dipToPx(getContext(), 10F);
             case "ds30":
                 return DisplayUtils.dipToPx(getContext(), 15F);
             case "ds32":
@@ -43,6 +45,8 @@ public class ReflectUtils extends XposedContext {
 
     public static float getDimenDip(final String fieldName) {
         switch (fieldName) {
+            case "fontsize22":
+                return 11F;
             case "fontsize28":
                 return 14F;
             case "fontsize36":

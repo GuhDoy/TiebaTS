@@ -67,17 +67,18 @@ public class FragmentTab extends XposedContext implements IHooker, Obfuscated {
                 }
             });
         });
-        if (Preferences.getBoolean("dynamic_style")) {
-            XposedBridge.hookAllMethods(XposedHelpers.findClass("com.baidu.adp.framework.MessageManager",
-                    sClassLoader), "dispatchResponsedMessage", new XC_MethodHook() {
-                @Override
-                protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
-                    final Object responsedMessage = param.args[0];
-                    if ((int) XposedHelpers.getObjectField(responsedMessage, "mCmd") == 2921551) {
-                        param.setResult(null);
-                    }
-                }
-            });
-        }
+        // Merged with Purge
+//        if (Preferences.getBoolean("dynamic_style")) {
+//            XposedBridge.hookAllMethods(XposedHelpers.findClass("com.baidu.adp.framework.MessageManager",
+//                    sClassLoader), "dispatchResponsedMessage", new XC_MethodHook() {
+//                @Override
+//                protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+//                    final Object responsedMessage = param.args[0];
+//                    if ((int) XposedHelpers.getObjectField(responsedMessage, "mCmd") == 2921551) {
+//                        param.setResult(null);
+//                    }
+//                }
+//            });
+//        }
     }
 }

@@ -34,7 +34,6 @@ import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.TSPreferenceHelper.SwitchButtonHolder;
-import gm.tieba.tabswitch.hooker.add.MyAttention;
 import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHelper;
 import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
 import gm.tieba.tabswitch.hooker.deobfuscation.StringResMatcher;
@@ -47,7 +46,7 @@ import gm.tieba.tabswitch.widget.TbToast;
 public class TSPreference extends XposedContext implements IHooker, Obfuscated {
     public final static String MAIN = "贴吧TS设置";
     public final static String MODIFY_TAB = "修改页面";
-    public final static String NOTES = "备注关注的人";
+//    public final static String NOTES = "备注关注的人";
     public final static String TRACE = "痕迹";
     private final static String PROXY_ACTIVITY = "com.baidu.tieba.setting.im.more.SecretSettingActivity";
     private static int sCount = 0;
@@ -110,9 +109,9 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
                                 case MODIFY_TAB:
                                     proxyPage(activity, navigationBar, MODIFY_TAB, createModifyTabPreference(activity));
                                     break;
-                                case NOTES:
-                                    proxyPage(activity, navigationBar, NOTES, MyAttention.createNotesPreference(activity));
-                                    break;
+//                                case NOTES:
+//                                    proxyPage(activity, navigationBar, NOTES, MyAttention.createNotesPreference(activity));
+//                                    break;
                                 case TRACE:
                                     proxyPage(activity, navigationBar, TRACE, createHidePreference(activity));
                                     break;
@@ -140,6 +139,7 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
     private void proxyPage(final Activity activity, final NavigationBar navigationBar, final String title,
                            final LinearLayout preferenceLayout) throws Throwable {
         navigationBar.setTitleText(title);
+        navigationBar.setCenterTextTitle("");
         navigationBar.addTextButton("重启", v -> DisplayUtils.restart(activity));
         final var contentView = (ViewGroup) activity.findViewById(android.R.id.content);
         final var parent = (LinearLayout) contentView.getChildAt(0);
@@ -216,8 +216,8 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
 
         preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurgeEnabled ? "垂手可得" : "自动化"));
         final SwitchButtonHolder autoSign = new SwitchButtonHolder(activity, "自动签到", "auto_sign", SwitchButtonHolder.TYPE_SWITCH);
-        if (!Preferences.getIsAutoSignEnabled()) {
-            autoSign.setOnButtonClickListener(v -> {
+        autoSign.setOnButtonClickListener(v -> {
+            if (!Preferences.getIsAutoSignEnabled()) {
                 final TbDialog bdalert = new TbDialog(activity, "提示",
                         "这是一个需要网络请求并且有封号风险的功能，您需要自行承担使用此功能的风险，请谨慎使用！", true, null);
                 bdalert.setOnNoButtonClickListener(v2 -> bdalert.dismiss());
@@ -227,14 +227,26 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
                     bdalert.dismiss();
                 });
                 bdalert.show();
-            });
-        }
+            } else {
+                autoSign.bdSwitch.changeState();
+            }
+        });
         preferenceLayout.addView(autoSign);
         preferenceLayout.addView(new SwitchButtonHolder(activity, "自动打开一键签到", "open_sign", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "吧页面起始页面改为最新", "frs_tab", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "消息页面起始页面改为通知", "msg_center_tab", SwitchButtonHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "自动查看原图", "origin_src", SwitchButtonHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "自动查看原图仅WiFi下生效", "origin_src_only_wifi", SwitchButtonHolder.TYPE_SWITCH));
+
+        var originSrcOnlyWifiButton = new SwitchButtonHolder(activity, "自动查看原图仅WiFi下生效", "origin_src_only_wifi", SwitchButtonHolder.TYPE_SWITCH);
+        var originSrcButton = new SwitchButtonHolder(activity, "自动查看原图", "origin_src", SwitchButtonHolder.TYPE_SWITCH);
+        originSrcButton.setOnButtonClickListener(v -> {
+                    originSrcButton.bdSwitch.changeState();
+                    originSrcOnlyWifiButton.switchButton.setVisibility(Preferences.getBoolean("origin_src") ? View.VISIBLE : View.GONE);
+                }
+        );
+        originSrcOnlyWifiButton.switchButton.setVisibility(Preferences.getBoolean("origin_src") ? View.VISIBLE : View.GONE);
+
+        preferenceLayout.addView(originSrcButton);
+        preferenceLayout.addView(originSrcOnlyWifiButton);
 
         preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurgeEnabled ? "奇怪怪" : "其它"));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "禁用帖子手势", "forbid_gesture", SwitchButtonHolder.TYPE_SWITCH));
@@ -246,11 +258,15 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
         }));
 
         preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurgeEnabled ? "关于就是关于" : "关于"));
-        preferenceLayout.addView(TSPreferenceHelper.createButton("版本", BuildConfig.VERSION_NAME, true, v -> {
-            final Intent intent = new Intent();
-            intent.setAction("android.intent.action.VIEW");
-            intent.setData(Uri.parse("https://github.com/GuhDoy/TiebaTS/releases/latest"));
-            activity.startActivity(intent);
+        preferenceLayout.addView(TSPreferenceHelper.createButton("作者", "GM", true, v -> {
+            sCount++;
+            if (sCount % 3 == 0) {
+                TbToast.showTbToast(TSPreferenceHelper.randomToast(), TbToast.LENGTH_SHORT);
+            }
+            if (!isPurgeEnabled && sCount >= 10) {
+                Preferences.putPurgeEnabled();
+                activity.recreate();
+            }
         }));
         preferenceLayout.addView(TSPreferenceHelper.createButton("源代码", "想要小星星", true, v -> {
             final Intent intent = new Intent();
@@ -264,15 +280,11 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
             intent.setData(Uri.parse("https://t.me/TabSwitch"));
             activity.startActivity(intent);
         }));
-        preferenceLayout.addView(TSPreferenceHelper.createButton("作者", "GM", true, v -> {
-            sCount++;
-            if (sCount % 3 == 0) {
-                TbToast.showTbToast(TSPreferenceHelper.randomToast(), TbToast.LENGTH_SHORT);
-            }
-            if (!isPurgeEnabled && sCount >= 10) {
-                Preferences.putPurgeEnabled();
-                activity.recreate();
-            }
+        preferenceLayout.addView(TSPreferenceHelper.createButton("版本", BuildConfig.VERSION_NAME, true, v -> {
+            final Intent intent = new Intent();
+            intent.setAction("android.intent.action.VIEW");
+            intent.setData(Uri.parse("https://github.com/GuhDoy/TiebaTS/releases/latest"));
+            activity.startActivity(intent);
         }));
         return preferenceLayout;
     }
