@@ -28,13 +28,10 @@ import gm.tieba.tabswitch.dao.Adp;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.Obfuscated;
 import gm.tieba.tabswitch.hooker.TSPreference;
-import gm.tieba.tabswitch.hooker.add.CreateView;
 import gm.tieba.tabswitch.hooker.add.HistoryCache;
-import gm.tieba.tabswitch.hooker.add.MyAttention;
 import gm.tieba.tabswitch.hooker.add.NewSub;
 import gm.tieba.tabswitch.hooker.add.Ripple;
 import gm.tieba.tabswitch.hooker.add.SaveImages;
-import gm.tieba.tabswitch.hooker.add.ThreadStore;
 import gm.tieba.tabswitch.hooker.auto.AgreeNum;
 import gm.tieba.tabswitch.hooker.auto.AutoSign;
 import gm.tieba.tabswitch.hooker.auto.FrsTab;
@@ -118,13 +115,10 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                         new PersonalizedFilter(),
                         new ContentFilter(),
                         new FrsPageFilter(),
-                        new CreateView(),
-                        new ThreadStore(),
                         new HistoryCache(),
                         new NewSub(),
                         new Ripple(),
                         new SaveImages(),
-                        new MyAttention(),
                         new AutoSign(),
                         new OpenSign(),
                         new OriginSrc(),

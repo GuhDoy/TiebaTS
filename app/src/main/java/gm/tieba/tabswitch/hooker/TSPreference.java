@@ -46,7 +46,6 @@ import gm.tieba.tabswitch.widget.TbToast;
 public class TSPreference extends XposedContext implements IHooker, Obfuscated {
     public final static String MAIN = "贴吧TS设置";
     public final static String MODIFY_TAB = "修改页面";
-//    public final static String NOTES = "备注关注的人";
     public final static String TRACE = "痕迹";
     private final static String PROXY_ACTIVITY = "com.baidu.tieba.setting.im.more.SecretSettingActivity";
     private static int sCount = 0;
@@ -109,9 +108,6 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
                                 case MODIFY_TAB:
                                     proxyPage(activity, navigationBar, MODIFY_TAB, createModifyTabPreference(activity));
                                     break;
-//                                case NOTES:
-//                                    proxyPage(activity, navigationBar, NOTES, MyAttention.createNotesPreference(activity));
-//                                    break;
                                 case TRACE:
                                     proxyPage(activity, navigationBar, TRACE, createHidePreference(activity));
                                     break;
@@ -202,17 +198,10 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
         preferenceLayout.addView(new SwitchButtonHolder(activity, "过滤吧页面", "frs_page_filter", SwitchButtonHolder.TYPE_DIALOG));
 
         preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurgeEnabled ? "别出新意" : "增加功能"));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "进吧增加收藏、历史", "create_view", SwitchButtonHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "我的收藏增加搜索、吧名", "thread_store", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "浏览历史增加搜索", "history_cache", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "搜索楼中楼增加查看主题贴", "new_sub", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "楼层增加点按效果", "ripple", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "长按下载保存全部图片", "save_images", SwitchButtonHolder.TYPE_SWITCH));
-//        preferenceLayout.addView(TSPreferenceHelper.createButton(NOTES, null, true, v -> {
-//            final Intent intent = new Intent().setClassName(activity, PROXY_ACTIVITY);
-//            intent.putExtra("proxyPage", NOTES);
-//            activity.startActivity(intent);
-//        }));
 
         preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurgeEnabled ? "垂手可得" : "自动化"));
         final SwitchButtonHolder autoSign = new SwitchButtonHolder(activity, "自动签到", "auto_sign", SwitchButtonHolder.TYPE_SWITCH);
