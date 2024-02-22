@@ -1,7 +1,5 @@
 package gm.tieba.tabswitch.hooker.eliminate;
 
-import android.os.Looper;
-
 import androidx.annotation.NonNull;
 
 import java.util.List;
@@ -30,9 +28,8 @@ public class FollowFilter extends XposedContext implements IHooker {
                     public void beforeHookedMethod(final MethodHookParam param) throws Throwable {
                         final Set<String> forums = Preferences.getLikeForum();
                         if (forums == null) {
-                            Looper.prepare();
-                            TbToast.showTbToast("暂未获取到关注列表", TbToast.LENGTH_LONG);
-                            Looper.loop();
+                            runOnUiThread(() ->
+                                    TbToast.showTbToast("暂未获取到关注列表", TbToast.LENGTH_LONG));
                             return;
                         }
                         final List<?> list = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");
