@@ -3,6 +3,7 @@ package gm.tieba.tabswitch.hooker;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -25,6 +26,7 @@ import java.util.Random;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.Constants;
@@ -57,21 +59,73 @@ public class TSPreferenceHelper extends XposedContext {
         return textView;
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     public static LinearLayout createButton(final String text, final String tip, final boolean showArrow, final View.OnClickListener l) {
         final Object textTipView = XposedHelpers.newInstance(XposedHelpers.findClass(
                 "com.baidu.tbadk.coreExtra.view.TbSettingTextTipView", sClassLoader), getContext());
         XposedHelpers.callMethod(textTipView, "setText", text);
         XposedHelpers.callMethod(textTipView, "setTip", tip);
-        if (!showArrow) {
-            // R.id.arrow2
-            final var imageView = ReflectUtils.getObjectField(textTipView, ImageView.class);
-            imageView.setVisibility(View.GONE);
-        }
+
+        final var imageView = ReflectUtils.getObjectField(textTipView, ImageView.class);
+        imageView.setVisibility(showArrow ? View.VISIBLE : View.GONE);
+        Object svgManager = XposedHelpers.callStaticMethod(XposedHelpers.findClass("com.baidu.tbadk.core.util.SvgManager", sClassLoader), "getInstance");
+        XposedHelpers.callMethod(
+                svgManager,
+                "setPureDrawableWithDayNightModeAutoChange",
+                imageView,
+                ReflectUtils.getDrawableId("icon_pure_list_arrow16_right_svg"),
+                ReflectUtils.getR("color", "CAM_X0109"),
+                null
+        );
 
         final var newButton = ReflectUtils.getObjectField(textTipView, LinearLayout.class);
         ((ViewGroup) newButton.getParent()).removeView(newButton);
         newButton.setBackgroundColor(ReflectUtils.getColor("CAM_X0201"));
         if (l != null) newButton.setOnClickListener(l);
+
+        if (showArrow) {
+            newButton.setOnTouchListener((View v, MotionEvent event) -> {
+                float x = event.getX();
+                float y = event.getY();
+
+                boolean isInside = x > 0 && x < v.getWidth() && y > 0 && y < v.getHeight();
+
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        newButton.setBackgroundColor(Color.argb(128, Color.red(ReflectUtils.getColor("CAM_X0201")), Color.green(ReflectUtils.getColor("CAM_X0201")), Color.blue(ReflectUtils.getColor("CAM_X0201"))));
+                        break;
+
+                    case MotionEvent.ACTION_MOVE:
+                        if (!isInside) {
+                            newButton.setBackgroundColor(ReflectUtils.getColor("CAM_X0201"));
+                        }
+                        break;
+
+                    case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_CANCEL:
+                        newButton.setBackgroundColor(ReflectUtils.getColor("CAM_X0201"));
+                        break;
+                }
+                return false;
+            });
+        }
+
+        // Fix TS Preference button not changing background when skin type changed
+        XposedHelpers.findAndHookMethod("com.baidu.tieba.setting.more.MoreActivity", sClassLoader, "onChangeSkinType", int.class, new XC_MethodHook() {
+            @Override
+            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                newButton.setBackgroundColor(ReflectUtils.getColor("CAM_X0201"));
+                XposedHelpers.callMethod(
+                        svgManager,
+                        "setPureDrawableWithDayNightModeAutoChange",
+                        imageView,
+                        ReflectUtils.getDrawableId("icon_pure_list_arrow16_right_svg"),
+                        ReflectUtils.getR("color", "CAM_X0109"),
+                        null
+                );
+            }
+        });
+
         return newButton;
     }
 
