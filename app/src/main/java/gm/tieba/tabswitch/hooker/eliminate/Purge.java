@@ -252,6 +252,10 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                         return true;
                     }
 
+                    if (XposedHelpers.getObjectField(o, "ala_info") != null) {
+                        return true;
+                    }
+
                     final Object worksInfo = XposedHelpers.getObjectField(o, "works_info");
                     return worksInfo != null && (Integer) XposedHelpers.getObjectField(worksInfo, "is_works") == 1;
                 });
