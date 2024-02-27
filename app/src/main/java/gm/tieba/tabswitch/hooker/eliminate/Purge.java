@@ -64,20 +64,38 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
               XMLHttpRequest.prototype.send = function () {
                 var callback = this.onreadystatechange;
                 this.onreadystatechange = function () {
-                  if (
-                    this.readyState == 4 &&
-                    this.responseURL.match(
-                      /https?:\\/\\/tieba\\.baidu\\.com\\/mo\\/q\\/frs\\/bottomPage.*/g
-                    )
-                  ) {
-                    res = JSON.parse(this.response);
-                    res.data.card_activity.small_card = [];
-                    res.data.friend_forum = [];
-                    Object.defineProperty(this, "response", { writable: true });
-                    Object.defineProperty(this, "responseText", {
-                      writable: true,
-                    });
-                    this.response = this.responseText = JSON.stringify(res);
+                  if (this.readyState == 4) {
+                    const modifyResponse = (target, propertiesToDelete) => {
+                      propertiesToDelete.forEach((property) => {
+                        delete target[property];
+                      });
+                      Object.defineProperty(this, "response", { writable: true });
+                      Object.defineProperty(this, "responseText", { writable: true });
+                      this.response = this.responseText = JSON.stringify(target);
+                    };
+                    if (
+                      this.responseURL.match(
+                        /https?:\\/\\/tieba\\.baidu\\.com\\/c\\/f\\/frs\\/frsBottom.*/g
+                      )
+                    ) {
+                      modifyResponse(JSON.parse(this.response), [
+                        "frs_bottom",
+                        "activityhead",
+                        "live_fuse_forum",
+                        "card_activity",
+                        "ai_chatroom_guide",
+                        "friend_forum",
+                      ]);
+                    } else if (
+                      this.responseURL.match(
+                        /https?:\\/\\/tieba\\.baidu\\.com\\/mo\\/q\\/frs\\/bottomPage.*/g
+                      )
+                    ) {
+                      modifyResponse(JSON.parse(this.response)["data"], [
+                        "card_activity",
+                        "friend_forum",
+                      ]);
+                    }
                   }
                   if (callback) {
                     callback.apply(this, arguments);
