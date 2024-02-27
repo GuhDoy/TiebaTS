@@ -381,7 +381,7 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 webView.evaluateJavascript(jsRemoveOtherCardResponse, null);
             }
         });
-        // 吧页面头条贴(41), 直播贴(69)
+        // 吧页面头条贴(41), 直播贴(69 / is_live_card)
         XposedHelpers.findAndHookMethod("tbclient.FrsPage.PageData$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
@@ -393,9 +393,17 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                                 if (currFeed != null) {
                                     List<?> businessInfo = (List<?>) XposedHelpers.getObjectField(currFeed, "business_info");
                                     for (var feedKV : businessInfo) {
-                                        if (XposedHelpers.getObjectField(feedKV, "key").toString().equals("thread_type")) {
-                                            var threadType = XposedHelpers.getObjectField(feedKV, "value").toString();
-                                            return threadType.equals("41") || threadType.equals("69");
+                                        String currentKey = XposedHelpers.getObjectField(feedKV, "key").toString();
+                                        if (currentKey.equals("thread_type")) {
+                                            var currValue = XposedHelpers.getObjectField(feedKV, "value").toString();
+                                            if (currValue.equals("41") || currValue.equals("69")) {
+                                                return true;
+                                            }
+                                        } else if (currentKey.equals("is_live_card")) {
+                                            var currValue = XposedHelpers.getObjectField(feedKV, "value").toString();
+                                            if (currValue.equals("1")) {
+                                                return true;
+                                            }
                                         }
                                     }
                                 }
