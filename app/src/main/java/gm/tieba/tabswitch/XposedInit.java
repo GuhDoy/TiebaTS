@@ -6,6 +6,7 @@ import android.app.AppComponentFactory;
 import android.app.Application;
 import android.app.Instrumentation;
 import android.content.Intent;
+import android.content.res.XModuleResources;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.WindowManager;
@@ -73,6 +74,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
         if (!"com.baidu.tieba".equals(lpparam.packageName) && XposedHelpers.findClassIfExists(
                 "com.baidu.tieba.tblauncher.MainTabActivity", lpparam.classLoader) == null) return;
         sClassLoader = lpparam.classLoader;
+        sAssetManager = XModuleResources.createInstance(sPath, null).getAssets();
 
         // Workaround to address an issue with LSPatch (unable to open personal homepage)
         // com.baidu.tieba.flutter.base.view.FlutterPageActivity must be instantiated by com.baidu.nps.hook.component.NPSComponentFactory

@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Scanner;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
@@ -59,52 +60,7 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
         );
     }
 
-    final String jsRemoveOtherCardResponse = """
-            (function (send) {
-              XMLHttpRequest.prototype.send = function () {
-                var callback = this.onreadystatechange;
-                this.onreadystatechange = function () {
-                  if (this.readyState == 4) {
-                    const modifyResponse = (target, propertiesToDelete) => {
-                      propertiesToDelete.forEach((property) => {
-                        delete target[property];
-                      });
-                      Object.defineProperty(this, "response", { writable: true });
-                      Object.defineProperty(this, "responseText", { writable: true });
-                      this.response = this.responseText = JSON.stringify(target);
-                    };
-                    if (
-                      this.responseURL.match(
-                        /https?:\\/\\/tieba\\.baidu\\.com\\/c\\/f\\/frs\\/frsBottom.*/g
-                      )
-                    ) {
-                      modifyResponse(JSON.parse(this.response), [
-                        "frs_bottom",
-                        "activityhead",
-                        "live_fuse_forum",
-                        "card_activity",
-                        "ai_chatroom_guide",
-                        "friend_forum",
-                      ]);
-                    } else if (
-                      this.responseURL.match(
-                        /https?:\\/\\/tieba\\.baidu\\.com\\/mo\\/q\\/frs\\/bottomPage.*/g
-                      )
-                    ) {
-                      modifyResponse(JSON.parse(this.response)["data"], [
-                        "card_activity",
-                        "friend_forum",
-                      ]);
-                    }
-                  }
-                  if (callback) {
-                    callback.apply(this, arguments);
-                  }
-                };
-                send.apply(this, arguments);
-              };
-            })(XMLHttpRequest.prototype.send);
-            """;
+    private String jsPurgeFrsBottom;
 
     @Override
     public void hook() throws Throwable {
@@ -392,11 +348,14 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
             }
         }
         // 更多板块 (吧友直播，友情吧)
+        try (Scanner scanner = new Scanner(sAssetManager.open("PurgeFrsBottom.js")).useDelimiter("\\A")) {
+            jsPurgeFrsBottom = scanner.hasNext() ? scanner.next() : "";
+        }
         XposedHelpers.findAndHookMethod(WebViewClient.class, "onPageStarted", WebView.class, String.class, Bitmap.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                WebView webView = (WebView) param.args[0];
-                webView.evaluateJavascript(jsRemoveOtherCardResponse, null);
+                WebView mWebView = (WebView) param.args[0];
+                mWebView.evaluateJavascript(jsPurgeFrsBottom, null);
             }
         });
         // 吧页面头条贴(41), 直播贴(69 / is_live_card)

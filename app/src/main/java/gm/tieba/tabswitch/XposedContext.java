@@ -1,6 +1,7 @@
 package gm.tieba.tabswitch;
 
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -18,8 +19,8 @@ public abstract class XposedContext {
     protected static ClassLoader sClassLoader;
     protected static Map<String, Throwable> sExceptions = new HashMap<>(0);
     protected static String sPath;
+    protected static AssetManager sAssetManager;
     private static Handler sHandler;
-
     protected static void attachBaseContext(final Context context) {
         if (sContextRef != null) {
             throw new IllegalStateException("Base context already set");
