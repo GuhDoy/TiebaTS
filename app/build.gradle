@@ -30,7 +30,7 @@ android {
     }
     applicationVariants.all { variant ->
         variant.outputs.all { output ->
-            outputFileName = "TS_${defaultConfig.versionName}-${variant.buildType.name}.apk"
+            outputFileName = "TS_${defaultConfig.versionName}_${defaultConfig.versionCode}-${variant.buildType.name}.apk"
         }
     }
     buildTypes {
