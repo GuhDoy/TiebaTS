@@ -9,8 +9,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.Scanner;
 
-public class FileUtils {
+import gm.tieba.tabswitch.XposedContext;
+
+public class FileUtils extends XposedContext {
     public static void copy(final Object input, final Object output) throws IOException {
         final InputStream is;
         if (input instanceof InputStream) {
@@ -95,5 +98,13 @@ public class FileUtils {
             }
         }
         file.delete();
+    }
+
+    public static String getAssetFileContent(final String filename) {
+        String result = null;
+        try (Scanner scanner = new Scanner(sAssetManager.open(filename)).useDelimiter("\\A")) {
+            result = scanner.hasNext() ? scanner.next() : null;
+        } catch (final IOException ignored) {}
+        return result;
     }
 }

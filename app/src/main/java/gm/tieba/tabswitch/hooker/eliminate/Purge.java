@@ -33,6 +33,7 @@ import gm.tieba.tabswitch.hooker.Obfuscated;
 import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
 import gm.tieba.tabswitch.hooker.deobfuscation.SmaliMatcher;
 import gm.tieba.tabswitch.hooker.deobfuscation.StringMatcher;
+import gm.tieba.tabswitch.util.FileUtils;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class Purge extends XposedContext implements IHooker, Obfuscated {
@@ -59,8 +60,6 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 new SmaliMatcher("Lcom/baidu/tbadk/editortools/meme/pan/SpriteMemePan;-><init>(Landroid/content/Context;)V")
         );
     }
-
-    private String jsPurgeFrsBottom;
 
     @Override
     public void hook() throws Throwable {
@@ -348,16 +347,16 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
             }
         }
         // 更多板块 (吧友直播，友情吧)
-        try (Scanner scanner = new Scanner(sAssetManager.open("PurgeFrsBottom.js")).useDelimiter("\\A")) {
-            jsPurgeFrsBottom = scanner.hasNext() ? scanner.next() : "";
+        final String jsPurgeFrsBottom = FileUtils.getAssetFileContent("PurgeFrsBottom.js");
+        if (jsPurgeFrsBottom != null) {
+            XposedHelpers.findAndHookMethod(WebViewClient.class, "onPageStarted", WebView.class, String.class, Bitmap.class, new XC_MethodHook() {
+                @Override
+                protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                    WebView mWebView = (WebView) param.args[0];
+                    mWebView.evaluateJavascript(jsPurgeFrsBottom, null);
+                }
+            });
         }
-        XposedHelpers.findAndHookMethod(WebViewClient.class, "onPageStarted", WebView.class, String.class, Bitmap.class, new XC_MethodHook() {
-            @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                WebView mWebView = (WebView) param.args[0];
-                mWebView.evaluateJavascript(jsPurgeFrsBottom, null);
-            }
-        });
         // 吧页面头条贴(41), 直播贴(69 / is_live_card)
         XposedHelpers.findAndHookMethod("tbclient.FrsPage.PageData$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
