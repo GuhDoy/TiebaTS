@@ -70,8 +70,8 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
 
     @Override
     public void handleLoadPackage(final XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
-        if (!"com.baidu.tieba".equals(lpparam.packageName) && XposedHelpers.findClassIfExists(
-                "com.baidu.tieba.tblauncher.MainTabActivity", lpparam.classLoader) == null) return;
+        if ((!"com.baidu.tieba".equals(lpparam.packageName) && XposedHelpers.findClassIfExists(
+                "com.baidu.tieba.tblauncher.MainTabActivity", lpparam.classLoader) == null) || !lpparam.isFirstApplication) return;
         sClassLoader = lpparam.classLoader;
         sAssetManager = XModuleResources.createInstance(sPath, null).getAssets();
 
