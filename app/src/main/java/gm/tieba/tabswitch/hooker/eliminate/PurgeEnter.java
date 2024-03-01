@@ -69,6 +69,7 @@ public class PurgeEnter extends XposedContext implements IHooker, Obfuscated {
                             if (view.getParent() == null) {
                                 Object bdListView = ReflectUtils.getObjectField(param.thisObject, "com.baidu.adp.widget.ListView.BdListView");
                                 XposedHelpers.callMethod(bdListView, "setNextPage", pbListView);
+                                XposedHelpers.callMethod(bdListView, "setOverScrollMode", View.OVER_SCROLL_ALWAYS);
                             }
 
                             LinearLayout linearLayout = (LinearLayout) ReflectUtils.getObjectField(pbListView, "android.widget.LinearLayout");
