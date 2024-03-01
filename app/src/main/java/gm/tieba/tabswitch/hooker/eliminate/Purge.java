@@ -408,11 +408,14 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
             XposedHelpers.findAndHookMethod("com.fun.ad.sdk.internal.api.BaseNativeAd2", sClassLoader, "getNativeInfo", XC_MethodReplacement.returnConstant(null));
         } catch (final XposedHelpers.ClassNotFoundError ignored) {}
 
-        // 相关推荐
         XposedHelpers.findAndHookMethod("tbclient.Post$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+                // 相关推荐
                 XposedHelpers.setObjectField(param.thisObject, "outer_item", null);
+
+                // 点击使用同系列表情
+                XposedHelpers.setObjectField(param.thisObject, "sprite_meme_info", null);
             }
         });
     }
