@@ -99,22 +99,26 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                     }
                     break;
                 case "bottom_bubble_config":    // 底部导航栏活动图标
-                    XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
-                        @Override
-                        protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                            JSONObject syncData = (JSONObject) ReflectUtils.getObjectField(param.thisObject, JSONObject.class);
-                            syncData.put("bottom_bubble_config", null);
-                        }
-                    });
+                    if (method.equals("invoke")) {
+                        XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
+                            @Override
+                            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                                JSONObject syncData = (JSONObject) ReflectUtils.getObjectField(param.thisObject, JSONObject.class);
+                                syncData.put("bottom_bubble_config", null);
+                            }
+                        });
+                    }
                     break;
                 case "top_level_navi":  // 首页活动背景
-                    XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
-                        @Override
-                        protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                            JSONObject syncData = (JSONObject) ReflectUtils.getObjectField(param.thisObject, JSONObject.class);
-                            syncData.put("top_level_navi", null);
-                        }
-                    });
+                    if (method.equals("invoke")) {
+                        XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
+                            @Override
+                            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                                JSONObject syncData = (JSONObject) ReflectUtils.getObjectField(param.thisObject, JSONObject.class);
+                                syncData.put("top_level_navi", null);
+                            }
+                        });
+                    }
                     break;
                 case "index_tab_info":  // 首页活动Tab
                     if (method.equals("invoke")) {

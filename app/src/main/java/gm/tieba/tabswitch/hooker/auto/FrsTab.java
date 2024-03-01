@@ -64,8 +64,20 @@ public class FrsTab extends XposedContext implements IHooker, Obfuscated {
                     XposedBridge.hookMethod(targetMethod, new XC_MethodHook() {
                         @Override
                         public void afterHookedMethod(MethodHookParam param) throws Throwable {
-                            Class<?> customViewPager = XposedHelpers.findClass("com.baidu.tbadk.widget.CustomViewPager", sClassLoader);
-                            final Object viewPager = XposedHelpers.findFirstFieldByExactType(param.args[1].getClass(), customViewPager).get(param.args[1]);
+                            Object viewPager;
+                            try {
+                                viewPager = XposedHelpers.findFirstFieldByExactType(
+                                        param.args[1].getClass(),
+                                        XposedHelpers.findClass("com.baidu.tbadk.widget.CustomViewPager",
+                                                sClassLoader)
+                                ).get(param.args[1]);
+                            } catch (NoSuchFieldError e) {  // 12.56+
+                                viewPager = XposedHelpers.findFirstFieldByExactType(
+                                        param.args[1].getClass(),
+                                        XposedHelpers.findClass("androidx.viewpager.widget.ViewPager",
+                                                sClassLoader)
+                                ).get(param.args[1]);
+                            }
                             XposedHelpers.callMethod(viewPager, "setCurrentItem", mPosition);
                         }
                     });

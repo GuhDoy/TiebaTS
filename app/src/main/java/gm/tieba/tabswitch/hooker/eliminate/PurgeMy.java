@@ -1,6 +1,7 @@
 package gm.tieba.tabswitch.hooker.eliminate;
 
 import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 
@@ -87,5 +88,20 @@ public class PurgeMy extends XposedContext implements IHooker, Obfuscated {
                     break;
             }
         });
+
+        // 12.56+
+        Class<?> personCenterMemberCardViewClass = XposedHelpers.findClassIfExists("com.baidu.tieba.personCenter.view.PersonCenterMemberCardView", sClassLoader);
+        if (personCenterMemberCardViewClass != null) {
+            XposedBridge.hookAllConstructors(
+                    personCenterMemberCardViewClass,
+                    new XC_MethodHook() {
+                        @Override
+                        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                            View mView = ReflectUtils.getObjectField(param.thisObject, View.class);
+                            ((ViewGroup) mView.getParent()).removeView(mView);
+                        }
+                    }
+            );
+        }
     }
 }
