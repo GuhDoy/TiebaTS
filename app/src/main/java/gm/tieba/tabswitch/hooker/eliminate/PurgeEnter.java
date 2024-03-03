@@ -29,7 +29,7 @@ public class PurgeEnter extends XposedContext implements IHooker, Obfuscated {
 
     private int mInitLayoutHeight = -1;
     private final int mLayoutOffset = (int) ReflectUtils.getDimen("tbds50");
-    private String mRecForumClassName, mRecForumSetNextPageMethodName;
+    private String mRecForumClassName, mRecForumSetNextPageMethodName, mPbListViewInnerViewConstructorName;
 
     @Override
     public List<? extends Matcher> matchers() {
@@ -47,6 +47,13 @@ public class PurgeEnter extends XposedContext implements IHooker, Obfuscated {
                 "getRecommendForumData",
                 XC_MethodReplacement.returnConstant(null));
 
+        for (final var currMethod : XposedHelpers.findClass("com.baidu.tbadk.core.view.PbListView", sClassLoader).getSuperclass().getDeclaredMethods()) {
+            if (currMethod.getReturnType().toString().endsWith("View") && !Modifier.isAbstract(currMethod.getModifiers())) {
+                mPbListViewInnerViewConstructorName = currMethod.getName();
+                break;
+            }
+        }
+
         AcRules.findRule(matchers(), (matcher, clazz, method) -> {
             switch (matcher) {
                 case "enter_forum_login_tip/dimen.tbds400":
@@ -56,18 +63,10 @@ public class PurgeEnter extends XposedContext implements IHooker, Obfuscated {
                         @Override
                         protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
                             Object pbListView = ReflectUtils.getObjectField(param.thisObject, "com.baidu.tbadk.core.view.PbListView");
+                            View pbListViewInnerView = (View) XposedHelpers.callMethod(pbListView, mPbListViewInnerViewConstructorName);
 
-                            String viewConstructorName = "";
-                            for (final var method : XposedHelpers.findClass("com.baidu.tbadk.core.view.PbListView", sClassLoader).getSuperclass().getDeclaredMethods()) {
-                                if (method.getReturnType().toString().endsWith("View") && !Modifier.isAbstract(method.getModifiers())) {
-                                    viewConstructorName = method.getName();
-                                    break;
-                                }
-                            }
-                            View view = (View) XposedHelpers.callMethod(pbListView, viewConstructorName);
-
-                            if (view.getParent() == null) {
-                                Object bdListView = ReflectUtils.getObjectField(param.thisObject, "com.baidu.adp.widget.ListView.BdListView");
+                            Object bdListView = ReflectUtils.getObjectField(param.thisObject, "com.baidu.adp.widget.ListView.BdListView");
+                            if (pbListViewInnerView.getParent() == null) {
                                 XposedHelpers.callMethod(bdListView, "setNextPage", pbListView);
                                 XposedHelpers.callMethod(bdListView, "setOverScrollMode", View.OVER_SCROLL_ALWAYS);
                             }
@@ -80,6 +79,8 @@ public class PurgeEnter extends XposedContext implements IHooker, Obfuscated {
                             }
                             layoutParams.height = mInitLayoutHeight;
                             linearLayout.setLayoutParams(layoutParams);
+
+                            XposedHelpers.callMethod(bdListView, "setExOnSrollToBottomListener", (Object) null);
                             return null;
                         }
                     });
