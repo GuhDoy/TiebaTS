@@ -180,6 +180,12 @@ public class Deobfuscation extends XposedContext {
                             MethodMatcher.create().name(methodNameMatcher.getName())
                     )
             );
+        } else if (matcher instanceof final ReturnTypeMatcher<?> returnTypeMatcher) {
+            ret = bridge.findMethod(
+                    baseMethodQuery.matcher(
+                            MethodMatcher.create().returnType(returnTypeMatcher.getReturnType())
+                    )
+            );
         }
         return ret;
     }

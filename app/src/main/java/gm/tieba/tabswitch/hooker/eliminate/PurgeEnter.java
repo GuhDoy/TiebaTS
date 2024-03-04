@@ -18,6 +18,7 @@ import gm.tieba.tabswitch.hooker.deobfuscation.MatcherProperties;
 import gm.tieba.tabswitch.hooker.deobfuscation.MethodNameMatcher;
 import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
 import gm.tieba.tabswitch.hooker.deobfuscation.ResIdentifierMatcher;
+import gm.tieba.tabswitch.hooker.deobfuscation.ReturnTypeMatcher;
 import gm.tieba.tabswitch.util.ClassMatcherUtils;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
@@ -36,7 +37,11 @@ public class PurgeEnter extends XposedContext implements IHooker, Obfuscated {
     public List<? extends Matcher> matchers() {
         return List.of(
                 new ResIdentifierMatcher("tbds400", "dimen", MatcherProperties.create().useClassMatcher(ClassMatcherUtils.usingString("enter_forum_login_tip"))),
-                new MethodNameMatcher("onSuccess", MatcherProperties.create().useClassMatcher(ClassMatcherUtils.usingString("enter_forum_login_tip")))
+                new MethodNameMatcher("onSuccess", MatcherProperties.create().useClassMatcher(ClassMatcherUtils.usingString("enter_forum_login_tip"))),
+                new ReturnTypeMatcher<>(
+                        boolean.class,
+                        MatcherProperties.create().useClassMatcher(ClassMatcherUtils.className("com.baidu.tieba.enterForum.helper.HybridEnterForumHelper")).requireVersion("12.56.4.0")
+                )
         );
     }
 
@@ -99,6 +104,9 @@ public class PurgeEnter extends XposedContext implements IHooker, Obfuscated {
                                     return null;
                                 }
                             });
+                    break;
+                case "12.56.4.0@HybridEnterForumHelper/boolean":  // 禁用Webview进吧页
+                    XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, XC_MethodReplacement.returnConstant(false));
                     break;
             }
         });

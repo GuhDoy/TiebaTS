@@ -20,6 +20,12 @@ public class ClassMatcherUtils {
         return new ClassMatcherUtils(classMatcher, str);
     }
 
+    public static ClassMatcherUtils className(String className) {
+        ClassMatcher classMatcher = ClassMatcher.create().className(className);
+        String simpleClassName = className.substring(className.lastIndexOf('.') + 1);
+        return new ClassMatcherUtils(classMatcher, simpleClassName);
+    }
+
     public ClassMatcher getMatcher() {
         return this.matcher;
     }
