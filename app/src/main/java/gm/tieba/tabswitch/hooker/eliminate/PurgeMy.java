@@ -17,6 +17,7 @@ import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.hooker.Obfuscated;
 import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
+import gm.tieba.tabswitch.hooker.deobfuscation.MatcherProperties;
 import gm.tieba.tabswitch.hooker.deobfuscation.SmaliMatcher;
 import gm.tieba.tabswitch.util.ClassMatcherUtils;
 import gm.tieba.tabswitch.util.ReflectUtils;
@@ -35,7 +36,10 @@ public class PurgeMy extends XposedContext implements IHooker, Obfuscated {
     public List<? extends Matcher> matchers() {
         return List.of(
                 new SmaliMatcher("Lcom/baidu/tieba/personCenter/view/PersonOftenFuncItemView;-><init>(Landroid/content/Context;)V"),
-                new SmaliMatcher("Lcom/baidu/nadcore/download/basic/AdAppStateManager;->instance()Lcom/baidu/nadcore/download/basic/AdAppStateManager;", ClassMatcherUtils.usingString("隐私设置"))
+                new SmaliMatcher(
+                        "Lcom/baidu/nadcore/download/basic/AdAppStateManager;->instance()Lcom/baidu/nadcore/download/basic/AdAppStateManager;",
+                        MatcherProperties.create().useClassMatcher(ClassMatcherUtils.usingString("隐私设置"))
+                )
         );
     }
 

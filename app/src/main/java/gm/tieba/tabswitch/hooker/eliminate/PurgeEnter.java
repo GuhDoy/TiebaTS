@@ -14,6 +14,7 @@ import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.hooker.Obfuscated;
+import gm.tieba.tabswitch.hooker.deobfuscation.MatcherProperties;
 import gm.tieba.tabswitch.hooker.deobfuscation.MethodNameMatcher;
 import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
 import gm.tieba.tabswitch.hooker.deobfuscation.ResIdentifierMatcher;
@@ -34,8 +35,8 @@ public class PurgeEnter extends XposedContext implements IHooker, Obfuscated {
     @Override
     public List<? extends Matcher> matchers() {
         return List.of(
-                new ResIdentifierMatcher("tbds400", "dimen", ClassMatcherUtils.usingString("enter_forum_login_tip")),
-                new MethodNameMatcher("onSuccess", ClassMatcherUtils.usingString("enter_forum_login_tip"))
+                new ResIdentifierMatcher("tbds400", "dimen", MatcherProperties.create().useClassMatcher(ClassMatcherUtils.usingString("enter_forum_login_tip"))),
+                new MethodNameMatcher("onSuccess", MatcherProperties.create().useClassMatcher(ClassMatcherUtils.usingString("enter_forum_login_tip")))
         );
     }
 

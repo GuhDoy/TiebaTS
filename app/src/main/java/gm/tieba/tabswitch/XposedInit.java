@@ -103,6 +103,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                 attachBaseContext((Application) param.args[0]);
                 Preferences.init(getContext());
                 AcRules.init(getContext());
+                String currTbVersion = DeobfuscationHelper.getTbVersion(getContext());
 
                 final var hookers = List.of(
                         new TSPreference(),
@@ -140,6 +141,34 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                     }
                 }
 
+                List<Matcher> matchersList = matchers.stream()
+                        .map(Obfuscated::matchers)
+                        .flatMap(Collection::stream)
+                        .collect(Collectors.toList());
+
+                // Remove matchers that does not satisfy version requirement
+                matchersList.removeIf(
+                        o -> {
+                            if (o.getRequiredVersion() != null) {
+                                boolean isVersionSatisfied = DeobfuscationHelper.isTbSatisfyVersionRequirement(
+                                        o.getRequiredVersion(),
+                                        currTbVersion
+                                );
+                                if (!isVersionSatisfied) {
+                                    XposedBridge.log(
+                                            String.format(
+                                                    "Skipping rule [%s] due to version mismatch (current version: %s)",
+                                                    o.toString(),
+                                                    currTbVersion
+                                            )
+                                    );
+                                }
+                                return !isVersionSatisfied;
+                            }
+                            return false;
+                        }
+                );
+
                 if (DeobfuscationHelper.isVersionChanged(getContext())) {
                     if ("com.baidu.tieba".equals(lpparam.processName)) {
                         XposedHelpers.findAndHookMethod("com.baidu.tieba.tblauncher.MainTabActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
@@ -153,17 +182,12 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                         });
                     }
                     XposedBridge.log("Deobfuscation");
-                    new DeobfuscationHooker(
-                            matchers.stream()
-                                    .map(Obfuscated::matchers)
-                                    .flatMap(Collection::stream)
-                                    .collect(Collectors.toList())
-                    ).hook();
+
+                    new DeobfuscationHooker(matchersList).hook();
                     return;
                 }
-                final var lostList = matchers.stream()
-                        .map(Obfuscated::matchers)
-                        .flatMap(Collection::stream)
+
+                final var lostList = matchersList.stream()
                         .map(Matcher::toString)
                         .filter(matcher -> !AcRules.isRuleFound(matcher))
                         .collect(Collectors.toList());
@@ -175,7 +199,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                             final var messages = new ArrayList<String>();
                             messages.add(String.format(Constants.getStrings().get("exception_rules_incomplete"), BuildConfig.TARGET_VERSION));
                             messages.add(String.format(Locale.CHINA, "tbversion: %s, module version: %d",
-                                    DeobfuscationHelper.getTbVersion(getContext()), BuildConfig.VERSION_CODE));
+                                    currTbVersion, BuildConfig.VERSION_CODE));
                             messages.add(String.format(Locale.CHINA, "%d rule(s) lost: %s", lostList.size(), lostList));
                             final var message = TextUtils.join("\n", messages);
                             XposedBridge.log(message);

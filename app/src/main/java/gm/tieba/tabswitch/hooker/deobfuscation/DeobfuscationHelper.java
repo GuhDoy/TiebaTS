@@ -106,4 +106,24 @@ public class DeobfuscationHelper {
             activity.startActivity(intent);
         }
     }
+
+    public static boolean isTbSatisfyVersionRequirement(final String requiredVersion, final String currentVersion) {
+        String[] currParts = currentVersion.split("\\.");
+        String[] reqParts = requiredVersion.split("\\.");
+        int length = Math.max(currParts.length, reqParts.length);
+        for(int i = 0; i < length; i++) {
+            try {
+                int currPart = i < currParts.length ?
+                        Integer.parseInt(currParts[i]) : 0;
+                int reqPart = i < reqParts.length ?
+                        Integer.parseInt(reqParts[i]) : 0;
+                if (currPart != reqPart) {
+                    return currPart > reqPart;
+                }
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        }
+        return true;
+    }
 }
