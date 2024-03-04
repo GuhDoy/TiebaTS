@@ -107,6 +107,7 @@ public class DeobfuscationHelper {
         }
     }
 
+    // Adapted from https://stackoverflow.com/questions/198431/how-do-you-compare-two-version-strings-in-java
     public static boolean isTbSatisfyVersionRequirement(final String requiredVersion, final String currentVersion) {
         String[] currParts = currentVersion.split("\\.");
         String[] reqParts = requiredVersion.split("\\.");
