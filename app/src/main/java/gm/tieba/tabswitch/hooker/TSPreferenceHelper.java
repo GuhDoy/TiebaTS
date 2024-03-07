@@ -161,7 +161,6 @@ public class TSPreferenceHelper extends XposedContext {
     static class SwitchButtonHolder {
         public final static int TYPE_SWITCH = 0;
         public final static int TYPE_DIALOG = 1;
-        public final static int TYPE_SET_FLUTTER = 2;
         public final static Map<Integer, String> sIdToTag = new HashMap<>();
         private final String mKey;
         public Switch bdSwitch;
@@ -194,12 +193,6 @@ public class TSPreferenceHelper extends XposedContext {
                     switchButton = createButton(text, null, false, v -> showRegexDialog(activity));
                     bdSwitchView.setOnTouchListener((v, event) -> false);
                     if (Preferences.getString(key) != null) bdSwitch.turnOn();
-                    else bdSwitch.turnOff();
-                    break;
-                case TYPE_SET_FLUTTER:
-                    switchButton = createButton(text, null, false, v -> bdSwitch.changeState());
-                    sIdToTag.put(bdSwitchView.getId(), TYPE_SET_FLUTTER + key);
-                    if (Preferences.getStringSet("switch_manager").contains(key)) bdSwitch.turnOn();
                     else bdSwitch.turnOff();
                     break;
             }
@@ -256,14 +249,8 @@ public class TSPreferenceHelper extends XposedContext {
                 final View view = (View) args[0];
                 final var tag = sIdToTag.get(view.getId());
                 if (tag != null) {
-                    switch (Integer.parseInt(tag.substring(0, 1))) {
-                        case TYPE_SWITCH:
-                            Preferences.putBoolean(tag.substring(1), args[1].toString().equals("ON"));
-                            break;
-                        case TYPE_SET_FLUTTER:
-                            Preferences.putStringSet("switch_manager",
-                                    tag.substring(1), args[1].toString().equals("ON"));
-                            break;
+                    if (Integer.parseInt(tag.substring(0, 1)) == TYPE_SWITCH) {
+                        Preferences.putBoolean(tag.substring(1), args[1].toString().equals("ON"));
                     }
                 }
                 return null;

@@ -15,7 +15,7 @@ class MatcherProperties {
         val versionString = requiredVersion?.let { "$it@" } ?: ""
         return versionString + classMatcher?.toString().orEmpty()
     }
-    fun useClassMatcher(classMatcher: ClassMatcherUtils?) : MatcherProperties {
+    fun useClassMatcher(classMatcher: ClassMatcherUtils) : MatcherProperties {
         this.classMatcher = classMatcher
         return this
     }

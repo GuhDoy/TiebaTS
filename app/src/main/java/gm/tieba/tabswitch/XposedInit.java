@@ -52,7 +52,6 @@ import gm.tieba.tabswitch.hooker.eliminate.PurgeEnter;
 import gm.tieba.tabswitch.hooker.eliminate.PurgeMy;
 import gm.tieba.tabswitch.hooker.eliminate.RedTip;
 import gm.tieba.tabswitch.hooker.eliminate.RemoveUpdate;
-import gm.tieba.tabswitch.hooker.eliminate.SwitchManager;
 import gm.tieba.tabswitch.hooker.extra.ForbidGesture;
 import gm.tieba.tabswitch.hooker.extra.Hide;
 import gm.tieba.tabswitch.hooker.extra.StackTrace;
@@ -108,7 +107,6 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                 final var hookers = List.of(
                         new TSPreference(),
                         new FragmentTab(),
-                        new SwitchManager(),
                         new Purge(),
                         new PurgeEnter(),
                         new PurgeMy(),

@@ -271,7 +271,7 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
         preferenceLayout.addView(TSPreferenceHelper.createButton("版本（适配版本）", String.format("%s_%d (%s)", BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE, BuildConfig.TARGET_VERSION), true, v -> {
             final Intent intent = new Intent();
             intent.setAction("android.intent.action.VIEW");
-            intent.setData(Uri.parse("https://github.com/GuhDoy/TiebaTS/releases/latest"));
+            intent.setData(Uri.parse("https://github.com/GuhDoy/TiebaTS/actions"));
             activity.startActivity(intent);
         }));
         return preferenceLayout;
@@ -286,12 +286,6 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
         preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏消息", "im_message", SwitchButtonHolder.TYPE_SWITCH));
         // Merged with Purge
 //        preferenceLayout.addView(new SwitchButtonHolder(activity, "禁用动态样式", "dynamic_style", SwitchButtonHolder.TYPE_SWITCH));
-        preferenceLayout.addView(TSPreferenceHelper.createTextView("禁用 Flutter"));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "我关注的吧", "flutter_concern_forum_enable_android", SwitchButtonHolder.TYPE_SET_FLUTTER));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "吧资料", "flutter_forum_detail_enable_android_112", SwitchButtonHolder.TYPE_SET_FLUTTER));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "粉丝", "flutter_attention_enable_android_112", SwitchButtonHolder.TYPE_SET_FLUTTER));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "个人中心", "flutter_person_center_enable_android_12", SwitchButtonHolder.TYPE_SET_FLUTTER));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "一键签到", "flutter_signin_enable_android_119", SwitchButtonHolder.TYPE_SET_FLUTTER));
         return preferenceLayout;
     }
 
