@@ -166,7 +166,7 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 sClassLoader,
                 "onCreate",
                 Bundle.class,
-                new XC_MethodHook() {
+                new XC_MethodHook(-1) {
                     @Override
                     protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
                         XposedHelpers.setStaticBooleanField(XposedHelpers.findClass("com.baidu.tbadk.core.atomData.MainTabActivityConfig", sClassLoader), "IS_MAIN_TAB_SPLASH_SHOW", false);
