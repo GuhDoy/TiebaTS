@@ -40,11 +40,15 @@ jobs:
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
 
+      - name: Retrieve filename
+        run: echo "FILENAME=$(basename ${{ steps.sign.outputs.signedReleaseFile }})" >> $GITHUB_ENV
+        shell: bash
+
       - name: Upload built apk
         if: success()
         uses: actions/upload-artifact@v3
         with:
-          name: TS_${{ env.VERSION }}.apk
+          name: ${{ env.FILENAME }}
           path: ${{ steps.sign.outputs.signedReleaseFile }}
 
       - name: Send commit to telegram
