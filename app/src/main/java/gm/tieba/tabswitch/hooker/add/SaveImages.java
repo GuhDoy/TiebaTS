@@ -13,7 +13,6 @@ import androidx.annotation.NonNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -100,7 +99,6 @@ public class SaveImages extends XposedContext implements IHooker {
     }
 
     private static void saveImage(final String url, final String filename, final Context context) throws IOException {
-        XposedBridge.log(url);
         try (final var is = new URL(url).openStream()) {
             final var bb = FileUtils.toByteBuffer(is);
             final var imageDetails = new ContentValues();
