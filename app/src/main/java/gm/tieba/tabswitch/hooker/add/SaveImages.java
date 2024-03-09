@@ -19,7 +19,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 import de.robv.android.xposed.XC_MethodHook;
@@ -33,7 +32,7 @@ import gm.tieba.tabswitch.widget.TbToast;
 import kotlin.text.StringsKt;
 
 public class SaveImages extends XposedContext implements IHooker {
-    private List<String> mList;
+    private ArrayList<String> mList;
     private Field mDownloadImageViewField;
 
     @NonNull
@@ -48,8 +47,9 @@ public class SaveImages extends XposedContext implements IHooker {
         );
         XposedBridge.hookMethod(method, new XC_MethodHook() {
             @Override
-            protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
-                mList = (ArrayList<String>) param.args[0];
+            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+                mList = new ArrayList<>((ArrayList<String>) param.args[0]);
+                mList.removeIf(o -> o.startsWith("####mLiveRoomPageProvider"));
             }
         });
 

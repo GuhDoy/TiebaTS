@@ -191,6 +191,19 @@ public class ReflectUtils extends XposedContext {
         return findFirstMethodByExactType(XposedHelpers.findClass(className, sClassLoader), paramTypes);
     }
 
+    public static Method findFirstMethodByExactReturnType(final Class<?> cls, final Class<?> returnType) {
+        for (final var method : cls.getDeclaredMethods()) {
+            if (method.getReturnType() == returnType) {
+                return method;
+            }
+        }
+        throw new NoSuchMethodError(returnType.toString());
+    }
+
+    public static Method findFirstMethodByExactReturnType(final String className, final Class<?> returnType) {
+        return findFirstMethodByExactReturnType(XposedHelpers.findClass(className, sClassLoader), returnType);
+    }
+
     public static Object callMethod(final Method method, final Object instance, final Object... args) {
         try {
             method.setAccessible(true);
