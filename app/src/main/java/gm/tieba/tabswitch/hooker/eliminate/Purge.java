@@ -417,16 +417,5 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 XposedHelpers.setObjectField(param.thisObject, "sprite_meme_info", null);
             }
         });
-
-        // 吧友都在看
-        XposedBridge.hookMethod(
-                ReflectUtils.findFirstMethodByExactType("com.baidu.tbadk.coreExtra.view.ImagePagerAdapter", ArrayList.class),
-                new XC_MethodHook() {
-                    @Override
-                    protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
-                        ArrayList<String> mList = (ArrayList<String>) param.args[0];
-                        mList.removeIf(o -> o.startsWith("####mLiveRoomPageProvider"));
-                    }
-                });
     }
 }
