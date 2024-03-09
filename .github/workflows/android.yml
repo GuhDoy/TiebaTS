@@ -41,15 +41,22 @@ jobs:
           keyPassword: ${{ secrets.KEY_PASSWORD }}
 
       - name: Retrieve filename
+        if: success()
         run: echo "FILENAME=$(basename ${{ steps.sign.outputs.signedReleaseFile }})" >> $GITHUB_ENV
         shell: bash
 
       - name: Upload built apk
         if: success()
-        uses: actions/upload-artifact@v3
+        id: upload
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.FILENAME }}
           path: ${{ steps.sign.outputs.signedReleaseFile }}
+
+      - name: Write job summary
+        if: success()
+        run: |
+          echo "### [下载链接](${{ steps.upload.outputs.artifact-url }})" >> $GITHUB_STEP_SUMMARY
 
       - name: Send commit to telegram
         uses: appleboy/telegram-action@master
