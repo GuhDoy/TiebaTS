@@ -13,8 +13,13 @@ import androidx.annotation.NonNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -30,7 +35,7 @@ import kotlin.text.StringsKt;
 
 public class SaveImages extends XposedContext implements IHooker {
     private List<String> mList;
-    private String mTitle;
+    private Field mDownloadImageViewField;
 
     @NonNull
     @Override
@@ -48,67 +53,81 @@ public class SaveImages extends XposedContext implements IHooker {
                 mList = (ArrayList<String>) param.args[0];
             }
         });
-        XposedHelpers.findAndHookMethod("com.baidu.tbadk.widget.richText.TbRichText",
-                sClassLoader, "toString", new XC_MethodHook() {
-                    @Override
-                    protected void afterHookedMethod(final XC_MethodHook.MethodHookParam param) throws Throwable {
-                        if (param.getResult() != null) mTitle = (String) param.getResult();
-                    }
-                });
-        XposedHelpers.findAndHookConstructor("com.baidu.tbadk.coreExtra.view.ImageViewerBottomLayout",
-                sClassLoader, Context.class, new XC_MethodHook() {
-                    @Override
-                    protected void afterHookedMethod(final XC_MethodHook.MethodHookParam param) throws Throwable {
-                        final var context = ((Context) param.args[0]).getApplicationContext();
-                        // R.id.download_icon
-                        final var imageView = (ImageView) ReflectUtils.getObjectField(param.thisObject, 11);
-                        imageView.setOnLongClickListener(v -> {
-                            TbToast.showTbToast(String.format(Locale.CHINA,
-                                    "开始下载%d张图片", mList.size()), TbToast.LENGTH_SHORT);
-                            new Thread(() -> {
-                                try {
-                                    final var list = new ArrayList<>(mList);
-                                    final var title = mTitle;
-                                    for (var i = 0; i < list.size(); i++) {
-                                        var url = list.get(i);
-                                        url = StringsKt.substringBeforeLast(url, "*", url);
-                                        saveImage(url, title, i, context);
+
+        Class<?> imageViewerBottomLayoutClass = XposedHelpers.findClass("com.baidu.tbadk.coreExtra.view.ImageViewerBottomLayout", sClassLoader);
+        ArrayList<Field> declaredFields = new ArrayList<>(Arrays.asList(imageViewerBottomLayoutClass.getDeclaredFields()));
+        declaredFields.removeIf(o -> o.getType() != ImageView.class);
+        mDownloadImageViewField = declaredFields.get(declaredFields.size() - 1);
+
+        if (mDownloadImageViewField != null) {
+            XposedHelpers.findAndHookConstructor("com.baidu.tbadk.coreExtra.view.ImageViewerBottomLayout",
+                    sClassLoader, Context.class, new XC_MethodHook() {
+                        @Override
+                        protected void afterHookedMethod(final XC_MethodHook.MethodHookParam param) throws Throwable {
+                            final var context = ((Context) param.args[0]).getApplicationContext();
+                            // R.id.download_icon
+                            final var imageView = (ImageView) mDownloadImageViewField.get(param.thisObject);
+                            imageView.setOnLongClickListener(v -> {
+                                TbToast.showTbToast(String.format(Locale.CHINA,
+                                        "开始下载%d张图片", mList.size()), TbToast.LENGTH_SHORT);
+
+                                final long baseTime = System.currentTimeMillis();
+                                final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.CHINA);
+                                final String formattedTime = dateFormat.format(new Date(baseTime));
+
+                                new Thread(() -> {
+                                    try {
+                                        final var list = new ArrayList<>(mList);
+                                        for (var i = 0; i < list.size(); i++) {
+                                            var url = list.get(i);
+                                            url = StringsKt.substringBeforeLast(url, "*", url);
+                                            saveImage(url, formattedTime + "_" + String.format(Locale.CHINA, "%02d", i), context);
+                                        }
+                                        new Handler(Looper.getMainLooper()).post(() ->
+                                                TbToast.showTbToast(String.format(Locale.CHINA,
+                                                                "已保存%d张图片至手机相册", list.size()),
+                                                        TbToast.LENGTH_SHORT));
+                                    } catch (final IOException | NullPointerException e) {
+                                        new Handler(Looper.getMainLooper()).post(() ->
+                                                TbToast.showTbToast("保存失败", TbToast.LENGTH_SHORT));
                                     }
-                                    new Handler(Looper.getMainLooper()).post(() ->
-                                            TbToast.showTbToast(String.format(Locale.CHINA,
-                                                            "已保存%d张图片至手机相册", list.size()),
-                                                    TbToast.LENGTH_SHORT));
-                                } catch (final IOException | NullPointerException e) {
-                                    new Handler(Looper.getMainLooper()).post(() ->
-                                            TbToast.showTbToast("保存失败", TbToast.LENGTH_SHORT));
-                                }
-                            }).start();
-                            return true;
-                        });
-                    }
-                });
+                                }).start();
+                                return true;
+                            });
+                        }
+                    });
+        }
     }
 
-    private static void saveImage(final String url, final String title, final int i, final Context context) throws IOException {
+    private static void saveImage(final String url, final String filename, final Context context) throws IOException {
+        XposedBridge.log(url);
         try (final var is = new URL(url).openStream()) {
             final var bb = FileUtils.toByteBuffer(is);
             final var imageDetails = new ContentValues();
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 imageDetails.put(MediaStore.MediaColumns.RELATIVE_PATH,
-                        Environment.DIRECTORY_PICTURES + File.separator + "tieba" + File.separator + title);
+                        Environment.DIRECTORY_PICTURES + File.separator + "tieba");
             } else {
                 final var path = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                        "tieba" + File.separator + title);
+                        "tieba");
                 path.mkdirs();
                 imageDetails.put(MediaStore.MediaColumns.DATA, path + File.separator
-                        + String.format(Locale.CHINA, "%02d", i) + "." + FileUtils.getExtension(bb));
+                        + filename + "." + FileUtils.getExtension(bb));
             }
-            imageDetails.put(MediaStore.MediaColumns.DISPLAY_NAME, String.format(Locale.CHINA, "%02d", i));
+
+            imageDetails.put(MediaStore.MediaColumns.DISPLAY_NAME, filename);
             imageDetails.put(MediaStore.MediaColumns.MIME_TYPE, "image/" + FileUtils.getExtension(bb));
+
+            final long currentTime = System.currentTimeMillis();
+            imageDetails.put(MediaStore.MediaColumns.DATE_ADDED, currentTime / 1000);
+            imageDetails.put(MediaStore.MediaColumns.DATE_MODIFIED, currentTime / 1000);
+
             final var resolver = context.getContentResolver();
             final var imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, imageDetails);
-            final var descriptor = resolver.openFileDescriptor(imageUri, "w");
-            FileUtils.copy(bb, descriptor.getFileDescriptor());
+            try (var descriptor = resolver.openFileDescriptor(imageUri, "w")) {
+                FileUtils.copy(bb, descriptor.getFileDescriptor());
+            }
         }
     }
 }
