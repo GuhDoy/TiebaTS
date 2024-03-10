@@ -55,8 +55,7 @@ jobs:
 
       - name: Write job summary
         if: success()
-        run: |
-          echo "### [下载链接](${{ steps.upload.outputs.artifact-url }})" >> $GITHUB_STEP_SUMMARY
+        run: echo "### [下载链接](${{ steps.upload.outputs.artifact-url }})" >> $GITHUB_STEP_SUMMARY
 
       - name: Send commit to telegram
         uses: appleboy/telegram-action@master
