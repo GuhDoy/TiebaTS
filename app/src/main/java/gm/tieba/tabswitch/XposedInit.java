@@ -75,6 +75,28 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
         sAssetManager = XModuleResources.createInstance(sPath, null).getAssets();
         mAppComponentFactory = (AppComponentFactory) sClassLoader.loadClass("com.baidu.nps.hook.component.NPSComponentFactory").newInstance();
 
+        // For some reason certain flutter page will not load in LSPatch unless we manually load the flutter plugin
+        XposedHelpers.findAndHookMethod(
+                "com.baidu.tieba.flutter.FlutterPluginManager",
+                sClassLoader,
+                "invokePlugin",
+                "com.baidu.nps.main.invoke.IInvokeCallback",
+                new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        try {
+                            Object npsManager = XposedHelpers.callStaticMethod(XposedHelpers.findClass("com.baidu.nps.main.manager.NPSManager", sClassLoader), "getInstance");
+                            XposedHelpers.callMethod(npsManager, "loadClazz",
+                                    "com.baidu.tieba.plugin.flutter",
+                                    "com.baidu.tieba.flutter.FlutterPluginImpl",
+                                    XposedHelpers.findClass("com.baidu.tieba.flutter.IFlutterPlugin", sClassLoader),
+                                    param.args[0]
+                            );
+                        } catch (Error ignored) {}
+                    }
+                }
+        );
+
         XposedHelpers.findAndHookMethod(Instrumentation.class, "callApplicationOnCreate", Application.class, new XC_MethodHook() {
             @Override
             protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
