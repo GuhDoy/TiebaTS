@@ -2,12 +2,10 @@ package gm.tieba.tabswitch;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.AndroidAppHelper;
 import android.app.AppComponentFactory;
 import android.app.Application;
 import android.app.Instrumentation;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
 import android.content.res.XModuleResources;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -90,7 +88,6 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                 // com.baidu.tieba.flutter.base.view.FlutterPageActivity must be instantiated by com.baidu.nps.hook.component.NPSComponentFactory
                 // However, LSPatch incorrectly sets appComponentFactory to null, causing android.app.Instrumentation.getFactory to fall back to AppComponentFactory.DEFAULT
                 // (see https://github.com/LSPosed/LSPatch/blob/bbe8d93fb9230f7b04babaf1c4a11642110f55a6/patch-loader/src/main/java/org/lsposed/lspatch/loader/LSPApplication.java#L173)
-                // TODO: Report issue to upstream
                 if (getContext().getApplicationInfo().appComponentFactory == null) {
                     XposedBridge.log("Applying AppComponentFactory workaround");
                     XposedHelpers.findAndHookMethod(
