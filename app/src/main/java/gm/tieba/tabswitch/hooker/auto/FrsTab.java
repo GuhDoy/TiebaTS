@@ -55,12 +55,17 @@ public class FrsTab extends XposedContext implements IHooker, Obfuscated {
                 case "forum_tab_current_list":
                     if (!"com.baidu.tieba.forum.controller.TopController".equals(clazz)) return;
                     Class<?> topControllerClass = XposedHelpers.findClass(clazz, sClassLoader);
-                    Method targetMethod = XposedHelpers.findMethodBestMatch(
-                            topControllerClass,
-                            method,
-                            null,
-                            XposedHelpers.findClass(clazz, sClassLoader)
-                    );
+                    Method targetMethod;
+                    try {
+                        targetMethod = XposedHelpers.findMethodBestMatch(
+                                topControllerClass,
+                                method,
+                                null,
+                                XposedHelpers.findClass(clazz, sClassLoader)
+                        );
+                    } catch (NoSuchMethodError e) { // 12.57+
+                        break;
+                    }
                     XposedBridge.hookMethod(targetMethod, new XC_MethodHook() {
                         @Override
                         public void afterHookedMethod(MethodHookParam param) throws Throwable {
