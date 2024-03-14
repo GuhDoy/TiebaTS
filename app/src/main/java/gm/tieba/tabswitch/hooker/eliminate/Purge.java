@@ -418,6 +418,9 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
 
                 // 点击使用同系列表情
                 XposedHelpers.setObjectField(param.thisObject, "sprite_meme_info", null);
+
+                // 小说推荐
+                XposedHelpers.setObjectField(param.thisObject, "novel_recom_card", null);
             }
         });
     }
