@@ -55,7 +55,8 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 new StringMatcher("top_level_navi"),
                 new StringMatcher("index_tab_info"),
                 new SmaliMatcher("Lcom/baidu/tbadk/coreExtra/floatCardView/AlaLiveTipView;-><init>(Landroid/content/Context;)V"),
-                new SmaliMatcher("Lcom/baidu/tbadk/editortools/meme/pan/SpriteMemePan;-><init>(Landroid/content/Context;)V")
+                new SmaliMatcher("Lcom/baidu/tbadk/editortools/meme/pan/SpriteMemePan;-><init>(Landroid/content/Context;)V"),
+                new StringMatcher("h5_pop_ups_config")
         );
     }
 
@@ -101,7 +102,7 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                         XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
                             @Override
                             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                                JSONObject syncData = (JSONObject) ReflectUtils.getObjectField(param.thisObject, JSONObject.class);
+                                JSONObject syncData = ReflectUtils.getObjectField(param.thisObject, JSONObject.class);
                                 syncData.put("bottom_bubble_config", null);
                             }
                         });
@@ -112,7 +113,7 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                         XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
                             @Override
                             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                                JSONObject syncData = (JSONObject) ReflectUtils.getObjectField(param.thisObject, JSONObject.class);
+                                JSONObject syncData = ReflectUtils.getObjectField(param.thisObject, JSONObject.class);
                                 syncData.put("top_level_navi", null);
                             }
                         });
@@ -123,7 +124,7 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                         XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
                             @Override
                             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                                JSONObject syncData = (JSONObject) ReflectUtils.getObjectField(param.thisObject, JSONObject.class);
+                                JSONObject syncData = ReflectUtils.getObjectField(param.thisObject, JSONObject.class);
                                 JSONArray indexTabInfo = syncData.getJSONArray("index_tab_info");
                                 JSONArray newIndexTabInfo = new JSONArray();
                                 for (int i = 0; i < indexTabInfo.length(); i++) {
@@ -144,6 +145,18 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 case "Lcom/baidu/tbadk/editortools/meme/pan/SpriteMemePan;-><init>(Landroid/content/Context;)V":    // 点我快速配图经验+3
                     XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, "android.content.Context",
                             XC_MethodReplacement.returnConstant(null));
+                    break;
+                case "h5_pop_ups_config":  // 各种云控弹窗
+                    if (method.equals("invoke")) {
+                        XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
+                            @Override
+                            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                                JSONObject syncData = ReflectUtils.getObjectField(param.thisObject, JSONObject.class);
+                                syncData.put("h5_pop_ups", null);
+                                syncData.put("h5_pop_ups_config", null);
+                            }
+                        });
+                    }
                     break;
             }
         });
