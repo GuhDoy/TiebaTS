@@ -1,7 +1,5 @@
 package gm.tieba.tabswitch.hooker.auto;
 
-import android.app.NotificationManager;
-
 import androidx.annotation.NonNull;
 
 import de.robv.android.xposed.XC_MethodReplacement;
@@ -25,10 +23,10 @@ public class NotificationDetect extends XposedContext implements IHooker {
                 XC_MethodReplacement.returnConstant(true)
         );
         XposedHelpers.findAndHookMethod(
-                "android.app.NotificationChannel",
+                "com.baidu.tieba.push.PushSceneGroup",
                 sClassLoader,
-                "getImportance",
-                XC_MethodReplacement.returnConstant(NotificationManager.IMPORTANCE_DEFAULT)
+                "getLimit",
+                XC_MethodReplacement.returnConstant(0)
         );
     }
 }
