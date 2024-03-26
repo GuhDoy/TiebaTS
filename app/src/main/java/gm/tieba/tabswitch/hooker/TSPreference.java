@@ -190,9 +190,8 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
         preferenceLayout.addView(new SwitchButtonHolder(activity, "净化进吧", "purge_enter", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "净化我的", "purge_my", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "净化置顶帖", "fold_top_card_view", SwitchButtonHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏小红点", "red_tip", SwitchButtonHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "禁用更新提示", "remove_update", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "只推荐已关注的吧", "follow_filter", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(activity, "屏蔽首页视频贴", "purge_video", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "过滤首页推荐", "personalized_filter", SwitchButtonHolder.TYPE_DIALOG));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "过滤帖子回复", "content_filter", SwitchButtonHolder.TYPE_DIALOG));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "过滤吧页面", "frs_page_filter", SwitchButtonHolder.TYPE_DIALOG));
@@ -237,6 +236,8 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
         preferenceLayout.addView(originSrcOnlyWifiButton);
 
         preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurgeEnabled ? "奇怪怪" : "其它"));
+        preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏小红点", "red_tip", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(new SwitchButtonHolder(activity, "禁用更新提示", "remove_update", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "禁用帖子手势", "forbid_gesture", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "用赞踩差数代替赞数", "agree_num", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "禁止检测通知开启状态", "notification_detect", SwitchButtonHolder.TYPE_SWITCH));
@@ -269,10 +270,10 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
             intent.setData(Uri.parse("https://t.me/TabSwitch"));
             activity.startActivity(intent);
         }));
-        preferenceLayout.addView(TSPreferenceHelper.createButton("版本（适配版本）", String.format(Locale.CHINA, "%s_%d (%s)", BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE, BuildConfig.TARGET_VERSION), true, v -> {
+        preferenceLayout.addView(TSPreferenceHelper.createButton("版本", String.format(Locale.CHINA, "%s_%d (%s)", BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE, abbreviateVersion(BuildConfig.TARGET_VERSION)), true, v -> {
             final Intent intent = new Intent();
             intent.setAction("android.intent.action.VIEW");
-            intent.setData(Uri.parse("https://github.com/GuhDoy/TiebaTS/actions"));
+            intent.setData(Uri.parse("https://github.com/GuhDoy/TiebaTS/releases"));
             activity.startActivity(intent);
         }));
         return preferenceLayout;
@@ -307,4 +308,19 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
         TraceChecker.sChildCount = preferenceLayout.getChildCount();
         return preferenceLayout;
     }
+
+    private static String abbreviateVersion(String version) {
+        // Split the version string by dot (.)
+        String[] parts = version.split("\\.");
+
+        // Check if there are at least two version codes
+        if (parts.length >= 2) {
+            // Concatenate the first two version codes
+            return parts[0] + parts[1];
+        } else {
+            // If there are less than two version codes, return the original string
+            return version;
+        }
+    }
+
 }
