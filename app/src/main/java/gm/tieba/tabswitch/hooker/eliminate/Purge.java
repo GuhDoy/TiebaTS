@@ -119,7 +119,7 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                         });
                     }
                     break;
-                case "index_tab_info":  // 首页活动Tab
+                case "index_tab_info":  // 首页活动Tab (202), 直播Tab (6)
                     if (method.equals("invoke")) {
                         XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
                             @Override
@@ -129,7 +129,7 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                                 JSONArray newIndexTabInfo = new JSONArray();
                                 for (int i = 0; i < indexTabInfo.length(); i++) {
                                     JSONObject currTab = indexTabInfo.getJSONObject(i);
-                                    if (!currTab.getString("tab_type").equals("202")) {
+                                    if (!currTab.getString("tab_type").equals("202") && !currTab.getString("tab_type").equals("6")) {
                                         newIndexTabInfo.put(currTab);
                                     }
                                 }
