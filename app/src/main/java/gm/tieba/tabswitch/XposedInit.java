@@ -7,6 +7,7 @@ import android.app.Application;
 import android.app.Instrumentation;
 import android.content.Intent;
 import android.content.res.XModuleResources;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.WindowManager;
@@ -221,8 +222,17 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                         protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
                             final var activity = (Activity) param.thisObject;
                             final var messages = new ArrayList<String>();
-                            messages.add(String.format(Constants.getStrings().get("exception_rules_incomplete"), BuildConfig.TARGET_VERSION));
-                            messages.add(String.format(Locale.CHINA, "tbversion: %s, module version: %d",
+
+                            if (DeobfuscationHelper.isTbSatisfyVersionRequirement(BuildConfig.MIN_VERSION, currTbVersion)
+                                && (!DeobfuscationHelper.isTbSatisfyVersionRequirement(BuildConfig.TARGET_VERSION, currTbVersion) || currTbVersion.equals(BuildConfig.TARGET_VERSION))) {
+                                messages.add(Constants.getStrings().get("exception_rules_incomplete"));
+                            } else {
+                                messages.add(String.format(Locale.CHINA,
+                                        Constants.getStrings().get("version_mismatch"),
+                                        BuildConfig.MIN_VERSION, BuildConfig.TARGET_VERSION));
+                            }
+
+                            messages.add(String.format(Locale.CHINA, "贴吧版本：%s, 模块版本：%d",
                                     currTbVersion, BuildConfig.VERSION_CODE));
                             messages.add(String.format(Locale.CHINA, "%d rule(s) lost: %s", lostList.size(), lostList));
                             final var message = TextUtils.join("\n", messages);
@@ -230,6 +240,12 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                             AlertDialog alert = new AlertDialog.Builder(activity, DisplayUtils.isLightMode(getContext()) ?
                                     android.R.style.Theme_DeviceDefault_Light_Dialog_Alert : android.R.style.Theme_DeviceDefault_Dialog_Alert)
                                     .setTitle("警告").setMessage(message).setCancelable(false)
+                                    .setNeutralButton("更新模块", (dialogInterface, i) -> {
+                                        final Intent intent = new Intent();
+                                        intent.setAction("android.intent.action.VIEW");
+                                        intent.setData(Uri.parse("https://github.com/GuhDoy/TiebaTS/releases"));
+                                        activity.startActivity(intent);
+                                    })
                                     .setNegativeButton(activity.getString(android.R.string.cancel), null)
                                     .setPositiveButton(activity.getString(android.R.string.ok), (dialogInterface, i) -> {
                                         Preferences.putSignature(0);
