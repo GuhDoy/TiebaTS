@@ -271,7 +271,7 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
             intent.setData(Uri.parse("https://t.me/TabSwitch"));
             activity.startActivity(intent);
         }));
-        preferenceLayout.addView(TSPreferenceHelper.createButton("版本", String.format(Locale.CHINA, "%s_%d (%s)", BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE, abbreviateVersion(BuildConfig.TARGET_VERSION)), true, v -> {
+        preferenceLayout.addView(TSPreferenceHelper.createButton("版本", String.format(Locale.CHINA, "%s_%d", BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE), true, v -> {
             final Intent intent = new Intent();
             intent.setAction("android.intent.action.VIEW");
             intent.setData(Uri.parse("https://github.com/GuhDoy/TiebaTS/releases"));
@@ -309,19 +309,4 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
         TraceChecker.sChildCount = preferenceLayout.getChildCount();
         return preferenceLayout;
     }
-
-    private static String abbreviateVersion(String version) {
-        // Split the version string by dot (.)
-        String[] parts = version.split("\\.");
-
-        // Check if there are at least two version codes
-        if (parts.length >= 2) {
-            // Concatenate the first two version codes
-            return parts[0] + parts[1];
-        } else {
-            // If there are less than two version codes, return the original string
-            return version;
-        }
-    }
-
 }

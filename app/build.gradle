@@ -17,8 +17,8 @@ android {
         minSdk 28
         targetSdk sdk
         versionCode gitCommitCount
-        versionName '2.9.6'
-        buildConfigField "String", "TARGET_VERSION", "\"12.57.5.0\""
+        versionName '2.9.7'
+        buildConfigField "String", "TARGET_VERSION", "\"12.58.1.0\""
         buildConfigField "String", "MIN_VERSION", "\"12.53.1.0\""
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'

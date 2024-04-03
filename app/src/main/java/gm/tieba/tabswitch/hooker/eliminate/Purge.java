@@ -48,7 +48,6 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 new SmaliMatcher("Lcom/baidu/tieba/recapp/lego/model/AdCard;-><init>(Lorg/json/JSONObject;)V"),
                 new SmaliMatcher("Lcom/baidu/tieba/lego/card/model/BaseCardInfo;-><init>(Lorg/json/JSONObject;)V"),
                 new StringMatcher("pic_amount"),
-                new StringMatcher("key_frs_dialog_ad_last_show_time"),
                 new StringMatcher("准备展示精灵动画提示控件"),
                 new StringMatcher("TbChannelJsInterfaceNew"),
                 new StringMatcher("bottom_bubble_config"),
@@ -72,13 +71,6 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                     for (final var md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
                         if (Arrays.toString(md.getParameterTypes()).contains("JSONObject") && !md.getName().equals(method)) {
                             XposedBridge.hookMethod(md, XC_MethodReplacement.returnConstant(null));
-                        }
-                    }
-                    break;
-                case "key_frs_dialog_ad_last_show_time": // 吧推广弹窗
-                    for (final var md : XposedHelpers.findClass(clazz, sClassLoader).getDeclaredMethods()) {
-                        if (md.getName().equals(method) && md.getReturnType().equals(boolean.class)) {
-                            XposedBridge.hookMethod(md, XC_MethodReplacement.returnConstant(true));
                         }
                     }
                     break;
@@ -308,8 +300,6 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 XposedHelpers.setObjectField(param.thisObject, "activityhead", null);
             }
         });
-        // 吧小程序
-        XposedBridge.hookAllMethods(XposedHelpers.findClass("com.baidu.tieba.frs.servicearea.ServiceAreaView", sClassLoader), "setData", XC_MethodReplacement.returnConstant(null));
         // 吧友直播
         XposedHelpers.findAndHookMethod("tbclient.FrsPage.NavTabInfo$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
@@ -319,38 +309,18 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 list.removeIf(o -> (Integer) XposedHelpers.getObjectField(o, "tab_type") == 92);
             }
         });
-        // 你可能感兴趣的人：initUI()
-        final var md = ReflectUtils.findFirstMethodByExactType("com.baidu.tieba.homepage.concern.view.ConcernRecommendLayout");
-        XposedBridge.hookMethod(md, XC_MethodReplacement.returnConstant(null));
-        try {
-            // 12.41.5.1+
-            XposedHelpers.findAndHookMethod("com.baidu.tieba.feed.list.TemplateAdapter", sClassLoader, "setList", List.class, new XC_MethodHook() {
-                @Override
-                protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
-                    final var list = (List<?>) param.args[0];
-                    list.removeIf(o -> {
-                        final var type = (String) XposedHelpers.callMethod(o, "a");
-                        return "sideway_card".equals(type);
-                    });
-                }
-            });
-        } catch (final XposedHelpers.ClassNotFoundError ignored) {
-        }
-        // 首页任务中心：R.id.task TbImageView
-//        XposedHelpers.findAndHookMethod("com.baidu.tieba.homepage.framework.indicator.NestedScrollHeader", sClassLoader, "onAttachedToWindow", new XC_MethodHook() {
-//            @Override
-//            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-//                ReflectUtils.walkObjectFields(param.thisObject, ImageView.class, objField -> {
-//                    ImageView iv = (ImageView) objField;
-//                    iv.setVisibility(View.GONE);
-//                    return false;
-//                });
-//            }
-//        });
-        // 首页大家都在搜
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.enterForum.view.ForumHeaderView", sClassLoader, "setSearchHint", String.class, XC_MethodReplacement.returnConstant(null));
-        // 进吧大家都在搜
-//        XposedHelpers.findAndHookMethod("com.baidu.tieba.homepage.framework.indicator.NestedScrollHeader", sClassLoader, "setSearchHint", String.class, XC_MethodReplacement.returnConstant(null));
+        // 你可能感兴趣的人
+        XposedHelpers.findAndHookMethod("com.baidu.tieba.feed.list.TemplateAdapter", sClassLoader, "setList", List.class, new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+                final var list = (List<?>) param.args[0];
+                list.removeIf(o -> {
+                    final var md = ReflectUtils.findFirstMethodByExactReturnType(o.getClass(), String.class);
+                    final var type = XposedHelpers.callMethod(o, md.getName());
+                    return "sideway_card".equals(type);
+                });
+            }
+        });
         // 一键签到广告
         XposedHelpers.findAndHookMethod("com.baidu.tieba.signall.SignAllForumAdvertActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
             @Override
