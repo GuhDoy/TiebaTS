@@ -33,6 +33,7 @@ import gm.tieba.tabswitch.hooker.TSPreference;
 import gm.tieba.tabswitch.hooker.add.HistoryCache;
 import gm.tieba.tabswitch.hooker.add.Ripple;
 import gm.tieba.tabswitch.hooker.add.SaveImages;
+import gm.tieba.tabswitch.hooker.add.SelectClipboard;
 import gm.tieba.tabswitch.hooker.auto.AgreeNum;
 import gm.tieba.tabswitch.hooker.auto.AutoSign;
 import gm.tieba.tabswitch.hooker.auto.FrsTab;
@@ -155,7 +156,8 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                         new FoldTopCardView(),
                         new MsgCenterTab(),
                         new NotificationDetect(),
-                        new PurgeVideo()
+                        new PurgeVideo(),
+                        new SelectClipboard()
                 );
                 final var matchers = new ArrayList<Obfuscated>(hookers.size() + 2);
                 matchers.add(new TbDialog());

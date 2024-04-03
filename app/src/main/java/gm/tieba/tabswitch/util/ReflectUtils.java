@@ -1,5 +1,8 @@
 package gm.tieba.tabswitch.util;
 
+import android.app.Activity;
+import android.app.Application;
+
 import androidx.annotation.ColorInt;
 
 import java.lang.reflect.Field;
@@ -216,5 +219,19 @@ public class ReflectUtils extends XposedContext {
 
     public static Object callStaticMethod(final Method method, final Object... args) {
         return callMethod(method, null, args);
+    }
+
+    public static Application getTbadkCoreApplicationInst() {
+        return (Application) XposedHelpers.callStaticMethod(
+                XposedHelpers.findClass("com.baidu.tbadk.core.TbadkCoreApplication", sClassLoader),
+                "getInst"
+        );
+    }
+
+    public static Activity getCurrentActivity() {
+        return (Activity) XposedHelpers.callMethod(
+                getTbadkCoreApplicationInst(),
+                "getCurrentActivity"
+        );
     }
 }
