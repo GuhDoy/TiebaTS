@@ -51,7 +51,7 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 new StringMatcher("准备展示精灵动画提示控件"),
                 new StringMatcher("TbChannelJsInterfaceNew"),
                 new StringMatcher("bottom_bubble_config"),
-                new StringMatcher("top_level_navi"),
+//                new StringMatcher("top_level_navi"),
                 new StringMatcher("index_tab_info"),
                 new SmaliMatcher("Lcom/baidu/tbadk/coreExtra/floatCardView/AlaLiveTipView;-><init>(Landroid/content/Context;)V"),
                 new SmaliMatcher("Lcom/baidu/tbadk/editortools/meme/pan/SpriteMemePan;-><init>(Landroid/content/Context;)V"),
@@ -100,17 +100,17 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                         });
                     }
                     break;
-                case "top_level_navi":  // 首页活动背景
-                    if (method.equals("invoke")) {
-                        XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
-                            @Override
-                            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                                JSONObject syncData = ReflectUtils.getObjectField(param.thisObject, JSONObject.class);
-                                syncData.put("top_level_navi", null);
-                            }
-                        });
-                    }
-                    break;
+//                case "top_level_navi":  // 首页活动背景
+//                    if (method.equals("invoke")) {
+//                        XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
+//                            @Override
+//                            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+//                                JSONObject syncData = ReflectUtils.getObjectField(param.thisObject, JSONObject.class);
+//                                syncData.put("top_level_navi", null);
+//                            }
+//                        });
+//                    }
+//                    break;
                 case "index_tab_info":  // 首页活动Tab (202), 直播Tab (6)
                     if (method.equals("invoke")) {
                         XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
