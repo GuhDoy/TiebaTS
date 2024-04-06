@@ -346,36 +346,17 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 }
             });
         }
-        // 吧页面头条贴(41), 直播贴(69 / is_live_card)
+        // 吧页面
         XposedHelpers.findAndHookMethod("tbclient.FrsPage.PageData$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
-                List<?> feedList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "feed_list");
-                if (feedList != null) {
-                    feedList.removeIf(
-                            o -> {
-                                Object currFeed = XposedHelpers.getObjectField(o, "feed");
-                                if (currFeed != null) {
-                                    List<?> businessInfo = (List<?>) XposedHelpers.getObjectField(currFeed, "business_info");
-                                    for (var feedKV : businessInfo) {
-                                        String currentKey = XposedHelpers.getObjectField(feedKV, "key").toString();
-                                        if (currentKey.equals("thread_type")) {
-                                            var currValue = XposedHelpers.getObjectField(feedKV, "value").toString();
-                                            if (currValue.equals("41") || currValue.equals("69")) {
-                                                return true;
-                                            }
-                                        } else if (currentKey.equals("is_live_card")) {
-                                            var currValue = XposedHelpers.getObjectField(feedKV, "value").toString();
-                                            if (currValue.equals("1")) {
-                                                return true;
-                                            }
-                                        }
-                                    }
-                                }
-                                return false;
-                            }
-                    );
-                }
+                purgePageData(param.thisObject);
+            }
+        });
+        XposedHelpers.findAndHookMethod("tbclient.ThreadList.PageData$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+                purgePageData(param.thisObject);
             }
         });
         // 聊天-AI角色
@@ -406,5 +387,35 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 XposedHelpers.setObjectField(param.thisObject, "novel_recom_card", null);
             }
         });
+    }
+
+    // 吧页面头条贴(41), 直播贴(69 / is_live_card)
+    private void purgePageData(Object pageData) {
+        List<?> feedList = (List<?>) XposedHelpers.getObjectField(pageData, "feed_list");
+        if (feedList != null) {
+            feedList.removeIf(
+                    o -> {
+                        Object currFeed = XposedHelpers.getObjectField(o, "feed");
+                        if (currFeed != null) {
+                            List<?> businessInfo = (List<?>) XposedHelpers.getObjectField(currFeed, "business_info");
+                            for (var feedKV : businessInfo) {
+                                String currentKey = XposedHelpers.getObjectField(feedKV, "key").toString();
+                                if (currentKey.equals("thread_type")) {
+                                    var currValue = XposedHelpers.getObjectField(feedKV, "value").toString();
+                                    if (currValue.equals("41") || currValue.equals("69")) {
+                                        return true;
+                                    }
+                                } else if (currentKey.equals("is_live_card")) {
+                                    var currValue = XposedHelpers.getObjectField(feedKV, "value").toString();
+                                    if (currValue.equals("1")) {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                        return false;
+                    }
+            );
+        }
     }
 }
