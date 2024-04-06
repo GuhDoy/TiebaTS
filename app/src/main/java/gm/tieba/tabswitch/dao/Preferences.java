@@ -14,12 +14,10 @@ import java.util.Set;
 public class Preferences {
     private static SharedPreferences sTsPreferences;
     private static SharedPreferences sTsConfig;
-    private static SharedPreferences sTsNotes;
 
     public static void init(final Context context) {
         sTsPreferences = context.getSharedPreferences("TS_preferences", Context.MODE_PRIVATE);
         sTsConfig = context.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
-        sTsNotes = context.getSharedPreferences("TS_notes", Context.MODE_PRIVATE);
     }
 
     // Preferences
@@ -81,13 +79,7 @@ public class Preferences {
     public static void putAutoSignEnabled() {
         final SharedPreferences.Editor editor = sTsConfig.edit();
         editor.putBoolean("auto_sign", true);
-        editor.commit();
-    }
-
-    public static void putAutoSignDisabled() {
-        final SharedPreferences.Editor editor = sTsConfig.edit();
-        editor.putBoolean("auto_sign", false);
-        editor.commit();
+        editor.apply();
     }
 
     public static boolean getIsAutoSignEnabled() {
@@ -98,13 +90,6 @@ public class Preferences {
     public static void putPurgeEnabled() {
         final SharedPreferences.Editor editor = sTsConfig.edit();
         editor.putBoolean("ze", true);
-        editor.commit();
-    }
-
-    @SuppressLint("ApplySharedPref")
-    public static void putPurgeDisabled() {
-        final SharedPreferences.Editor editor = sTsConfig.edit();
-        editor.putBoolean("ze", false);
         editor.commit();
     }
 
@@ -143,16 +128,9 @@ public class Preferences {
         return Calendar.getInstance().get(Calendar.DAY_OF_YEAR) == sTsConfig.getInt("sign_date", 0);
     }
 
-    // Notes
-    public static Map<String, ?> getNotes() {
-        return sTsNotes.getAll();
-    }
-
-    public static String getNote(final String name) {
-        return sTsNotes.getString(name, null);
-    }
-
-    public static SharedPreferences.Editor getTsNotesEditor() {
-        return sTsNotes.edit();
+    @SuppressLint("ApplySharedPref")
+    public static void commit() {
+        sTsConfig.edit().commit();
+        sTsPreferences.edit().commit();
     }
 }

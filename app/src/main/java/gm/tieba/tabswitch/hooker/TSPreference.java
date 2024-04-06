@@ -136,7 +136,10 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
                            final LinearLayout preferenceLayout) throws Throwable {
         navigationBar.setTitleText(title);
         navigationBar.setCenterTextTitle("");
-        navigationBar.addTextButton("重启", v -> DisplayUtils.restart(activity));
+        navigationBar.addTextButton("重启", v -> {
+            Preferences.commit();
+            DisplayUtils.restart(activity);
+        });
         final var contentView = (ViewGroup) activity.findViewById(android.R.id.content);
         final var parent = (LinearLayout) contentView.getChildAt(0);
         final var mainScroll = (ScrollView) parent.getChildAt(1);
