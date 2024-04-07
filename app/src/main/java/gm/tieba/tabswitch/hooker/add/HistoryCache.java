@@ -1,13 +1,19 @@
 package gm.tieba.tabswitch.hooker.add;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 
@@ -21,10 +27,9 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.hooker.IHooker;
+import gm.tieba.tabswitch.util.DisplayUtils;
 import gm.tieba.tabswitch.util.ReflectUtils;
 import gm.tieba.tabswitch.widget.NavigationBar;
-import gm.tieba.tabswitch.widget.TbDialog;
-import gm.tieba.tabswitch.widget.TbEditText;
 import gm.tieba.tabswitch.widget.TbToast;
 
 public class HistoryCache extends XposedContext implements IHooker {
@@ -56,7 +61,7 @@ public class HistoryCache extends XposedContext implements IHooker {
                 final var list = (List<?>) param.args[0];
                 if (list == null) return;
 
-                final var pattern = Pattern.compile(mRegex);
+                final var pattern = Pattern.compile(mRegex, Pattern.CASE_INSENSITIVE);
                 list.removeIf(o -> {
                     String[] strings;
                     try {
@@ -78,9 +83,18 @@ public class HistoryCache extends XposedContext implements IHooker {
     }
 
     private void showRegexDialog(final Activity activity) {
-        final EditText editText = new TbEditText(activity);
+        Activity currentActivity = ReflectUtils.getCurrentActivity();
+        boolean isLightMode = DisplayUtils.isLightMode(getContext());
+
+        final EditText editText = new EditText(currentActivity);
         editText.setHint(Constants.getStrings().get("regex_hint"));
         editText.setText(mRegex);
+        if (!isLightMode) {
+            editText.setTextColor(Color.WHITE);
+            editText.setHintTextColor(Color.GRAY);
+        }
+        editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+
         editText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(final CharSequence s, final int start, final int count, final int after) {
@@ -95,25 +109,48 @@ public class HistoryCache extends XposedContext implements IHooker {
                 mRegex = s.toString();
             }
         });
-        final TbDialog bdAlert = new TbDialog(activity, null, null, true, editText);
-        bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
-        bdAlert.setOnYesButtonClickListener(v -> {
-            try {
-                Pattern.compile(editText.getText().toString());
-                bdAlert.dismiss();
-                activity.recreate();
-            } catch (final PatternSyntaxException e) {
-                TbToast.showTbToast(e.getMessage(), TbToast.LENGTH_SHORT);
-            }
+
+        final LinearLayout linearLayout = new LinearLayout(currentActivity);
+        linearLayout.setGravity(Gravity.CENTER_HORIZONTAL);
+
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        layoutParams.leftMargin = DisplayUtils.dipToPx(currentActivity, 20F);
+        layoutParams.rightMargin = DisplayUtils.dipToPx(currentActivity, 20F);
+        editText.setLayoutParams(layoutParams);
+
+        linearLayout.addView(editText);
+
+        AlertDialog alert = new AlertDialog.Builder(currentActivity, isLightMode ?
+                android.R.style.Theme_DeviceDefault_Light_Dialog_Alert : android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                .setTitle("搜索").setView(linearLayout)
+                .setNegativeButton(activity.getString(android.R.string.cancel), null)
+                .setPositiveButton(activity.getString(android.R.string.ok), null).create();
+
+        alert.setOnShowListener(dialogInterface -> {
+            Button button = alert.getButton(AlertDialog.BUTTON_POSITIVE);
+            button.setOnClickListener(view -> {
+                try {
+                    Pattern.compile(editText.getText().toString());
+                    alert.dismiss();
+                    activity.recreate();
+                } catch (final PatternSyntaxException e) {
+                    TbToast.showTbToast(e.getMessage(), TbToast.LENGTH_SHORT);
+                }
+            });
         });
-        bdAlert.show();
-        bdAlert.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+
+        alert.show();
+        DisplayUtils.fixAlertDialogWidth(alert);
+
+        alert.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         editText.setSingleLine();
         editText.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
         editText.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH || event != null
                     && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-                bdAlert.findYesButton().performClick();
+                alert.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
                 return true;
             }
             return false;

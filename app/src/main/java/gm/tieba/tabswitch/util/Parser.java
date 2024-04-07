@@ -1,6 +1,7 @@
 package gm.tieba.tabswitch.util;
 
 import java.util.List;
+import java.util.Locale;
 
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.XposedContext;
@@ -12,6 +13,6 @@ public class Parser extends XposedContext {
         for (int i = 0; i < contents.size(); i++) {
             pbContent.append(XposedHelpers.getObjectField(contents.get(i), "text"));
         }
-        return pbContent.toString();
+        return pbContent.toString().toLowerCase(Locale.CHINA);
     }
 }

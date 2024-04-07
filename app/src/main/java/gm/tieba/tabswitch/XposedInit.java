@@ -10,7 +10,6 @@ import android.content.res.XModuleResources;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.WindowManager;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -60,7 +59,6 @@ import gm.tieba.tabswitch.hooker.extra.ForbidGesture;
 import gm.tieba.tabswitch.hooker.extra.Hide;
 import gm.tieba.tabswitch.hooker.extra.StackTrace;
 import gm.tieba.tabswitch.util.DisplayUtils;
-import gm.tieba.tabswitch.widget.TbDialog;
 import gm.tieba.tabswitch.widget.TbToast;
 
 public class XposedInit extends XposedContext implements IXposedHookZygoteInit, IXposedHookLoadPackage {
@@ -160,7 +158,6 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                         new SelectClipboard()
                 );
                 final var matchers = new ArrayList<Obfuscated>(hookers.size() + 2);
-                matchers.add(new TbDialog());
                 matchers.add(new TbToast());
                 for (final var hooker : hookers) {
                     if (hooker instanceof Obfuscated) {
@@ -241,7 +238,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                             XposedBridge.log(message);
                             AlertDialog alert = new AlertDialog.Builder(activity, DisplayUtils.isLightMode(getContext()) ?
                                     android.R.style.Theme_DeviceDefault_Light_Dialog_Alert : android.R.style.Theme_DeviceDefault_Dialog_Alert)
-                                    .setTitle("警告").setMessage(message).setCancelable(false)
+                                    .setTitle("规则异常").setMessage(message).setCancelable(false)
                                     .setNeutralButton("更新模块", (dialogInterface, i) -> {
                                         final Intent intent = new Intent();
                                         intent.setAction("android.intent.action.VIEW");
@@ -254,10 +251,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                                         DeobfuscationHelper.saveAndRestart(activity, "unknown", null);
                                     }).create();
                             alert.show();
-                            WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
-                            layoutParams.copyFrom(alert.getWindow().getAttributes());
-                            layoutParams.width = DisplayUtils.getDisplayWidth(getContext());
-                            alert.getWindow().setAttributes(layoutParams);
+                            DisplayUtils.fixAlertDialogWidth(alert);
                         }
                     });
                     return;

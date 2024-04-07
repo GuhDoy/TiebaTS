@@ -1,9 +1,11 @@
 package gm.tieba.tabswitch.util;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.view.WindowManager;
 
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
@@ -64,5 +66,12 @@ public class DisplayUtils extends XposedContext {
 
     public static int getDisplayWidth(final Context context) {
         return context.getResources().getDisplayMetrics().widthPixels;
+    }
+
+    public static void fixAlertDialogWidth(AlertDialog alert) {
+        WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
+        layoutParams.copyFrom(alert.getWindow().getAttributes());
+        layoutParams.width = DisplayUtils.getDisplayWidth(getContext());
+        alert.getWindow().setAttributes(layoutParams);
     }
 }

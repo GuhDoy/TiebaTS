@@ -17,7 +17,7 @@ interface RegexFilter {
         final var _regex = Preferences.getString(key());
         if (!_regex.equals(regex[0])) {
             regex[0] = _regex;
-            pattern[0] = Pattern.compile(_regex);
+            pattern[0] = Pattern.compile(_regex, Pattern.CASE_INSENSITIVE);
         }
         return pattern[0];
     }

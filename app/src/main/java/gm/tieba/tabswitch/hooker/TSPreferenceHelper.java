@@ -2,16 +2,20 @@ package gm.tieba.tabswitch.hooker;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Color;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -32,10 +36,9 @@ import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.Constants;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.Preferences;
+import gm.tieba.tabswitch.util.DisplayUtils;
 import gm.tieba.tabswitch.util.ReflectUtils;
 import gm.tieba.tabswitch.widget.Switch;
-import gm.tieba.tabswitch.widget.TbDialog;
-import gm.tieba.tabswitch.widget.TbEditText;
 import gm.tieba.tabswitch.widget.TbToast;
 
 public class TSPreferenceHelper extends XposedContext {
@@ -190,7 +193,7 @@ public class TSPreferenceHelper extends XposedContext {
                     else bdSwitch.turnOff();
                     break;
                 case TYPE_DIALOG:
-                    switchButton = createButton(text, null, false, v -> showRegexDialog(activity));
+                    switchButton = createButton(text, null, false, v -> showRegexDialog(activity, text));
                     bdSwitchView.setOnTouchListener((v, event) -> false);
                     if (Preferences.getString(key) != null) bdSwitch.turnOn();
                     else bdSwitch.turnOff();
@@ -207,34 +210,65 @@ public class TSPreferenceHelper extends XposedContext {
             });
         }
 
-        private void showRegexDialog(final Activity activity) {
-            final EditText editText = new TbEditText(getContext());
+        private void showRegexDialog(final Activity activity, final String title) {
+            Activity currentActivity = ReflectUtils.getCurrentActivity();
+            boolean isLightMode = DisplayUtils.isLightMode(getContext());
+
+            final EditText editText = new EditText(currentActivity);
             editText.setHint(Constants.getStrings().get("regex_hint"));
             editText.setText(Preferences.getString(mKey));
-            final TbDialog bdAlert = new TbDialog(activity, null, null, true, editText);
-            bdAlert.setOnNoButtonClickListener(v -> bdAlert.dismiss());
-            bdAlert.setOnYesButtonClickListener(v -> {
-                try {
-                    if (TextUtils.isEmpty(editText.getText())) {
-                        Preferences.remove(mKey);
-                        bdSwitch.turnOff();
-                    } else {
-                        Pattern.compile(editText.getText().toString());
-                        Preferences.putString(mKey, editText.getText().toString());
-                        bdSwitch.turnOn();
+            if (!isLightMode) {
+                editText.setTextColor(Color.WHITE);
+                editText.setHintTextColor(Color.GRAY);
+            }
+            editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+
+            final LinearLayout linearLayout = new LinearLayout(currentActivity);
+            linearLayout.setGravity(Gravity.CENTER_HORIZONTAL);
+
+            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            layoutParams.leftMargin = DisplayUtils.dipToPx(currentActivity, 20F);
+            layoutParams.rightMargin = DisplayUtils.dipToPx(currentActivity, 20F);
+            editText.setLayoutParams(layoutParams);
+
+            linearLayout.addView(editText);
+
+            AlertDialog alert = new AlertDialog.Builder(currentActivity, isLightMode ?
+                    android.R.style.Theme_DeviceDefault_Light_Dialog_Alert : android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                    .setTitle(title).setView(linearLayout)
+                    .setNegativeButton(activity.getString(android.R.string.cancel), null)
+                    .setPositiveButton(activity.getString(android.R.string.ok), null).create();
+
+            alert.setOnShowListener(dialogInterface -> {
+                Button button = alert.getButton(AlertDialog.BUTTON_POSITIVE);
+                button.setOnClickListener(view -> {
+                    try {
+                        if (TextUtils.isEmpty(editText.getText())) {
+                            Preferences.remove(mKey);
+                            bdSwitch.turnOff();
+                        } else {
+                            Pattern.compile(editText.getText().toString());
+                            Preferences.putString(mKey, editText.getText().toString());
+                            bdSwitch.turnOn();
+                        }
+                        alert.dismiss();
+                    } catch (final PatternSyntaxException e) {
+                        TbToast.showTbToast(e.getMessage(), TbToast.LENGTH_SHORT);
                     }
-                    bdAlert.dismiss();
-                } catch (final PatternSyntaxException e) {
-                    TbToast.showTbToast(e.getMessage(), TbToast.LENGTH_SHORT);
-                }
+                });
             });
-            bdAlert.show();
-            bdAlert.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+
+            alert.show();
+            DisplayUtils.fixAlertDialogWidth(alert);
+
+            alert.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
             editText.setImeOptions(EditorInfo.IME_ACTION_DONE);
             editText.setOnEditorActionListener((v, actionId, event) -> {
                 if (actionId == EditorInfo.IME_ACTION_DONE || event != null
                         && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-                    bdAlert.findYesButton().performClick();
+                    alert.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
                     return true;
                 }
                 return false;

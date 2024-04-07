@@ -20,7 +20,6 @@ import androidx.annotation.NonNull;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -40,7 +39,6 @@ import gm.tieba.tabswitch.hooker.deobfuscation.StringResMatcher;
 import gm.tieba.tabswitch.hooker.extra.TraceChecker;
 import gm.tieba.tabswitch.util.DisplayUtils;
 import gm.tieba.tabswitch.widget.NavigationBar;
-import gm.tieba.tabswitch.widget.TbDialog;
 import gm.tieba.tabswitch.widget.TbToast;
 
 public class TSPreference extends XposedContext implements IHooker, Obfuscated {
@@ -115,15 +113,18 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
                         } catch (final Throwable tr) {
                             final var messages = new ArrayList<String>();
                             messages.add(Constants.getStrings().get("exception_init_preference"));
-                            messages.add(String.format(Locale.CHINA, "tbversion: %s, module version: %d",
+                            messages.add(String.format(Locale.CHINA, "贴吧版本：%s, 模块版本：%d",
                                     DeobfuscationHelper.getTbVersion(getContext()), BuildConfig.VERSION_CODE));
                             messages.add(Log.getStackTraceString(tr));
                             final var message = TextUtils.join("\n", messages);
                             XposedBridge.log(message);
-                            new AlertDialog.Builder(activity, AlertDialog.THEME_DEVICE_DEFAULT_LIGHT)
-                                    .setTitle("警告").setMessage(message).setCancelable(false)
+                            AlertDialog alert = new AlertDialog.Builder(activity, DisplayUtils.isLightMode(getContext()) ?
+                                    android.R.style.Theme_DeviceDefault_Light_Dialog_Alert : android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                                    .setTitle("规则异常").setMessage(message).setCancelable(false)
                                     .setPositiveButton(activity.getString(android.R.string.ok), (dialogInterface, i) -> activity.finish())
-                                    .show();
+                                    .create();
+                            alert.show();
+                            DisplayUtils.fixAlertDialogWidth(alert);
                         }
                     }
                 });
@@ -154,21 +155,17 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
             if (BuildConfig.VERSION_NAME.contains("alpha") || BuildConfig.VERSION_NAME.contains("beta")) {
                 stringBuilder.append("\n\n").append(Constants.getStrings().get("dev_tip"));
             }
-            final TbDialog bdAlert = new TbDialog(activity, "使用协议", stringBuilder.toString(), true, null);
-            bdAlert.setOnNoButtonClickListener(v -> {
-                final Intent intent = new Intent();
-                intent.setAction(Intent.ACTION_DELETE);
-                intent.setData(Uri.parse("package:" + (sPath.contains(BuildConfig.APPLICATION_ID)
-                        && new File(sPath).exists() ?
-                        BuildConfig.APPLICATION_ID : activity.getPackageName())));
-                activity.startActivity(intent);
-            });
-            bdAlert.setOnYesButtonClickListener(v -> {
-                Preferences.putEULAAccepted();
-                startRootPreferenceActivity(activity);
-                bdAlert.dismiss();
-            });
-            bdAlert.show();
+            AlertDialog alert = new AlertDialog.Builder(activity, DisplayUtils.isLightMode(getContext()) ?
+                    android.R.style.Theme_DeviceDefault_Light_Dialog_Alert : android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                    .setTitle("使用协议").setMessage(stringBuilder.toString())
+                    .setNegativeButton(activity.getString(android.R.string.cancel), null)
+                    .setPositiveButton(activity.getString(android.R.string.ok), (dialogInterface, i) -> {
+                        Preferences.putEULAAccepted();
+                        startRootPreferenceActivity(activity);
+                    })
+                    .create();
+            alert.show();
+            DisplayUtils.fixAlertDialogWidth(alert);
         } else {
             final Intent intent = new Intent().setClassName(activity, PROXY_ACTIVITY);
             intent.putExtra("proxyPage", MAIN);
@@ -209,15 +206,17 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
         final SwitchButtonHolder autoSign = new SwitchButtonHolder(activity, "自动签到", "auto_sign", SwitchButtonHolder.TYPE_SWITCH);
         autoSign.setOnButtonClickListener(v -> {
             if (!Preferences.getIsAutoSignEnabled()) {
-                final TbDialog bdalert = new TbDialog(activity, "提示",
-                        "这是一个需要网络请求并且有封号风险的功能，您需要自行承担使用此功能的风险，请谨慎使用！", true, null);
-                bdalert.setOnNoButtonClickListener(v2 -> bdalert.dismiss());
-                bdalert.setOnYesButtonClickListener(v2 -> {
-                    Preferences.putAutoSignEnabled();
-                    autoSign.bdSwitch.turnOn();
-                    bdalert.dismiss();
-                });
-                bdalert.show();
+                AlertDialog alert = new AlertDialog.Builder(activity, DisplayUtils.isLightMode(getContext()) ?
+                        android.R.style.Theme_DeviceDefault_Light_Dialog_Alert : android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                        .setTitle("提示").setMessage("这是一个需要网络请求并且有封号风险的功能，您需要自行承担使用此功能的风险，请谨慎使用！")
+                        .setNegativeButton(activity.getString(android.R.string.cancel), null)
+                        .setPositiveButton(activity.getString(android.R.string.ok), (dialogInterface, i) -> {
+                            Preferences.putAutoSignEnabled();
+                            autoSign.bdSwitch.turnOn();
+                        })
+                        .create();
+                alert.show();
+                DisplayUtils.fixAlertDialogWidth(alert);
             } else {
                 autoSign.bdSwitch.changeState();
             }

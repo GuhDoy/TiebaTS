@@ -5,7 +5,6 @@ import android.app.AlertDialog;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -65,11 +64,7 @@ public class SelectClipboard extends XposedContext implements IHooker, Obfuscate
                                 ((TextView) messageView).setTextIsSelectable(true);
                             }
 
-                            WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
-                            layoutParams.copyFrom(alert.getWindow().getAttributes());
-                            layoutParams.width = DisplayUtils.getDisplayWidth(getContext());
-                            alert.getWindow().setAttributes(layoutParams);
-
+                            DisplayUtils.fixAlertDialogWidth(alert);
                             return null;
                         }
                     });
