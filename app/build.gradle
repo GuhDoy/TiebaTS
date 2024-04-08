@@ -17,7 +17,7 @@ android {
         minSdk 28
         targetSdk sdk
         versionCode gitCommitCount
-        versionName '2.9.7.1'
+        versionName '2.9.8'
         buildConfigField "String", "TARGET_VERSION", "\"12.58.1.0\""
         buildConfigField "String", "MIN_VERSION", "\"12.53.1.0\""
 

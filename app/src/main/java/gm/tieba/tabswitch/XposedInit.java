@@ -55,6 +55,7 @@ import gm.tieba.tabswitch.hooker.eliminate.PurgeMy;
 import gm.tieba.tabswitch.hooker.eliminate.PurgeVideo;
 import gm.tieba.tabswitch.hooker.eliminate.RedTip;
 import gm.tieba.tabswitch.hooker.eliminate.RemoveUpdate;
+import gm.tieba.tabswitch.hooker.eliminate.UserFilter;
 import gm.tieba.tabswitch.hooker.extra.ForbidGesture;
 import gm.tieba.tabswitch.hooker.extra.Hide;
 import gm.tieba.tabswitch.hooker.extra.StackTrace;
@@ -155,7 +156,8 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                         new MsgCenterTab(),
                         new NotificationDetect(),
                         new PurgeVideo(),
-                        new SelectClipboard()
+                        new SelectClipboard(),
+                        new UserFilter()
                 );
                 final var matchers = new ArrayList<Obfuscated>(hookers.size() + 2);
                 matchers.add(new TbToast());

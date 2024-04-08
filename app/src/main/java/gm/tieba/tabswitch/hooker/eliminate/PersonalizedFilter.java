@@ -2,7 +2,6 @@ package gm.tieba.tabswitch.hooker.eliminate;
 
 import androidx.annotation.NonNull;
 
-import java.util.Arrays;
 import java.util.List;
 
 import de.robv.android.xposed.XC_MethodHook;
@@ -32,16 +31,7 @@ public class PersonalizedFilter extends XposedContext implements IHooker, RegexF
                         return true;
                     }
 
-                    final var strings = new String[]{(String) XposedHelpers.getObjectField(o, "title"),
-                            (String) XposedHelpers.getObjectField(o, "fname")};
-                    if (Arrays.stream(strings).anyMatch(s -> pattern.matcher(s).find())) {
-                        return true;
-                    }
-
-                    final var author = XposedHelpers.getObjectField(o, "author");
-                    final var authors = new String[]{(String) XposedHelpers.getObjectField(author, "name"),
-                            (String) XposedHelpers.getObjectField(author, "name_show")};
-                    return Arrays.stream(authors).anyMatch(s -> pattern.matcher(s).find());
+                    return pattern.matcher((String) XposedHelpers.getObjectField(o, "title")).find();
                 });
             }
         });

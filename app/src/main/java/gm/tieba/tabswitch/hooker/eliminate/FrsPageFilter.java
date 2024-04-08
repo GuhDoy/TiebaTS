@@ -52,31 +52,6 @@ public class FrsPageFilter extends XposedContext implements IHooker, RegexFilter
                                 }
                             }
                         }
-
-                        List<?> components = (List<?>) XposedHelpers.getObjectField(currFeed, "components");
-                        if (components != null ){
-                            for (var component: components) {
-                                if (XposedHelpers.getObjectField(component, "component").toString().equals("feed_head")) {
-                                    Object feedHead = XposedHelpers.getObjectField(component, "feed_head");
-                                    List<?> mainData = (List<?>) XposedHelpers.getObjectField(feedHead, "main_data");
-                                    if (mainData != null) {
-                                        for (var feedHeadSymbol: mainData) {
-                                            Object feedHeadText = XposedHelpers.getObjectField(feedHeadSymbol, "text");
-                                            if (feedHeadText != null) {
-                                                String username = (String) XposedHelpers.getObjectField(feedHeadText, "text");
-                                                if (username != null) {
-                                                    if (pattern.matcher(username).find()) {
-                                                        return true;
-                                                    }
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                    }
-                                    break;
-                                }
-                            }
-                        }
                     }
                     return false;
                 }

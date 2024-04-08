@@ -2,6 +2,7 @@ package gm.tieba.tabswitch.hooker.add;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
@@ -122,10 +123,13 @@ public class HistoryCache extends XposedContext implements IHooker {
 
         linearLayout.addView(editText);
 
+        String currRegex = mRegex;
+
         AlertDialog alert = new AlertDialog.Builder(currentActivity, isLightMode ?
                 android.R.style.Theme_DeviceDefault_Light_Dialog_Alert : android.R.style.Theme_DeviceDefault_Dialog_Alert)
                 .setTitle("搜索").setView(linearLayout)
-                .setNegativeButton(activity.getString(android.R.string.cancel), null)
+                .setOnCancelListener(dialog -> mRegex = currRegex)
+                .setNegativeButton(activity.getString(android.R.string.cancel), (dialogInterface, i) -> mRegex = currRegex)
                 .setPositiveButton(activity.getString(android.R.string.ok), null).create();
 
         alert.setOnShowListener(dialogInterface -> {
