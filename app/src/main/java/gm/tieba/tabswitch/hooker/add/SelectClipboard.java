@@ -35,14 +35,14 @@ public class SelectClipboard extends XposedContext implements IHooker, Obfuscate
     public List<? extends Matcher> matchers() {
         return List.of(
                 new SmaliMatcher("Landroid/text/ClipboardManager;->setText(Ljava/lang/CharSequence;)V",
-                        MatcherProperties.create().useClassMatcher(ClassMatcherUtils.invokeMethod("Lcom/baidu/tieba/tbadkCore/data/ThemeBubbleData;-><init>(Ltbclient/ThemeBubble;)V")))
+                        MatcherProperties.create().useClassMatcher(ClassMatcherUtils.invokeMethod("Lcom/baidu/tbadk/core/data/SmallTailInfo;-><init>()V")))
         );
     }
 
     public void hook() throws Throwable {
         AcRules.findRule(matchers(), (matcher, clazz, method) -> {
             switch (matcher) {
-                case "Lcom/baidu/tieba/tbadkCore/data/ThemeBubbleData;-><init>(Ltbclient/ThemeBubble;)V/Landroid/text/ClipboardManager;->setText(Ljava/lang/CharSequence;)V":
+                case "Lcom/baidu/tbadk/core/data/SmallTailInfo;-><init>()V/Landroid/text/ClipboardManager;->setText(Ljava/lang/CharSequence;)V":
                     XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodReplacement() {
                         @Override
                         protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
