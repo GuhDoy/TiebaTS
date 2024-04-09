@@ -2,7 +2,6 @@ package gm.tieba.tabswitch.hooker.add;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
@@ -95,6 +94,8 @@ public class HistoryCache extends XposedContext implements IHooker {
             editText.setHintTextColor(Color.GRAY);
         }
         editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        editText.setFallbackLineSpacing(false);
+        editText.setLineSpacing(0, 1.2F);
 
         editText.addTextChangedListener(new TextWatcher() {
             @Override

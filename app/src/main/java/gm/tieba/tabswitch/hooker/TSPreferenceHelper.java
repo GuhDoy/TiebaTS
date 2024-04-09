@@ -221,6 +221,8 @@ public class TSPreferenceHelper extends XposedContext {
                 editText.setHintTextColor(Color.GRAY);
             }
             editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+            editText.setFallbackLineSpacing(false);
+            editText.setLineSpacing(0, 1.2F);
 
             final LinearLayout linearLayout = new LinearLayout(currentActivity);
             linearLayout.setGravity(Gravity.CENTER_HORIZONTAL);
