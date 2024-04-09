@@ -20,7 +20,6 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -175,7 +174,7 @@ public class TSPreferenceHelper extends XposedContext {
                 switchButton = createButton(text, "此功能初始化失败", false, v -> {
                     final Throwable tr = sExceptions.get(key);
                     XposedBridge.log(tr);
-                    Toast.makeText(activity, Log.getStackTraceString(tr), Toast.LENGTH_SHORT).show();
+                    TbToast.showTbToast(Log.getStackTraceString(tr), TbToast.LENGTH_SHORT);
                 });
                 return;
             }
