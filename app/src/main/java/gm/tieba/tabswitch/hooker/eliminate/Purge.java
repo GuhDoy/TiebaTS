@@ -251,6 +251,21 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 XposedHelpers.setObjectField(param.thisObject, "interest_class", null);
             }
         });
+        // 你可能感兴趣的吧
+        XposedHelpers.findAndHookMethod("tbclient.Personalized.PageData$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+                final List<?> feed_list = (List<?>) XposedHelpers.getObjectField(param.thisObject, "feed_list");
+                if (feed_list != null) {
+                    feed_list.removeIf(
+                            o -> {
+                                String layout = (String) XposedHelpers.getObjectField(o, "layout");
+                                return layout.equals("sideway");
+                            }
+                    );
+                }
+            }
+        });
         // 帖子 AI 聊天
         XposedHelpers.findAndHookMethod("tbclient.PbPage.DataRes$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
             @Override

@@ -2,6 +2,7 @@ package gm.tieba.tabswitch.hooker.eliminate;
 
 import androidx.annotation.NonNull;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -16,8 +17,10 @@ import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.hooker.Obfuscated;
 import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
+import gm.tieba.tabswitch.hooker.deobfuscation.MatcherProperties;
+import gm.tieba.tabswitch.hooker.deobfuscation.SmaliMatcher;
 import gm.tieba.tabswitch.hooker.deobfuscation.StringMatcher;
-import gm.tieba.tabswitch.hooker.deobfuscation.ZipEntryMatcher;
+import gm.tieba.tabswitch.util.ClassMatcherUtils;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class FragmentTab extends XposedContext implements IHooker, Obfuscated {
@@ -32,7 +35,11 @@ public class FragmentTab extends XposedContext implements IHooker, Obfuscated {
     public List<? extends Matcher> matchers() {
         return List.of(
                 new StringMatcher("has_show_message_tab_tips"),
-                new ZipEntryMatcher(5580)
+                new SmaliMatcher("Lcom/airbnb/lottie/LottieAnimationView;->setImageResource(I)V",
+                        MatcherProperties.create().useClassMatcher(
+                                ClassMatcherUtils.usingString("has_show_message_tab_tips")
+                        )
+                )
         );
     }
 
@@ -52,9 +59,20 @@ public class FragmentTab extends XposedContext implements IHooker, Obfuscated {
                     }
                     if (Preferences.getBoolean("write_thread")) {
                         tabsToRemove.add("com.baidu.tieba.write.bottomButton.WriteThreadDelegateStatic");
-                        AcRules.findRule(new ZipEntryMatcher(5580), (matcher, clazz, method) -> {
-                            if (!"com.baidu.tieba.write.bottomButton.WriteThreadDelegateStatic".equals(clazz)) {
-                                XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, XC_MethodReplacement.returnConstant(null));
+                        AcRules.findRule(new SmaliMatcher("Lcom/airbnb/lottie/LottieAnimationView;->setImageResource(I)V",
+                                MatcherProperties.create().useClassMatcher(
+                                        ClassMatcherUtils.usingString("has_show_message_tab_tips")
+                                )
+                        ), (matcher, clazz, method) -> {
+                            Method md = XposedHelpers.findMethodExactIfExists(clazz, sClassLoader, method);
+                            if (md != null) {
+                                XposedBridge.hookMethod(md, new XC_MethodHook() {
+                                    @Override
+                                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                                        ReflectUtils.setObjectField(param.thisObject, "com.baidu.tbadk.widget.lottie.TBLottieAnimationView", null);
+                                        param.setResult(null);
+                                    }
+                                });
                             }
                         });
                     }
@@ -67,18 +85,5 @@ public class FragmentTab extends XposedContext implements IHooker, Obfuscated {
                 }
             });
         });
-        // Merged with Purge
-//        if (Preferences.getBoolean("dynamic_style")) {
-//            XposedBridge.hookAllMethods(XposedHelpers.findClass("com.baidu.adp.framework.MessageManager",
-//                    sClassLoader), "dispatchResponsedMessage", new XC_MethodHook() {
-//                @Override
-//                protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
-//                    final Object responsedMessage = param.args[0];
-//                    if ((int) XposedHelpers.getObjectField(responsedMessage, "mCmd") == 2921551) {
-//                        param.setResult(null);
-//                    }
-//                }
-//            });
-//        }
     }
 }
