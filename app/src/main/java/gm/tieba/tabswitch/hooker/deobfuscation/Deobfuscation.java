@@ -20,7 +20,6 @@ import java.util.function.Consumer;
 import java.util.zip.ZipFile;
 
 import brut.androlib.AndrolibException;
-import brut.androlib.res.data.value.ResFileValue;
 import brut.androlib.res.data.value.ResStringValue;
 import brut.androlib.res.decoder.ARSCDecoder;
 import gm.tieba.tabswitch.XposedContext;
@@ -37,34 +36,6 @@ public class Deobfuscation extends XposedContext {
         this.matchers.addAll(matchers);
     }
 
-    public void unzip(final PublishSubject<Float> progress, final Context context)
-            throws IOException {
-        packageResource = context.getPackageResourcePath();
-
-        final var sizeToZipEntryMatcher = new HashMap<Long, ZipEntryMatcher>();
-        for (final var matcher : matchers) {
-            if (matcher instanceof final ZipEntryMatcher zipEntryMatcher) {
-                sizeToZipEntryMatcher.put(zipEntryMatcher.getSize(), zipEntryMatcher);
-            }
-        }
-
-        final var zipFile = new ZipFile(packageResource);
-        final var enumeration = zipFile.entries();
-        var entryCount = 0;
-        final var entrySize = zipFile.size();
-        while (enumeration.hasMoreElements()) {
-            entryCount++;
-            progress.onNext((float) entryCount / entrySize);
-
-            final var ze = enumeration.nextElement();
-            final var matcher = sizeToZipEntryMatcher.get(ze.getSize());
-            if (matcher != null) {
-                matcher.setEntryName(ze.getName());
-            }
-        }
-        zipFile.close();
-    }
-
     private <T> void forEachProgressed(final PublishSubject<Float> progress,
                                        final Collection<T> collection,
                                        final Consumer<? super T> action) {
@@ -77,17 +48,15 @@ public class Deobfuscation extends XposedContext {
         }
     }
 
-    public void decodeArsc(final PublishSubject<Float> progress)
+    public void decodeArsc(final PublishSubject<Float> progress, final Context context)
             throws IOException, AndrolibException {
+        packageResource = context.getPackageResourcePath();
         progress.onNext(0F);
         final var strToResMatcher = new HashMap<String, ResMatcher>();
-        final var entryNameToZipEntryMatcher = new HashMap<String, ZipEntryMatcher>();
         final var resIdentifierToResMatcher = new HashMap<String, ResIdentifierMatcher>();
         for (final var matcher : matchers) {
             if (matcher instanceof ResMatcher) {
-                if (matcher instanceof final ZipEntryMatcher zipEntryMatcher) {
-                    entryNameToZipEntryMatcher.put(zipEntryMatcher.getEntryName(), zipEntryMatcher);
-                } else if (matcher instanceof final ResIdentifierMatcher resIdentifierMatcher) {
+                if (matcher instanceof final ResIdentifierMatcher resIdentifierMatcher) {
                     resIdentifierToResMatcher.put(resIdentifierMatcher.toResIdentifier(), resIdentifierMatcher);
                 } else {
                     strToResMatcher.put(((StringResMatcher) matcher).toResIdentifier(), (ResMatcher) matcher);
@@ -109,12 +78,6 @@ public class Deobfuscation extends XposedContext {
                         if (resValue instanceof final ResStringValue resStringValue) {
                             final var str = resStringValue.encodeAsResXmlValue();
                             final var matcher = strToResMatcher.get(str);
-                            if (matcher != null) {
-                                matcher.setId(resResSpec.getId().id);
-                            }
-                        } else if (resValue instanceof ResFileValue) {
-                            final var path = resValue.toString();
-                            final var matcher = entryNameToZipEntryMatcher.get(path);
                             if (matcher != null) {
                                 matcher.setId(resResSpec.getId().id);
                             }

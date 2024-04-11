@@ -14,16 +14,12 @@ public class DeobfuscationViewModel {
     public final Observable<Float> progress = _progress;
     private final Deobfuscation deobfuscation = new Deobfuscation();
 
-    public void deobfuscateStep1(final Context context, final List<Matcher> matchers) throws IOException {
+    public void deobfuscateStep1(final Context context, final List<Matcher> matchers) throws IOException, AndrolibException {
         deobfuscation.setMatchers(matchers);
-        deobfuscation.unzip(_progress, context);
+        deobfuscation.decodeArsc(_progress, context);
     }
 
-    public void deobfuscateStep2() throws IOException, AndrolibException {
-        deobfuscation.decodeArsc(_progress);
-    }
-
-    public void deobfuscateStep3() throws IOException {
+    public void deobfuscateStep2() throws IOException {
         deobfuscation.dexkit(_progress);
         deobfuscation.saveDexSignatureHashCode();
     }

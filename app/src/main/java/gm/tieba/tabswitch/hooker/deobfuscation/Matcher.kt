@@ -60,12 +60,6 @@ class StringResMatcher @JvmOverloads constructor(val str: String, properties: Ma
     override fun toResIdentifier(): String = str
 }
 
-class ZipEntryMatcher @JvmOverloads constructor(val size: Long, properties: MatcherProperties? = null) : ResMatcher(properties = properties) {
-    var entryName: String = ""
-    override fun toString(): String = super.toString() + size.toString()
-    override fun toResIdentifier(): String = size.toString()
-}
-
 class ResIdentifierMatcher @JvmOverloads constructor(val name: String, val defType: String, properties: MatcherProperties? = null) : ResMatcher(properties = properties) {
     override fun toString(): String = super.toString() + String.format("%s.%s", defType, name)
     override fun toResIdentifier(): String = String.format("%s.%s", defType, name)
