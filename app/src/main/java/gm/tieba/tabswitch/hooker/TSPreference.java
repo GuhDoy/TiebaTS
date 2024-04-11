@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Process;
 import android.text.TextUtils;
@@ -199,7 +200,6 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
 
         preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurgeEnabled ? "别出新意" : "增加功能"));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "浏览历史增加搜索", "history_cache", SwitchButtonHolder.TYPE_SWITCH));
-        preferenceLayout.addView(new SwitchButtonHolder(activity, "楼层增加点按效果", "ripple", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "长按下载保存全部图片", "save_images", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "弹窗自由复制", "select_clipboard", SwitchButtonHolder.TYPE_SWITCH));
 
@@ -290,6 +290,16 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
         preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏进吧", "enter_forum", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏发帖", "write_thread", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏消息", "im_message", SwitchButtonHolder.TYPE_SWITCH));
+        preferenceLayout.addView(TSPreferenceHelper.createTextView("其他"));
+        SwitchButtonHolder transitionAnimation = new SwitchButtonHolder(activity, "修复过渡动画", "transition_animation", SwitchButtonHolder.TYPE_SWITCH);
+        transitionAnimation.setOnButtonClickListener(v -> {
+            if (!(Build.VERSION.SDK_INT >= 34 && DeobfuscationHelper.isTbSatisfyVersionRequirement("12.58.2.1", DeobfuscationHelper.getTbVersion(getContext())))) {
+                TbToast.showTbToast("当前贴吧版本不支持此功能", TbToast.LENGTH_SHORT);
+            } else {
+                transitionAnimation.bdSwitch.changeState();
+            }
+        });
+        preferenceLayout.addView(transitionAnimation);
         return preferenceLayout;
     }
 

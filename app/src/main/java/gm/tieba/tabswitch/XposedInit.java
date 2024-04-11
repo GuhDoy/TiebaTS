@@ -30,7 +30,6 @@ import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.Obfuscated;
 import gm.tieba.tabswitch.hooker.TSPreference;
 import gm.tieba.tabswitch.hooker.add.HistoryCache;
-import gm.tieba.tabswitch.hooker.add.Ripple;
 import gm.tieba.tabswitch.hooker.add.SaveImages;
 import gm.tieba.tabswitch.hooker.add.SelectClipboard;
 import gm.tieba.tabswitch.hooker.auto.AgreeNum;
@@ -40,6 +39,7 @@ import gm.tieba.tabswitch.hooker.auto.MsgCenterTab;
 import gm.tieba.tabswitch.hooker.auto.NotificationDetect;
 import gm.tieba.tabswitch.hooker.auto.OpenSign;
 import gm.tieba.tabswitch.hooker.auto.OriginSrc;
+import gm.tieba.tabswitch.hooker.auto.TransitionAnimation;
 import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHelper;
 import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHooker;
 import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
@@ -141,7 +141,6 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                         new ContentFilter(),
                         new FrsPageFilter(),
                         new HistoryCache(),
-                        new Ripple(),
                         new SaveImages(),
                         new AutoSign(),
                         new OpenSign(),
@@ -157,7 +156,8 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                         new NotificationDetect(),
                         new PurgeVideo(),
                         new SelectClipboard(),
-                        new UserFilter()
+                        new UserFilter(),
+                        new TransitionAnimation()
                 );
                 final var matchers = new ArrayList<Obfuscated>(hookers.size() + 2);
                 matchers.add(new TbToast());
