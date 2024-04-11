@@ -290,16 +290,24 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
         preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏进吧", "enter_forum", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏发帖", "write_thread", SwitchButtonHolder.TYPE_SWITCH));
         preferenceLayout.addView(new SwitchButtonHolder(activity, "隐藏消息", "im_message", SwitchButtonHolder.TYPE_SWITCH));
+
         preferenceLayout.addView(TSPreferenceHelper.createTextView("其他"));
         SwitchButtonHolder transitionAnimation = new SwitchButtonHolder(activity, "修复过渡动画", "transition_animation", SwitchButtonHolder.TYPE_SWITCH);
+
+        boolean shouldEnableTransitionAnimationFix = Build.VERSION.SDK_INT >= 34 && DeobfuscationHelper.isTbSatisfyVersionRequirement("12.58.2.1", DeobfuscationHelper.getTbVersion(getContext()));
+        if (!shouldEnableTransitionAnimationFix && Preferences.getTransitionAnimationEnabled()) {
+            transitionAnimation.bdSwitch.turnOff();
+        }
+
         transitionAnimation.setOnButtonClickListener(v -> {
-            if (!(Build.VERSION.SDK_INT >= 34 && DeobfuscationHelper.isTbSatisfyVersionRequirement("12.58.2.1", DeobfuscationHelper.getTbVersion(getContext())))) {
+            if (!shouldEnableTransitionAnimationFix) {
                 TbToast.showTbToast("当前贴吧版本不支持此功能", TbToast.LENGTH_SHORT);
             } else {
                 transitionAnimation.bdSwitch.changeState();
             }
         });
         preferenceLayout.addView(transitionAnimation);
+
         return preferenceLayout;
     }
 

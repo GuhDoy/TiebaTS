@@ -1,6 +1,7 @@
 package gm.tieba.tabswitch.hooker.auto;
 
 import android.app.Activity;
+import android.os.Build;
 
 import androidx.annotation.NonNull;
 
@@ -8,6 +9,7 @@ import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.hooker.IHooker;
+import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHelper;
 
 public class TransitionAnimation extends XposedContext implements IHooker {
 
@@ -37,6 +39,10 @@ public class TransitionAnimation extends XposedContext implements IHooker {
 
     @Override
     public void hook() throws Throwable {
+        if (!(Build.VERSION.SDK_INT >= 34 && DeobfuscationHelper.isTbSatisfyVersionRequirement("12.58.2.1", DeobfuscationHelper.getTbVersion(getContext())))) {
+            return;
+        }
+
         activityPendingTransitionFactory = XposedHelpers.findClass("com.baidu.tbadk.ActivityPendingTransitionFactory", sClassLoader);
 
         CHAT_SQUARE_FADE_IN = XposedHelpers.getStaticIntField(activityPendingTransitionFactory, "CHAT_SQUARE_FADE_IN");

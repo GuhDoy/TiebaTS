@@ -86,6 +86,10 @@ public class Preferences {
         return sTsConfig.getBoolean("auto_sign", false);
     }
 
+    public static boolean getTransitionAnimationEnabled() {
+        return sTsPreferences.getBoolean("transition_animation", false);
+    }
+
     @SuppressLint("ApplySharedPref")
     public static void putPurgeEnabled() {
         final SharedPreferences.Editor editor = sTsConfig.edit();
