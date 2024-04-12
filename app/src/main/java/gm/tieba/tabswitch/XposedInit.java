@@ -30,6 +30,7 @@ import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.Obfuscated;
 import gm.tieba.tabswitch.hooker.TSPreference;
 import gm.tieba.tabswitch.hooker.add.HistoryCache;
+import gm.tieba.tabswitch.hooker.add.Ripple;
 import gm.tieba.tabswitch.hooker.add.SaveImages;
 import gm.tieba.tabswitch.hooker.add.SelectClipboard;
 import gm.tieba.tabswitch.hooker.auto.AgreeNum;
@@ -141,6 +142,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                         new ContentFilter(),
                         new FrsPageFilter(),
                         new HistoryCache(),
+                        new Ripple(),
                         new SaveImages(),
                         new AutoSign(),
                         new OpenSign(),
