@@ -49,7 +49,7 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 new SmaliMatcher("Lcom/baidu/tieba/lego/card/model/BaseCardInfo;-><init>(Lorg/json/JSONObject;)V"),
                 new StringMatcher("pic_amount"),
                 new StringMatcher("准备展示精灵动画提示控件"),
-                new StringMatcher("TbChannelJsInterfaceNew"),
+//                new StringMatcher("TbChannelJsInterfaceNew"),
                 new StringMatcher("bottom_bubble_config"),
 //                new StringMatcher("top_level_navi"),
                 new StringMatcher("index_tab_info"),
@@ -77,18 +77,18 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 case "准备展示精灵动画提示控件": // 吧内%s新贴热议中
                     XposedBridge.hookAllMethods(XposedHelpers.findClass(clazz, sClassLoader), method, XC_MethodReplacement.returnConstant(false));
                     break;
-                case "TbChannelJsInterfaceNew":  // 吧友直播
-                    if (method.equals("getInitData")) {
-                        XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
-                            @Override
-                            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                                JSONObject resultJson = new JSONObject((String) param.getResult());
-                                resultJson.getJSONObject("baseData").put("clientVersion", "undefined");
-                                param.setResult(resultJson.toString());
-                            }
-                        });
-                    }
-                    break;
+//                case "TbChannelJsInterfaceNew":  // 吧友直播
+//                    if (method.equals("getInitData")) {
+//                        XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
+//                            @Override
+//                            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+//                                JSONObject resultJson = new JSONObject((String) param.getResult());
+//                                resultJson.getJSONObject("baseData").put("clientVersion", "undefined");
+//                                param.setResult(resultJson.toString());
+//                            }
+//                        });
+//                    }
+//                    break;
                 case "bottom_bubble_config":    // 底部导航栏活动图标
                     if (method.equals("invoke")) {
                         XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
