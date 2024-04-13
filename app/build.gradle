@@ -18,7 +18,7 @@ android {
         targetSdk sdk
         versionCode gitCommitCount
         versionName '2.9.8'
-        buildConfigField "String", "TARGET_VERSION", "\"12.59.0.1\""
+        buildConfigField "String", "TARGET_VERSION", "\"12.59.0.3\""
         buildConfigField "String", "MIN_VERSION", "\"12.53.1.0\""
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
@@ -59,6 +59,7 @@ android {
     }
     buildFeatures {
         prefab true
+        buildConfig true
     }
     lint {
         checkDependencies true

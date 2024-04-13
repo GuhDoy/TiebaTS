@@ -28,6 +28,7 @@ import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.hooker.Obfuscated;
+import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHelper;
 import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
 import gm.tieba.tabswitch.hooker.deobfuscation.SmaliMatcher;
 import gm.tieba.tabswitch.hooker.deobfuscation.StringMatcher;
@@ -49,13 +50,13 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 new SmaliMatcher("Lcom/baidu/tieba/lego/card/model/BaseCardInfo;-><init>(Lorg/json/JSONObject;)V"),
                 new StringMatcher("pic_amount"),
                 new StringMatcher("准备展示精灵动画提示控件"),
-//                new StringMatcher("TbChannelJsInterfaceNew"),
                 new StringMatcher("bottom_bubble_config"),
 //                new StringMatcher("top_level_navi"),
                 new StringMatcher("index_tab_info"),
                 new SmaliMatcher("Lcom/baidu/tbadk/coreExtra/floatCardView/AlaLiveTipView;-><init>(Landroid/content/Context;)V"),
                 new SmaliMatcher("Lcom/baidu/tbadk/editortools/meme/pan/SpriteMemePan;-><init>(Landroid/content/Context;)V"),
-                new StringMatcher("h5_pop_ups_config")
+                new StringMatcher("h5_pop_ups_config"),
+                new StringMatcher("sign_max_num")
         );
     }
 
@@ -77,18 +78,6 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 case "准备展示精灵动画提示控件": // 吧内%s新贴热议中
                     XposedBridge.hookAllMethods(XposedHelpers.findClass(clazz, sClassLoader), method, XC_MethodReplacement.returnConstant(false));
                     break;
-//                case "TbChannelJsInterfaceNew":  // 吧友直播
-//                    if (method.equals("getInitData")) {
-//                        XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
-//                            @Override
-//                            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-//                                JSONObject resultJson = new JSONObject((String) param.getResult());
-//                                resultJson.getJSONObject("baseData").put("clientVersion", "undefined");
-//                                param.setResult(resultJson.toString());
-//                            }
-//                        });
-//                    }
-//                    break;
                 case "bottom_bubble_config":    // 底部导航栏活动图标
                     if (method.equals("invoke")) {
                         XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodHook() {
@@ -119,10 +108,19 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                                 JSONObject syncData = ReflectUtils.getObjectField(param.thisObject, JSONObject.class);
                                 JSONArray indexTabInfo = syncData.getJSONArray("index_tab_info");
                                 JSONArray newIndexTabInfo = new JSONArray();
-                                for (int i = 0; i < indexTabInfo.length(); i++) {
-                                    JSONObject currTab = indexTabInfo.getJSONObject(i);
-                                    if (!currTab.getString("tab_type").equals("202") && !currTab.getString("tab_type").equals("6")) {
-                                        newIndexTabInfo.put(currTab);
+                                if (DeobfuscationHelper.isTbSatisfyVersionRequirement("12.59", DeobfuscationHelper.getTbVersion(getContext()))) {
+                                    for (int i = 0; i < indexTabInfo.length(); i++) {
+                                        JSONObject currTab = indexTabInfo.getJSONObject(i);
+                                        if (currTab.getString("is_main_tab").equals("1") && !currTab.getString("tab_type").equals("6")) {
+                                            newIndexTabInfo.put(currTab);
+                                        }
+                                    }
+                                } else {
+                                    for (int i = 0; i < indexTabInfo.length(); i++) {
+                                        JSONObject currTab = indexTabInfo.getJSONObject(i);
+                                        if (!currTab.getString("tab_type").equals("202") && !currTab.getString("tab_type").equals("6")) {
+                                            newIndexTabInfo.put(currTab);
+                                        }
                                     }
                                 }
                                 syncData.put("index_tab_info", newIndexTabInfo);
@@ -149,6 +147,15 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                             }
                         });
                     }
+                    break;
+                case "sign_max_num":    // 一键签到弹窗广告
+                    XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, JSONObject.class, new XC_MethodHook() {
+                        @Override
+                        protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                            JSONObject jsonObject = (JSONObject) param.args[0];
+                            jsonObject.put("advert", null);
+                        }
+                    });
                     break;
             }
         });
@@ -390,6 +397,28 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 XposedHelpers.setObjectField(param.thisObject, "novel_recom_card", null);
             }
         });
+
+        // 首页样式 AB test
+        XposedHelpers.findAndHookMethod(
+                "com.baidu.tbadk.abtest.UbsABTestDataManager",
+                sClassLoader,
+                "parseJSONArray",
+                JSONArray.class,
+                new XC_MethodHook() {
+                    @Override
+                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                        JSONArray currentABTestJson = (JSONArray) param.args[0];
+                        JSONArray newABTestJson = new JSONArray();
+                        for (int i = 0; i < currentABTestJson.length(); i++) {
+                            JSONObject currTest = currentABTestJson.getJSONObject(i);
+                            if (!currTest.getString("sid").startsWith("12_57_5_home_search")) {
+                                newABTestJson.put(currTest);
+                            }
+                        }
+                        param.args[0] = newABTestJson;
+                    }
+                }
+        );
     }
 
     // 吧页面头条贴(41), 直播贴(69 / is_live_card)

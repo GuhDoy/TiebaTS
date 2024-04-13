@@ -115,7 +115,6 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                 // However, LSPatch incorrectly sets appComponentFactory to null, causing android.app.Instrumentation.getFactory to fall back to AppComponentFactory.DEFAULT
                 // (see https://github.com/LSPosed/LSPatch/blob/bbe8d93fb9230f7b04babaf1c4a11642110f55a6/patch-loader/src/main/java/org/lsposed/lspatch/loader/LSPApplication.java#L173)
                 if (getContext().getApplicationInfo().appComponentFactory == null) {
-                    XposedBridge.log("Applying AppComponentFactory workaround");
                     XposedHelpers.findAndHookMethod(
                             Instrumentation.class,
                             "getFactory",

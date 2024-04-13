@@ -16,6 +16,7 @@
           "card_activity",
           "ai_chatroom_guide",
           "friend_forum",
+          "game_card_guide"
         ];
         propertiesToDelete.forEach((property) => {
           delete res[property];
