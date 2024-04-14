@@ -55,8 +55,7 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 new StringMatcher("index_tab_info"),
                 new SmaliMatcher("Lcom/baidu/tbadk/coreExtra/floatCardView/AlaLiveTipView;-><init>(Landroid/content/Context;)V"),
                 new SmaliMatcher("Lcom/baidu/tbadk/editortools/meme/pan/SpriteMemePan;-><init>(Landroid/content/Context;)V"),
-                new StringMatcher("h5_pop_ups_config"),
-                new StringMatcher("sign_max_num")
+                new StringMatcher("h5_pop_ups_config")
         );
     }
 
@@ -147,15 +146,6 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                             }
                         });
                     }
-                    break;
-                case "sign_max_num":    // 一键签到弹窗广告
-                    XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, JSONObject.class, new XC_MethodHook() {
-                        @Override
-                        protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                            JSONObject jsonObject = (JSONObject) param.args[0];
-                            jsonObject.put("advert", null);
-                        }
-                    });
                     break;
             }
         });
@@ -346,7 +336,7 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
             }
         }
         // 更多板块 (吧友直播，友情吧)
-        final String jsPurgeFrsBottom = FileUtils.getAssetFileContent("PurgeFrsBottom.js");
+        final String jsPurgeFrsBottom = FileUtils.getAssetFileContent("Purge.js");
         if (jsPurgeFrsBottom != null) {
             XposedHelpers.findAndHookMethod(WebViewClient.class, "onPageStarted", WebView.class, String.class, Bitmap.class, new XC_MethodHook() {
                 @Override
