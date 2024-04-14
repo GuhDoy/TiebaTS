@@ -153,7 +153,7 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
     private void startRootPreferenceActivity(final Activity activity) {
         if (!Preferences.getIsEULAAccepted()) {
             final StringBuilder stringBuilder = new StringBuilder().append(Constants.getStrings().get("EULA"));
-            if (BuildConfig.VERSION_NAME.contains("alpha") || BuildConfig.VERSION_NAME.contains("beta")) {
+            if (BuildConfig.VERSION_NAME.contains("beta")) {
                 stringBuilder.append("\n\n").append(Constants.getStrings().get("dev_tip"));
             }
             AlertDialog alert = new AlertDialog.Builder(activity, DisplayUtils.isLightMode(getContext()) ?
@@ -275,7 +275,7 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
             intent.setData(Uri.parse("https://t.me/TabSwitch"));
             activity.startActivity(intent);
         }));
-        preferenceLayout.addView(TSPreferenceHelper.createButton("版本", String.format(Locale.CHINA, "%s_%d", BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE), true, v -> {
+        preferenceLayout.addView(TSPreferenceHelper.createButton("版本", String.format(Locale.CHINA, "%s", BuildConfig.VERSION_NAME), true, v -> {
             final Intent intent = new Intent();
             intent.setAction("android.intent.action.VIEW");
             intent.setData(Uri.parse("https://github.com/GuhDoy/TiebaTS/releases"));
