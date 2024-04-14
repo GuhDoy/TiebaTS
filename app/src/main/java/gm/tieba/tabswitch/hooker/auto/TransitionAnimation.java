@@ -39,7 +39,7 @@ public class TransitionAnimation extends XposedContext implements IHooker {
 
     @Override
     public void hook() throws Throwable {
-        if (!(Build.VERSION.SDK_INT >= 34 && DeobfuscationHelper.isTbSatisfyVersionRequirement("12.58.2.1", DeobfuscationHelper.getTbVersion(getContext())))) {
+        if (!(Build.VERSION.SDK_INT >= 34 && DeobfuscationHelper.isTbSatisfyVersionRequirement("12.58.2.1"))) {
             return;
         }
 

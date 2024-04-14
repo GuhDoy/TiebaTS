@@ -78,6 +78,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
         sClassLoader = lpparam.classLoader;
         sAssetManager = XModuleResources.createInstance(sPath, null).getAssets();
         mAppComponentFactory = (AppComponentFactory) sClassLoader.loadClass("com.baidu.nps.hook.component.NPSComponentFactory").newInstance();
+        sIsModuleBetaVersion = BuildConfig.VERSION_NAME.contains("beta");
 
         // For some reason certain flutter page will not load in LSPatch unless we manually load the flutter plugin
         XposedHelpers.findAndHookMethod(
@@ -108,7 +109,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                 attachBaseContext((Application) param.args[0]);
                 Preferences.init(getContext());
                 AcRules.init(getContext());
-                String currTbVersion = DeobfuscationHelper.getTbVersion(getContext());
+                DeobfuscationHelper.sCurrentTbVersion = DeobfuscationHelper.getTbVersion(getContext());
 
                 // Workaround to address an issue with LSPatch (unable to open personal homepage)
                 // com.baidu.tieba.flutter.base.view.FlutterPageActivity must be instantiated by com.baidu.nps.hook.component.NPSComponentFactory
@@ -178,15 +179,14 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                         o -> {
                             if (o.getRequiredVersion() != null) {
                                 boolean isVersionSatisfied = DeobfuscationHelper.isTbSatisfyVersionRequirement(
-                                        o.getRequiredVersion(),
-                                        currTbVersion
+                                        o.getRequiredVersion()
                                 );
                                 if (!isVersionSatisfied) {
                                     XposedBridge.log(
                                             String.format(
                                                     "Skipping rule [%s] due to version mismatch (current version: %s)",
                                                     o.toString(),
-                                                    currTbVersion
+                                                    DeobfuscationHelper.sCurrentTbVersion
                                             )
                                     );
                                 }
@@ -225,8 +225,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                             final var activity = (Activity) param.thisObject;
                             final var messages = new ArrayList<String>();
 
-                            if (DeobfuscationHelper.isTbSatisfyVersionRequirement(BuildConfig.MIN_VERSION, currTbVersion)
-                                && (!DeobfuscationHelper.isTbSatisfyVersionRequirement(BuildConfig.TARGET_VERSION, currTbVersion) || currTbVersion.equals(BuildConfig.TARGET_VERSION))) {
+                            if (DeobfuscationHelper.isTbBetweenVersionRequirement(BuildConfig.MIN_VERSION, BuildConfig.TARGET_VERSION)) {
                                 messages.add(Constants.getStrings().get("exception_rules_incomplete"));
                             } else {
                                 messages.add(String.format(Locale.CHINA,
@@ -235,7 +234,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                             }
 
                             messages.add(String.format(Locale.CHINA, "贴吧版本：%s, 模块版本：%d",
-                                    currTbVersion, BuildConfig.VERSION_CODE));
+                                    DeobfuscationHelper.sCurrentTbVersion, BuildConfig.VERSION_CODE));
                             messages.add(String.format(Locale.CHINA, "%d rule(s) lost: %s", lostList.size(), lostList));
                             final var message = TextUtils.join("\n", messages);
                             XposedBridge.log(message);
@@ -245,7 +244,11 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                                     .setNeutralButton("更新模块", (dialogInterface, i) -> {
                                         final Intent intent = new Intent();
                                         intent.setAction("android.intent.action.VIEW");
-                                        intent.setData(Uri.parse("https://github.com/GuhDoy/TiebaTS/releases"));
+                                        if (sIsModuleBetaVersion) {
+                                            intent.setData(Uri.parse(Constants.getStrings().get("ci_uri")));
+                                        } else {
+                                            intent.setData(Uri.parse(Constants.getStrings().get("release_uri")));
+                                        }
                                         activity.startActivity(intent);
                                     })
                                     .setNegativeButton(activity.getString(android.R.string.cancel), null)

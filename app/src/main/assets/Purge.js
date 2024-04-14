@@ -5,6 +5,7 @@
       if (this.readyState == 4) {
         let propertiesToDelete = [];
         if (
+          // 吧页面更多板块
           this.responseURL.match(
             /https?:\/\/tieba\.baidu\.com\/c\/f\/frs\/frsBottom.*/g
           )
@@ -19,6 +20,7 @@
             "game_card_guide",
           ];
         } else if (
+          // 一键签到页面
           this.responseURL.match(
             /https?:\/\/tieba\.baidu\.com\/c\/f\/forum\/getforumlist.*/g
           )

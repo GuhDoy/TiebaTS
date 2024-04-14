@@ -107,7 +107,7 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                                 JSONObject syncData = ReflectUtils.getObjectField(param.thisObject, JSONObject.class);
                                 JSONArray indexTabInfo = syncData.getJSONArray("index_tab_info");
                                 JSONArray newIndexTabInfo = new JSONArray();
-                                if (DeobfuscationHelper.isTbSatisfyVersionRequirement("12.59", DeobfuscationHelper.getTbVersion(getContext()))) {
+                                if (DeobfuscationHelper.isTbSatisfyVersionRequirement("12.59")) {
                                     for (int i = 0; i < indexTabInfo.length(); i++) {
                                         JSONObject currTab = indexTabInfo.getJSONObject(i);
                                         if (currTab.getString("is_main_tab").equals("1") && !currTab.getString("tab_type").equals("6")) {
@@ -335,14 +335,14 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                 XposedBridge.hookMethod(method, XC_MethodReplacement.returnConstant(false));
             }
         }
-        // 更多板块 (吧友直播，友情吧)
-        final String jsPurgeFrsBottom = FileUtils.getAssetFileContent("Purge.js");
-        if (jsPurgeFrsBottom != null) {
+        // 更多板块 (吧友直播，友情吧), 一键签到页面广告
+        final String jsPurgeScript = FileUtils.getAssetFileContent("Purge.js");
+        if (jsPurgeScript != null) {
             XposedHelpers.findAndHookMethod(WebViewClient.class, "onPageStarted", WebView.class, String.class, Bitmap.class, new XC_MethodHook() {
                 @Override
                 protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                     WebView mWebView = (WebView) param.args[0];
-                    mWebView.evaluateJavascript(jsPurgeFrsBottom, null);
+                    mWebView.evaluateJavascript(jsPurgeScript, null);
                 }
             });
         }

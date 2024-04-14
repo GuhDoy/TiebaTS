@@ -26,6 +26,7 @@ import gm.tieba.tabswitch.util.DisplayUtils;
 public class DeobfuscationHelper {
     private static final int SIGNATURE_DATA_START_OFFSET = 32;
     private static final int SIGNATURE_SIZE = 20;
+    public static String sCurrentTbVersion;
 
     static byte[] calcSignature(final InputStream dataStoreInput) throws IOException {
         final MessageDigest md;
@@ -108,8 +109,8 @@ public class DeobfuscationHelper {
     }
 
     // Adapted from https://stackoverflow.com/questions/198431/how-do-you-compare-two-version-strings-in-java
-    public static boolean isTbSatisfyVersionRequirement(final String requiredVersion, final String currentVersion) {
-        String[] currParts = currentVersion.split("\\.");
+    public static boolean isTbSatisfyVersionRequirement(final String requiredVersion) {
+        String[] currParts = sCurrentTbVersion.split("\\.");
         String[] reqParts = requiredVersion.split("\\.");
         int length = Math.max(currParts.length, reqParts.length);
         for(int i = 0; i < length; i++) {
@@ -126,5 +127,11 @@ public class DeobfuscationHelper {
             }
         }
         return true;
+    }
+
+    // Inclusive of both ends
+    public static boolean isTbBetweenVersionRequirement(final String lower, final String upper) {
+        return isTbSatisfyVersionRequirement(lower)
+                && (!isTbSatisfyVersionRequirement(upper) || sCurrentTbVersion.equals(upper));
     }
 }

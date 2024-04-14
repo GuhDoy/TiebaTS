@@ -21,6 +21,7 @@ public abstract class XposedContext {
     protected static String sPath;
     protected static AssetManager sAssetManager;
     private static Handler sHandler;
+    protected static boolean sIsModuleBetaVersion;
     protected static void attachBaseContext(final Context context) {
         if (sContextRef != null) {
             throw new IllegalStateException("Base context already set");

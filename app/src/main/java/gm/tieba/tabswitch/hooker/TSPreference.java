@@ -153,7 +153,7 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
     private void startRootPreferenceActivity(final Activity activity) {
         if (!Preferences.getIsEULAAccepted()) {
             final StringBuilder stringBuilder = new StringBuilder().append(Constants.getStrings().get("EULA"));
-            if (BuildConfig.VERSION_NAME.contains("beta")) {
+            if (sIsModuleBetaVersion) {
                 stringBuilder.append("\n\n").append(Constants.getStrings().get("dev_tip"));
             }
             AlertDialog alert = new AlertDialog.Builder(activity, DisplayUtils.isLightMode(getContext()) ?
@@ -278,7 +278,11 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
         preferenceLayout.addView(TSPreferenceHelper.createButton("版本", String.format(Locale.CHINA, "%s", BuildConfig.VERSION_NAME), true, v -> {
             final Intent intent = new Intent();
             intent.setAction("android.intent.action.VIEW");
-            intent.setData(Uri.parse("https://github.com/GuhDoy/TiebaTS/releases"));
+            if (sIsModuleBetaVersion) {
+                intent.setData(Uri.parse(Constants.getStrings().get("ci_uri")));
+            } else {
+                intent.setData(Uri.parse(Constants.getStrings().get("release_uri")));
+            }
             activity.startActivity(intent);
         }));
         return preferenceLayout;
@@ -295,7 +299,7 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
         preferenceLayout.addView(TSPreferenceHelper.createTextView("其他"));
         SwitchButtonHolder transitionAnimation = new SwitchButtonHolder(activity, "修复过渡动画", "transition_animation", SwitchButtonHolder.TYPE_SWITCH);
 
-        boolean shouldEnableTransitionAnimationFix = Build.VERSION.SDK_INT >= 34 && DeobfuscationHelper.isTbSatisfyVersionRequirement("12.58.2.1", DeobfuscationHelper.getTbVersion(getContext()));
+        boolean shouldEnableTransitionAnimationFix = Build.VERSION.SDK_INT >= 34 && DeobfuscationHelper.isTbSatisfyVersionRequirement("12.58.2.1");
         if (!shouldEnableTransitionAnimationFix && Preferences.getTransitionAnimationEnabled()) {
             transitionAnimation.bdSwitch.turnOff();
         }
