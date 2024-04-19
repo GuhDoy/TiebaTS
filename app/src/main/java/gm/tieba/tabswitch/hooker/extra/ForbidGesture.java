@@ -20,7 +20,7 @@ import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.hooker.Obfuscated;
 import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
-import gm.tieba.tabswitch.hooker.deobfuscation.StringResMatcher;
+import gm.tieba.tabswitch.hooker.deobfuscation.ResMatcher;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class ForbidGesture extends XposedContext implements IHooker, Obfuscated {
@@ -33,16 +33,14 @@ public class ForbidGesture extends XposedContext implements IHooker, Obfuscated 
 
     @Override
     public List<? extends Matcher> matchers() {
-        return List.of(new StringResMatcher("特大号字体"));
+        return List.of(new ResMatcher(ReflectUtils.getR("drawable", "icon_word_t_size"), "icon_word_t_size"));
     }
 
     @Override
     public void hook() throws Throwable {
         // 帖子字号
-        AcRules.findRule(matchers(), (matcher, clazz, method) -> {
-                    XposedHelpers.findAndHookMethod(clazz, sClassLoader, "c", XC_MethodReplacement.returnConstant(null));
-                    XposedHelpers.findAndHookMethod(clazz, sClassLoader, "d", XC_MethodReplacement.returnConstant(null));
-                }
+        AcRules.findRule(matchers(), (matcher, clazz, method) ->
+                XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, XC_MethodReplacement.returnConstant(null))
         );
         // 视频帖字号
         XposedHelpers.findAndHookMethod("com.baidu.tieba.pb.videopb.fragment.DetailInfoAndReplyFragment", sClassLoader,

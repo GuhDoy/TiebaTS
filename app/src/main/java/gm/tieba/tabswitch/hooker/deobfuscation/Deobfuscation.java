@@ -13,15 +13,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.zip.ZipFile;
 
-import brut.androlib.AndrolibException;
-import brut.androlib.res.data.value.ResStringValue;
-import brut.androlib.res.decoder.ARSCDecoder;
 import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
@@ -48,51 +44,9 @@ public class Deobfuscation extends XposedContext {
         }
     }
 
-    public void decodeArsc(final PublishSubject<Float> progress, final Context context)
-            throws IOException, AndrolibException {
-        packageResource = context.getPackageResourcePath();
-        progress.onNext(0F);
-        final var strToResMatcher = new HashMap<String, ResMatcher>();
-        final var resIdentifierToResMatcher = new HashMap<String, ResIdentifierMatcher>();
-        for (final var matcher : matchers) {
-            if (matcher instanceof ResMatcher) {
-                if (matcher instanceof final ResIdentifierMatcher resIdentifierMatcher) {
-                    resIdentifierToResMatcher.put(resIdentifierMatcher.toResIdentifier(), resIdentifierMatcher);
-                } else {
-                    strToResMatcher.put(((StringResMatcher) matcher).toResIdentifier(), (ResMatcher) matcher);
-                }
-            }
-        }
-
-        final var zipFile = new ZipFile(packageResource);
-        final var ze = zipFile.getEntry("resources.arsc");
-        try (final var in = zipFile.getInputStream(ze)) {
-            final var pkg = ARSCDecoder.decode(in, true, true).getOnePackage();
-            forEachProgressed(progress, pkg.listResSpecs(), resResSpec -> {
-                final var identifierMatcher = resIdentifierToResMatcher.get(String.format("%s.%s", resResSpec.getType().getName(), resResSpec.getName()));
-                if (identifierMatcher != null) {
-                    identifierMatcher.setId(resResSpec.getId().id);
-                } else if (resResSpec.hasDefaultResource()) {
-                    try {
-                        final var resValue = resResSpec.getDefaultResource().getValue();
-                        if (resValue instanceof final ResStringValue resStringValue) {
-                            final var str = resStringValue.encodeAsResXmlValue();
-                            final var matcher = strToResMatcher.get(str);
-                            if (matcher != null) {
-                                matcher.setId(resResSpec.getId().id);
-                            }
-                        }
-                    } catch (final AndrolibException e) {
-                        // should not happen
-                    }
-                }
-            });
-        }
-        zipFile.close();
-    }
-
-    public void dexkit(final PublishSubject<Float> progress) {
+    public void dexkit(final PublishSubject<Float> progress, final Context context) {
         load("dexkit");
+        packageResource = context.getPackageResourcePath();
         final var bridge = DexKitBridge.create(packageResource);
         Objects.requireNonNull(bridge);
 

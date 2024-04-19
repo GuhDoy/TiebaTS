@@ -86,11 +86,8 @@ public class DeobfuscationHooker extends XposedContext implements IHooker {
 
                 new Thread(() -> {
                     try {
-                        setMessage("(1/2) 解析安装包资源");
-                        viewModel.deobfuscateStep1(mActivity, mMatchers);
-
-                        setMessage("(2/2) 搜索资源，字符串和方法调用");
-                        viewModel.deobfuscateStep2();
+                        setMessage("搜索资源，字符串和方法调用");
+                        viewModel.deobfuscate(mActivity, mMatchers);
 
                         XposedBridge.log("Deobfuscation complete, current version: "
                                 + DeobfuscationHelper.getTbVersion(mActivity));

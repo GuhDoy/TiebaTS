@@ -49,18 +49,6 @@ class ReturnTypeMatcher<T> @JvmOverloads constructor(val returnType: Class<T>, p
     override fun toString(): String = super.toString() + returnType.simpleName
 }
 
-open class ResMatcher @JvmOverloads constructor(var id: Long = 0, properties: MatcherProperties? = null) : Matcher(properties) {
-    open fun toResIdentifier(): String {
-        throw UnsupportedOperationException()
-    }
-}
-
-class StringResMatcher @JvmOverloads constructor(val str: String, properties: MatcherProperties? = null) : ResMatcher(properties = properties) {
-    override fun toString(): String = super.toString() + str
-    override fun toResIdentifier(): String = str
-}
-
-class ResIdentifierMatcher @JvmOverloads constructor(val name: String, val defType: String, properties: MatcherProperties? = null) : ResMatcher(properties = properties) {
-    override fun toString(): String = super.toString() + String.format("%s.%s", defType, name)
-    override fun toResIdentifier(): String = String.format("%s.%s", defType, name)
+class ResMatcher @JvmOverloads constructor(val id: Long, val name: String, properties: MatcherProperties? = null) : Matcher(properties) {
+    override fun toString(): String = super.toString() + name
 }

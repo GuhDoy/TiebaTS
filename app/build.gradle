@@ -23,7 +23,7 @@ android {
         if (versionName.contains('beta')) {
             versionNameSuffix = '.' + commitCountSinceLatestTag
         }
-        buildConfigField "String", "TARGET_VERSION", "\"12.59.0.3\""
+        buildConfigField "String", "TARGET_VERSION", "\"12.59.1.0\""
         buildConfigField "String", "MIN_VERSION", "\"12.53.1.0\""
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
@@ -83,8 +83,6 @@ dependencies {
 
     implementation 'io.reactivex.rxjava3:rxjava:3.1.8'
     implementation 'org.luckypray:dexkit:2.0.1'
-    // https://stackoverflow.com/questions/61195038/excluding-dependency-from-implementation-files
-    implementation files('apktool_2.7.0.jar')
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
     implementation 'dev.rikka.ndk.thirdparty:cxx:1.2.0'
 }
