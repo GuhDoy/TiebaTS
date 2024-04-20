@@ -325,7 +325,7 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
         final boolean isPurgeEnabled = Preferences.getIsPurgeEnabled();
         final TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
         if (isPurgeEnabled || BuildConfig.DEBUG) {
-            preferenceLayout.addView(TSPreferenceHelper.createTextView(null));
+            preferenceLayout.addView(TSPreferenceHelper.createTextView("隐藏设置"));
             preferenceLayout.addView(new SwitchButtonHolder(activity, isPurgeEnabled ? "藏起尾巴" : "隐藏模块", "hide", SwitchButtonHolder.TYPE_SWITCH));
             preferenceLayout.addView(new SwitchButtonHolder(activity, isPurgeEnabled ? "藏起尾巴（原生）" : "隐藏模块（原生）", "hide_native", SwitchButtonHolder.TYPE_SWITCH));
         }

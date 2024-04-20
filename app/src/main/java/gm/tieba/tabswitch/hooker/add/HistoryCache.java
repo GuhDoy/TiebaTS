@@ -48,6 +48,9 @@ public class HistoryCache extends XposedContext implements IHooker {
                     @Override
                     protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
                         final var activity = (Activity) param.thisObject;
+                        if (param.args[0] == null) {
+                            mRegex = "";
+                        }
                         new NavigationBar(param.thisObject)
                                 .addTextButton("搜索", v -> showRegexDialog(activity));
                     }
