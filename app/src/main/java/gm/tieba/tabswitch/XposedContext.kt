@@ -1,60 +1,63 @@
-package gm.tieba.tabswitch;
+package gm.tieba.tabswitch
 
-import android.content.Context;
-import android.content.res.AssetManager;
-import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
+import android.content.Context
+import android.content.res.AssetManager
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import de.robv.android.xposed.XposedBridge
+import java.lang.ref.WeakReference
 
-import java.lang.ref.WeakReference;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
+abstract class XposedContext {
+    companion object {
+        @JvmStatic
+        var isModuleBetaVersion = false
+        @JvmStatic
+        val exceptions: Map<String, Throwable> = HashMap(0)
 
-import de.robv.android.xposed.XposedBridge;
+        @JvmStatic
+        lateinit var sClassLoader: ClassLoader
+        @JvmStatic
+        lateinit var sPath: String
+        @JvmStatic
+        lateinit var sAssetManager: AssetManager
 
-public abstract class XposedContext {
-    private static WeakReference<Context> sContextRef;
-    protected static ClassLoader sClassLoader;
-    protected static Map<String, Throwable> sExceptions = new HashMap<>(0);
-    protected static String sPath;
-    protected static AssetManager sAssetManager;
-    private static Handler sHandler;
-    protected static boolean sIsModuleBetaVersion;
-    protected static void attachBaseContext(final Context context) {
-        if (sContextRef != null) {
-            throw new IllegalStateException("Base context already set");
+        private lateinit var sHandler: Handler
+        private lateinit var sContextRef: WeakReference<Context>
+
+        @JvmStatic
+        val context: Context
+            get() = checkNotNull(sContextRef.get()) { "ApplicationContext is null" }
+
+        @JvmStatic
+        protected fun attachBaseContext(context: Context) {
+            sContextRef = WeakReference(context.applicationContext)
+            sHandler = Handler(Looper.getMainLooper())
         }
-        sContextRef = new WeakReference<>(context.getApplicationContext());
-        sHandler = new Handler(Looper.getMainLooper());
-    }
 
-    protected static Context getContext() {
-        return sContextRef.get();
-    }
+        @JvmStatic
+        protected fun load(filename: String) {
+            val soPaths = Build.SUPPORTED_ABIS.map { abi -> "$sPath!/lib/$abi/lib$filename.so" }
+            val errors = mutableListOf<Throwable>()
 
-    protected static void load(final String filename) {
-        final var soPaths = Arrays.stream(Build.SUPPORTED_ABIS)
-                .map(abi -> sPath + "!/lib/" + abi + "/lib" + filename + ".so")
-                .collect(Collectors.toList());
-        UnsatisfiedLinkError err = null;
-        for (final var soPath : soPaths) {
-            try {
-                System.load(soPath);
-                err = null;
-                break;
-            } catch (final UnsatisfiedLinkError e) {
-                err = e;
+            for (soPath in soPaths) {
+                try {
+                    System.load(soPath)
+                    return
+                } catch (e: UnsatisfiedLinkError) {
+                    errors.add(e)
+                }
             }
-        }
-        if (err != null) {
-            XposedBridge.log(err);
-            throw err;
-        }
-    }
 
-    protected static void runOnUiThread(final Runnable r) {
-        sHandler.post(r);
+            val linkError = UnsatisfiedLinkError("Failed to load native library: $filename")
+            errors.forEach { linkError.addSuppressed(it) }
+            XposedBridge.log(linkError)
+            throw linkError
+        }
+
+        @JvmStatic
+        protected fun runOnUiThread(r: Runnable) {
+            sHandler.post(r)
+        }
     }
 }

@@ -170,9 +170,9 @@ public class TSPreferenceHelper extends XposedContext {
 
         SwitchButtonHolder(final Activity activity, final String text, final String key, final int type) {
             mKey = key;
-            if (sExceptions.containsKey(key)) {
+            if (XposedContext.getExceptions().containsKey(key)) {
                 switchButton = createButton(text, "此功能初始化失败", false, v -> {
-                    final Throwable tr = sExceptions.get(key);
+                    final Throwable tr = XposedContext.getExceptions().get(key);
                     XposedBridge.log(tr);
                     TbToast.showTbToast(Log.getStackTraceString(tr), TbToast.LENGTH_SHORT);
                 });

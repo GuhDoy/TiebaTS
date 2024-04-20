@@ -1,17 +1,10 @@
-package gm.tieba.tabswitch.util;
+@file:JvmName("Parser")
 
-import java.util.List;
+package gm.tieba.tabswitch.util
 
-import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.XposedContext;
+import de.robv.android.xposed.XposedHelpers
 
-public class Parser extends XposedContext {
-    public static String parsePbContent(final Object instance, final String fieldName) {
-        final List<?> contents = (List<?>) XposedHelpers.getObjectField(instance, fieldName);
-        final StringBuilder pbContent = new StringBuilder();
-        for (int i = 0; i < contents.size(); i++) {
-            pbContent.append(XposedHelpers.getObjectField(contents.get(i), "text"));
-        }
-        return pbContent.toString();
-    }
+fun parsePbContent(instance: Any?, fieldName: String?): String {
+    val contents = XposedHelpers.getObjectField(instance, fieldName) as? List<*> ?: return ""
+    return contents.mapNotNull { XposedHelpers.getObjectField(it, "text") as? String }.joinToString("")
 }

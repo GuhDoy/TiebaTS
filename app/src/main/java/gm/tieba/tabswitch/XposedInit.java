@@ -78,7 +78,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
         sClassLoader = lpparam.classLoader;
         sAssetManager = XModuleResources.createInstance(sPath, null).getAssets();
         mAppComponentFactory = (AppComponentFactory) sClassLoader.loadClass("com.baidu.nps.hook.component.NPSComponentFactory").newInstance();
-        sIsModuleBetaVersion = BuildConfig.VERSION_NAME.contains("beta");
+        XposedContext.setModuleBetaVersion(BuildConfig.VERSION_NAME.contains("beta"));
 
         // For some reason certain flutter page will not load in LSPatch unless we manually load the flutter plugin
         XposedHelpers.findAndHookMethod(
@@ -244,7 +244,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                                     .setNeutralButton("更新模块", (dialogInterface, i) -> {
                                         final Intent intent = new Intent();
                                         intent.setAction("android.intent.action.VIEW");
-                                        if (sIsModuleBetaVersion) {
+                                        if (XposedContext.isModuleBetaVersion()) {
                                             intent.setData(Uri.parse(Constants.getStrings().get("ci_uri")));
                                         } else {
                                             intent.setData(Uri.parse(Constants.getStrings().get("release_uri")));
@@ -284,7 +284,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                         }
                     } catch (final Throwable tr) {
                         XposedBridge.log(tr);
-                        sExceptions.put(hooker.key(), tr);
+                        XposedContext.getExceptions().put(hooker.key(), tr);
                     }
                 }
             }

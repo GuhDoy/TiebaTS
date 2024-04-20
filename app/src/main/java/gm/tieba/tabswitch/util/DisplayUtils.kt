@@ -1,77 +1,81 @@
-package gm.tieba.tabswitch.util;
+@file:JvmName("DisplayUtils")
 
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.Context;
-import android.content.Intent;
-import android.content.res.Configuration;
-import android.view.WindowManager;
+package gm.tieba.tabswitch.util
 
-import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.XposedContext;
+import android.app.Activity
+import android.app.AlertDialog
+import android.content.Context
+import android.content.Intent
+import android.content.res.Configuration
+import android.view.WindowManager
+import de.robv.android.xposed.XposedBridge
+import de.robv.android.xposed.XposedHelpers
+import gm.tieba.tabswitch.XposedContext
+import kotlin.system.exitProcess
+import kotlin.math.roundToInt
 
-public class DisplayUtils extends XposedContext {
-    public static boolean isLightMode(final Context context) {
-        return (context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
-                == Configuration.UI_MODE_NIGHT_NO;
+fun isLightMode(context: Context): Boolean {
+    return context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_NO
+}
+
+fun restart(activity: Activity) {
+    val intent = activity.packageManager.getLaunchIntentForPackage(activity.packageName)
+    intent?.let {
+        it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        activity.startActivity(it)
+        exitProcess(0)
     }
+}
 
-    public static void restart(final Activity activity) {
-        final var intent = activity.getPackageManager().getLaunchIntentForPackage(activity
-                .getPackageName());
-        if (intent != null) {
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            activity.startActivity(intent);
-            System.exit(0);
+fun getTbSkin(context: Context): String {
+    //Lcom/baidu/tbadk/core/TbadkCoreApplication;->getSkinType()I
+    val skinType: Int = try {
+        val instance = XposedHelpers.callStaticMethod(
+            XposedHelpers.findClass(
+                "com.baidu.tbadk.core.TbadkCoreApplication",
+                XposedContext.sClassLoader
+            ), "getInst"
+        )
+        XposedHelpers.callMethod(instance, "getSkinType") as Int
+    } catch (e: Exception) {
+        XposedBridge.log(e)
+        val settings = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+        if (settings.getBoolean("key_is_follow_system_mode", false)) {
+            return if (isLightMode(context)) "" else "_2"
+        } else {
+            val commonSettings = context.getSharedPreferences(
+                "common_settings", Context.MODE_PRIVATE
+            )
+            commonSettings.getString("skin_", "0")?.toIntOrNull() ?: 0
         }
     }
+    return when (skinType) {
+        1, 4 -> "_2"
+        else -> ""
+    }
+}
 
-    public static String getTbSkin(final Context context) {
-        //Lcom/baidu/tbadk/core/TbadkCoreApplication;->getSkinType()I
-        int skinType;
-        try {
-            Object instance = XposedHelpers.callStaticMethod(XposedHelpers.findClass("com.baidu.tbadk.core.TbadkCoreApplication", sClassLoader), "getInst");
-            skinType = (int) XposedHelpers.callMethod(instance, "getSkinType");
-        } catch (Exception e) {
-            XposedBridge.log(e);
-            final var settings = context.getSharedPreferences("settings", Context.MODE_PRIVATE);
-            if (settings.getBoolean("key_is_follow_system_mode", false)) {
-                return isLightMode(context) ? "" : "_2";
-            } else {
-                final var commonSettings = context.getSharedPreferences(
-                        "common_settings", Context.MODE_PRIVATE);
-                skinType = Integer.parseInt((commonSettings.getString("skin_", "0")));
-            }
+fun dipToPx(context: Context, dipValue: Float): Int {
+    val scale = context.resources.displayMetrics.density
+    return (dipValue * scale).roundToInt()
+}
+
+fun pxToDip(context: Context, pxValue: Float): Int {
+    val scale = context.resources.displayMetrics.density
+    return (pxValue / scale).roundToInt()
+}
+
+fun getDisplayWidth(context: Context): Int? {
+    return context.resources?.displayMetrics?.widthPixels
+}
+
+fun fixAlertDialogWidth(alert: AlertDialog) {
+    alert.window?.let {
+        val layoutParams = WindowManager.LayoutParams()
+        layoutParams.copyFrom(it.attributes)
+        getDisplayWidth(XposedContext.context)?.let { displayWidth ->
+            layoutParams.width = displayWidth
         }
-        switch (skinType) {
-            case 1:
-            case 4:
-                return "_2";
-            case 0:
-            default:
-                return "";
-        }
-    }
-
-    public static int dipToPx(final Context context, final float dipValue) {
-        final float scale = context.getResources().getDisplayMetrics().density;
-        return (int) (dipValue * scale + 0.5f);
-    }
-
-    public static int pxToDip(final Context context, final float pxValue) {
-        final float scale = context.getResources().getDisplayMetrics().density;
-        return (int) (pxValue / scale + 0.5f);
-    }
-
-    public static int getDisplayWidth(final Context context) {
-        return context.getResources().getDisplayMetrics().widthPixels;
-    }
-
-    public static void fixAlertDialogWidth(AlertDialog alert) {
-        WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
-        layoutParams.copyFrom(alert.getWindow().getAttributes());
-        layoutParams.width = DisplayUtils.getDisplayWidth(getContext());
-        alert.getWindow().setAttributes(layoutParams);
+        it.attributes = layoutParams
     }
 }

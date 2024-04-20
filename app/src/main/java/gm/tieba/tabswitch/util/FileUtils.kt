@@ -1,110 +1,87 @@
-package gm.tieba.tabswitch.util;
+@file:JvmName("FileUtils")
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileDescriptor;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.util.Scanner;
+package gm.tieba.tabswitch.util
 
-import gm.tieba.tabswitch.XposedContext;
+import gm.tieba.tabswitch.XposedContext
+import java.io.File
+import java.io.FileDescriptor
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
+import java.nio.ByteBuffer
 
-public class FileUtils extends XposedContext {
-    public static void copy(final Object input, final Object output) throws IOException {
-        final InputStream is;
-        if (input instanceof InputStream) {
-            is = (InputStream) input;
-        } else if (input instanceof File) {
-            is = new FileInputStream((File) input);
-        } else if (input instanceof FileDescriptor) {
-            is = new FileInputStream((FileDescriptor) input);
-        } else if (input instanceof String) {
-            is = new FileInputStream((String) input);
-        } else throw new IllegalArgumentException("unknown input type");
-
-        final OutputStream os;
-        if (output instanceof OutputStream) {
-            os = (OutputStream) output;
-        } else if (output instanceof File) {
-            os = new FileOutputStream((File) output);
-        } else if (output instanceof FileDescriptor) {
-            os = new FileOutputStream((FileDescriptor) output);
-        } else if (output instanceof String) {
-            os = new FileOutputStream((String) output);
-        } else throw new IllegalArgumentException("unknown output type");
-
-        copy(is, os);
+@Throws(IOException::class)
+fun copy(input: Any?, output: Any?) {
+    val inputStream: InputStream = when (input) {
+        is InputStream -> input
+        is File, is FileDescriptor, is String -> FileInputStream(input.toString())
+        else -> throw IllegalArgumentException("unknown input type")
     }
 
-    private static void copy(final InputStream is, final OutputStream os) throws IOException {
-        final byte[] buffer = new byte[8192];
-        int byteCount;
-        while ((byteCount = is.read(buffer)) != -1) {
-            os.write(buffer, 0, byteCount);
-        }
-        os.flush();
-        is.close();
-        os.close();
+    val outputStream: OutputStream = when (output) {
+        is OutputStream -> output
+        is File, is FileDescriptor, is String -> FileOutputStream(output.toString())
+        else -> throw IllegalArgumentException("unknown output type")
     }
 
-    public static void copy(final ByteBuffer bb, final Object output) throws IOException {
-        final OutputStream os;
-        if (output instanceof OutputStream) {
-            os = (OutputStream) output;
-        } else if (output instanceof File) {
-            os = new FileOutputStream((File) output);
-        } else if (output instanceof FileDescriptor) {
-            os = new FileOutputStream((FileDescriptor) output);
-        } else if (output instanceof String) {
-            os = new FileOutputStream((String) output);
-        } else throw new IllegalArgumentException("unknown output type");
+    copy(inputStream, outputStream)
+}
 
-        os.write(bb.array());
-    }
-
-    public static ByteBuffer toByteBuffer(final InputStream is) throws IOException {
-        final var baos = new ByteArrayOutputStream();
-        copy(is, baos);
-        return ByteBuffer.wrap(baos.toByteArray());
-    }
-
-    public static String getExtension(final ByteBuffer bb) throws IOException {
-        final var chunk = new String(bb.array(), 0, 6);
-        try {
-            if (chunk.contains("GIF")) return "gif";
-            else if (chunk.contains("PNG")) return "png";
-            else return "jpeg";
-        } finally {
-            bb.rewind();
+@Throws(IOException::class)
+fun copy(inputStream: InputStream, outputStream: OutputStream) {
+    inputStream.use { input ->
+        outputStream.use { output ->
+            input.copyTo(output)
         }
     }
+}
 
-    public static String getParent(final String path) {
-        final int index = path.lastIndexOf(File.separatorChar);
-        return path.substring(0, index);
+@Throws(IOException::class)
+fun copy(bb: ByteBuffer, output: Any?) {
+    val outputStream: OutputStream = when (output) {
+        is OutputStream -> output
+        is File, is FileDescriptor, is String -> FileOutputStream(output.toString())
+        else -> throw IllegalArgumentException("unknown output type")
     }
+    outputStream.use {
+        it.write(bb.array())
+    }
+}
 
-    public static void deleteRecursively(final File file) {
-        if (file.isDirectory()) {
-            final File[] files = file.listFiles();
-            if (files != null) {
-                for (final File f : files) {
-                    deleteRecursively(f);
+@Throws(IOException::class)
+fun toByteBuffer(inputStream: InputStream): ByteBuffer {
+    return ByteBuffer.wrap(inputStream.readBytes())
+}
+
+@Throws(IOException::class)
+fun getExtension(bb: ByteBuffer): String {
+    val chunk = String(bb.array(), 0, 6)
+    return when {
+        chunk.contains("GIF") -> "gif"
+        chunk.contains("PNG") -> "png"
+        else -> "jpeg"
+    }.also {
+        bb.rewind()
+    }
+}
+
+
+fun getParent(path: String): String {
+    return path.substring(0, path.lastIndexOf(File.separatorChar))
+}
+
+fun getAssetFileContent(filename: String?): String? {
+    return try {
+        filename?.let { name ->
+            XposedContext.sAssetManager.open(name).use { inputStream ->
+                inputStream.bufferedReader().use { reader ->
+                    reader.readText()
                 }
             }
         }
-        file.delete();
-    }
-
-    public static String getAssetFileContent(final String filename) {
-        String result = null;
-        try (Scanner scanner = new Scanner(sAssetManager.open(filename)).useDelimiter("\\A")) {
-            result = scanner.hasNext() ? scanner.next() : null;
-        } catch (final IOException ignored) {}
-        return result;
+    } catch (ignored: IOException) {
+        null
     }
 }
