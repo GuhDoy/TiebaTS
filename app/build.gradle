@@ -19,7 +19,7 @@ android {
         minSdk 28
         targetSdk sdk
         versionCode gitCommitCount
-        versionName '2.9.9-beta'
+        versionName '2.9.9'
         if (versionName.contains('beta')) {
             versionNameSuffix = '.' + commitCountSinceLatestTag
         }
