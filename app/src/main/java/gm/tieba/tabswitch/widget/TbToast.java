@@ -25,7 +25,7 @@ public class TbToast extends XposedContext implements Obfuscated {
 
     @MainThread
     public static void showTbToast(final String text, final int duration) {
-        AcRules.findRule(new TbToast().matchers(), (matcher, clazz, method) -> {
+        AcRules.findRule("can not be call not thread! trace = ", (matcher, clazz, method) -> {
             try {
                 final var md = ReflectUtils.findFirstMethodByExactType(clazz, Context.class, String.class, int.class);
                 runOnUiThread(() -> ReflectUtils.callStaticMethod(md, getContext(), text, duration));

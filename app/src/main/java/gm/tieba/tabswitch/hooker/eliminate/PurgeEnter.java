@@ -5,6 +5,8 @@ import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 
+import org.luckypray.dexkit.query.matchers.ClassMatcher;
+
 import java.lang.reflect.Modifier;
 import java.util.List;
 
@@ -15,11 +17,9 @@ import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.hooker.Obfuscated;
-import gm.tieba.tabswitch.hooker.deobfuscation.MatcherProperties;
 import gm.tieba.tabswitch.hooker.deobfuscation.MethodNameMatcher;
 import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
 import gm.tieba.tabswitch.hooker.deobfuscation.ResMatcher;
-import gm.tieba.tabswitch.util.ClassMatcherUtils;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class PurgeEnter extends XposedContext implements IHooker, Obfuscated {
@@ -36,8 +36,10 @@ public class PurgeEnter extends XposedContext implements IHooker, Obfuscated {
     @Override
     public List<? extends Matcher> matchers() {
         return List.of(
-                new ResMatcher(ReflectUtils.getR("dimen", "tbds400"), "dimen.tbds400", MatcherProperties.create().useClassMatcher(ClassMatcherUtils.usingString("enter_forum_login_tip"))),
-                new MethodNameMatcher("onSuccess", MatcherProperties.create().useClassMatcher(ClassMatcherUtils.usingString("enter_forum_login_tip")))
+                new ResMatcher(ReflectUtils.getR("dimen", "tbds400"), "dimen.tbds400")
+                        .setBaseClassMatcher(ClassMatcher.create().usingStrings("enter_forum_login_tip")),
+                new MethodNameMatcher("onSuccess", "purge_enter_on_success")
+                        .setBaseClassMatcher(ClassMatcher.create().usingStrings("enter_forum_login_tip"))
         );
     }
 
@@ -58,7 +60,7 @@ public class PurgeEnter extends XposedContext implements IHooker, Obfuscated {
 
         AcRules.findRule(matchers(), (matcher, clazz, method) -> {
             switch (matcher) {
-                case "enter_forum_login_tip/dimen.tbds400":
+                case "dimen.tbds400":
                     mRecForumClassName = clazz;
                     mRecForumSetNextPageMethodName = method;
                     XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodReplacement() {
@@ -87,7 +89,7 @@ public class PurgeEnter extends XposedContext implements IHooker, Obfuscated {
                         }
                     });
                     break;
-                case "enter_forum_login_tip/onSuccess":
+                case "purge_enter_on_success":
                     XposedHelpers.findAndHookMethod(clazz,
                             sClassLoader,
                             method,

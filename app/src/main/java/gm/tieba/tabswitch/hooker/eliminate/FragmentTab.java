@@ -2,13 +2,14 @@ package gm.tieba.tabswitch.hooker.eliminate;
 
 import androidx.annotation.NonNull;
 
+import org.luckypray.dexkit.query.matchers.ClassMatcher;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
 import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import gm.tieba.tabswitch.XposedContext;
@@ -17,10 +18,8 @@ import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.hooker.Obfuscated;
 import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
-import gm.tieba.tabswitch.hooker.deobfuscation.MatcherProperties;
 import gm.tieba.tabswitch.hooker.deobfuscation.SmaliMatcher;
 import gm.tieba.tabswitch.hooker.deobfuscation.StringMatcher;
-import gm.tieba.tabswitch.util.ClassMatcherUtils;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class FragmentTab extends XposedContext implements IHooker, Obfuscated {
@@ -35,17 +34,14 @@ public class FragmentTab extends XposedContext implements IHooker, Obfuscated {
     public List<? extends Matcher> matchers() {
         return List.of(
                 new StringMatcher("has_show_message_tab_tips"),
-                new SmaliMatcher("Lcom/airbnb/lottie/LottieAnimationView;->setImageResource(I)V",
-                        MatcherProperties.create().useClassMatcher(
-                                ClassMatcherUtils.usingString("has_show_message_tab_tips")
-                        )
-                )
+                new SmaliMatcher("Lcom/airbnb/lottie/LottieAnimationView;->setImageResource(I)V")
+                        .setBaseClassMatcher(ClassMatcher.create().usingStrings("has_show_message_tab_tips"))
         );
     }
 
     @Override
     public void hook() throws Throwable {
-        AcRules.findRule(new StringMatcher("has_show_message_tab_tips"), (matcher, clazz, method) -> {
+        AcRules.findRule("has_show_message_tab_tips", (matcher, clazz, method) -> {
             final var md = ReflectUtils.findFirstMethodByExactType(clazz, ArrayList.class);
             XposedBridge.hookMethod(md, new XC_MethodHook() {
                 @Override
@@ -59,11 +55,7 @@ public class FragmentTab extends XposedContext implements IHooker, Obfuscated {
                     }
                     if (Preferences.getBoolean("write_thread")) {
                         tabsToRemove.add("com.baidu.tieba.write.bottomButton.WriteThreadDelegateStatic");
-                        AcRules.findRule(new SmaliMatcher("Lcom/airbnb/lottie/LottieAnimationView;->setImageResource(I)V",
-                                MatcherProperties.create().useClassMatcher(
-                                        ClassMatcherUtils.usingString("has_show_message_tab_tips")
-                                )
-                        ), (matcher, clazz, method) -> {
+                        AcRules.findRule("Lcom/airbnb/lottie/LottieAnimationView;->setImageResource(I)V", (matcher, clazz, method) -> {
                             Method md = XposedHelpers.findMethodExactIfExists(clazz, sClassLoader, method);
                             if (md != null) {
                                 XposedBridge.hookMethod(md, new XC_MethodHook() {

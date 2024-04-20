@@ -20,6 +20,7 @@ import android.widget.ScrollView;
 import androidx.annotation.NonNull;
 
 import org.jetbrains.annotations.NotNull;
+import org.luckypray.dexkit.query.matchers.ClassMatcher;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,10 +37,8 @@ import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.TSPreferenceHelper.SwitchButtonHolder;
 import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHelper;
 import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
-import gm.tieba.tabswitch.hooker.deobfuscation.MatcherProperties;
 import gm.tieba.tabswitch.hooker.deobfuscation.SmaliMatcher;
 import gm.tieba.tabswitch.hooker.extra.TraceChecker;
-import gm.tieba.tabswitch.util.ClassMatcherUtils;
 import gm.tieba.tabswitch.util.DisplayUtils;
 import gm.tieba.tabswitch.widget.NavigationBar;
 import gm.tieba.tabswitch.widget.TbToast;
@@ -60,8 +59,8 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
     @Override
     public List<? extends Matcher> matchers() {
         return List.of(new SmaliMatcher(
-                "Lcom/baidu/tbadk/data/MetaData;->getBazhuGradeData()Lcom/baidu/tbadk/coreExtra/data/BazhuGradeData;",
-                MatcherProperties.create().useClassMatcher(ClassMatcherUtils.usingString("mo/q/wise-bawu-core/privacy-policy"))
+                "Lcom/baidu/tbadk/data/MetaData;->getBazhuGradeData()Lcom/baidu/tbadk/coreExtra/data/BazhuGradeData;")
+                        .setBaseClassMatcher(ClassMatcher.create().usingStrings("mo/q/wise-bawu-core/privacy-policy")
         ));
     }
 

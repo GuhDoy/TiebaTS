@@ -19,7 +19,6 @@ import gm.tieba.tabswitch.XposedContext;
 import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.dao.Preferences;
 import gm.tieba.tabswitch.hooker.IHooker;
-import gm.tieba.tabswitch.hooker.deobfuscation.StringMatcher;
 
 public class OriginSrc extends XposedContext implements IHooker {
 
@@ -36,7 +35,7 @@ public class OriginSrc extends XposedContext implements IHooker {
 
     private static void doHook() {
         if (isHooked) return;
-        AcRules.findRule(new StringMatcher("pic_amount"), (matcher, clazz, method) ->
+        AcRules.findRule("pic_amount", (matcher, clazz, method) ->
                 picListUnhook = XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, JSONObject.class, Boolean.class, new XC_MethodHook() {
                     @Override
                     protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {

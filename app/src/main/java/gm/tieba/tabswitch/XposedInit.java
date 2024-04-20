@@ -177,9 +177,9 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                 // Remove matchers that does not satisfy version requirement
                 matchersList.removeIf(
                         o -> {
-                            if (o.getRequiredVersion() != null) {
+                            if (o.getReqVersion() != null) {
                                 boolean isVersionSatisfied = DeobfuscationHelper.isTbSatisfyVersionRequirement(
-                                        o.getRequiredVersion()
+                                        o.getReqVersion()
                                 );
                                 if (!isVersionSatisfied) {
                                     XposedBridge.log(

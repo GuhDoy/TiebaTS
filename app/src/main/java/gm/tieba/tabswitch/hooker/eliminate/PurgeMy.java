@@ -5,6 +5,8 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 
+import org.luckypray.dexkit.query.matchers.ClassMatcher;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,9 +19,7 @@ import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.hooker.Obfuscated;
 import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
-import gm.tieba.tabswitch.hooker.deobfuscation.MatcherProperties;
 import gm.tieba.tabswitch.hooker.deobfuscation.SmaliMatcher;
-import gm.tieba.tabswitch.util.ClassMatcherUtils;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class PurgeMy extends XposedContext implements IHooker, Obfuscated {
@@ -37,9 +37,8 @@ public class PurgeMy extends XposedContext implements IHooker, Obfuscated {
         return List.of(
                 new SmaliMatcher("Lcom/baidu/tieba/personCenter/view/PersonOftenFuncItemView;-><init>(Landroid/content/Context;)V"),
                 new SmaliMatcher(
-                        "Lcom/baidu/nadcore/download/basic/AdAppStateManager;->instance()Lcom/baidu/nadcore/download/basic/AdAppStateManager;",
-                        MatcherProperties.create().useClassMatcher(ClassMatcherUtils.usingString("隐私设置"))
-                )
+                        "Lcom/baidu/nadcore/download/basic/AdAppStateManager;->instance()Lcom/baidu/nadcore/download/basic/AdAppStateManager;")
+                        .setBaseClassMatcher(ClassMatcher.create().usingStrings("隐私设置"))
         );
     }
 
@@ -87,7 +86,7 @@ public class PurgeMy extends XposedContext implements IHooker, Obfuscated {
                     );
                     break;
                 // 个人页面空行
-                case "隐私设置/Lcom/baidu/nadcore/download/basic/AdAppStateManager;->instance()Lcom/baidu/nadcore/download/basic/AdAppStateManager;":
+                case "Lcom/baidu/nadcore/download/basic/AdAppStateManager;->instance()Lcom/baidu/nadcore/download/basic/AdAppStateManager;":
                     XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, XC_MethodReplacement.returnConstant(null));
                     break;
             }

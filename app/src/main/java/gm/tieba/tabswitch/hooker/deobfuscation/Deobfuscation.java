@@ -53,7 +53,7 @@ public class Deobfuscation extends XposedContext {
         forEachProgressed(progress, matchers, matcher -> {
             MethodDataList ret = new MethodDataList();
             if (matcher.getClassMatcher() != null) {
-                ClassDataList retClassList = bridge.findClass(FindClass.create().matcher(matcher.getClassMatcher().getMatcher()));
+                ClassDataList retClassList = bridge.findClass(FindClass.create().matcher(matcher.getClassMatcher()));
                 for (var retClass: retClassList) {
                     ret.addAll(findMethod(bridge, FindMethod.create().searchPackages(retClass.getName()), matcher));
                 }
@@ -94,7 +94,7 @@ public class Deobfuscation extends XposedContext {
         } else if (matcher instanceof final MethodNameMatcher methodNameMatcher) {
             ret = bridge.findMethod(
                     baseMethodQuery.matcher(
-                            MethodMatcher.create().name(methodNameMatcher.getName())
+                            MethodMatcher.create().name(methodNameMatcher.getMethodName())
                     )
             );
         } else if (matcher instanceof final ReturnTypeMatcher<?> returnTypeMatcher) {

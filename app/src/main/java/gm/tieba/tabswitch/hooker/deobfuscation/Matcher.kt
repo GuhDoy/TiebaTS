@@ -1,54 +1,30 @@
 package gm.tieba.tabswitch.hooker.deobfuscation
 
-import gm.tieba.tabswitch.util.ClassMatcherUtils
+import org.luckypray.dexkit.query.matchers.ClassMatcher
 
-class MatcherProperties {
-    var classMatcher: ClassMatcherUtils? = null
-    var requiredVersion: String? = null
-    companion object {
-        @JvmStatic
-        fun create() : MatcherProperties {
-            return MatcherProperties()
-        }
-    }
-    override fun toString(): String {
-        val versionString = requiredVersion?.let { "$it@" } ?: ""
-        return versionString + classMatcher?.toString().orEmpty()
-    }
-    fun useClassMatcher(classMatcher: ClassMatcherUtils) : MatcherProperties {
-        this.classMatcher = classMatcher
+abstract class Matcher(private val name: String) {
+    var classMatcher: ClassMatcher? = null
+    var reqVersion: String? = null
+
+    override fun toString(): String = name
+
+    fun setBaseClassMatcher(baseClassMatcher: ClassMatcher) : Matcher {
+        classMatcher = baseClassMatcher
         return this
     }
-    fun requireVersion(requiredVersion: String) : MatcherProperties {
-        this.requiredVersion = requiredVersion
+
+    fun setRequiredVersion(version: String) : Matcher {
+        reqVersion= version
         return this
     }
 }
 
-abstract class Matcher(private val properties: MatcherProperties? = null) {
-    override fun toString(): String = properties?.toString().orEmpty()
-    fun getClassMatcher(): ClassMatcherUtils? = properties?.classMatcher
-    fun getRequiredVersion(): String? = properties?.requiredVersion
+class StringMatcher @JvmOverloads constructor(val str: String, val name: String = str) : Matcher(name)
 
-}
+class SmaliMatcher @JvmOverloads constructor(val descriptor: String, val name: String = descriptor) : Matcher(name)
 
-class StringMatcher @JvmOverloads constructor(val str: String, properties: MatcherProperties? = null) : Matcher(properties) {
-    override fun toString(): String = super.toString() + str
-}
+class MethodNameMatcher(val methodName: String, val name: String) : Matcher(name)
 
-class SmaliMatcher @JvmOverloads constructor(val str: String, properties: MatcherProperties? = null) : Matcher(properties) {
-    override fun toString(): String = super.toString() + str
-    fun getDescriptor(): String = str;
-}
+class ReturnTypeMatcher<T>(val returnType: Class<T>, val name: String) : Matcher(name)
 
-class MethodNameMatcher @JvmOverloads constructor(val name: String, properties: MatcherProperties? = null) : Matcher(properties) {
-    override fun toString(): String = super.toString() + name
-}
-
-class ReturnTypeMatcher<T> @JvmOverloads constructor(val returnType: Class<T>, properties: MatcherProperties? = null) : Matcher(properties) {
-    override fun toString(): String = super.toString() + returnType.simpleName
-}
-
-class ResMatcher @JvmOverloads constructor(val id: Long, val name: String, properties: MatcherProperties? = null) : Matcher(properties) {
-    override fun toString(): String = super.toString() + name
-}
+class ResMatcher(val id: Long, val name: String) : Matcher(name)

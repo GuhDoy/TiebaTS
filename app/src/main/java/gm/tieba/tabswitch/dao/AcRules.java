@@ -42,6 +42,12 @@ public class AcRules {
         }
     }
 
+    public static void findRule(final String str, final Callback callback) {
+        for (final var rule : sDao.loadAllMatch(str)) {
+            callback.onRuleFound(rule.getMatcher(), rule.getClazz(), rule.getMethod());
+        }
+    }
+
     public static boolean isRuleFound(final String matcher) {
         return !sDao.loadAllMatch(matcher).isEmpty();
     }

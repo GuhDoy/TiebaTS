@@ -13,6 +13,8 @@ import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 
+import org.luckypray.dexkit.query.matchers.ClassMatcher;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -32,9 +34,7 @@ import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.hooker.Obfuscated;
 import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
-import gm.tieba.tabswitch.hooker.deobfuscation.MatcherProperties;
 import gm.tieba.tabswitch.hooker.deobfuscation.ReturnTypeMatcher;
-import gm.tieba.tabswitch.util.ClassMatcherUtils;
 import gm.tieba.tabswitch.util.FileUtils;
 import gm.tieba.tabswitch.util.ReflectUtils;
 import gm.tieba.tabswitch.widget.TbToast;
@@ -53,24 +53,19 @@ public class SaveImages extends XposedContext implements IHooker, Obfuscated {
     @Override
     public List<? extends Matcher> matchers() {
         return List.of(
-                new ReturnTypeMatcher<>(LinearLayout.class, MatcherProperties.create().useClassMatcher(ClassMatcherUtils.usingString("分享弹窗触发分享：分享成功")))
+                new ReturnTypeMatcher<>(LinearLayout.class, "save_images").setBaseClassMatcher(ClassMatcher.create().usingStrings("分享弹窗触发分享：分享成功"))
         );
     }
 
     public void hook() throws Throwable {
-        AcRules.findRule(matchers(), (matcher, clazz, method) -> {
-            switch (matcher) {
-                case "分享弹窗触发分享：分享成功/LinearLayout":
-                    XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, int.class, int.class, new XC_MethodHook() {
-                        @Override
-                        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                            LinearLayout downloadIconView = (LinearLayout) param.getResult();
-                            downloadIconView.setOnLongClickListener(saveImageListener);
-                        }
-                    });
-                    break;
+        AcRules.findRule("save_images", (matcher, clazz, method) ->
+                XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, int.class, int.class, new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        LinearLayout downloadIconView = (LinearLayout) param.getResult();
+                        downloadIconView.setOnLongClickListener(saveImageListener);
             }
-        });
+        }));
 
         XposedBridge.hookMethod(
                 ReflectUtils.findFirstMethodByExactType("com.baidu.tbadk.coreExtra.view.ImagePagerAdapter", ArrayList.class),

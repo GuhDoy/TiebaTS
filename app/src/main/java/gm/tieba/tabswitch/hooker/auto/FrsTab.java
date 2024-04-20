@@ -2,7 +2,6 @@ package gm.tieba.tabswitch.hooker.auto;
 
 import androidx.annotation.NonNull;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -15,7 +14,6 @@ import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.hooker.Obfuscated;
 import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
 import gm.tieba.tabswitch.hooker.deobfuscation.StringMatcher;
-import gm.tieba.tabswitch.util.ReflectUtils;
 
 public class FrsTab extends XposedContext implements IHooker, Obfuscated {
 

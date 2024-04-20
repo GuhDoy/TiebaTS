@@ -9,6 +9,10 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
+import org.luckypray.dexkit.query.matchers.ClassMatcher;
+import org.luckypray.dexkit.query.matchers.MethodMatcher;
+import org.luckypray.dexkit.query.matchers.MethodsMatcher;
+
 import java.util.List;
 
 import de.robv.android.xposed.XC_MethodReplacement;
@@ -18,9 +22,7 @@ import gm.tieba.tabswitch.dao.AcRules;
 import gm.tieba.tabswitch.hooker.IHooker;
 import gm.tieba.tabswitch.hooker.Obfuscated;
 import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
-import gm.tieba.tabswitch.hooker.deobfuscation.MatcherProperties;
 import gm.tieba.tabswitch.hooker.deobfuscation.SmaliMatcher;
-import gm.tieba.tabswitch.util.ClassMatcherUtils;
 import gm.tieba.tabswitch.util.DisplayUtils;
 import gm.tieba.tabswitch.util.ReflectUtils;
 
@@ -34,15 +36,19 @@ public class SelectClipboard extends XposedContext implements IHooker, Obfuscate
     @Override
     public List<? extends Matcher> matchers() {
         return List.of(
-                new SmaliMatcher("Landroid/text/ClipboardManager;->setText(Ljava/lang/CharSequence;)V",
-                        MatcherProperties.create().useClassMatcher(ClassMatcherUtils.invokeMethod("Lcom/baidu/tbadk/core/data/SmallTailInfo;-><init>()V")))
+                new SmaliMatcher("Landroid/text/ClipboardManager;->setText(Ljava/lang/CharSequence;)V")
+                        .setBaseClassMatcher(ClassMatcher.create().methods(
+                                MethodsMatcher.create().add(MethodMatcher.create().addInvoke(
+                                        MethodMatcher.create().descriptor("Lcom/baidu/tbadk/core/data/SmallTailInfo;-><init>()V")
+                                )))
+                        )
         );
     }
 
     public void hook() throws Throwable {
         AcRules.findRule(matchers(), (matcher, clazz, method) -> {
             switch (matcher) {
-                case "Lcom/baidu/tbadk/core/data/SmallTailInfo;-><init>()V/Landroid/text/ClipboardManager;->setText(Ljava/lang/CharSequence;)V":
+                case "Landroid/text/ClipboardManager;->setText(Ljava/lang/CharSequence;)V":
                     XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodReplacement() {
                         @Override
                         protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
