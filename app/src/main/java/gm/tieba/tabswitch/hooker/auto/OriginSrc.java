@@ -7,11 +7,13 @@ import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
+import android.net.Uri;
 
 import androidx.annotation.NonNull;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
@@ -32,6 +34,8 @@ public class OriginSrc extends XposedContext implements IHooker {
     private static XC_MethodHook.Unhook picListUnhook;
     private static XC_MethodHook.Unhook pbContentUnhook;
     private static XC_MethodHook.Unhook mediaUnhook;
+    private static XC_MethodHook.Unhook picInfoUnhook;
+    private static XC_MethodHook.Unhook feedPicComponentUnhook;
 
     private static void doHook() {
         if (isHooked) return;
@@ -76,6 +80,38 @@ public class OriginSrc extends XposedContext implements IHooker {
                 }
             }
         });
+        picInfoUnhook = XposedHelpers.findAndHookMethod("tbclient.PicInfo$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(final XC_MethodHook.MethodHookParam param) throws Throwable {
+                final String[] strings = new String[]{"small_pic_url", "big_pic_url"};
+                for (final String string : strings) {
+                    XposedHelpers.setObjectField(param.thisObject, string, XposedHelpers
+                            .getObjectField(param.thisObject, "origin_pic_url"));
+                }
+            }
+        });
+        feedPicComponentUnhook = XposedHelpers.findAndHookMethod("tbclient.FeedPicComponent$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(final XC_MethodHook.MethodHookParam param) throws Throwable {
+                String schema = (String) XposedHelpers.getObjectField(param.thisObject, "schema");
+                String paramsJson = Uri.parse(schema).getQueryParameter("params");
+
+                JSONObject jsonObject = new JSONObject(paramsJson);
+                JSONObject pageParams = jsonObject.getJSONObject("pageParams");
+                JSONArray picDataList = pageParams.getJSONArray("pic_data_list");
+
+                for (int i = 0; i < picDataList.length(); i++) {
+                    JSONObject picData = picDataList.getJSONObject(i);
+                    String originPicUrl = picData.getString("origin_pic_url");
+                    picData.put("big_pic_url", originPicUrl);
+                    picData.put("small_pic_url", originPicUrl);
+                    picData.put("is_show_origin_btn", 0);
+                }
+
+                String modifiedUri = "tiebaapp://router/portal?params=" + jsonObject.toString();
+                XposedHelpers.setObjectField(param.thisObject, "schema", modifiedUri);
+            }
+        });
         isHooked = true;
     }
 
@@ -92,6 +128,14 @@ public class OriginSrc extends XposedContext implements IHooker {
         if (mediaUnhook != null) {
             mediaUnhook.unhook();
             mediaUnhook = null;
+        }
+        if (picInfoUnhook != null) {
+            picInfoUnhook.unhook();
+            picInfoUnhook = null;
+        }
+        if (feedPicComponentUnhook != null) {
+            feedPicComponentUnhook.unhook();
+            feedPicComponentUnhook = null;
         }
         isHooked = false;
     }
