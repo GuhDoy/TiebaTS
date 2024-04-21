@@ -157,7 +157,7 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
     private void startRootPreferenceActivity(final Activity activity) {
         if (!Preferences.getIsEULAAccepted()) {
             final StringBuilder stringBuilder = new StringBuilder().append(Constants.getStrings().get("EULA"));
-            if (XposedContext.isModuleBetaVersion()) {
+            if (isModuleBetaVersion) {
                 stringBuilder.append("\n\n").append(Constants.getStrings().get("dev_tip"));
             }
             AlertDialog alert = new AlertDialog.Builder(activity, DisplayUtils.isLightMode(getContext()) ?
@@ -282,7 +282,7 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
         preferenceLayout.addView(TSPreferenceHelper.createButton("版本", String.format(Locale.CHINA, "%s", BuildConfig.VERSION_NAME), true, v -> {
             final Intent intent = new Intent();
             intent.setAction("android.intent.action.VIEW");
-            if (XposedContext.isModuleBetaVersion()) {
+            if (isModuleBetaVersion) {
                 intent.setData(Uri.parse(Constants.getStrings().get("ci_uri")));
             } else {
                 intent.setData(Uri.parse(Constants.getStrings().get("release_uri")));

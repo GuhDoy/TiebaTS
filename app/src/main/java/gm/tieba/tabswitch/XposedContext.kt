@@ -10,9 +10,9 @@ import java.lang.ref.WeakReference
 
 abstract class XposedContext {
     companion object {
-        @JvmStatic
+        @JvmField
         var isModuleBetaVersion = false
-        @JvmStatic
+        @JvmField
         val exceptions: Map<String, Throwable> = HashMap(0)
 
         @JvmStatic
