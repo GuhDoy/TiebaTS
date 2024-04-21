@@ -48,7 +48,7 @@ public class AutoSign extends XposedContext implements IHooker {
                     protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
                         if (Preferences.isSigned()) return;
                         new Thread(() -> {
-                            final String result = main(Adp.getInstance().BDUSS);
+                            final String result = main(Adp.BDUSS);
                             if (result.endsWith("全部签到成功")) {
                                 Preferences.putSignDate();
                                 Preferences.putLikeForum(new HashSet<>(mSuccess));
@@ -73,7 +73,7 @@ public class AutoSign extends XposedContext implements IHooker {
     }
 
     private void getTbs() {
-        mTbs = Adp.getInstance().tbs;
+        mTbs = Adp.tbs;
         if (mTbs != null) return;
         try {
             final JSONObject jsonObject = AutoSignHelper.get(TBS_URL);

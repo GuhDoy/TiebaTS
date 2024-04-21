@@ -5,7 +5,9 @@ import android.content.res.AssetManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
+import de.robv.android.xposed.XposedHelpers
 import java.lang.ref.WeakReference
 
 abstract class XposedContext {
@@ -59,5 +61,39 @@ abstract class XposedContext {
         protected fun runOnUiThread(r: Runnable) {
             sHandler.post(r)
         }
+    }
+
+    inline fun hookBeforeMethod(
+        className: String,
+        methodName: String,
+        vararg parameterTypes: Any?,
+        crossinline beforeHook: (XC_MethodHook.MethodHookParam) -> Unit
+    ) {
+        XposedHelpers.findAndHookMethod(
+            className, sClassLoader, methodName, *parameterTypes,
+            object : XC_MethodHook() {
+                @Throws(Throwable::class)
+                override fun beforeHookedMethod(param: MethodHookParam) {
+                    beforeHook(param)
+                }
+            }
+        )
+    }
+
+    inline fun hookAfterMethod(
+        className: String,
+        methodName: String,
+        vararg parameterTypes: Any?,
+        crossinline afterHook: (XC_MethodHook.MethodHookParam) -> Unit
+    ) {
+        XposedHelpers.findAndHookMethod(
+            className, sClassLoader, methodName, *parameterTypes,
+            object : XC_MethodHook() {
+                @Throws(Throwable::class)
+                override fun afterHookedMethod(param: MethodHookParam) {
+                    afterHook(param)
+                }
+            }
+        )
     }
 }

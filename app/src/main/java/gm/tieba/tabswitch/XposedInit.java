@@ -263,7 +263,7 @@ public class XposedInit extends XposedContext implements IXposedHookZygoteInit, 
                     return;
                 }
 
-                new Adp();
+                Adp.INSTANCE.initialize();
                 if (Preferences.getBoolean("hide_native")) {
                     try {
                         System.loadLibrary("hide");
