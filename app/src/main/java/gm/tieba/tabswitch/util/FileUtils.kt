@@ -16,13 +16,17 @@ import java.nio.ByteBuffer
 fun copy(input: Any?, output: Any?) {
     val inputStream: InputStream = when (input) {
         is InputStream -> input
-        is File, is FileDescriptor, is String -> FileInputStream(input.toString())
+        is File -> FileInputStream(input)
+        is FileDescriptor -> FileInputStream(input)
+        is String -> FileInputStream(input)
         else -> throw IllegalArgumentException("unknown input type")
     }
 
     val outputStream: OutputStream = when (output) {
         is OutputStream -> output
-        is File, is FileDescriptor, is String -> FileOutputStream(output.toString())
+        is File -> FileOutputStream(output)
+        is FileDescriptor -> FileOutputStream(output)
+        is String -> FileOutputStream(output)
         else -> throw IllegalArgumentException("unknown output type")
     }
 
@@ -42,7 +46,9 @@ fun copy(inputStream: InputStream, outputStream: OutputStream) {
 fun copy(bb: ByteBuffer, output: Any?) {
     val outputStream: OutputStream = when (output) {
         is OutputStream -> output
-        is File, is FileDescriptor, is String -> FileOutputStream(output.toString())
+        is File -> FileOutputStream(output)
+        is FileDescriptor -> FileOutputStream(output)
+        is String -> FileOutputStream(output)
         else -> throw IllegalArgumentException("unknown output type")
     }
     outputStream.use {
@@ -66,7 +72,6 @@ fun getExtension(bb: ByteBuffer): String {
         bb.rewind()
     }
 }
-
 
 fun getParent(path: String): String {
     return path.substring(0, path.lastIndexOf(File.separatorChar))
