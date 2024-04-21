@@ -46,7 +46,7 @@ public class AutoSign extends XposedContext implements IHooker {
                 "onCreate", Bundle.class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
-                        if (Preferences.getIsSigned()) return;
+                        if (Preferences.isSigned()) return;
                         new Thread(() -> {
                             final String result = main(Adp.getInstance().BDUSS);
                             if (result.endsWith("全部签到成功")) {

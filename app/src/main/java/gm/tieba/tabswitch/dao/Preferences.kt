@@ -1,140 +1,128 @@
-package gm.tieba.tabswitch.dao;
+package gm.tieba.tabswitch.dao
 
-import android.annotation.SuppressLint;
-import android.content.Context;
-import android.content.SharedPreferences;
+import android.annotation.SuppressLint
+import android.content.Context
+import android.content.SharedPreferences
+import java.util.Calendar
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-public class Preferences {
-    private static SharedPreferences sTsPreferences;
-    private static SharedPreferences sTsConfig;
-
-    public static void init(final Context context) {
-        sTsPreferences = context.getSharedPreferences("TS_preferences", Context.MODE_PRIVATE);
-        sTsConfig = context.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
+object Preferences {
+    private lateinit var sTsPreferences: SharedPreferences
+    private lateinit var sTsConfig: SharedPreferences
+    @JvmStatic
+    fun init(context: Context) {
+        sTsPreferences = context.getSharedPreferences("TS_preferences", Context.MODE_PRIVATE)
+        sTsConfig = context.getSharedPreferences("TS_config", Context.MODE_PRIVATE)
     }
 
-    // Preferences
-    public static Map<String, ?> getAll() {
-        return sTsPreferences.getAll();
+    @JvmStatic
+    val all: Map<String, *>
+        // Preferences
+        get() = sTsPreferences.all
+
+    @JvmStatic
+    fun remove(key: String) {
+        sTsPreferences.edit().remove(key).apply()
     }
 
-    public static void remove(final String key) {
-        final SharedPreferences.Editor editor = sTsPreferences.edit();
-        editor.remove(key);
-        editor.apply();
+    @JvmStatic
+    fun putBoolean(key: String, value: Boolean) {
+        sTsPreferences.edit().putBoolean(key, value).apply()
     }
 
-    public static void putBoolean(final String key, final boolean value) {
-        final SharedPreferences.Editor editor = sTsPreferences.edit();
-        editor.putBoolean(key, value);
-        editor.apply();
+    @JvmStatic
+    fun getBoolean(key: String): Boolean {
+        return sTsPreferences.getBoolean(key, false)
     }
 
-    public static boolean getBoolean(final String key) {
-        return sTsPreferences.getBoolean(key, false);
+    @JvmStatic
+    fun putString(key: String, value: String) {
+        sTsPreferences.edit().putString(key, value).apply()
     }
 
-    public static void putString(final String key, final String value) {
-        final SharedPreferences.Editor editor = sTsPreferences.edit();
-        editor.putString(key, value);
-        editor.apply();
+    @JvmStatic
+    fun getString(key: String): String? {
+        return sTsPreferences.getString(key, null)
     }
 
-    public static String getString(final String key) {
-        return sTsPreferences.getString(key, null);
+    fun putStringSet(key: String, value: String, isContain: Boolean) {
+        val set = getStringSet(key).toMutableSet()
+        if (isContain) {
+            set.add(value)
+        } else {
+            set.remove(value)
+        }
+        sTsPreferences.edit().putStringSet(key, set).apply()
     }
 
-    public static void putStringSet(final String key, final String value, final boolean isContain) {
-        final List<String> list = new ArrayList<>(getStringSet(key));
-        if (!isContain) list.remove(value);
-        else if (!list.contains(value)) list.add(value);
-
-        final SharedPreferences.Editor editor = sTsPreferences.edit();
-        editor.putStringSet(key, new HashSet<>(list));
-        editor.apply();
-    }
-
-    public static Set<String> getStringSet(final String key) {
-        return sTsPreferences.getStringSet(key, new HashSet<>());
+    fun getStringSet(key: String): Set<String> {
+        return sTsPreferences.getStringSet(key, emptySet()) ?: emptySet()
     }
 
     // Config
-    public static void putEULAAccepted() {
-        final SharedPreferences.Editor editor = sTsConfig.edit();
-        editor.putBoolean("EULA", true);
-        editor.apply();
+    @JvmStatic
+    fun putEULAAccepted() {
+        sTsConfig.edit().putBoolean("EULA", true).apply()
     }
 
-    public static boolean getIsEULAAccepted() {
-        return sTsConfig.getBoolean("EULA", false);
+    @JvmStatic
+    val isEULAAccepted: Boolean
+        get() = sTsConfig.getBoolean("EULA", false)
+
+    @JvmStatic
+    fun putAutoSignEnabled() {
+        sTsConfig.edit().putBoolean("auto_sign", true).apply()
     }
 
-    public static void putAutoSignEnabled() {
-        final SharedPreferences.Editor editor = sTsConfig.edit();
-        editor.putBoolean("auto_sign", true);
-        editor.apply();
-    }
+    @JvmStatic
+    val isAutoSignEnabled: Boolean
+        get() = sTsConfig.getBoolean("auto_sign", false)
 
-    public static boolean getIsAutoSignEnabled() {
-        return sTsConfig.getBoolean("auto_sign", false);
-    }
+    @JvmStatic
+    val transitionAnimationEnabled: Boolean
+        get() = sTsPreferences.getBoolean("transition_animation", false)
 
-    public static boolean getTransitionAnimationEnabled() {
-        return sTsPreferences.getBoolean("transition_animation", false);
-    }
-
+    @JvmStatic
     @SuppressLint("ApplySharedPref")
-    public static void putPurgeEnabled() {
-        final SharedPreferences.Editor editor = sTsConfig.edit();
-        editor.putBoolean("ze", true);
-        editor.commit();
+    fun putPurgeEnabled() {
+        sTsConfig.edit().putBoolean("ze", true).commit()
     }
 
-    public static boolean getIsPurgeEnabled() {
-        return sTsConfig.getBoolean("ze", false);
-    }
+    @JvmStatic
+    val isPurgeEnabled: Boolean
+        get() = sTsConfig.getBoolean("ze", false)
 
+    @JvmStatic
     @SuppressLint("ApplySharedPref")
-    public static void putSignature(final int i) {
-        final SharedPreferences.Editor editor = sTsConfig.edit();
-        editor.putInt("signature", i);
-        editor.commit();
+    fun putSignature(i: Int) {
+        sTsConfig.edit().putInt("signature", i).commit()
     }
 
-    public static int getSignature() {
-        return sTsConfig.getInt("signature", 0);
+    @JvmStatic
+    val signature: Int
+        get() = sTsConfig.getInt("signature", 0)
+
+    @JvmStatic
+    fun putLikeForum(follow: Set<String?>?) {
+        sTsConfig.edit().putStringSet("like_forum", follow).apply()
     }
 
-    public static void putLikeForum(final Set<String> follow) {
-        final SharedPreferences.Editor editor = sTsConfig.edit();
-        editor.putStringSet("like_forum", follow);
-        editor.apply();
+    @JvmStatic
+    val likeForum: Set<String>?
+        get() = sTsConfig.getStringSet("like_forum", null)
+
+    @JvmStatic
+    fun putSignDate() {
+        sTsConfig.edit().putInt("sign_date", Calendar.getInstance().get(Calendar.DAY_OF_YEAR)).apply()
     }
 
-    public static Set<String> getLikeForum() {
-        return sTsConfig.getStringSet("like_forum", null);
-    }
+    @JvmStatic
+    val isSigned: Boolean
+        get() = Calendar.getInstance().get(Calendar.DAY_OF_YEAR) == sTsConfig.getInt("sign_date", 0)
 
-    public static void putSignDate() {
-        final SharedPreferences.Editor editor = sTsConfig.edit();
-        editor.putInt("sign_date", Calendar.getInstance().get(Calendar.DAY_OF_YEAR));
-        editor.apply();
-    }
-
-    public static boolean getIsSigned() {
-        return Calendar.getInstance().get(Calendar.DAY_OF_YEAR) == sTsConfig.getInt("sign_date", 0);
-    }
-
+    @JvmStatic
     @SuppressLint("ApplySharedPref")
-    public static void commit() {
-        sTsConfig.edit().commit();
-        sTsPreferences.edit().commit();
+    fun commit() {
+        sTsConfig.edit().commit()
+        sTsPreferences.edit().commit()
     }
 }

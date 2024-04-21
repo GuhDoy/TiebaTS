@@ -1,62 +1,69 @@
-package gm.tieba.tabswitch.dao;
+package gm.tieba.tabswitch.dao
 
-import android.content.Context;
+import android.content.Context
+import androidx.room.Room.databaseBuilder
+import gm.tieba.tabswitch.dao.AcRule.Companion.create
+import gm.tieba.tabswitch.hooker.deobfuscation.Matcher
+import java.util.Arrays
+import java.util.function.Consumer
 
-import androidx.room.Room;
-
-import java.util.Arrays;
-import java.util.List;
-
-import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
-
-public class AcRules {
-    public static final String ACRULES_DATABASE_NAME = "Deobfs.db";
-    public static AcRuleDao sDao;
-
-    public static void init(final Context context) {
-        sDao = Room.databaseBuilder(
-                        context.getApplicationContext(), AcRuleDatabase.class, ACRULES_DATABASE_NAME
-                )
-                .allowMainThreadQueries()
-                .build()
-                .acRuleDao();
+object AcRules {
+    private const val ACRULES_DATABASE_NAME = "Deobfs.db"
+    private lateinit var ruleDao: AcRuleDao
+    @JvmStatic
+    fun init(context: Context) {
+        ruleDao = databaseBuilder(
+            context.applicationContext, AcRuleDatabase::class.java, ACRULES_DATABASE_NAME
+        )
+            .allowMainThreadQueries()
+            .build()
+            .acRuleDao()
     }
 
-    public static void dropAllRules() {
-        sDao.getAll().forEach(it -> sDao.delete(it));
-    }
-
-    public static void putRule(final String matcher, final String clazz, final String method) {
-        sDao.insertAll(AcRule.Companion.create(matcher, clazz, method));
-    }
-
-    public static void findRule(final Matcher matcher, final Callback callback) {
-        for (final var rule : sDao.loadAllMatch(matcher.toString())) {
-            callback.onRuleFound(rule.getMatcher(), rule.getClazz(), rule.getMethod());
+    @JvmStatic
+    fun dropAllRules() {
+        ruleDao.getAll().forEach { rule ->
+            ruleDao.delete(rule)
         }
     }
 
-    public static void findRule(final List<? extends Matcher> matchers, final Callback callback) {
-        for (final var rule : sDao.loadAllMatch(matchers.stream().map(Matcher::toString).toArray(String[]::new))) {
-            callback.onRuleFound(rule.getMatcher(), rule.getClazz(), rule.getMethod());
+    @JvmStatic
+    fun putRule(matcher: String, clazz: String, method: String) {
+        ruleDao.insertAll(create(matcher, clazz, method))
+    }
+
+    @JvmStatic
+    fun findRule(matcher: Matcher, callback: Callback) {
+        ruleDao.loadAllMatch(matcher.toString()).forEach { rule ->
+            callback.onRuleFound(rule.matcher, rule.clazz, rule.method)
         }
     }
 
-    public static void findRule(final String str, final Callback callback) {
-        for (final var rule : sDao.loadAllMatch(str)) {
-            callback.onRuleFound(rule.getMatcher(), rule.getClazz(), rule.getMethod());
+    @JvmStatic
+    fun findRule(matchers: List<Matcher>, callback: Callback) {
+        val matcherStrings = matchers.map { it.toString() }.toTypedArray()
+        ruleDao.loadAllMatch(*matcherStrings).forEach { rule ->
+            callback.onRuleFound(rule.matcher, rule.clazz, rule.method)
         }
     }
 
-    public static boolean isRuleFound(final String matcher) {
-        return !sDao.loadAllMatch(matcher).isEmpty();
+    @JvmStatic
+    fun findRule(str: String, callback: Callback) {
+        ruleDao.loadAllMatch(str).forEach { rule ->
+            callback.onRuleFound(rule.matcher, rule.clazz, rule.method)
+        }
     }
 
-    public static boolean isRuleFound(final String... matchers) {
-        return Arrays.stream(matchers).allMatch(AcRules::isRuleFound);
+    @JvmStatic
+    fun isRuleFound(matcher: String): Boolean {
+        return ruleDao.loadAllMatch(matcher).isNotEmpty()
     }
 
-    public interface Callback {
-        void onRuleFound(String matcher, String clazz, String method);
+    fun isRuleFound(vararg matchers: String): Boolean {
+        return matchers.all { matcher -> isRuleFound(matcher) }
+    }
+
+    interface Callback {
+        fun onRuleFound(matcher: String, clazz: String, method: String)
     }
 }
