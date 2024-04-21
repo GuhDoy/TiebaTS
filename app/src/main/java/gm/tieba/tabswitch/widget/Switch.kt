@@ -1,74 +1,75 @@
-package gm.tieba.tabswitch.widget;
+package gm.tieba.tabswitch.widget
 
-import android.os.Vibrator;
-import android.view.View;
+import android.os.Vibrator
+import android.view.View
+import de.robv.android.xposed.XposedHelpers
+import de.robv.android.xposed.XposedHelpers.ClassNotFoundError
+import gm.tieba.tabswitch.XposedContext
+import gm.tieba.tabswitch.util.callMethod
+import gm.tieba.tabswitch.util.getObjectField
+import java.lang.reflect.InvocationHandler
+import java.lang.reflect.Method
+import java.lang.reflect.Proxy
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+class Switch : XposedContext() {
+    @JvmField
+    var bdSwitch: View
+    private var mMethods: Array<Method>
 
-import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.XposedContext;
-import gm.tieba.tabswitch.util.ReflectUtils;
-
-public class Switch extends XposedContext {
-    public View bdSwitch;
-    private Method[] mMethods;
-
-    public Switch() {
-        final var cls = XposedHelpers.findClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView", sClassLoader);
-        bdSwitch = (View) XposedHelpers.newInstance(cls, getContext());
-        mMethods = cls.getDeclaredMethods();
+    init {
+        val cls =
+            XposedHelpers.findClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView", sClassLoader)
+        bdSwitch = XposedHelpers.newInstance(cls, context) as View
+        mMethods = cls.declaredMethods
     }
 
-    public Switch(final View bdSwitch) {
-        this.bdSwitch = bdSwitch;
-    }
-
-    public void setOnSwitchStateChangeListener(final InvocationHandler l) {
-        Class<?> clazz;
-        try {
-            clazz = XposedHelpers.findClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView$b", sClassLoader);
-        } catch (final XposedHelpers.ClassNotFoundError e) {
-            clazz = XposedHelpers.findClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView$a", sClassLoader);
+    fun setOnSwitchStateChangeListener(l: InvocationHandler) {
+        val clazz: Class<*> = try {
+            XposedHelpers.findClass(
+                "com.baidu.adp.widget.BdSwitchView.BdSwitchView\$b",
+                sClassLoader
+            )
+        } catch (e: ClassNotFoundError) {
+            XposedHelpers.findClass(
+                "com.baidu.adp.widget.BdSwitchView.BdSwitchView\$a",
+                sClassLoader
+            )
         }
-        final Object proxy = Proxy.newProxyInstance(sClassLoader, new Class<?>[]{clazz}, l);
-        XposedHelpers.callMethod(bdSwitch, "setOnSwitchStateChangeListener", proxy);
+        val proxy = Proxy.newProxyInstance(sClassLoader, arrayOf(clazz), l)
+        XposedHelpers.callMethod(bdSwitch, "setOnSwitchStateChangeListener", proxy)
     }
 
-    public boolean isOn() {
-        try {
-            return (Boolean) XposedHelpers.callMethod(bdSwitch, "isOn");
-        } catch (final NoSuchMethodError e) {
-            return (Boolean) ReflectUtils.callMethod(mMethods[6], bdSwitch);
+    val isOn: Boolean
+        get() = try {
+            XposedHelpers.callMethod(bdSwitch, "isOn") as Boolean
+        } catch (e: NoSuchMethodError) {
+            callMethod(mMethods[6], bdSwitch) as Boolean
         }
-    }
 
-    public void changeState() {
+    fun changeState() {
         try {
-            XposedHelpers.callMethod(bdSwitch, "changeState");
-        } catch (final NoSuchMethodError e) {
-            ReflectUtils.callMethod(mMethods[3], bdSwitch);
-        }
-    }
-
-    public void turnOn() {
-        try {
-            XposedHelpers.callMethod(bdSwitch, "turnOn");
-        } catch (final NoSuchMethodError e) {
-            ReflectUtils.callMethod(mMethods[11], bdSwitch);
+            XposedHelpers.callMethod(bdSwitch, "changeState")
+        } catch (e: NoSuchMethodError) {
+            callMethod(mMethods[3], bdSwitch)
         }
     }
 
-    public void turnOff() {
+    fun turnOn() {
         try {
-            XposedHelpers.callMethod(bdSwitch, "turnOff");
-        } catch (final NoSuchMethodError e) {
-            ReflectUtils.callMethod(mMethods[8], bdSwitch);
+            XposedHelpers.callMethod(bdSwitch, "turnOn")
+        } catch (e: NoSuchMethodError) {
+            callMethod(mMethods[11], bdSwitch)
         }
     }
 
-    public Vibrator getVibrator() {
-        return ReflectUtils.getObjectField(bdSwitch, Vibrator.class);
+    fun turnOff() {
+        try {
+            XposedHelpers.callMethod(bdSwitch, "turnOff")
+        } catch (e: NoSuchMethodError) {
+            callMethod(mMethods[8], bdSwitch)
+        }
     }
+
+    val vibrator: Vibrator?
+        get() = getObjectField(bdSwitch, Vibrator::class.java)
 }

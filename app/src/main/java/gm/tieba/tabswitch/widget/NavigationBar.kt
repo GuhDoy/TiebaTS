@@ -1,38 +1,44 @@
-package gm.tieba.tabswitch.widget;
+package gm.tieba.tabswitch.widget
 
-import android.view.View;
-import android.widget.TextView;
+import android.view.View
+import android.widget.TextView
+import de.robv.android.xposed.XposedHelpers
+import gm.tieba.tabswitch.XposedContext
+import gm.tieba.tabswitch.util.getColor
+import gm.tieba.tabswitch.util.getObjectField
 
-import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.XposedContext;
-import gm.tieba.tabswitch.util.ReflectUtils;
+class NavigationBar(thisObject: Any) : XposedContext() {
+    private val mNavigationBar: Any?
 
-public class NavigationBar extends XposedContext {
-    private final Object mNavigationBar;
-
-    public NavigationBar(final Object thisObject) {
-        mNavigationBar = ReflectUtils.getObjectField(thisObject,
-                "com.baidu.tbadk.core.view.NavigationBar");
+    init {
+        mNavigationBar = getObjectField(
+            thisObject,
+            "com.baidu.tbadk.core.view.NavigationBar"
+        )
     }
 
-    public void addTextButton(final String text, final View.OnClickListener l) {
-        final Class<?> ControlAlign = XposedHelpers.findClass(
-                "com.baidu.tbadk.core.view.NavigationBar$ControlAlign", sClassLoader);
-        for (final Object HORIZONTAL_RIGHT : ControlAlign.getEnumConstants()) {
-            if (HORIZONTAL_RIGHT.toString().equals("HORIZONTAL_RIGHT")) {
-                final TextView textView = (TextView) XposedHelpers.callMethod(mNavigationBar,
-                        "addTextButton", HORIZONTAL_RIGHT, text, l);
-                textView.setTextColor(ReflectUtils.getColor("CAM_X0105"));
-                break;
-            }
+    fun addTextButton(text: String?, l: View.OnClickListener?) {
+        val controlAlignClass = XposedHelpers.findClass(
+            "com.baidu.tbadk.core.view.NavigationBar\$ControlAlign", sClassLoader
+        )
+        val horizontalRight = controlAlignClass.enumConstants.find { it.toString() == "HORIZONTAL_RIGHT" }
+            ?: throw IllegalStateException("HORIZONTAL_RIGHT enum constant not found")
+        val textView = XposedHelpers.callMethod(
+            mNavigationBar,
+            "addTextButton", horizontalRight, text, l
+        ) as TextView
+        textView.setTextColor(getColor("CAM_X0105"))
+    }
+
+    fun setTitleText(title: String?) {
+        title?.let {
+            XposedHelpers.callMethod(mNavigationBar, "setTitleText", it)
         }
     }
 
-    public void setTitleText(final String title) {
-        XposedHelpers.callMethod(mNavigationBar, "setTitleText", title);
-    }
-
-    public void setCenterTextTitle(final String title) {
-        XposedHelpers.callMethod(mNavigationBar, "setCenterTextTitle", title);
+    fun setCenterTextTitle(title: String?) {
+        title?.let {
+            XposedHelpers.callMethod(mNavigationBar, "setCenterTextTitle", it)
+        }
     }
 }
