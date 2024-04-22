@@ -28,8 +28,7 @@ class Ripple : XposedContext(), IHooker {
     @Throws(Throwable::class)
     override fun hook() {
 
-        val subPbLayoutClass =
-            XposedHelpers.findClass("com.baidu.tieba.pb.pb.sub.SubPbLayout", sClassLoader)
+        val subPbLayoutClass = findClass("com.baidu.tieba.pb.pb.sub.SubPbLayout")
 
         // 楼中楼
         try {

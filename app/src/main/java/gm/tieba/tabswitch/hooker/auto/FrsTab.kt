@@ -52,10 +52,10 @@ class FrsTab : XposedContext(), IHooker, Obfuscated {
                     if ("com.baidu.tieba.forum.controller.TopController" != clazz) return@findRule
                     val targetMethod: Method = try {
                         XposedHelpers.findMethodBestMatch(
-                            XposedHelpers.findClass(clazz, sClassLoader),
+                            findClass(clazz),
                             method,
                             null,
-                            XposedHelpers.findClass(clazz, sClassLoader)
+                            findClass(clazz)
                         )
                     } catch (e: NoSuchMethodError) { // 12.57+
                         return@findRule
@@ -65,12 +65,12 @@ class FrsTab : XposedContext(), IHooker, Obfuscated {
                         val viewPager: Any? = try {
                             XposedHelpers.findFirstFieldByExactType(
                                 param.args[1].javaClass,
-                                XposedHelpers.findClass("com.baidu.tbadk.widget.CustomViewPager", sClassLoader)
+                                findClass("com.baidu.tbadk.widget.CustomViewPager")
                             )[param.args[1]]
                         } catch (e: NoSuchFieldError) {  // 12.56+
                             XposedHelpers.findFirstFieldByExactType(
                                 param.args[1].javaClass,
-                                XposedHelpers.findClass("androidx.viewpager.widget.ViewPager", sClassLoader)
+                                findClass("androidx.viewpager.widget.ViewPager")
                             )[param.args[1]]
                         }
                         XposedHelpers.callMethod(viewPager, "setCurrentItem", mPosition)
@@ -83,7 +83,7 @@ class FrsTab : XposedContext(), IHooker, Obfuscated {
                     ) { param ->
                         if (XposedHelpers.getObjectField(param.args[0], "sortType") as Int == -1) {
                             val sharedPrefHelper = XposedHelpers.callStaticMethod(
-                                XposedHelpers.findClass("com.baidu.tbadk.core.sharedPref.SharedPrefHelper", sClassLoader),
+                                findClass("com.baidu.tbadk.core.sharedPref.SharedPrefHelper"),
                                 "getInstance"
                             )
                             val lastSortType = XposedHelpers.callMethod(sharedPrefHelper, "getInt", "key_forum_last_sort_type", 0) as Int

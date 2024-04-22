@@ -74,7 +74,6 @@ class SelectClipboard : XposedContext(), IHooker, Obfuscated {
                             }
                         null
                     }
-                else -> {}
             }
         }
     }

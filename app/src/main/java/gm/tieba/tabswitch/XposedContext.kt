@@ -64,6 +64,8 @@ abstract class XposedContext {
         }
     }
 
+    fun findClass(className: String): Class<*> = XposedHelpers.findClass(className, sClassLoader)
+
     inline fun hookBeforeMethod(
         className: String,
         methodName: String,

@@ -66,10 +66,7 @@ class SaveImages : XposedContext(), IHooker, Obfuscated {
             mList.removeIf { o: String -> o.startsWith("####mLiveRoomPageProvider") }
         }
 
-        val imageViewerBottomLayoutClass = XposedHelpers.findClass(
-            "com.baidu.tbadk.coreExtra.view.ImageViewerBottomLayout",
-            sClassLoader
-        )
+        val imageViewerBottomLayoutClass = findClass("com.baidu.tbadk.coreExtra.view.ImageViewerBottomLayout")
         val declaredFields = mutableListOf(*imageViewerBottomLayoutClass.declaredFields)
         declaredFields.removeIf { o: Field -> o.type != ImageView::class.java }
 
