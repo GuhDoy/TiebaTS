@@ -28,9 +28,7 @@ object Preferences {
     }
 
     @JvmStatic
-    fun getBoolean(key: String): Boolean {
-        return sTsPreferences.getBoolean(key, false)
-    }
+    fun getBoolean(key: String): Boolean = sTsPreferences.getBoolean(key, false)
 
     @JvmStatic
     fun putString(key: String, value: String) {
@@ -38,9 +36,7 @@ object Preferences {
     }
 
     @JvmStatic
-    fun getString(key: String): String? {
-        return sTsPreferences.getString(key, null)
-    }
+    fun getString(key: String): String? = sTsPreferences.getString(key, null)
 
     fun putStringSet(key: String, value: String, isContain: Boolean) {
         val set = getStringSet(key).toMutableSet()
@@ -52,9 +48,7 @@ object Preferences {
         sTsPreferences.edit().putStringSet(key, set).apply()
     }
 
-    fun getStringSet(key: String): Set<String> {
-        return sTsPreferences.getStringSet(key, emptySet()) ?: emptySet()
-    }
+    fun getStringSet(key: String): Set<String> = sTsPreferences.getStringSet(key, emptySet()) ?: emptySet()
 
     // Config
     @JvmStatic

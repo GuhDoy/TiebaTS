@@ -5,9 +5,9 @@ import gm.tieba.tabswitch.XposedContext
 import gm.tieba.tabswitch.dao.Preferences.putLikeForum
 
 object Adp : XposedContext() {
-    lateinit var BDUSS: String
-    lateinit var tbs: String
-    lateinit var account: String
+    var BDUSS: String? = null
+    var tbs: String? = null
+    var account: String? = null
 
     init {
         refreshAccountData()
