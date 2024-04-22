@@ -99,12 +99,12 @@ object Preferences {
 
     @JvmStatic
     fun putSignDate() {
-        sTsConfig.edit().putInt("sign_date", Calendar.getInstance().get(Calendar.DAY_OF_YEAR)).apply()
+        sTsConfig.edit().putInt("sign_date", Calendar.getInstance()[Calendar.DAY_OF_YEAR]).apply()
     }
 
     @JvmStatic
     fun getIsSigned(): Boolean =
-        Calendar.getInstance().get(Calendar.DAY_OF_YEAR) == sTsConfig.getInt("sign_date", 0)
+        Calendar.getInstance()[Calendar.DAY_OF_YEAR] == sTsConfig.getInt("sign_date", 0)
 
     @JvmStatic
     @SuppressLint("ApplySharedPref")
