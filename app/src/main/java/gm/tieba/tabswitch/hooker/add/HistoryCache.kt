@@ -1,6 +1,5 @@
 package gm.tieba.tabswitch.hooker.add
 
-import android.R
 import android.app.Activity
 import android.app.AlertDialog
 import android.graphics.Color
@@ -113,12 +112,12 @@ class HistoryCache : XposedContext(), IHooker {
         val currRegex = mRegex
         val alert = AlertDialog.Builder(
             currentActivity,
-            if (isLightMode) R.style.Theme_DeviceDefault_Light_Dialog_Alert else R.style.Theme_DeviceDefault_Dialog_Alert)
+            if (isLightMode) android.R.style.Theme_DeviceDefault_Light_Dialog_Alert else android.R.style.Theme_DeviceDefault_Dialog_Alert)
             .setTitle("搜索")
             .setView(linearLayout)
             .setOnCancelListener { mRegex = currRegex }
-            .setNegativeButton(activity.getString(R.string.cancel)) { _, _ -> mRegex = currRegex }
-            .setPositiveButton(activity.getString(R.string.ok), null)
+            .setNegativeButton(activity.getString(android.R.string.cancel)) { _, _ -> mRegex = currRegex }
+            .setPositiveButton(activity.getString(android.R.string.ok), null)
             .create()
             .apply {
                 setOnShowListener {
@@ -136,7 +135,7 @@ class HistoryCache : XposedContext(), IHooker {
                 fixAlertDialogWidth(this)
             }
 
-        alert.window?.apply {setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)}
+        alert.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
 
         editText.apply {
             setSingleLine()

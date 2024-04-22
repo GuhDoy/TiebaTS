@@ -1,84 +1,78 @@
-package gm.tieba.tabswitch.hooker.add;
+package gm.tieba.tabswitch.hooker.add
 
-import android.content.Context;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.LayerDrawable;
-import android.graphics.drawable.PaintDrawable;
-import android.graphics.drawable.StateListDrawable;
-import android.util.AttributeSet;
-import android.util.SparseArray;
-import android.view.View;
-import android.widget.RelativeLayout;
+import android.content.Context
+import android.graphics.Color
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.LayerDrawable
+import android.graphics.drawable.PaintDrawable
+import android.graphics.drawable.StateListDrawable
+import android.util.AttributeSet
+import android.util.SparseArray
+import android.view.View
+import android.widget.RelativeLayout
+import de.robv.android.xposed.XC_MethodHook
+import de.robv.android.xposed.XposedBridge
+import de.robv.android.xposed.XposedHelpers
+import gm.tieba.tabswitch.XposedContext
+import gm.tieba.tabswitch.hooker.IHooker
+import gm.tieba.tabswitch.util.dipToPx
+import gm.tieba.tabswitch.util.getColor
+import gm.tieba.tabswitch.util.getObjectField
+import java.lang.reflect.Method
 
-import androidx.annotation.NonNull;
-
-import java.lang.reflect.Method;
-
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.XposedContext;
-import gm.tieba.tabswitch.hooker.IHooker;
-import gm.tieba.tabswitch.util.DisplayUtils;
-import gm.tieba.tabswitch.util.ReflectUtils;
-
-public class Ripple extends XposedContext implements IHooker {
-
-    @NonNull
-    @Override
-    public String key() {
-        return "ripple";
+class Ripple : XposedContext(), IHooker {
+    override fun key(): String {
+        return "ripple"
     }
 
-    public void hook() throws Throwable {
-        final var subPbLayoutClass = XposedHelpers.findClass("com.baidu.tieba.pb.pb.sub.SubPbLayout", sClassLoader);
+    @Throws(Throwable::class)
+    override fun hook() {
+
+        val subPbLayoutClass =
+            XposedHelpers.findClass("com.baidu.tieba.pb.pb.sub.SubPbLayout", sClassLoader)
+
         // 楼中楼
         try {
-            Method md;
-            try {
-                md = subPbLayoutClass.getDeclaredFields()[4].getType().getDeclaredMethod("createView");
-            } catch (final NoSuchMethodException e) {
-                md = subPbLayoutClass.getDeclaredFields()[4].getType().getDeclaredMethod("b");
+            val md: Method = try {
+                subPbLayoutClass.declaredFields[4].type.getDeclaredMethod("createView")
+            } catch (e: NoSuchMethodException) {
+                subPbLayoutClass.declaredFields[4].type.getDeclaredMethod("b")
             }
-            XposedBridge.hookMethod(md, new XC_MethodHook() {
-                @Override
-                protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
-                    final var newSubPbListItem = (View) param.getResult();
-                    final var tag = (SparseArray) newSubPbListItem.getTag();
-                    final var b = tag.valueAt(0);
-                    // R.id.new_sub_pb_list_richText
-                    final var view = (View) ReflectUtils.getObjectField(b, "com.baidu.tbadk.widget.richText.TbRichTextView");
-                    view.setBackground(createSubPbBackground(DisplayUtils.dipToPx(getContext(), 5F)));
-                }
-            });
-        } catch (final NoSuchMethodException e) {
-            XposedBridge.log(e);
+
+            hookAfterMethod(md) {param ->
+                val newSubPbListItem = param.result as View
+                val tag = newSubPbListItem.tag as SparseArray<*>
+                val b = tag.valueAt(0)
+                // R.id.new_sub_pb_list_richText
+                val view =
+                    getObjectField(b, "com.baidu.tbadk.widget.richText.TbRichTextView") as View?
+                view?.background = createSubPbBackground(dipToPx(getContext(), 5f))
+            }
+        } catch (e: NoSuchMethodException) {
+            XposedBridge.log(e)
         }
+
         // 查看全部回复
-        XposedHelpers.findAndHookConstructor(subPbLayoutClass, Context.class, AttributeSet.class, new XC_MethodHook() {
-            @Override
-            protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
-                final var view = ReflectUtils.getObjectField(param.thisObject, RelativeLayout.class);
-                view.setBackground(createSubPbBackground(DisplayUtils.dipToPx(getContext(), 3.5F)));
-            }
-        });
+        hookAfterConstructor(
+            subPbLayoutClass,
+            Context::class.java, AttributeSet::class.java,
+        ) {param ->
+            getObjectField(param.thisObject, RelativeLayout::class.java)
+                ?.background = createSubPbBackground(dipToPx(getContext(), 3.5f))
+        }
     }
 
-    private StateListDrawable createSubPbBackground(int bottomInset) {
-        final StateListDrawable sld = new StateListDrawable();
+    private fun createSubPbBackground(bottomInset: Int): StateListDrawable {
+        val sld = StateListDrawable()
+        val color = getColor("CAM_X0201")
 
-        PaintDrawable bg = new PaintDrawable(Color.argb(192,
-                Color.red(ReflectUtils.getColor("CAM_X0201")),
-                Color.green(ReflectUtils.getColor("CAM_X0201")),
-                Color.blue(ReflectUtils.getColor("CAM_X0201"))
-        ));
-        bg.setCornerRadius(DisplayUtils.dipToPx(getContext(), 2F));
+        val bg = PaintDrawable(Color.argb(192, Color.red(color), Color.green(color), Color.blue(color)))
+        bg.setCornerRadius(dipToPx(getContext(), 2f).toFloat())
 
-        LayerDrawable layerBg = new LayerDrawable(new Drawable[]{bg});
-        layerBg.setLayerInset(0, 0, 0, 0, bottomInset);
+        val layerBg = LayerDrawable(arrayOf<Drawable>(bg))
+        layerBg.setLayerInset(0, 0, 0, 0, bottomInset)
 
-        sld.addState(new int[]{android.R.attr.state_pressed}, layerBg);
-        return sld;
+        sld.addState(intArrayOf(android.R.attr.state_pressed), layerBg)
+        return sld
     }
 }
