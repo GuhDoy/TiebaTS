@@ -19,7 +19,7 @@ class Switch : XposedContext() {
     init {
         val cls =
             XposedHelpers.findClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView", sClassLoader)
-        bdSwitch = XposedHelpers.newInstance(cls, context) as View
+        bdSwitch = XposedHelpers.newInstance(cls, getContext()) as View
         mMethods = cls.declaredMethods
     }
 

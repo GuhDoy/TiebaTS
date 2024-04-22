@@ -28,8 +28,7 @@ abstract class XposedContext {
         private lateinit var sContextRef: WeakReference<Context>
 
         @JvmStatic
-        val context: Context
-            get() = checkNotNull(sContextRef.get()) { "ApplicationContext is null" }
+        fun getContext(): Context = checkNotNull(sContextRef.get()) { "ApplicationContext is null" }
 
         @JvmStatic
         protected fun attachBaseContext(context: Context) {

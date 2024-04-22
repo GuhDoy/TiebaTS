@@ -29,7 +29,7 @@ public class OpenSign extends XposedContext implements IHooker {
             @Override
             protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
                 final Activity activity = (Activity) param.thisObject;
-                if (!Preferences.isSigned() && Calendar.getInstance().get(Calendar.HOUR_OF_DAY) != 0) {
+                if (!Preferences.getIsSigned() && Calendar.getInstance().get(Calendar.HOUR_OF_DAY) != 0) {
                     final Intent intent = new Intent().setClassName(activity, "com.baidu.tieba.signall.SignAllForumActivity");
                     activity.startActivity(intent);
                 }
@@ -39,7 +39,7 @@ public class OpenSign extends XposedContext implements IHooker {
             @Override
             protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
                 final Activity activity = (Activity) param.thisObject;
-                if (!Preferences.isSigned() && Calendar.getInstance().get(Calendar.HOUR_OF_DAY) != 0) {
+                if (!Preferences.getIsSigned() && Calendar.getInstance().get(Calendar.HOUR_OF_DAY) != 0) {
                     Preferences.putSignDate();
                     activity.finish();
                 }

@@ -15,9 +15,7 @@ object Preferences {
     }
 
     @JvmStatic
-    val all: Map<String, *>
-        // Preferences
-        get() = sTsPreferences.all
+    fun getAll(): Map<String, *> = sTsPreferences.all
 
     @JvmStatic
     fun remove(key: String) {
@@ -65,8 +63,7 @@ object Preferences {
     }
 
     @JvmStatic
-    val isEULAAccepted: Boolean
-        get() = sTsConfig.getBoolean("EULA", false)
+    fun getIsEULAAccepted(): Boolean = sTsConfig.getBoolean("EULA", false)
 
     @JvmStatic
     fun putAutoSignEnabled() {
@@ -74,12 +71,11 @@ object Preferences {
     }
 
     @JvmStatic
-    val isAutoSignEnabled: Boolean
-        get() = sTsConfig.getBoolean("auto_sign", false)
+    fun getIsAutoSignEnabled(): Boolean = sTsConfig.getBoolean("auto_sign", false)
 
     @JvmStatic
-    val transitionAnimationEnabled: Boolean
-        get() = sTsPreferences.getBoolean("transition_animation", false)
+    fun getTransitionAnimationEnabled(): Boolean =
+        sTsPreferences.getBoolean("transition_animation", false)
 
     @JvmStatic
     @SuppressLint("ApplySharedPref")
@@ -88,8 +84,7 @@ object Preferences {
     }
 
     @JvmStatic
-    val isPurgeEnabled: Boolean
-        get() = sTsConfig.getBoolean("ze", false)
+    fun getIsPurgeEnabled(): Boolean = sTsConfig.getBoolean("ze", false)
 
     @JvmStatic
     @SuppressLint("ApplySharedPref")
@@ -98,8 +93,7 @@ object Preferences {
     }
 
     @JvmStatic
-    val signature: Int
-        get() = sTsConfig.getInt("signature", 0)
+    fun getSignature(): Int = sTsConfig.getInt("signature", 0)
 
     @JvmStatic
     fun putLikeForum(follow: Set<String?>?) {
@@ -107,8 +101,7 @@ object Preferences {
     }
 
     @JvmStatic
-    val likeForum: Set<String>?
-        get() = sTsConfig.getStringSet("like_forum", null)
+    fun getLikeForum(): Set<String>? = sTsConfig.getStringSet("like_forum", null)
 
     @JvmStatic
     fun putSignDate() {
@@ -116,8 +109,8 @@ object Preferences {
     }
 
     @JvmStatic
-    val isSigned: Boolean
-        get() = Calendar.getInstance().get(Calendar.DAY_OF_YEAR) == sTsConfig.getInt("sign_date", 0)
+    fun getIsSigned(): Boolean =
+        Calendar.getInstance().get(Calendar.DAY_OF_YEAR) == sTsConfig.getInt("sign_date", 0)
 
     @JvmStatic
     @SuppressLint("ApplySharedPref")

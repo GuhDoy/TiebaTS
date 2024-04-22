@@ -155,7 +155,7 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
     }
 
     private void startRootPreferenceActivity(final Activity activity) {
-        if (!Preferences.isEULAAccepted()) {
+        if (!Preferences.getIsEULAAccepted()) {
             final StringBuilder stringBuilder = new StringBuilder().append(Constants.getStrings().get("EULA"));
             if (isModuleBetaVersion) {
                 stringBuilder.append("\n\n").append(Constants.getStrings().get("dev_tip"));
@@ -180,7 +180,7 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
 
     @NotNull
     private LinearLayout createRootPreference(final Activity activity) {
-        final boolean isPurgeEnabled = Preferences.isPurgeEnabled();
+        final boolean isPurgeEnabled = Preferences.getIsPurgeEnabled();
         final TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
 
         preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurgeEnabled ? "轻车简从" : "净化界面"));
@@ -211,7 +211,7 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
         preferenceLayout.addView(TSPreferenceHelper.createTextView(isPurgeEnabled ? "垂手可得" : "自动化"));
         final SwitchButtonHolder autoSign = new SwitchButtonHolder(activity, "自动签到", "auto_sign", SwitchButtonHolder.TYPE_SWITCH);
         autoSign.setOnButtonClickListener(v -> {
-            if (!Preferences.isAutoSignEnabled()) {
+            if (!Preferences.getIsAutoSignEnabled()) {
                 AlertDialog alert = new AlertDialog.Builder(activity, DisplayUtils.isLightMode(getContext()) ?
                         android.R.style.Theme_DeviceDefault_Light_Dialog_Alert : android.R.style.Theme_DeviceDefault_Dialog_Alert)
                         .setTitle("提示").setMessage("这是一个需要网络请求并且有封号风险的功能，您需要自行承担使用此功能的风险，请谨慎使用！")
@@ -321,7 +321,7 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
     }
 
     private LinearLayout createHidePreference(final Activity activity) {
-        final boolean isPurgeEnabled = Preferences.isPurgeEnabled();
+        final boolean isPurgeEnabled = Preferences.getIsPurgeEnabled();
         final TSPreferenceHelper.PreferenceLayout preferenceLayout = new TSPreferenceHelper.PreferenceLayout(activity);
         if (isPurgeEnabled || BuildConfig.DEBUG) {
             preferenceLayout.addView(TSPreferenceHelper.createTextView("隐藏设置"));

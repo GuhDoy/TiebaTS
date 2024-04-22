@@ -73,7 +73,7 @@ fun fixAlertDialogWidth(alert: AlertDialog) {
     alert.window?.let {
         val layoutParams = WindowManager.LayoutParams()
         layoutParams.copyFrom(it.attributes)
-        getDisplayWidth(XposedContext.context)?.let { displayWidth ->
+        getDisplayWidth(XposedContext.getContext())?.let { displayWidth ->
             layoutParams.width = displayWidth
         }
         it.attributes = layoutParams

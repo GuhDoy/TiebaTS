@@ -12,8 +12,8 @@ import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 
 fun getR(innerClassName: String, fieldName: String): Int {
-    return XposedContext.context.resources
-        .getIdentifier(fieldName, innerClassName, XposedContext.context.packageName)
+    return XposedContext.getContext().resources
+        .getIdentifier(fieldName, innerClassName, XposedContext.getContext().packageName)
 }
 
 fun getId(fieldName: String): Int {
@@ -22,20 +22,20 @@ fun getId(fieldName: String): Int {
 
 @ColorInt
 fun getColor(fieldName: String): Int {
-    return XposedContext.context.getColor(
-        getR("color", fieldName + getTbSkin(XposedContext.context))
+    return XposedContext.getContext().getColor(
+        getR("color", fieldName + getTbSkin(XposedContext.getContext()))
     )
 }
 
 fun getDimen(fieldName: String): Float {
     when (fieldName) {
-        "ds10" -> return dipToPx(XposedContext.context, 5f).toFloat()
-        "ds20" -> return dipToPx(XposedContext.context, 10f).toFloat()
-        "ds30" -> return dipToPx(XposedContext.context, 15f).toFloat()
-        "ds32" -> return dipToPx(XposedContext.context, 16f).toFloat()
-        "ds140" -> return dipToPx(XposedContext.context, 70f).toFloat()
+        "ds10" -> return dipToPx(XposedContext.getContext(), 5f).toFloat()
+        "ds20" -> return dipToPx(XposedContext.getContext(), 10f).toFloat()
+        "ds30" -> return dipToPx(XposedContext.getContext(), 15f).toFloat()
+        "ds32" -> return dipToPx(XposedContext.getContext(), 16f).toFloat()
+        "ds140" -> return dipToPx(XposedContext.getContext(), 70f).toFloat()
     }
-    return XposedContext.context.resources.getDimension(getR("dimen", fieldName))
+    return XposedContext.getContext().resources.getDimension(getR("dimen", fieldName))
 }
 
 fun getDimenDip(fieldName: String): Float {
@@ -44,7 +44,7 @@ fun getDimenDip(fieldName: String): Float {
         "fontsize28" -> return 14f
         "fontsize36" -> return 18f
     }
-    return pxToDip(XposedContext.context, getDimen(fieldName)).toFloat()
+    return pxToDip(XposedContext.getContext(), getDimen(fieldName)).toFloat()
 }
 
 fun getDrawableId(fieldName: String): Int {
@@ -176,16 +176,15 @@ fun callStaticMethod(method: Method, vararg args: Any?): Any? {
     return callMethod(method, null, *args)
 }
 
-val tbadkCoreApplicationInst: Application?
-    get() = XposedHelpers.callStaticMethod(
-        XposedHelpers.findClass("com.baidu.tbadk.core.TbadkCoreApplication",
-            XposedContext.sClassLoader
-        ),
-        "getInst"
-    ) as? Application
+fun getTbadkCoreApplicationInst(): Application? = XposedHelpers.callStaticMethod(
+    XposedHelpers.findClass(
+        "com.baidu.tbadk.core.TbadkCoreApplication",
+        XposedContext.sClassLoader
+    ),
+    "getInst"
+) as? Application
 
-val currentActivity: Activity?
-    get() = XposedHelpers.callMethod(
-        tbadkCoreApplicationInst,
-        "getCurrentActivity"
-    ) as? Activity
+fun getCurrentActivity(): Activity? = XposedHelpers.callMethod(
+    getTbadkCoreApplicationInst(),
+    "getCurrentActivity"
+) as? Activity
