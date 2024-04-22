@@ -55,14 +55,14 @@ object AcRules {
     }
 
     @JvmStatic
-    fun findRule(matcher: Matcher, callback: (String, String, String) -> Any?) {
+    fun findRule(matcher: Matcher, callback: (String, String, String) -> Unit) {
         ruleDao.loadAllMatch(matcher.toString()).forEach { rule ->
             callback(rule.matcher, rule.clazz, rule.method)
         }
     }
 
     @JvmStatic
-    fun findRule(matchers: List<Matcher>, callback: (String, String, String) -> Any?) {
+    fun findRule(matchers: List<Matcher>, callback: (String, String, String) -> Unit) {
         val matcherStrings = matchers.map { it.toString() }.toTypedArray()
         ruleDao.loadAllMatch(*matcherStrings).forEach { rule ->
             callback(rule.matcher, rule.clazz, rule.method)
@@ -70,7 +70,7 @@ object AcRules {
     }
 
     @JvmStatic
-    fun findRule(str: String, callback: (String, String, String) -> Any?) {
+    fun findRule(str: String, callback: (String, String, String) -> Unit) {
         ruleDao.loadAllMatch(str).forEach { rule ->
             callback(rule.matcher, rule.clazz, rule.method)
         }

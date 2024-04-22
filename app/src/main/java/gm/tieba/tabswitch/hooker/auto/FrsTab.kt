@@ -1,106 +1,97 @@
-package gm.tieba.tabswitch.hooker.auto;
+package gm.tieba.tabswitch.hooker.auto
 
-import androidx.annotation.NonNull;
+import de.robv.android.xposed.XC_MethodHook
+import de.robv.android.xposed.XposedBridge
+import de.robv.android.xposed.XposedHelpers
+import gm.tieba.tabswitch.XposedContext
+import gm.tieba.tabswitch.dao.AcRules
+import gm.tieba.tabswitch.dao.AcRules.findRule
+import gm.tieba.tabswitch.hooker.IHooker
+import gm.tieba.tabswitch.hooker.Obfuscated
+import gm.tieba.tabswitch.hooker.deobfuscation.Matcher
+import gm.tieba.tabswitch.hooker.deobfuscation.StringMatcher
+import java.lang.reflect.Method
 
-import java.lang.reflect.Method;
-import java.util.List;
-
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.XposedContext;
-import gm.tieba.tabswitch.dao.AcRules;
-import gm.tieba.tabswitch.hooker.IHooker;
-import gm.tieba.tabswitch.hooker.Obfuscated;
-import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
-import gm.tieba.tabswitch.hooker.deobfuscation.StringMatcher;
-
-public class FrsTab extends XposedContext implements IHooker, Obfuscated {
-
-    @NonNull
-    @Override
-    public String key() {
-        return "frs_tab";
+class FrsTab : XposedContext(), IHooker, Obfuscated {
+    override fun key(): String {
+        return "frs_tab"
     }
 
-    @Override
-    public List<? extends Matcher> matchers() {
-        return List.of(
-                new StringMatcher("forum_tab_current_list"),
-                new StringMatcher("c/f/frs/page?cmd=301001&format=protobuf")
-        );
+    override fun matchers(): List<Matcher> {
+        return listOf(
+            StringMatcher("forum_tab_current_list"),
+            StringMatcher("c/f/frs/page?cmd=301001&format=protobuf")
+        )
     }
 
-    private int mPosition;
-    @Override
-    public void hook() throws Throwable {
-        XposedHelpers.findAndHookMethod("tbclient.FrsPage.DataRes$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
-            @Override
-            public void beforeHookedMethod(final MethodHookParam param) throws Throwable {
-                final List<?> list = (List<?>) XposedHelpers.getObjectField(param.thisObject, "frs_main_tab_list");
-                if (list == null) return;
-                for (int i = 0; i < list.size(); i++) {
-                    if ((Integer) XposedHelpers.getObjectField(list.get(i), "tab_type") == 14) {
-                        mPosition = i;
-                        XposedHelpers.setObjectField(param.thisObject, "frs_tab_default", (Integer) XposedHelpers.getObjectField(list.get(i), "tab_id"));
-                        return;
+    private var mPosition = 0
+
+    @Throws(Throwable::class)
+    override fun hook() {
+        hookBeforeMethod(
+            "tbclient.FrsPage.DataRes\$Builder",
+            "build", Boolean::class.javaPrimitiveType,
+        ) { param ->
+            val list = XposedHelpers.getObjectField(param.thisObject, "frs_main_tab_list") as? List<*>
+            list?.forEachIndexed { index, item ->
+                if (XposedHelpers.getObjectField(item, "tab_type") as Int == 14) {
+                    mPosition = index
+                    XposedHelpers.setObjectField(
+                        param.thisObject,
+                        "frs_tab_default",
+                        XposedHelpers.getObjectField(item, "tab_id") as Int
+                    )
+                    return@hookBeforeMethod
+                }
+            }
+        }
+
+        findRule(matchers()) { matcher, clazz, method ->
+            when (matcher) {
+                "forum_tab_current_list" -> {
+                    if ("com.baidu.tieba.forum.controller.TopController" != clazz) return@findRule
+                    val targetMethod: Method = try {
+                        XposedHelpers.findMethodBestMatch(
+                            XposedHelpers.findClass(clazz, sClassLoader),
+                            method,
+                            null,
+                            XposedHelpers.findClass(clazz, sClassLoader)
+                        )
+                    } catch (e: NoSuchMethodError) { // 12.57+
+                        return@findRule
+                    }
+
+                    hookAfterMethod(targetMethod) { param ->
+                        val viewPager: Any? = try {
+                            XposedHelpers.findFirstFieldByExactType(
+                                param.args[1].javaClass,
+                                XposedHelpers.findClass("com.baidu.tbadk.widget.CustomViewPager", sClassLoader)
+                            )[param.args[1]]
+                        } catch (e: NoSuchFieldError) {  // 12.56+
+                            XposedHelpers.findFirstFieldByExactType(
+                                param.args[1].javaClass,
+                                XposedHelpers.findClass("androidx.viewpager.widget.ViewPager", sClassLoader)
+                            )[param.args[1]]
+                        }
+                        XposedHelpers.callMethod(viewPager, "setCurrentItem", mPosition)
+                    }
+                }
+
+                "c/f/frs/page?cmd=301001&format=protobuf" ->  {
+                    hookBeforeMethod(
+                        clazz, method, "com.baidu.tieba.forum.model.FrsPageRequestMessage"
+                    ) { param ->
+                        if (XposedHelpers.getObjectField(param.args[0], "sortType") as Int == -1) {
+                            val sharedPrefHelper = XposedHelpers.callStaticMethod(
+                                XposedHelpers.findClass("com.baidu.tbadk.core.sharedPref.SharedPrefHelper", sClassLoader),
+                                "getInstance"
+                            )
+                            val lastSortType = XposedHelpers.callMethod(sharedPrefHelper, "getInt", "key_forum_last_sort_type", 0) as Int
+                            XposedHelpers.setObjectField(param.args[0], "sortType", lastSortType)
+                        }
                     }
                 }
             }
-        });
-        AcRules.findRule(matchers(), (matcher, clazz, method) -> {
-            switch (matcher) {
-                case "forum_tab_current_list":
-                    if (!"com.baidu.tieba.forum.controller.TopController".equals(clazz)) return;
-                    Class<?> topControllerClass = XposedHelpers.findClass(clazz, sClassLoader);
-                    Method targetMethod;
-                    try {
-                        targetMethod = XposedHelpers.findMethodBestMatch(
-                                topControllerClass,
-                                method,
-                                null,
-                                XposedHelpers.findClass(clazz, sClassLoader)
-                        );
-                    } catch (NoSuchMethodError e) { // 12.57+
-                        break;
-                    }
-                    XposedBridge.hookMethod(targetMethod, new XC_MethodHook() {
-                        @Override
-                        public void afterHookedMethod(MethodHookParam param) throws Throwable {
-                            Object viewPager;
-                            try {
-                                viewPager = XposedHelpers.findFirstFieldByExactType(
-                                        param.args[1].getClass(),
-                                        XposedHelpers.findClass("com.baidu.tbadk.widget.CustomViewPager",
-                                                sClassLoader)
-                                ).get(param.args[1]);
-                            } catch (NoSuchFieldError e) {  // 12.56+
-                                viewPager = XposedHelpers.findFirstFieldByExactType(
-                                        param.args[1].getClass(),
-                                        XposedHelpers.findClass("androidx.viewpager.widget.ViewPager",
-                                                sClassLoader)
-                                ).get(param.args[1]);
-                            }
-                            XposedHelpers.callMethod(viewPager, "setCurrentItem", mPosition);
-                        }
-                    });
-                    break;
-                case "c/f/frs/page?cmd=301001&format=protobuf":
-                    XposedHelpers.findAndHookMethod(clazz, sClassLoader, method,
-                            "com.baidu.tieba.forum.model.FrsPageRequestMessage",
-                            new XC_MethodHook() {
-                                @Override
-                                protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                                    if ((Integer) XposedHelpers.getObjectField(param.args[0], "sortType") == -1) {
-                                        Object sharedPrefHelper = XposedHelpers.callStaticMethod(
-                                                XposedHelpers.findClass("com.baidu.tbadk.core.sharedPref.SharedPrefHelper", sClassLoader), "getInstance");
-                                        Integer lastSortType = (Integer) XposedHelpers.callMethod(sharedPrefHelper, "getInt", "key_forum_last_sort_type", 0);
-                                        XposedHelpers.setObjectField(param.args[0], "sortType", lastSortType);
-                                    }
-                                }
-                            });
-                    break;
-            }
-        });
+        }
     }
 }
