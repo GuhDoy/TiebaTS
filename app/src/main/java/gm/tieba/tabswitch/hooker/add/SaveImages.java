@@ -58,7 +58,7 @@ public class SaveImages extends XposedContext implements IHooker, Obfuscated {
     }
 
     public void hook() throws Throwable {
-        AcRules.findRule("save_images", (matcher, clazz, method) ->
+        AcRules.findRule("save_images", (AcRules.Callback) (matcher, clazz, method) ->
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, int.class, int.class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {

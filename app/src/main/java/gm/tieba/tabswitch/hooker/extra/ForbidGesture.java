@@ -39,7 +39,7 @@ public class ForbidGesture extends XposedContext implements IHooker, Obfuscated 
     @Override
     public void hook() throws Throwable {
         // 帖子字号
-        AcRules.findRule("forbid_gesture", (matcher, clazz, method) ->
+        AcRules.findRule("forbid_gesture", (AcRules.Callback) (matcher, clazz, method) ->
                 XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, XC_MethodReplacement.returnConstant(null))
         );
         // 视频帖字号

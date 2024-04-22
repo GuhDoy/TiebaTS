@@ -39,7 +39,7 @@ public class OriginSrc extends XposedContext implements IHooker {
 
     private static void doHook() {
         if (isHooked) return;
-        AcRules.findRule("pic_amount", (matcher, clazz, method) ->
+        AcRules.findRule("pic_amount", (AcRules.Callback) (matcher, clazz, method) ->
                 picListUnhook = XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, JSONObject.class, Boolean.class, new XC_MethodHook() {
                     @Override
                     protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
