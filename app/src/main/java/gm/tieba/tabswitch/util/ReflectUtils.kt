@@ -60,19 +60,19 @@ fun getDrawableId(fieldName: String): Int {
  * @return A reference to the first field of the given type.
  * @throws NoSuchFieldError In case no matching field was not found.
  */
-fun <T> getObjectField(instance: Any, type: Class<T>): T? {
+fun <T> getObjectField(instance: Any?, type: Class<T>): T? {
     return try {
-        type.cast(XposedHelpers.findFirstFieldByExactType(instance.javaClass, type)[instance])
+        type.cast(XposedHelpers.findFirstFieldByExactType(instance?.javaClass, type)[instance])
     } catch (e: IllegalAccessException) {
         XposedBridge.log(e)
         throw IllegalAccessError(e.message)
     }
 }
 
-fun getObjectField(instance: Any, className: String): Any? {
+fun getObjectField(instance: Any?, className: String): Any? {
     return try {
         XposedHelpers.findFirstFieldByExactType(
-            instance.javaClass,
+            instance?.javaClass,
             XposedHelpers.findClass(className, XposedContext.sClassLoader)
         )[instance]
     } catch (e: IllegalAccessException) {
@@ -81,19 +81,19 @@ fun getObjectField(instance: Any, className: String): Any? {
     }
 }
 
-fun setObjectField(instance: Any, type: Class<*>, value: Any?) {
+fun setObjectField(instance: Any?, type: Class<*>, value: Any?) {
     try {
-        XposedHelpers.findFirstFieldByExactType(instance.javaClass, type)[instance] = value
+        XposedHelpers.findFirstFieldByExactType(instance?.javaClass, type)[instance] = value
     } catch (e: IllegalAccessException) {
         XposedBridge.log(e)
         throw IllegalAccessError(e.message)
     }
 }
 
-fun setObjectField(instance: Any, className: String, value: Any?) {
+fun setObjectField(instance: Any?, className: String, value: Any?) {
     try {
         XposedHelpers.findFirstFieldByExactType(
-            instance.javaClass,
+            instance?.javaClass,
             XposedHelpers.findClass(className, XposedContext.sClassLoader)
         )[instance] = value
     } catch (e: IllegalAccessException) {
@@ -111,22 +111,22 @@ fun setObjectField(instance: Any, className: String, value: Any?) {
  * @return A reference to the first field of the given type.
  * @throws NoSuchFieldError In case no matching field was not found.
  */
-fun getObjectField(instance: Any, position: Int): Any? {
+fun getObjectField(instance: Any?, position: Int): Any? {
     return try {
-        val field = instance.javaClass.declaredFields[position]
-        field.isAccessible = true
-        field[instance]
+        val field = instance?.javaClass?.declaredFields?.get(position)
+        field?.isAccessible = true
+        field?.get(instance)
     } catch (e: IllegalAccessException) {
         XposedBridge.log(e)
         throw IllegalAccessError(e.message)
     }
 }
 
-fun setObjectField(instance: Any, position: Int, value: Any?) {
+fun setObjectField(instance: Any?, position: Int, value: Any?) {
     try {
-        val field = instance.javaClass.declaredFields[position]
-        field.isAccessible = true
-        field[instance] = value
+        val field = instance?.javaClass?.declaredFields?.get(position)
+        field?.isAccessible = true
+        field?.set(instance, value)
     } catch (e: IllegalAccessException) {
         XposedBridge.log(e)
         throw IllegalAccessError(e.message)
