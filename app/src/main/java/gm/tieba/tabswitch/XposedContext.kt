@@ -6,9 +6,11 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import de.robv.android.xposed.XC_MethodHook
+import de.robv.android.xposed.XC_MethodReplacement
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import java.lang.ref.WeakReference
+import java.lang.reflect.Method
 
 abstract class XposedContext {
     companion object {
@@ -91,6 +93,68 @@ abstract class XposedContext {
                 @Throws(Throwable::class)
                 override fun afterHookedMethod(param: MethodHookParam) {
                     afterHook(param)
+                }
+            }
+        )
+    }
+
+    inline fun hookReplaceMethod(
+        className: String,
+        methodName: String,
+        vararg parameterTypes: Any?,
+        crossinline replaceHook: (XC_MethodHook.MethodHookParam) -> Any?
+    ) {
+        XposedHelpers.findAndHookMethod(
+            className, sClassLoader, methodName, *parameterTypes,
+            object : XC_MethodReplacement() {
+                @Throws(Throwable::class)
+                override fun replaceHookedMethod(param: MethodHookParam): Any? {
+                    return replaceHook(param)
+                }
+            }
+        )
+    }
+
+    inline fun hookBeforeMethod(
+        method: Method,
+        crossinline beforeHook: (XC_MethodHook.MethodHookParam) -> Unit
+    ) {
+        XposedBridge.hookMethod(
+            method,
+            object : XC_MethodHook() {
+                @Throws(Throwable::class)
+                override fun beforeHookedMethod(param: MethodHookParam) {
+                    beforeHook(param)
+                }
+            }
+        )
+    }
+
+    inline fun hookAfterMethod(
+        method: Method,
+        crossinline afterHook: (XC_MethodHook.MethodHookParam) -> Unit
+    ) {
+        XposedBridge.hookMethod(
+            method,
+            object : XC_MethodHook() {
+                @Throws(Throwable::class)
+                override fun afterHookedMethod(param: MethodHookParam) {
+                    afterHook(param)
+                }
+            }
+        )
+    }
+
+    inline fun hookReplaceMethod(
+        method: Method,
+        crossinline replaceHook: (XC_MethodHook.MethodHookParam) -> Any?
+    ) {
+        XposedBridge.hookMethod(
+            method,
+            object : XC_MethodReplacement() {
+                @Throws(Throwable::class)
+                override fun replaceHookedMethod(param: MethodHookParam): Any? {
+                    return replaceHook(param)
                 }
             }
         )

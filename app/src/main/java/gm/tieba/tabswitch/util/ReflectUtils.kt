@@ -176,15 +176,15 @@ fun callStaticMethod(method: Method, vararg args: Any?): Any? {
     return callMethod(method, null, *args)
 }
 
-fun getTbadkCoreApplicationInst(): Application? = XposedHelpers.callStaticMethod(
+fun getTbadkCoreApplicationInst(): Application = XposedHelpers.callStaticMethod(
     XposedHelpers.findClass(
         "com.baidu.tbadk.core.TbadkCoreApplication",
         XposedContext.sClassLoader
     ),
     "getInst"
-) as? Application
+) as Application
 
-fun getCurrentActivity(): Activity? = XposedHelpers.callMethod(
+fun getCurrentActivity(): Activity = XposedHelpers.callMethod(
     getTbadkCoreApplicationInst(),
     "getCurrentActivity"
-) as? Activity
+) as Activity
