@@ -422,14 +422,20 @@ public class Purge extends XposedContext implements IHooker, Obfuscated {
                             List<?> businessInfo = (List<?>) XposedHelpers.getObjectField(currFeed, "business_info");
                             for (var feedKV : businessInfo) {
                                 String currentKey = XposedHelpers.getObjectField(feedKV, "key").toString();
-                                if (currentKey.equals("thread_type")) {
-                                    var currValue = XposedHelpers.getObjectField(feedKV, "value").toString();
-                                    if (currValue.equals("41") || currValue.equals("69")) {
-                                        return true;
+                                switch (currentKey) {
+                                    case "thread_type" -> {
+                                        var currValue = XposedHelpers.getObjectField(feedKV, "value").toString();
+                                        if (currValue.equals("41") || currValue.equals("69")) {
+                                            return true;
+                                        }
                                     }
-                                } else if (currentKey.equals("is_live_card")) {
-                                    var currValue = XposedHelpers.getObjectField(feedKV, "value").toString();
-                                    if (currValue.equals("1")) {
+                                    case "is_live_card" -> {
+                                        var currValue = XposedHelpers.getObjectField(feedKV, "value").toString();
+                                        if (currValue.equals("1")) {
+                                            return true;
+                                        }
+                                    }
+                                    case "game_ext" -> {
                                         return true;
                                     }
                                 }
