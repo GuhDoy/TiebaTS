@@ -62,218 +62,218 @@ abstract class XposedContext {
         protected fun runOnUiThread(r: Runnable) {
             sHandler.post(r)
         }
-    }
 
-    fun findClass(className: String): Class<*> = XposedHelpers.findClass(className, sClassLoader)
+        fun findClass(className: String): Class<*> = XposedHelpers.findClass(className, sClassLoader)
 
-    inline fun hookBeforeMethod(
-        className: String,
-        methodName: String,
-        vararg parameterTypes: Any?,
-        crossinline beforeHook: (XC_MethodHook.MethodHookParam) -> Unit
-    ) {
-        XposedHelpers.findAndHookMethod(
-            className, sClassLoader, methodName, *parameterTypes,
-            object : XC_MethodHook() {
-                @Throws(Throwable::class)
-                override fun beforeHookedMethod(param: MethodHookParam) {
-                    beforeHook(param)
+        inline fun hookBeforeMethod(
+            className: String,
+            methodName: String,
+            vararg parameterTypes: Any?,
+            crossinline beforeHook: (XC_MethodHook.MethodHookParam) -> Unit
+        ): XC_MethodHook.Unhook {
+            return XposedHelpers.findAndHookMethod(
+                className, sClassLoader, methodName, *parameterTypes,
+                object : XC_MethodHook() {
+                    @Throws(Throwable::class)
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        beforeHook(param)
+                    }
                 }
-            }
-        )
-    }
+            )
+        }
 
-    inline fun hookAfterMethod(
-        className: String,
-        methodName: String,
-        vararg parameterTypes: Any?,
-        crossinline afterHook: (XC_MethodHook.MethodHookParam) -> Unit
-    ) {
-        XposedHelpers.findAndHookMethod(
-            className, sClassLoader, methodName, *parameterTypes,
-            object : XC_MethodHook() {
-                @Throws(Throwable::class)
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    afterHook(param)
+        inline fun hookAfterMethod(
+            className: String,
+            methodName: String,
+            vararg parameterTypes: Any?,
+            crossinline afterHook: (XC_MethodHook.MethodHookParam) -> Unit
+        ): XC_MethodHook.Unhook {
+            return XposedHelpers.findAndHookMethod(
+                className, sClassLoader, methodName, *parameterTypes,
+                object : XC_MethodHook() {
+                    @Throws(Throwable::class)
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        afterHook(param)
+                    }
                 }
-            }
-        )
-    }
+            )
+        }
 
-    inline fun hookReplaceMethod(
-        className: String,
-        methodName: String,
-        vararg parameterTypes: Any?,
-        crossinline replaceHook: (XC_MethodHook.MethodHookParam) -> Any?
-    ) {
-        XposedHelpers.findAndHookMethod(
-            className, sClassLoader, methodName, *parameterTypes,
-            object : XC_MethodReplacement() {
-                @Throws(Throwable::class)
-                override fun replaceHookedMethod(param: MethodHookParam): Any? {
-                    return replaceHook(param)
+        inline fun hookReplaceMethod(
+            className: String,
+            methodName: String,
+            vararg parameterTypes: Any?,
+            crossinline replaceHook: (XC_MethodHook.MethodHookParam) -> Any?
+        ): XC_MethodHook.Unhook {
+            return XposedHelpers.findAndHookMethod(
+                className, sClassLoader, methodName, *parameterTypes,
+                object : XC_MethodReplacement() {
+                    @Throws(Throwable::class)
+                    override fun replaceHookedMethod(param: MethodHookParam): Any? {
+                        return replaceHook(param)
+                    }
                 }
-            }
-        )
-    }
+            )
+        }
 
-    inline fun hookBeforeMethod(
-        clazz: Class<*>,
-        methodName: String,
-        vararg parameterTypes: Any?,
-        crossinline beforeHook: (XC_MethodHook.MethodHookParam) -> Unit
-    ) {
-        XposedHelpers.findAndHookMethod(
-            clazz, methodName, *parameterTypes,
-            object : XC_MethodHook() {
-                @Throws(Throwable::class)
-                override fun beforeHookedMethod(param: MethodHookParam) {
-                    beforeHook(param)
+        inline fun hookBeforeMethod(
+            clazz: Class<*>,
+            methodName: String,
+            vararg parameterTypes: Any?,
+            crossinline beforeHook: (XC_MethodHook.MethodHookParam) -> Unit
+        ): XC_MethodHook.Unhook {
+            return XposedHelpers.findAndHookMethod(
+                clazz, methodName, *parameterTypes,
+                object : XC_MethodHook() {
+                    @Throws(Throwable::class)
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        beforeHook(param)
+                    }
                 }
-            }
-        )
-    }
+            )
+        }
 
-    inline fun hookAfterMethod(
-        clazz: Class<*>,
-        methodName: String,
-        vararg parameterTypes: Any?,
-        crossinline afterHook: (XC_MethodHook.MethodHookParam) -> Unit
-    ) {
-        XposedHelpers.findAndHookMethod(
-            clazz, methodName, *parameterTypes,
-            object : XC_MethodHook() {
-                @Throws(Throwable::class)
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    afterHook(param)
+        inline fun hookAfterMethod(
+            clazz: Class<*>,
+            methodName: String,
+            vararg parameterTypes: Any?,
+            crossinline afterHook: (XC_MethodHook.MethodHookParam) -> Unit
+        ): XC_MethodHook.Unhook {
+            return XposedHelpers.findAndHookMethod(
+                clazz, methodName, *parameterTypes,
+                object : XC_MethodHook() {
+                    @Throws(Throwable::class)
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        afterHook(param)
+                    }
                 }
-            }
-        )
-    }
+            )
+        }
 
-    inline fun hookReplaceMethod(
-        clazz: Class<*>,
-        methodName: String,
-        vararg parameterTypes: Any?,
-        crossinline replaceHook: (XC_MethodHook.MethodHookParam) -> Any?
-    ) {
-        XposedHelpers.findAndHookMethod(
-            clazz, methodName, *parameterTypes,
-            object : XC_MethodReplacement() {
-                @Throws(Throwable::class)
-                override fun replaceHookedMethod(param: MethodHookParam): Any? {
-                    return replaceHook(param)
+        inline fun hookReplaceMethod(
+            clazz: Class<*>,
+            methodName: String,
+            vararg parameterTypes: Any?,
+            crossinline replaceHook: (XC_MethodHook.MethodHookParam) -> Any?
+        ): XC_MethodHook.Unhook {
+            return XposedHelpers.findAndHookMethod(
+                clazz, methodName, *parameterTypes,
+                object : XC_MethodReplacement() {
+                    @Throws(Throwable::class)
+                    override fun replaceHookedMethod(param: MethodHookParam): Any? {
+                        return replaceHook(param)
+                    }
                 }
-            }
-        )
-    }
+            )
+        }
 
-    inline fun hookBeforeMethod(
-        method: Method,
-        crossinline beforeHook: (XC_MethodHook.MethodHookParam) -> Unit
-    ) {
-        XposedBridge.hookMethod(
-            method,
-            object : XC_MethodHook() {
-                @Throws(Throwable::class)
-                override fun beforeHookedMethod(param: MethodHookParam) {
-                    beforeHook(param)
+        inline fun hookBeforeMethod(
+            method: Method,
+            crossinline beforeHook: (XC_MethodHook.MethodHookParam) -> Unit
+        ): XC_MethodHook.Unhook {
+            return XposedBridge.hookMethod(
+                method,
+                object : XC_MethodHook() {
+                    @Throws(Throwable::class)
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        beforeHook(param)
+                    }
                 }
-            }
-        )
-    }
+            )
+        }
 
-    inline fun hookAfterMethod(
-        method: Method,
-        crossinline afterHook: (XC_MethodHook.MethodHookParam) -> Unit
-    ) {
-        XposedBridge.hookMethod(
-            method,
-            object : XC_MethodHook() {
-                @Throws(Throwable::class)
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    afterHook(param)
+        inline fun hookAfterMethod(
+            method: Method,
+            crossinline afterHook: (XC_MethodHook.MethodHookParam) -> Unit
+        ): XC_MethodHook.Unhook {
+            return XposedBridge.hookMethod(
+                method,
+                object : XC_MethodHook() {
+                    @Throws(Throwable::class)
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        afterHook(param)
+                    }
                 }
-            }
-        )
-    }
+            )
+        }
 
-    inline fun hookReplaceMethod(
-        method: Method,
-        crossinline replaceHook: (XC_MethodHook.MethodHookParam) -> Any?
-    ) {
-        XposedBridge.hookMethod(
-            method,
-            object : XC_MethodReplacement() {
-                @Throws(Throwable::class)
-                override fun replaceHookedMethod(param: MethodHookParam): Any? {
-                    return replaceHook(param)
+        inline fun hookReplaceMethod(
+            method: Method,
+            crossinline replaceHook: (XC_MethodHook.MethodHookParam) -> Any?
+        ): XC_MethodHook.Unhook {
+            return XposedBridge.hookMethod(
+                method,
+                object : XC_MethodReplacement() {
+                    @Throws(Throwable::class)
+                    override fun replaceHookedMethod(param: MethodHookParam): Any? {
+                        return replaceHook(param)
+                    }
                 }
-            }
-        )
-    }
+            )
+        }
 
-    inline fun hookBeforeConstructor(
-        className: String,
-        vararg parameterTypes: Any?,
-        crossinline beforeHook: (XC_MethodHook.MethodHookParam) -> Unit
-    ) {
-        XposedHelpers.findAndHookConstructor(
-            className, sClassLoader, *parameterTypes,
-            object : XC_MethodHook() {
-                @Throws(Throwable::class)
-                override fun beforeHookedMethod(param: MethodHookParam) {
-                    beforeHook(param)
+        inline fun hookBeforeConstructor(
+            className: String,
+            vararg parameterTypes: Any?,
+            crossinline beforeHook: (XC_MethodHook.MethodHookParam) -> Unit
+        ): XC_MethodHook.Unhook {
+            return XposedHelpers.findAndHookConstructor(
+                className, sClassLoader, *parameterTypes,
+                object : XC_MethodHook() {
+                    @Throws(Throwable::class)
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        beforeHook(param)
+                    }
                 }
-            }
-        )
-    }
+            )
+        }
 
-    inline fun hookAfterConstructor(
-        className: String,
-        vararg parameterTypes: Any?,
-        crossinline afterHook: (XC_MethodHook.MethodHookParam) -> Unit
-    ) {
-        XposedHelpers.findAndHookConstructor(
-            className, sClassLoader, *parameterTypes,
-            object : XC_MethodHook() {
-                @Throws(Throwable::class)
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    afterHook(param)
+        inline fun hookAfterConstructor(
+            className: String,
+            vararg parameterTypes: Any?,
+            crossinline afterHook: (XC_MethodHook.MethodHookParam) -> Unit
+        ): XC_MethodHook.Unhook {
+            return XposedHelpers.findAndHookConstructor(
+                className, sClassLoader, *parameterTypes,
+                object : XC_MethodHook() {
+                    @Throws(Throwable::class)
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        afterHook(param)
+                    }
                 }
-            }
-        )
-    }
+            )
+        }
 
-    inline fun hookBeforeConstructor(
-        clazz: Class<*>,
-        vararg parameterTypes: Any?,
-        crossinline beforeHook: (XC_MethodHook.MethodHookParam) -> Unit
-    ) {
-        XposedHelpers.findAndHookConstructor(
-            clazz, *parameterTypes,
-            object : XC_MethodHook() {
-                @Throws(Throwable::class)
-                override fun beforeHookedMethod(param: MethodHookParam) {
-                    beforeHook(param)
+        inline fun hookBeforeConstructor(
+            clazz: Class<*>,
+            vararg parameterTypes: Any?,
+            crossinline beforeHook: (XC_MethodHook.MethodHookParam) -> Unit
+        ): XC_MethodHook.Unhook {
+            return XposedHelpers.findAndHookConstructor(
+                clazz, *parameterTypes,
+                object : XC_MethodHook() {
+                    @Throws(Throwable::class)
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        beforeHook(param)
+                    }
                 }
-            }
-        )
-    }
+            )
+        }
 
-    inline fun hookAfterConstructor(
-        clazz: Class<*>,
-        vararg parameterTypes: Any?,
-        crossinline afterHook: (XC_MethodHook.MethodHookParam) -> Unit
-    ) {
-        XposedHelpers.findAndHookConstructor(
-            clazz, *parameterTypes,
-            object : XC_MethodHook() {
-                @Throws(Throwable::class)
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    afterHook(param)
+        inline fun hookAfterConstructor(
+            clazz: Class<*>,
+            vararg parameterTypes: Any?,
+            crossinline afterHook: (XC_MethodHook.MethodHookParam) -> Unit
+        ): XC_MethodHook.Unhook {
+            return XposedHelpers.findAndHookConstructor(
+                clazz, *parameterTypes,
+                object : XC_MethodHook() {
+                    @Throws(Throwable::class)
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        afterHook(param)
+                    }
                 }
-            }
-        )
+            )
+        }
     }
 }
