@@ -1,41 +1,30 @@
-package gm.tieba.tabswitch.hooker.eliminate;
+package gm.tieba.tabswitch.hooker.eliminate
 
-import androidx.annotation.NonNull;
+import de.robv.android.xposed.XC_MethodHook
+import de.robv.android.xposed.XposedHelpers
+import gm.tieba.tabswitch.XposedContext
+import gm.tieba.tabswitch.dao.Preferences.getLikeForum
+import gm.tieba.tabswitch.hooker.IHooker
+import gm.tieba.tabswitch.widget.TbToast
+import gm.tieba.tabswitch.widget.TbToast.Companion.showTbToast
 
-import java.util.List;
-import java.util.Set;
-
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.XposedContext;
-import gm.tieba.tabswitch.dao.Preferences;
-import gm.tieba.tabswitch.hooker.IHooker;
-import gm.tieba.tabswitch.widget.TbToast;
-
-public class FollowFilter extends XposedContext implements IHooker {
-
-    @NonNull
-    @Override
-    public String key() {
-        return "follow_filter";
+class FollowFilter : XposedContext(), IHooker {
+    override fun key(): String {
+        return "follow_filter"
     }
 
-    @Override
-    public void hook() throws Throwable {
-        XposedHelpers.findAndHookMethod("tbclient.Personalized.DataRes$Builder", sClassLoader,
-                "build", boolean.class, new XC_MethodHook() {
-                    @Override
-                    public void beforeHookedMethod(final MethodHookParam param) throws Throwable {
-                        final Set<String> forums = Preferences.getLikeForum();
-                        if (forums == null) {
-                            runOnUiThread(() ->
-                                    TbToast.showTbToast("暂未获取到关注列表", TbToast.LENGTH_LONG));
-                            return;
-                        }
-                        final List<?> list = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");
-                        if (list == null) return;
-                        list.removeIf(o -> !forums.contains((String) XposedHelpers.getObjectField(o, "fname")));
-                    }
-                });
+    @Throws(Throwable::class)
+    override fun hook() {
+        hookBeforeMethod(
+            "tbclient.Personalized.DataRes\$Builder",
+            "build", Boolean::class.javaPrimitiveType
+        ) { param ->
+            val forums = getLikeForum() ?: run {
+                runOnUiThread { showTbToast("暂未获取到关注列表", TbToast.LENGTH_LONG) }
+                return@hookBeforeMethod
+            }
+            val threadList = XposedHelpers.getObjectField(param.thisObject, "thread_list") as? MutableList<*>
+            threadList?.removeIf { o: Any? -> !forums.contains(XposedHelpers.getObjectField(o, "fname") as? String) }
+        }
     }
 }
