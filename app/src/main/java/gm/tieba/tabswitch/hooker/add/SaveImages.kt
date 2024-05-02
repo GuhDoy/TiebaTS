@@ -31,6 +31,7 @@ import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.concurrent.thread
 
 class SaveImages : XposedContext(), IHooker, Obfuscated {
     private lateinit var mList: ArrayList<String>
@@ -91,7 +92,7 @@ class SaveImages : XposedContext(), IHooker, Obfuscated {
         val baseTime = System.currentTimeMillis()
         val formattedTime = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.CHINA).format(Date(baseTime))
 
-        Thread {
+        thread {
             try {
                 mList.forEachIndexed { index, url ->
                     val formattedUrl = url.substringBeforeLast("*")
@@ -116,7 +117,7 @@ class SaveImages : XposedContext(), IHooker, Obfuscated {
                     showTbToast("保存失败", TbToast.LENGTH_SHORT)
                 }
             }
-        }.start()
+        }
         true
     }
 

@@ -13,6 +13,7 @@ import gm.tieba.tabswitch.hooker.IHooker
 import gm.tieba.tabswitch.widget.TbToast
 import gm.tieba.tabswitch.widget.TbToast.Companion.showTbToast
 import java.net.URLEncoder
+import kotlin.concurrent.thread
 
 class AutoSign : XposedContext(), IHooker {
     companion object {
@@ -42,14 +43,14 @@ class AutoSign : XposedContext(), IHooker {
             "onCreate", Bundle::class.java
         ) { param ->
             if (!getIsSigned()) {
-                Thread {
+                thread {
                     val result = main(Adp.BDUSS)
                     if (result.endsWith("全部签到成功")) {
                         putSignDate()
                         putLikeForum(HashSet(mSuccess))
                     }
                     runOnUiThread { showTbToast(result, TbToast.LENGTH_SHORT) }
-                }.start()
+                }
             }
         }
     }

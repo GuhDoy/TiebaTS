@@ -1,21 +1,20 @@
-package gm.tieba.tabswitch.hooker.deobfuscation;
+package gm.tieba.tabswitch.hooker.deobfuscation
 
-import android.content.Context;
+import android.content.Context
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.subjects.PublishSubject
+import java.io.IOException
 
-import java.io.IOException;
-import java.util.List;
+class DeobfuscationViewModel {
+    private val _progress = PublishSubject.create<Float>()
+    @JvmField
+    val progress: Observable<Float> = _progress
+    private val deobfuscation = Deobfuscation()
 
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.subjects.PublishSubject;
-
-public class DeobfuscationViewModel {
-    private final PublishSubject<Float> _progress = PublishSubject.create();
-    public final Observable<Float> progress = _progress;
-    private final Deobfuscation deobfuscation = new Deobfuscation();
-
-    public void deobfuscate(final Context context, final List<Matcher> matchers) throws IOException {
-        deobfuscation.setMatchers(matchers);
-        deobfuscation.dexkit(_progress, context);
-        deobfuscation.saveDexSignatureHashCode();
+    @Throws(IOException::class)
+    fun deobfuscate(context: Context, matchers: List<Matcher>) {
+        deobfuscation.setMatchers(matchers)
+        deobfuscation.dexkit(_progress, context)
+        deobfuscation.saveDexSignatureHashCode()
     }
 }

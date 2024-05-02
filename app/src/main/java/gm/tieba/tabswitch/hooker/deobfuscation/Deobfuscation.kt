@@ -1,117 +1,85 @@
-package gm.tieba.tabswitch.hooker.deobfuscation;
+package gm.tieba.tabswitch.hooker.deobfuscation
 
-import android.content.Context;
+import android.content.Context
+import gm.tieba.tabswitch.XposedContext
+import gm.tieba.tabswitch.dao.AcRules.putRule
+import gm.tieba.tabswitch.dao.Preferences.putSignature
+import io.reactivex.rxjava3.subjects.PublishSubject
+import org.luckypray.dexkit.DexKitBridge
+import org.luckypray.dexkit.query.FindClass
+import org.luckypray.dexkit.query.FindMethod
+import org.luckypray.dexkit.query.matchers.MethodMatcher
+import org.luckypray.dexkit.result.MethodDataList
+import java.io.IOException
+import java.util.Objects
+import java.util.function.Consumer
+import java.util.zip.ZipFile
 
-import org.luckypray.dexkit.DexKitBridge;
-import org.luckypray.dexkit.query.FindClass;
-import org.luckypray.dexkit.query.FindMethod;
-import org.luckypray.dexkit.query.matchers.MethodMatcher;
-import org.luckypray.dexkit.result.ClassDataList;
-import org.luckypray.dexkit.result.MethodDataList;
+class Deobfuscation : XposedContext() {
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Consumer;
-import java.util.zip.ZipFile;
+    private val matchers: MutableList<Matcher> = ArrayList()
+    private lateinit var packageResource: String
 
-import gm.tieba.tabswitch.XposedContext;
-import gm.tieba.tabswitch.dao.AcRules;
-import gm.tieba.tabswitch.dao.Preferences;
-import io.reactivex.rxjava3.subjects.PublishSubject;
-
-public class Deobfuscation extends XposedContext {
-    private String packageResource;
-    private final List<Matcher> matchers = new ArrayList<>();
-
-    public void setMatchers(final List<Matcher> matchers) {
-        this.matchers.clear();
-        this.matchers.addAll(matchers);
+    fun setMatchers(matchers: List<Matcher>) {
+        this.matchers.clear()
+        this.matchers.addAll(matchers)
     }
 
-    private <T> void forEachProgressed(final PublishSubject<Float> progress,
-                                       final Collection<T> collection,
-                                       final Consumer<? super T> action) {
-        final var size = collection.size();
-        var count = 0;
-        for (final T t : collection) {
-            count++;
-            progress.onNext((float) count / size);
-            action.accept(t);
+    private fun <T> forEachProgressed(
+        progress: PublishSubject<Float>,
+        collection: Collection<T>,
+        action: Consumer<in T>
+    ) {
+        val size = collection.size
+        collection.forEachIndexed { index, item ->
+            progress.onNext((index + 1).toFloat() / size)
+            action.accept(item)
         }
     }
 
-    public void dexkit(final PublishSubject<Float> progress, final Context context) {
-        load("dexkit");
-        packageResource = context.getPackageResourcePath();
-        final var bridge = DexKitBridge.create(packageResource);
-        Objects.requireNonNull(bridge);
+    fun dexkit(progress: PublishSubject<Float>, context: Context) {
+        load("dexkit")
+        packageResource = context.packageResourcePath
+        val bridge = DexKitBridge.create(packageResource)
+        Objects.requireNonNull(bridge)
 
-        forEachProgressed(progress, matchers, matcher -> {
-            MethodDataList ret = new MethodDataList();
-            if (matcher.getClassMatcher() != null) {
-                ClassDataList retClassList = bridge.findClass(FindClass.create().matcher(matcher.getClassMatcher()));
-                for (var retClass: retClassList) {
-                    ret.addAll(findMethod(bridge, FindMethod.create().searchPackages(retClass.getName()), matcher));
-                }
-            } else {
-                ret.addAll(findMethod(bridge, FindMethod.create(), matcher));
+        forEachProgressed(progress, matchers) { matcher: Matcher ->
+            val ret = MethodDataList()
+
+            matcher.classMatcher?.let { classMatcher ->
+                bridge.findClass(FindClass.create().matcher(classMatcher))
+                    .flatMapTo(ret) { retClass ->
+                        findMethod(bridge, FindMethod.create().searchPackages(retClass.name), matcher)
+                    }
+            } ?: ret.addAll(findMethod(bridge, FindMethod.create(), matcher))
+
+            ret.forEach { methodData ->
+                putRule(matcher.toString(), methodData.className, methodData.name)
             }
-            for (final var methodData : ret) {
-                AcRules.putRule(
-                        matcher.toString(), methodData.getClassName(), methodData.getName());
-            }
-        });
-
-        bridge.close();
-    }
-
-    private MethodDataList findMethod(DexKitBridge bridge, FindMethod baseMethodQuery, Matcher matcher) {
-        MethodDataList ret = null;
-        if (matcher instanceof final StringMatcher stringMatcher) {
-            ret = bridge.findMethod(
-                    baseMethodQuery.matcher(
-                            MethodMatcher.create().usingStrings(stringMatcher.getStr())
-                    )
-            );
-        } else if (matcher instanceof final ResMatcher resMatcher) {
-            ret = bridge.findMethod(
-                    baseMethodQuery.matcher(
-                            MethodMatcher.create().usingNumbers(resMatcher.getId())
-                    )
-            );
-        } else if (matcher instanceof final SmaliMatcher smaliMatcher) {
-            ret = bridge.findMethod(
-                    baseMethodQuery.matcher(
-                            MethodMatcher.create().addInvoke(
-                                    MethodMatcher.create().descriptor(smaliMatcher.getDescriptor())
-                            )
-                    )
-            );
-        } else if (matcher instanceof final MethodNameMatcher methodNameMatcher) {
-            ret = bridge.findMethod(
-                    baseMethodQuery.matcher(
-                            MethodMatcher.create().name(methodNameMatcher.getMethodName())
-                    )
-            );
-        } else if (matcher instanceof final ReturnTypeMatcher<?> returnTypeMatcher) {
-            ret = bridge.findMethod(
-                    baseMethodQuery.matcher(
-                            MethodMatcher.create().returnType(returnTypeMatcher.getReturnType())
-                    )
-            );
         }
-        return ret;
+
+        bridge.close()
     }
 
-    public void saveDexSignatureHashCode() throws IOException {
-        try (final var apk = new ZipFile(packageResource)) {
-            try (final var in = apk.getInputStream(apk.getEntry("classes.dex"))) {
-                final var signatureHashCode = Arrays.hashCode(DeobfuscationHelper.calcSignature(in));
-                Preferences.putSignature(signatureHashCode);
+    private fun findMethod(bridge: DexKitBridge, baseMethodQuery: FindMethod, matcher: Matcher): MethodDataList {
+        val methodMatcher = when (matcher) {
+            is StringMatcher -> MethodMatcher.create().usingStrings(matcher.str)
+            is ResMatcher -> MethodMatcher.create().usingNumbers(matcher.id)
+            is SmaliMatcher -> MethodMatcher.create().addInvoke(MethodMatcher.create().descriptor(matcher.descriptor))
+            is MethodNameMatcher -> MethodMatcher.create().name(matcher.methodName)
+            is ReturnTypeMatcher<*> -> MethodMatcher.create().returnType(matcher.returnType)
+            else -> throw IllegalArgumentException("Unsupported matcher type: ${matcher.javaClass.simpleName}")
+        }
+
+        return bridge.findMethod(baseMethodQuery.matcher(methodMatcher))
+    }
+
+    @Throws(IOException::class)
+    fun saveDexSignatureHashCode() {
+        ZipFile(packageResource).use { apk ->
+            apk.getInputStream(apk.getEntry("classes.dex")).use { inputStream ->
+                val signatureHashCode = DeobfuscationHelper.calcSignature(inputStream).contentHashCode()
+                putSignature(signatureHashCode)
             }
         }
     }

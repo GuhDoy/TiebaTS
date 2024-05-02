@@ -1,137 +1,135 @@
-package gm.tieba.tabswitch.hooker.deobfuscation;
+package gm.tieba.tabswitch.hooker.deobfuscation
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
-import android.os.Bundle;
+import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Bundle
+import de.robv.android.xposed.XC_MethodHook
+import de.robv.android.xposed.XposedBridge
+import de.robv.android.xposed.XposedHelpers
+import gm.tieba.tabswitch.XposedContext.Companion.hookBeforeMethod
+import gm.tieba.tabswitch.dao.Preferences.getSignature
+import gm.tieba.tabswitch.util.restart
+import java.io.File
+import java.io.IOException
+import java.io.InputStream
+import java.security.MessageDigest
+import java.security.NoSuchAlgorithmException
+import java.util.zip.ZipFile
+import kotlin.math.max
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.zip.ZipFile;
+object DeobfuscationHelper {
+    private const val SIGNATURE_DATA_START_OFFSET = 32
+    private const val SIGNATURE_SIZE = 20
+    lateinit var sCurrentTbVersion: String
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.dao.Preferences;
-import gm.tieba.tabswitch.util.DisplayUtils;
-
-public class DeobfuscationHelper {
-    private static final int SIGNATURE_DATA_START_OFFSET = 32;
-    private static final int SIGNATURE_SIZE = 20;
-    public static String sCurrentTbVersion;
-
-    static byte[] calcSignature(final InputStream dataStoreInput) throws IOException {
-        final MessageDigest md;
-        try {
-            md = MessageDigest.getInstance("SHA-1");
-        } catch (final NoSuchAlgorithmException ex) {
-            throw new RuntimeException(ex);
+    @Throws(IOException::class)
+    fun calcSignature(dataStoreInput: InputStream): ByteArray {
+        val md: MessageDigest = try {
+            MessageDigest.getInstance("SHA-1")
+        } catch (ex: NoSuchAlgorithmException) {
+            throw RuntimeException(ex)
         }
 
-        dataStoreInput.skip(SIGNATURE_DATA_START_OFFSET);
-        final byte[] buffer = new byte[4 * 1024];
-        int bytesRead = dataStoreInput.read(buffer);
-        while (bytesRead >= 0) {
-            md.update(buffer, 0, bytesRead);
-            bytesRead = dataStoreInput.read(buffer);
+        dataStoreInput.skip(SIGNATURE_DATA_START_OFFSET.toLong())
+        val buffer = ByteArray(4 * 1024)
+
+        dataStoreInput.use { input ->
+            generateSequence { input.read(buffer).takeIf { it >= 0 } }
+                .forEach { bytesRead -> md.update(buffer, 0, bytesRead) }
         }
 
-        final byte[] signature = md.digest();
-        if (signature.length != SIGNATURE_SIZE) {
-            throw new RuntimeException("unexpected digest write: " + signature.length + " bytes");
+        return md.digest().also { signature ->
+            check(signature.size == SIGNATURE_SIZE) { "unexpected digest write: ${signature.size} bytes" }
         }
-        return signature;
     }
 
-    public static boolean isVersionChanged(final Context context) {
-        final SharedPreferences tsConfig = context.getSharedPreferences("TS_config", Context.MODE_PRIVATE);
-        return !tsConfig.getString("deobfs_version", "unknown").equals(getTbVersion(context));
+    @JvmStatic
+    fun isVersionChanged(context: Context): Boolean {
+        val tsConfig = context.getSharedPreferences("TS_config", Context.MODE_PRIVATE)
+        return tsConfig.getString("deobfs_version", "unknown") != getTbVersion(context)
     }
 
-    public static boolean isDexChanged(final Context context) {
-        try {
-            final ZipFile zipFile = new ZipFile(new File(context.getPackageResourcePath()));
-            try (final InputStream in = zipFile.getInputStream(zipFile.getEntry("classes.dex"))) {
-                return Arrays.hashCode(calcSignature(in)) != Preferences.getSignature();
+    @JvmStatic
+    fun isDexChanged(context: Context): Boolean {
+        return try {
+            ZipFile(File(context.packageResourcePath)).use { zipFile ->
+                zipFile.getEntry("classes.dex")?.let { entry ->
+                    zipFile.getInputStream(entry).use { inputStream ->
+                        calcSignature(inputStream).contentHashCode() != getSignature()
+                    }
+                } ?: false
             }
-        } catch (final IOException e) {
-            XposedBridge.log(e);
+        } catch (e: IOException) {
+            XposedBridge.log(e)
+            false
         }
-        return false;
     }
 
-    public static String getTbVersion(final Context context) {
-        final PackageManager pm = context.getPackageManager();
+    @JvmStatic
+    fun getTbVersion(context: Context): String {
+        val pm = context.packageManager
         try {
-            final ApplicationInfo applicationInfo = pm.getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
-            switch ((Integer) applicationInfo.metaData.get("versionType")) {
-                case 3:
-                    return pm.getPackageInfo(context.getPackageName(), 0).versionName;
-                case 2:
-                    return String.valueOf(applicationInfo.metaData.get("grayVersion"));
-                case 1:
-                    return String.valueOf(applicationInfo.metaData.get("subVersion"));
-                default:
-                    throw new PackageManager.NameNotFoundException("unknown tb version");
+            val applicationInfo = pm.getApplicationInfo(context.packageName, PackageManager.GET_META_DATA)
+            return when (applicationInfo.metaData["versionType"] as Int?) {
+                3 -> pm.getPackageInfo(context.packageName, 0).versionName
+                2 -> applicationInfo.metaData["grayVersion"].toString()
+                1 -> applicationInfo.metaData["subVersion"].toString()
+                else -> throw PackageManager.NameNotFoundException("unknown tb version")
             }
-        } catch (final PackageManager.NameNotFoundException e) {
-            XposedBridge.log(e);
-            return "unknown";
+        } catch (e: PackageManager.NameNotFoundException) {
+            XposedBridge.log(e)
+            return "unknown"
         }
     }
 
+    @JvmStatic
     @SuppressLint("ApplySharedPref")
-    public static void saveAndRestart(final Activity activity, final String version, final Class<?> trampoline) {
-        final SharedPreferences.Editor editor = activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE).edit();
-        editor.putString("deobfs_version", version);
-        editor.commit();
-        if (trampoline == null) {
-            DisplayUtils.restart(activity);
-        } else {
-            XposedHelpers.findAndHookMethod(trampoline, "onCreate", Bundle.class, new XC_MethodHook() {
-                protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
-                    final Activity activity = (Activity) param.thisObject;
-                    DisplayUtils.restart(activity);
+    fun saveAndRestart(activity: Activity, version: String, trampoline: Class<*>?) {
+        activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE)
+            .edit()
+            .putString("deobfs_version", version)
+            .commit()
+
+        trampoline?.let {
+            hookBeforeMethod(it, "onCreate", Bundle::class.java) { param ->
+                restart(param.thisObject as Activity)
+            }
+            activity.startActivity(
+                Intent(activity, it).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
                 }
-            });
-            final Intent intent = new Intent(activity, trampoline);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            activity.startActivity(intent);
-        }
+            )
+        } ?: restart(activity)
     }
 
     // Adapted from https://stackoverflow.com/questions/198431/how-do-you-compare-two-version-strings-in-java
-    public static boolean isTbSatisfyVersionRequirement(final String requiredVersion) {
-        String[] currParts = sCurrentTbVersion.split("\\.");
-        String[] reqParts = requiredVersion.split("\\.");
-        int length = Math.max(currParts.length, reqParts.length);
-        for(int i = 0; i < length; i++) {
+    @JvmStatic
+    fun isTbSatisfyVersionRequirement(requiredVersion: String): Boolean {
+        val currParts = sCurrentTbVersion.split(".")
+        val reqParts = requiredVersion.split(".")
+
+        val length = max(currParts.size, reqParts.size)
+        for (i in 0 until length) {
             try {
-                int currPart = i < currParts.length ?
-                        Integer.parseInt(currParts[i]) : 0;
-                int reqPart = i < reqParts.length ?
-                        Integer.parseInt(reqParts[i]) : 0;
+                val currPart = (currParts.getOrNull(i))?.toInt() ?: 0
+                val reqPart = (reqParts.getOrNull(i))?.toInt() ?: 0
                 if (currPart != reqPart) {
-                    return currPart > reqPart;
+                    return currPart > reqPart
                 }
-            } catch (NumberFormatException e) {
-                return false;
+            } catch (e: NumberFormatException) {
+                return false
             }
         }
-        return true;
+        return true
     }
 
     // Inclusive of both ends
-    public static boolean isTbBetweenVersionRequirement(final String lower, final String upper) {
-        return isTbSatisfyVersionRequirement(lower)
-                && (!isTbSatisfyVersionRequirement(upper) || sCurrentTbVersion.equals(upper));
+    @JvmStatic
+    fun isTbBetweenVersionRequirement(lower: String, upper: String): Boolean {
+        return (isTbSatisfyVersionRequirement(lower)
+                && (!isTbSatisfyVersionRequirement(upper) || sCurrentTbVersion == upper))
     }
 }

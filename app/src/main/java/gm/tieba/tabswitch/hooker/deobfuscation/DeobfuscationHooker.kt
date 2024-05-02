@@ -1,172 +1,176 @@
-package gm.tieba.tabswitch.hooker.deobfuscation;
+package gm.tieba.tabswitch.hooker.deobfuscation
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.app.Instrumentation;
-import android.content.Context;
-import android.content.Intent;
-import android.graphics.Color;
-import android.os.Bundle;
-import android.os.IBinder;
-import android.util.Log;
-import android.view.Gravity;
-import android.view.View;
-import android.widget.FrameLayout;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
+import android.annotation.SuppressLint
+import android.app.Activity
+import android.app.Instrumentation
+import android.content.Context
+import android.content.Intent
+import android.graphics.Color
+import android.os.Bundle
+import android.os.IBinder
+import android.util.Log
+import android.view.Gravity
+import android.view.View
+import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.RelativeLayout
+import android.widget.TextView
+import de.robv.android.xposed.XC_MethodHook
+import de.robv.android.xposed.XC_MethodReplacement
+import de.robv.android.xposed.XposedBridge
+import de.robv.android.xposed.XposedHelpers
+import gm.tieba.tabswitch.XposedContext
+import gm.tieba.tabswitch.dao.AcRules.dropAllRules
+import gm.tieba.tabswitch.dao.Preferences.getBoolean
+import gm.tieba.tabswitch.hooker.IHooker
+import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHelper.getTbVersion
+import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHelper.isDexChanged
+import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHelper.saveAndRestart
+import java.util.function.Consumer
+import kotlin.concurrent.thread
 
-import androidx.annotation.NonNull;
+class DeobfuscationHooker(private val mMatchers: List<Matcher>) : XposedContext(), IHooker {
+    private val viewModel = DeobfuscationViewModel()
+    private lateinit var mActivity: Activity
+    private lateinit var mProgress: View
+    private lateinit var mMessage: TextView
+    private lateinit var mProgressContainer: FrameLayout
+    private lateinit var mContentView: LinearLayout
 
-import java.util.List;
-
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XC_MethodReplacement;
-import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.XposedContext;
-import gm.tieba.tabswitch.dao.AcRules;
-import gm.tieba.tabswitch.dao.Preferences;
-import gm.tieba.tabswitch.hooker.IHooker;
-
-public class DeobfuscationHooker extends XposedContext implements IHooker {
-    private static final String TRAMPOLINE_ACTIVITY = "com.baidu.tieba.tblauncher.MainTabActivity";
-    private final DeobfuscationViewModel viewModel = new DeobfuscationViewModel();
-    private final List<Matcher> mMatchers;
-    private Activity mActivity;
-    private View mProgress;
-    private TextView mMessage;
-    private FrameLayout mProgressContainer;
-    private LinearLayout mContentView;
-
-    public DeobfuscationHooker(final List<Matcher> matchers) {
-        mMatchers = matchers;
+    override fun key(): String {
+        return "deobfs"
     }
 
-    @NonNull
-    @Override
-    public String key() {
-        return "deobfs";
-    }
-
-    @Override
-    public void hook() throws Throwable {
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.LogoActivity", sClassLoader, "onCreate", Bundle.class, new XC_MethodHook() {
-            @SuppressLint("ApplySharedPref")
-            @Override
-            public void afterHookedMethod(final MethodHookParam param) throws Throwable {
-                final var hooks = disableStartAndFinishActivity();
-                mActivity = (Activity) param.thisObject;
-                if (Preferences.getBoolean("purge")) {
-                    final var editor = mActivity
-                            .getSharedPreferences("settings", Context.MODE_PRIVATE)
-                            .edit();
-                    editor.putString("key_location_request_dialog_last_show_version",
-                            DeobfuscationHelper.getTbVersion(mActivity)
-                    );
-                    editor.commit();
-                }
-
-                if (DeobfuscationHelper.isDexChanged(mActivity)) {
-                    AcRules.dropAllRules();
-                } else {
-                    hooks.forEach(Unhook::unhook);
-                    DeobfuscationHelper.saveAndRestart(mActivity,
-                            DeobfuscationHelper.getTbVersion(mActivity),
-                            XposedHelpers.findClass(TRAMPOLINE_ACTIVITY, sClassLoader)
-                    );
-                    return;
-                }
-
-                initProgressIndicator();
-                mActivity.addContentView(mContentView, new LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT
-                ));
-                viewModel.progress.subscribe(progress -> setProgress(progress));
-
-                new Thread(() -> {
-                    try {
-                        setMessage("搜索资源，字符串和方法调用");
-                        viewModel.deobfuscate(mActivity, mMatchers);
-
-                        XposedBridge.log("Deobfuscation complete, current version: "
-                                + DeobfuscationHelper.getTbVersion(mActivity));
-                        hooks.forEach(Unhook::unhook);
-                        DeobfuscationHelper.saveAndRestart(mActivity,
-                                DeobfuscationHelper.getTbVersion(mActivity),
-                                XposedHelpers.findClass(TRAMPOLINE_ACTIVITY, sClassLoader)
-                        );
-                    } catch (final Throwable e) {
-                        XposedBridge.log(e);
-                        setMessage("处理失败\n" + Log.getStackTraceString(e));
-                    }
-                }).start();
+    @SuppressLint("ApplySharedPref", "CheckResult")
+    @Throws(Throwable::class)
+    override fun hook() {
+        hookAfterMethod(
+            "com.baidu.tieba.LogoActivity",
+            "onCreate", Bundle::class.java
+        ) { param ->
+            val hooks = disableStartAndFinishActivity()
+            mActivity = param.thisObject as Activity
+            if (getBoolean("purge")) {
+                mActivity.getSharedPreferences("settings", Context.MODE_PRIVATE)
+                    .edit()
+                    .putString("key_location_request_dialog_last_show_version", getTbVersion(mActivity))
+                    .commit()
             }
-        });
+
+            if (isDexChanged(mActivity)) {
+                dropAllRules()
+            } else {
+                hooks.forEach { it.unhook() }
+                saveAndRestart(mActivity, getTbVersion(mActivity), findClass(TRAMPOLINE_ACTIVITY))
+                return@hookAfterMethod
+            }
+
+            initProgressIndicator()
+            mActivity.addContentView(
+                mContentView, LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT
+                )
+            )
+            viewModel.progress.subscribe { progress: Float -> setProgress(progress) }
+
+            thread {
+                try {
+                    setMessage("搜索资源，字符串和方法调用")
+                    viewModel.deobfuscate(mActivity, mMatchers)
+
+                    XposedBridge.log("Deobfuscation complete, current version: ${getTbVersion(mActivity)}")
+                    hooks.forEach { it.unhook() }
+                    saveAndRestart(
+                        mActivity,
+                        getTbVersion(mActivity),
+                        findClass(TRAMPOLINE_ACTIVITY)
+                    )
+                } catch (e: Throwable) {
+                    XposedBridge.log(e)
+                    setMessage("处理失败\n${Log.getStackTraceString(e)}")
+                }
+            }
+        }
     }
 
-    @NonNull
-    private List<XC_MethodHook.Unhook> disableStartAndFinishActivity() {
-        return List.of(
-                XposedHelpers.findAndHookMethod(Instrumentation.class, "execStartActivity",
-                        Context.class, IBinder.class, IBinder.class, Activity.class, Intent.class,
-                        int.class, Bundle.class, XC_MethodReplacement.returnConstant(null)),
-                XposedHelpers.findAndHookMethod(Activity.class, "finish",
-                        int.class, XC_MethodReplacement.returnConstant(null)),
-                XposedHelpers.findAndHookMethod(Activity.class, "finishActivity",
-                        int.class, XC_MethodReplacement.returnConstant(null)),
-                XposedHelpers.findAndHookMethod(Activity.class, "finishAffinity",
-                        XC_MethodReplacement.returnConstant(null))
-        );
+    private fun disableStartAndFinishActivity(): List<XC_MethodHook.Unhook> {
+        return listOf(
+            hookReplaceMethod(Instrumentation::class.java, "execStartActivity",
+                Context::class.java, IBinder::class.java, IBinder::class.java, Activity::class.java, Intent::class.java,
+                Int::class.javaPrimitiveType, Bundle::class.java) { null },
+            hookReplaceMethod(Activity::class.java, "finish",
+                Int::class.javaPrimitiveType) { null },
+            hookReplaceMethod(Activity::class.java, "finishActivity",
+                Int::class.javaPrimitiveType) { null },
+            hookReplaceMethod(Activity::class.java, "finishAffinity") { null }
+        )
     }
 
-    @SuppressLint({"SetTextI18n"})
-    private void initProgressIndicator() {
-        final var title = new TextView(mActivity);
-        title.setTextSize(16);
-        title.setPaddingRelative(0, 0, 0, 8);
-        title.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-        title.setTextColor(Color.parseColor("#FF303030"));
-        title.setText("贴吧TS正在定位被混淆的类和方法，请耐心等待");
-        mProgress = new View(mActivity);
-        mProgress.setBackgroundColor(Color.parseColor("#FFBEBEBE"));
-        mMessage = new TextView(mActivity);
-        mMessage.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-        mMessage.setTextSize(16);
-        mMessage.setTextColor(Color.parseColor("#FF303030"));
-        final var messageLayoutParams = new FrameLayout.LayoutParams(
-                RelativeLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
-        mMessage.setLayoutParams(messageLayoutParams);
-        mProgressContainer = new FrameLayout(mActivity);
-        mProgressContainer.addView(mProgress);
-        mProgressContainer.addView(mMessage);
-        final var frameLayoutParams = new FrameLayout.LayoutParams(
-                RelativeLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
-        mProgressContainer.setLayoutParams(frameLayoutParams);
-        final var progressIndicator = new LinearLayout(mActivity);
-        progressIndicator.setOrientation(LinearLayout.VERTICAL);
-        progressIndicator.setBackgroundColor(Color.WHITE);
-        progressIndicator.addView(title);
-        progressIndicator.addView(mProgressContainer);
-        progressIndicator.setPaddingRelative(0, 16, 0, 16);
-        final var linearLayoutParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        progressIndicator.setLayoutParams(linearLayoutParams);
-        mContentView = new LinearLayout(mActivity);
-        mContentView.setGravity(Gravity.CENTER);
-        mContentView.addView(progressIndicator);
+    @SuppressLint("SetTextI18n")
+    private fun initProgressIndicator() {
+        val title = TextView(mActivity).apply {
+            textSize = 16f
+            setPaddingRelative(0, 0, 0, 8)
+            textAlignment = View.TEXT_ALIGNMENT_CENTER
+            setTextColor(Color.parseColor("#FF303030"))
+            text = "贴吧TS正在定位被混淆的类和方法，请耐心等待"
+        }
+
+        mProgress = View(mActivity).apply {
+            setBackgroundColor(Color.parseColor("#FFBEBEBE"))
+        }
+
+        mMessage = TextView(mActivity).apply {
+            textAlignment = View.TEXT_ALIGNMENT_CENTER
+            textSize = 16f
+            setTextColor(Color.parseColor("#FF303030"))
+            layoutParams = FrameLayout.LayoutParams(
+                RelativeLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT
+            )
+        }
+
+        mProgressContainer = FrameLayout(mActivity).apply {
+            addView(mProgress)
+            addView(mMessage)
+            layoutParams = FrameLayout.LayoutParams(
+                RelativeLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT
+            )
+        }
+
+        val progressIndicator = LinearLayout(mActivity).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(Color.WHITE)
+            addView(title)
+            addView(mProgressContainer)
+            setPaddingRelative(0, 16, 0, 16)
+            layoutParams =  LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        }
+
+        mContentView = LinearLayout(mActivity).apply {
+            gravity = Gravity.CENTER
+            addView(progressIndicator)
+        }
     }
 
-    private void setMessage(final String message) {
-        mActivity.runOnUiThread(() -> mMessage.setText(message));
+    private fun setMessage(message: String) {
+        mActivity.runOnUiThread { mMessage.text = message }
     }
 
-    private void setProgress(final float progress) {
-        mActivity.runOnUiThread(() -> {
-            final var lp = mProgress.getLayoutParams();
-            lp.height = mMessage.getHeight();
-            lp.width = Math.round(mProgressContainer.getWidth() * progress);
-            mProgress.setLayoutParams(lp);
-        });
+    private fun setProgress(progress: Float) {
+        mActivity.runOnUiThread {
+            mProgress.layoutParams = mProgress.layoutParams.apply {
+                height = mMessage.height
+                width = Math.round(mProgressContainer.width * progress)
+            }
+        }
+    }
+
+    companion object {
+        private const val TRAMPOLINE_ACTIVITY = "com.baidu.tieba.tblauncher.MainTabActivity"
     }
 }
