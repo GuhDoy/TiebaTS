@@ -95,7 +95,7 @@ class UserFilter : XposedContext(), IHooker, RegexFilter {
             currFeed?.let {
                 val components = XposedHelpers.getObjectField(currFeed, "components") as? List<*>
 
-                components?.first { component ->
+                components?.firstOrNull { component ->
                     XposedHelpers.getObjectField(component, "component").toString() == "feed_head"
                 }?.let { feedHeadComponent ->
                     val feedHead = XposedHelpers.getObjectField(feedHeadComponent, "feed_head")
@@ -104,11 +104,10 @@ class UserFilter : XposedContext(), IHooker, RegexFilter {
                     mainData?.any { feedHeadSymbol ->
                         val feedHeadText = XposedHelpers.getObjectField(feedHeadSymbol, "text")
                         val username = feedHeadText?.let { XposedHelpers.getObjectField(it, "text") as? String }
-                        return@removeIf username?.let { pattern.matcher(it).find() } ?: false
-                    }
-                }
-            }
-            false
+                        username?.let { pattern.matcher(it).find() } ?: false
+                    } ?: false
+                } ?: false
+            } ?: false
         }
     }
 

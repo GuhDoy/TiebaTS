@@ -34,11 +34,12 @@ class FrsPageFilter : XposedContext(), IHooker, RegexFilter {
 
                 businessInfo?.any { feedKV ->
                     val currKey = XposedHelpers.getObjectField(feedKV, "key").toString()
-                    if (currKey == "title" || currKey == "abstract") {
-                        val str = XposedHelpers.getObjectField(feedKV, "value").toString()
-                        pattern.matcher(str).find()
-                    } else {
-                        false
+                    when (currKey) {
+                        "title", "abstract" -> {
+                            val str = XposedHelpers.getObjectField(feedKV, "value").toString()
+                            pattern.matcher(str).find()
+                        }
+                        else -> false
                     }
                 } ?: false
             } ?: false
