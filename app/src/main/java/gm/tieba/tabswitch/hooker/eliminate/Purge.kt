@@ -170,6 +170,7 @@ class Purge : XposedContext(), IHooker, Obfuscated {
         }
 
         // 帖子底部推荐
+        @Suppress("DEPRECATION")
         hookBeforeMethod("com.baidu.tieba.pb.pb.main.AbsPbActivity", "onCreate", Bundle::class.java) { param ->
             val activity = param.thisObject as Activity
             val bundle = activity.intent.extras
