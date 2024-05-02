@@ -1,115 +1,104 @@
-package gm.tieba.tabswitch.hooker.eliminate;
+package gm.tieba.tabswitch.hooker.eliminate
 
-import android.view.View;
-import android.widget.LinearLayout;
+import android.view.View
+import android.widget.LinearLayout
+import de.robv.android.xposed.XC_MethodReplacement
+import de.robv.android.xposed.XposedBridge
+import de.robv.android.xposed.XposedHelpers
+import de.robv.android.xposed.XposedHelpers.ClassNotFoundError
+import gm.tieba.tabswitch.XposedContext
+import gm.tieba.tabswitch.dao.AcRules
+import gm.tieba.tabswitch.dao.AcRules.findRule
+import gm.tieba.tabswitch.hooker.IHooker
+import gm.tieba.tabswitch.hooker.Obfuscated
+import gm.tieba.tabswitch.hooker.deobfuscation.Matcher
+import gm.tieba.tabswitch.hooker.deobfuscation.MethodNameMatcher
+import gm.tieba.tabswitch.hooker.deobfuscation.ResMatcher
+import gm.tieba.tabswitch.util.findFirstMethodByExactReturnType
+import gm.tieba.tabswitch.util.getDimen
+import gm.tieba.tabswitch.util.getObjectField
+import gm.tieba.tabswitch.util.getR
+import org.luckypray.dexkit.query.matchers.ClassMatcher
+import java.lang.reflect.Modifier
 
-import androidx.annotation.NonNull;
-
-import org.luckypray.dexkit.query.matchers.ClassMatcher;
-
-import java.lang.reflect.Modifier;
-import java.util.List;
-
-import de.robv.android.xposed.XC_MethodReplacement;
-import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.XposedContext;
-import gm.tieba.tabswitch.dao.AcRules;
-import gm.tieba.tabswitch.hooker.IHooker;
-import gm.tieba.tabswitch.hooker.Obfuscated;
-import gm.tieba.tabswitch.hooker.deobfuscation.MethodNameMatcher;
-import gm.tieba.tabswitch.hooker.deobfuscation.Matcher;
-import gm.tieba.tabswitch.hooker.deobfuscation.ResMatcher;
-import gm.tieba.tabswitch.util.ReflectUtils;
-
-public class PurgeEnter extends XposedContext implements IHooker, Obfuscated {
-    @NonNull
-    @Override
-    public String key() {
-        return "purge_enter";
+class PurgeEnter : XposedContext(), IHooker, Obfuscated {
+    override fun key(): String {
+        return "purge_enter"
     }
 
-    private int mInitLayoutHeight = -1;
-    private final int mLayoutOffset = (int) ReflectUtils.getDimen("tbds50");
-    private String mRecForumClassName, mRecForumSetNextPageMethodName, mPbListViewInnerViewConstructorName;
+    private val mLayoutOffset = getDimen("tbds50").toInt()
+    private var mInitLayoutHeight = -1
+    private var mPbListViewInnerViewConstructorName: String? = null
+    private lateinit var mRecForumClassName: String
+    private lateinit var mRecForumSetNextPageMethodName: String
 
-    @Override
-    public List<? extends Matcher> matchers() {
-        return List.of(
-                new ResMatcher(ReflectUtils.getR("dimen", "tbds400"), "dimen.tbds400")
-                        .setBaseClassMatcher(ClassMatcher.create().usingStrings("enter_forum_login_tip")),
-                new MethodNameMatcher("onSuccess", "purge_enter_on_success")
-                        .setBaseClassMatcher(ClassMatcher.create().usingStrings("enter_forum_login_tip"))
-        );
+    override fun matchers(): List<Matcher> {
+        return listOf(
+            ResMatcher(getR("dimen", "tbds400").toLong(), "dimen.tbds400").apply {
+                classMatcher = ClassMatcher.create().usingStrings("enter_forum_login_tip")
+            },
+            MethodNameMatcher("onSuccess", "purge_enter_on_success").apply {
+                classMatcher = ClassMatcher.create().usingStrings("enter_forum_login_tip")
+            }
+        )
     }
 
-    @Override
-    public void hook() throws Throwable {
-        XposedHelpers.findAndHookMethod(
-                "com.baidu.tieba.enterForum.recforum.message.RecommendForumRespondedMessage",
-                sClassLoader,
-                "getRecommendForumData",
-                XC_MethodReplacement.returnConstant(null));
+    @Throws(Throwable::class)
+    override fun hook() {
+        hookReplaceMethod(
+            "com.baidu.tieba.enterForum.recforum.message.RecommendForumRespondedMessage",
+            "getRecommendForumData"
+        ) { null }
 
-        for (final var currMethod : XposedHelpers.findClass("com.baidu.tbadk.core.view.PbListView", sClassLoader).getSuperclass().getDeclaredMethods()) {
-            if (currMethod.getReturnType().toString().endsWith("View") && !Modifier.isAbstract(currMethod.getModifiers())) {
-                mPbListViewInnerViewConstructorName = currMethod.getName();
-                break;
+        mPbListViewInnerViewConstructorName = findClass("com.baidu.tbadk.core.view.PbListView").superclass.declaredMethods.find { method ->
+            method.returnType.toString().endsWith("View") && !Modifier.isAbstract(method.modifiers)
+        }?.name
+
+        findRule(matchers()) { matcher, clazz, method ->
+            when (matcher) {
+                "dimen.tbds400" -> {
+                    mRecForumClassName = clazz
+                    mRecForumSetNextPageMethodName = method
+                    hookReplaceMethod(clazz, method) { param ->
+                        val pbListView = getObjectField(param.thisObject, "com.baidu.tbadk.core.view.PbListView")
+                        val pbListViewInnerView =
+                            XposedHelpers.callMethod(pbListView, mPbListViewInnerViewConstructorName) as View
+                        val bdListView =
+                            getObjectField(param.thisObject, "com.baidu.adp.widget.ListView.BdListView")
+                        if (pbListViewInnerView.parent == null) {
+                            XposedHelpers.callMethod(bdListView, "setNextPage", pbListView)
+                            XposedHelpers.callMethod(bdListView, "setOverScrollMode", View.OVER_SCROLL_ALWAYS)
+                        }
+                        val linearLayout = getObjectField(pbListView, "android.widget.LinearLayout") as LinearLayout
+                        val layoutParams = LinearLayout.LayoutParams(linearLayout.layoutParams)
+                        if (mInitLayoutHeight == -1) {
+                            mInitLayoutHeight = layoutParams.height + mLayoutOffset
+                        }
+                        layoutParams.height = mInitLayoutHeight
+                        linearLayout.setLayoutParams(layoutParams)
+                        XposedHelpers.callMethod(bdListView, "setExOnSrollToBottomListener", null as Any?)
+                    }
+                }
+
+                "purge_enter_on_success" ->
+                    hookReplaceMethod(
+                        clazz,
+                        method, Boolean::class.javaPrimitiveType
+                    ) { param ->
+                        val enterForumRec = getObjectField(param.thisObject, mRecForumClassName)
+                        XposedHelpers.callMethod(enterForumRec, mRecForumSetNextPageMethodName)
+                    }
             }
         }
 
-        AcRules.findRule(matchers(), (matcher, clazz, method) -> {
-            switch (matcher) {
-                case "dimen.tbds400":
-                    mRecForumClassName = clazz;
-                    mRecForumSetNextPageMethodName = method;
-                    XposedHelpers.findAndHookMethod(clazz, sClassLoader, method, new XC_MethodReplacement() {
-                        @Override
-                        protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
-                            Object pbListView = ReflectUtils.getObjectField(param.thisObject, "com.baidu.tbadk.core.view.PbListView");
-                            View pbListViewInnerView = (View) XposedHelpers.callMethod(pbListView, mPbListViewInnerViewConstructorName);
-
-                            Object bdListView = ReflectUtils.getObjectField(param.thisObject, "com.baidu.adp.widget.ListView.BdListView");
-                            if (pbListViewInnerView.getParent() == null) {
-                                XposedHelpers.callMethod(bdListView, "setNextPage", pbListView);
-                                XposedHelpers.callMethod(bdListView, "setOverScrollMode", View.OVER_SCROLL_ALWAYS);
-                            }
-
-                            LinearLayout linearLayout = (LinearLayout) ReflectUtils.getObjectField(pbListView, "android.widget.LinearLayout");
-                            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(linearLayout.getLayoutParams());
-
-                            if (mInitLayoutHeight == -1){
-                                mInitLayoutHeight = layoutParams.height + mLayoutOffset;
-                            }
-                            layoutParams.height = mInitLayoutHeight;
-                            linearLayout.setLayoutParams(layoutParams);
-
-                            XposedHelpers.callMethod(bdListView, "setExOnSrollToBottomListener", (Object) null);
-                            return null;
-                        }
-                    });
-                    break;
-                case "purge_enter_on_success":
-                    XposedHelpers.findAndHookMethod(clazz,
-                            sClassLoader,
-                            method,
-                            boolean.class,
-                            new XC_MethodReplacement() {
-                                @Override
-                                protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
-                                    Object enterForumRec = ReflectUtils.getObjectField(param.thisObject, mRecForumClassName);
-                                    XposedHelpers.callMethod(enterForumRec, mRecForumSetNextPageMethodName);
-                                    return null;
-                                }
-                            });
-                    break;
-            }
-        });
-
         try {   // 12.56.4.0+ 禁用WebView进吧页
-            XposedBridge.hookMethod(
-                    ReflectUtils.findFirstMethodByExactReturnType("com.baidu.tieba.enterForum.helper.HybridEnterForumHelper", boolean.class),
-                    XC_MethodReplacement.returnConstant(false));
-        } catch (final XposedHelpers.ClassNotFoundError ignored) {}
+            hookReplaceMethod(
+                findFirstMethodByExactReturnType(
+                    "com.baidu.tieba.enterForum.helper.HybridEnterForumHelper",
+                    Boolean::class.javaPrimitiveType!!
+                )
+            ) { false }
+        } catch (ignored: ClassNotFoundError) {
+        }
     }
 }
