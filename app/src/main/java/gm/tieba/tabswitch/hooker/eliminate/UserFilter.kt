@@ -1,144 +1,127 @@
-package gm.tieba.tabswitch.hooker.eliminate;
+package gm.tieba.tabswitch.hooker.eliminate
 
-import androidx.annotation.NonNull;
+import de.robv.android.xposed.XC_MethodHook
+import de.robv.android.xposed.XposedBridge
+import de.robv.android.xposed.XposedHelpers
+import gm.tieba.tabswitch.XposedContext
+import gm.tieba.tabswitch.hooker.IHooker
+import java.util.Arrays
+import java.util.regex.Pattern
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.regex.Pattern;
-
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.XposedContext;
-import gm.tieba.tabswitch.hooker.IHooker;
-
-public class UserFilter extends XposedContext implements IHooker, RegexFilter {
-    private final Set<Object> mIds = new HashSet<>();
-
-    @NonNull
-    @Override
-    public String key() {
-        return "user_filter";
+class UserFilter : XposedContext(), IHooker, RegexFilter {
+    private val mIds: MutableSet<Any> = HashSet()
+    override fun key(): String {
+        return "user_filter"
     }
 
-    @Override
-    public void hook() throws Throwable {
-        XposedHelpers.findAndHookMethod("tbclient.Personalized.DataRes$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
-            @Override
-            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
-                final var threadList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "thread_list");
-                if (threadList == null) return;
-                final var pattern = getPattern();
-                threadList.removeIf(o -> {
-                    final var author = XposedHelpers.getObjectField(o, "author");
-                    final var authors = new String[]{(String) XposedHelpers.getObjectField(author, "name"),
-                            (String) XposedHelpers.getObjectField(author, "name_show")};
-                    return Arrays.stream(authors).anyMatch(s -> pattern.matcher(s).find());
-                });
+    @Throws(Throwable::class)
+    override fun hook() {
+        hookBeforeMethod("tbclient.Personalized.DataRes\$Builder",
+            "build", Boolean::class.javaPrimitiveType) { param ->
+            val threadList = XposedHelpers.getObjectField(param.thisObject, "thread_list") as? MutableList<*>
+            val pattern = getPattern()
+            threadList?.removeIf { thread ->
+                val author = XposedHelpers.getObjectField(thread, "author")
+                val authors = arrayOf(
+                    XposedHelpers.getObjectField(author, "name") as String,
+                    XposedHelpers.getObjectField(author, "name_show") as String
+                )
+                authors.any { pattern.matcher(it).find() }
             }
-        });
+        }
 
-        XposedHelpers.findAndHookMethod("tbclient.FrsPage.PageData$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
-            @Override
-            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
-                filterPageData(param.thisObject);
-            }
-        });
+        hookBeforeMethod(
+            "tbclient.FrsPage.PageData\$Builder",
+            "build", Boolean::class.javaPrimitiveType
+        ) { param ->
+            filterPageData(param.thisObject)
+        }
 
-        XposedHelpers.findAndHookMethod("tbclient.ThreadList.PageData$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
-            @Override
-            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
-                filterPageData(param.thisObject);
-            }
-        });
+        hookBeforeMethod(
+            "tbclient.ThreadList.PageData\$Builder",
+            "build", Boolean::class.javaPrimitiveType
+        ) { param ->
+            filterPageData(param.thisObject)
+        }
 
         // 楼层
-        XposedHelpers.findAndHookMethod("tbclient.PbPage.DataRes$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
-            @Override
-            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
-                final var postList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "post_list");
-                if (postList == null) return;
-                final var pattern = getPattern();
-                initIdList(param.thisObject, pattern);
-
-                postList.removeIf(o -> ((Integer) XposedHelpers.getObjectField(o, "floor") != 1)
-                        && mIds.contains(XposedHelpers.getObjectField(o, "author_id")));
+        hookBeforeMethod(
+            "tbclient.PbPage.DataRes\$Builder",
+            "build", Boolean::class.javaPrimitiveType
+        ) { param ->
+            val postList = XposedHelpers.getObjectField(param.thisObject, "post_list") as? MutableList<*>
+            val pattern = getPattern()
+            initIdList(param.thisObject, pattern)
+            postList?.removeIf { post ->
+                (XposedHelpers.getObjectField(post, "floor") as Int != 1
+                        && mIds.contains(XposedHelpers.getObjectField(post, "author_id")))
             }
-        });
+        }
+
         // 楼中楼：[\u202e|\ud83c\udd10-\ud83c\udd89]
-        XposedHelpers.findAndHookMethod("tbclient.SubPost$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
-            @Override
-            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
-                final var subPostList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "sub_post_list");
-                if (subPostList == null) return;
-                subPostList.removeIf(o -> mIds.contains(XposedHelpers.getObjectField(o, "author_id")));
-            }
-        });
+        hookBeforeMethod(
+            "tbclient.SubPost\$Builder",
+            "build", Boolean::class.javaPrimitiveType
+        ) { param ->
+            val subPostList = XposedHelpers.getObjectField(param.thisObject, "sub_post_list") as? MutableList<*>
+            subPostList?.removeIf { subPost -> mIds.contains(XposedHelpers.getObjectField(subPost, "author_id")) }
+        }
+
         // 楼层回复
-        XposedHelpers.findAndHookMethod("tbclient.PbFloor.DataRes$Builder", sClassLoader, "build", boolean.class, new XC_MethodHook() {
-            @Override
-            protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
-                final var subpostList = (List<?>) XposedHelpers.getObjectField(param.thisObject, "subpost_list");
-                if (subpostList == null) return;
-                final var pattern = getPattern();
-                subpostList.removeIf(o -> {
-                    final var author = XposedHelpers.getObjectField(o, "author");
-                    final var authors = new String[]{(String) XposedHelpers.getObjectField(author, "name"),
-                            (String) XposedHelpers.getObjectField(author, "name_show")};
-                    return Arrays.stream(authors).anyMatch(s -> pattern.matcher(s).find());
-                });
-            }
-        });
-    }
-
-    private void filterPageData(Object pageData) {
-        List<?> feedList = (List<?>) XposedHelpers.getObjectField(pageData, "feed_list");
-        if (feedList == null) return;
-        final var pattern = getPattern();
-        feedList.removeIf(
-                o -> {
-                    Object currFeed = XposedHelpers.getObjectField(o, "feed");
-                    if (currFeed != null) {
-                        List<?> components = (List<?>) XposedHelpers.getObjectField(currFeed, "components");
-                        if (components != null ){
-                            for (var component: components) {
-                                if (XposedHelpers.getObjectField(component, "component").toString().equals("feed_head")) {
-                                    Object feedHead = XposedHelpers.getObjectField(component, "feed_head");
-                                    List<?> mainData = (List<?>) XposedHelpers.getObjectField(feedHead, "main_data");
-                                    if (mainData != null) {
-                                        for (var feedHeadSymbol: mainData) {
-                                            Object feedHeadText = XposedHelpers.getObjectField(feedHeadSymbol, "text");
-                                            if (feedHeadText != null) {
-                                                String username = (String) XposedHelpers.getObjectField(feedHeadText, "text");
-                                                if (username != null) {
-                                                    if (pattern.matcher(username).find()) {
-                                                        return true;
-                                                    }
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                    }
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    return false;
-                }
-        );
-    }
-
-    private void initIdList(final Object thisObject, final Pattern pattern) {
-        final var userList = (List<?>) XposedHelpers.getObjectField(thisObject, "user_list");
-        for (final var user : userList) {
-            final var authors = new String[]{(String) XposedHelpers.getObjectField(user, "name"),
-                    (String) XposedHelpers.getObjectField(user, "name_show")};
-            if (Arrays.stream(authors).anyMatch(s -> pattern.matcher(s).find())) {
-                mIds.add(XposedHelpers.getObjectField(user, "id"));
+        hookBeforeMethod(
+            "tbclient.PbFloor.DataRes\$Builder",
+            "build", Boolean::class.javaPrimitiveType
+        ) { param ->
+            val subpostList = XposedHelpers.getObjectField(param.thisObject, "subpost_list") as? MutableList<*>
+            val pattern = getPattern()
+            subpostList?.removeIf { subPost ->
+                val author = XposedHelpers.getObjectField(subPost, "author")
+                val authors = arrayOf(
+                    XposedHelpers.getObjectField(author, "name") as String,
+                    XposedHelpers.getObjectField(author, "name_show") as String
+                )
+                authors.any { pattern.matcher(it).find() }
             }
         }
     }
 
+    private fun filterPageData(pageData: Any) {
+        val feedList = XposedHelpers.getObjectField(pageData, "feed_list") as? MutableList<*>
+        val pattern = getPattern()
+
+        feedList?.removeIf { feed ->
+            val currFeed = XposedHelpers.getObjectField(feed, "feed")
+
+            currFeed?.let {
+                val components = XposedHelpers.getObjectField(currFeed, "components") as? List<*>
+
+                components?.firstOrNull { component ->
+                    XposedHelpers.getObjectField(component, "component").toString() == "feed_head"
+                }?.let { feedHeadComponent ->
+                    val feedHead = XposedHelpers.getObjectField(feedHeadComponent, "feed_head")
+                    val mainData = XposedHelpers.getObjectField(feedHead, "main_data") as? List<*>
+
+                    mainData?.any { feedHeadSymbol ->
+                        val feedHeadText = XposedHelpers.getObjectField(feedHeadSymbol, "text")
+                        val username = feedHeadText?.let { XposedHelpers.getObjectField(it, "text") as? String }
+                        return@removeIf username?.let { pattern.matcher(it).find() } ?: false
+                    }
+                }
+            }
+            false
+        }
+    }
+
+    private fun initIdList(thisObject: Any, pattern: Pattern) {
+        val userList = XposedHelpers.getObjectField(thisObject, "user_list") as? List<*>
+        userList?.forEach { user ->
+            val authors = arrayOf(
+                XposedHelpers.getObjectField(user, "name") as String,
+                XposedHelpers.getObjectField(user, "name_show") as String
+            )
+            if (authors.any { name: String -> pattern.matcher(name).find() }) {
+                mIds.add(XposedHelpers.getObjectField(user, "id"))
+            }
+        }
+    }
 }
