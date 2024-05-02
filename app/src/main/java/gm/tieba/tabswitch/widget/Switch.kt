@@ -39,12 +39,11 @@ class Switch : XposedContext() {
         XposedHelpers.callMethod(bdSwitch, "setOnSwitchStateChangeListener", proxy)
     }
 
-    val isOn: Boolean
-        get() = try {
-            XposedHelpers.callMethod(bdSwitch, "isOn") as Boolean
-        } catch (e: NoSuchMethodError) {
-            callMethod(mMethods[6], bdSwitch) as Boolean
-        }
+    fun isOn(): Boolean = try {
+        XposedHelpers.callMethod(bdSwitch, "isOn") as Boolean
+    } catch (e: NoSuchMethodError) {
+        callMethod(mMethods[6], bdSwitch) as Boolean
+    }
 
     fun changeState() {
         try {
@@ -70,6 +69,5 @@ class Switch : XposedContext() {
         }
     }
 
-    val vibrator: Vibrator?
-        get() = getObjectField(bdSwitch, Vibrator::class.java)
+    fun getVibrator(): Vibrator? = getObjectField(bdSwitch, Vibrator::class.java)
 }
