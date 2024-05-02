@@ -18,7 +18,7 @@ class PersonalizedFilter : XposedContext(), IHooker, RegexFilter {
             "build", Boolean::class.javaPrimitiveType
         ) { param ->
             val threadList = XposedHelpers.getObjectField(param.thisObject, "thread_list") as? MutableList<*>
-            val pattern = getPattern()
+            val pattern = getPattern() ?: return@hookBeforeMethod
             threadList?.removeIf { threadItem ->
                 pattern.matcher(parsePbContent(threadItem, "first_post_content")).find() ||
                         pattern.matcher(XposedHelpers.getObjectField(threadItem, "title") as? String ?: "").find()

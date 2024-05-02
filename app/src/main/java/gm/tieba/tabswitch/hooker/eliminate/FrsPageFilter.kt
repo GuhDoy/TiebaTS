@@ -24,7 +24,7 @@ class FrsPageFilter : XposedContext(), IHooker, RegexFilter {
 
     private fun filterPageData(pageData: Any) {
         val feedList = XposedHelpers.getObjectField(pageData, "feed_list") as? MutableList<*>
-        val pattern = getPattern()
+        val pattern = getPattern() ?: return
 
         feedList?.removeIf { feedItem ->
             val currFeed = XposedHelpers.getObjectField(feedItem, "feed")

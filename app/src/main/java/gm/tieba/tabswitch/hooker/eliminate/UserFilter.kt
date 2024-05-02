@@ -19,7 +19,7 @@ class UserFilter : XposedContext(), IHooker, RegexFilter {
         hookBeforeMethod("tbclient.Personalized.DataRes\$Builder",
             "build", Boolean::class.javaPrimitiveType) { param ->
             val threadList = XposedHelpers.getObjectField(param.thisObject, "thread_list") as? MutableList<*>
-            val pattern = getPattern()
+            val pattern = getPattern() ?: return@hookBeforeMethod
             threadList?.removeIf { thread ->
                 val author = XposedHelpers.getObjectField(thread, "author")
                 val authors = arrayOf(
@@ -50,7 +50,7 @@ class UserFilter : XposedContext(), IHooker, RegexFilter {
             "build", Boolean::class.javaPrimitiveType
         ) { param ->
             val postList = XposedHelpers.getObjectField(param.thisObject, "post_list") as? MutableList<*>
-            val pattern = getPattern()
+            val pattern = getPattern() ?: return@hookBeforeMethod
             initIdList(param.thisObject, pattern)
             postList?.removeIf { post ->
                 (XposedHelpers.getObjectField(post, "floor") as Int != 1
@@ -73,7 +73,7 @@ class UserFilter : XposedContext(), IHooker, RegexFilter {
             "build", Boolean::class.javaPrimitiveType
         ) { param ->
             val subpostList = XposedHelpers.getObjectField(param.thisObject, "subpost_list") as? MutableList<*>
-            val pattern = getPattern()
+            val pattern = getPattern() ?: return@hookBeforeMethod
             subpostList?.removeIf { subPost ->
                 val author = XposedHelpers.getObjectField(subPost, "author")
                 val authors = arrayOf(
@@ -87,7 +87,7 @@ class UserFilter : XposedContext(), IHooker, RegexFilter {
 
     private fun filterPageData(pageData: Any) {
         val feedList = XposedHelpers.getObjectField(pageData, "feed_list") as? MutableList<*>
-        val pattern = getPattern()
+        val pattern = getPattern() ?: return
 
         feedList?.removeIf { feed ->
             val currFeed = XposedHelpers.getObjectField(feed, "feed")
@@ -95,7 +95,7 @@ class UserFilter : XposedContext(), IHooker, RegexFilter {
             currFeed?.let {
                 val components = XposedHelpers.getObjectField(currFeed, "components") as? List<*>
 
-                components?.firstOrNull { component ->
+                components?.first { component ->
                     XposedHelpers.getObjectField(component, "component").toString() == "feed_head"
                 }?.let { feedHeadComponent ->
                     val feedHead = XposedHelpers.getObjectField(feedHeadComponent, "feed_head")
