@@ -1,11 +1,8 @@
-package gm.tieba.tabswitch.hooker;
+package gm.tieba.tabswitch.hooker
 
-import androidx.annotation.NonNull;
+interface IHooker {
+    fun key(): String
 
-public interface IHooker {
-
-    @NonNull
-    String key();
-
-    void hook() throws Throwable;
+    @Throws(Throwable::class)
+    fun hook()
 }

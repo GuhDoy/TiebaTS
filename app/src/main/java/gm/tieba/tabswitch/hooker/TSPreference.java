@@ -57,7 +57,7 @@ public class TSPreference extends XposedContext implements IHooker, Obfuscated {
     }
 
     @Override
-    public List<? extends Matcher> matchers() {
+    public List<Matcher> matchers() {
         return List.of(new SmaliMatcher(
                 "Lcom/baidu/tbadk/data/MetaData;->getBazhuGradeData()Lcom/baidu/tbadk/coreExtra/data/BazhuGradeData;")
                         .setBaseClassMatcher(ClassMatcher.create().usingStrings("mo/q/wise-bawu-core/privacy-policy")
