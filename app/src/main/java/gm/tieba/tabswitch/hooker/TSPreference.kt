@@ -112,10 +112,7 @@ class TSPreference : XposedContext(), IHooker, Obfuscated {
                         val messages = ArrayList<String?>().apply {
                             add(strings["exception_init_preference"])
                             add(
-                                String.format(
-                                    Locale.CHINA, "贴吧版本：%s, 模块版本：%d",
-                                    getTbVersion(getContext()), BuildConfig.VERSION_CODE
-                                )
+                                "贴吧版本：%s, 模块版本：%d".format(Locale.CHINA, getTbVersion(getContext()), BuildConfig.VERSION_CODE)
                             )
                             add(Log.getStackTraceString(tr))
                         }
@@ -311,7 +308,7 @@ class TSPreference : XposedContext(), IHooker, Obfuscated {
         })
 
         preferenceLayout.addView(
-            createButton("版本", String.format(Locale.CHINA, "%s", BuildConfig.VERSION_NAME), true) { _ ->
+            createButton("版本", "%s".format(Locale.CHINA, BuildConfig.VERSION_NAME), true) { _ ->
                 activity.startActivity(Intent().apply {
                     setAction("android.intent.action.VIEW")
                     if (isModuleBetaVersion) {

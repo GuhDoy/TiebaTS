@@ -85,7 +85,7 @@ class SaveImages : XposedContext(), IHooker, Obfuscated {
 
     private val saveImageListener = OnLongClickListener {
         showTbToast(
-            String.format(Locale.CHINA, "开始下载%d张图片", mList.size),
+            "开始下载%d张图片".format(Locale.CHINA, mList.size),
             TbToast.LENGTH_SHORT
         )
 
@@ -98,13 +98,13 @@ class SaveImages : XposedContext(), IHooker, Obfuscated {
                     val formattedUrl = url.substringBeforeLast("*")
                     saveImage(
                         formattedUrl,
-                        "${formattedTime}_${String.format(Locale.CHINA, "%02d", index)}",
+                        "${formattedTime}_${"%02d".format(Locale.CHINA, index)}",
                         getContext()
                     )
                 }
                 Handler(Looper.getMainLooper()).post {
                     showTbToast(
-                        String.format(Locale.CHINA, "已保存%d张图片至手机相册", mList.size),
+                        "已保存%d张图片至手机相册".format(Locale.CHINA, mList.size),
                         TbToast.LENGTH_SHORT
                     )
                 }

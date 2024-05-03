@@ -17,7 +17,7 @@ abstract class XposedContext {
         @JvmField
         var isModuleBetaVersion = false
         @JvmField
-        val exceptions: Map<String, Throwable> = HashMap(0)
+        val exceptions: MutableMap<String, Throwable> = HashMap(0)
 
         @JvmStatic
         lateinit var sClassLoader: ClassLoader
