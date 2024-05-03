@@ -409,6 +409,7 @@ class Purge : XposedContext(), IHooker, Obfuscated {
                             val currValue = XposedHelpers.getObjectField(feedKV, "value").toString()
                             currValue == "1"
                         }
+                        "game_ext" -> true
                         else -> false
                     }
                 } ?: false
