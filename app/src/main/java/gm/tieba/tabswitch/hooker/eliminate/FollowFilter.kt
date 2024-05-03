@@ -22,7 +22,7 @@ class FollowFilter : XposedContext(), IHooker {
                 return@hookBeforeMethod
             }
             val threadList = XposedHelpers.getObjectField(param.thisObject, "thread_list") as? MutableList<*>
-            threadList?.removeIf { o: Any? -> !forums.contains(XposedHelpers.getObjectField(o, "fname") as? String) }
+            threadList?.removeIf { thread -> !forums.contains(XposedHelpers.getObjectField(thread, "fname") as? String) }
         }
     }
 }

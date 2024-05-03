@@ -15,7 +15,7 @@ class PurgeVideo : XposedContext(), IHooker {
             "build", Boolean::class.javaPrimitiveType
         ) { param ->
             val threadList = XposedHelpers.getObjectField(param.thisObject, "thread_list") as? MutableList<*>
-            threadList?.removeIf { o: Any? -> XposedHelpers.getObjectField(o, "video_info") != null }
+            threadList?.removeIf { thread -> XposedHelpers.getObjectField(thread, "video_info") != null }
         }
     }
 }

@@ -60,8 +60,8 @@ class FragmentTab : XposedContext(), IHooker, Obfuscated {
                     }
                 }
 
-                val list = param.args[0] as? ArrayList<*>
-                list?.removeIf { tab: Any -> tabsToRemove.contains(tab.javaClass.getName()) }
+                val tabList = param.args[0] as? ArrayList<*>
+                tabList?.removeIf { tab -> tabsToRemove.contains(tab.javaClass.getName()) }
             }
         }
     }

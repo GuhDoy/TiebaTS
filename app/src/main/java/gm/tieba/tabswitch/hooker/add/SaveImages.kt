@@ -33,7 +33,7 @@ import java.util.Locale
 import kotlin.concurrent.thread
 
 class SaveImages : XposedContext(), IHooker, Obfuscated {
-    private lateinit var mList: ArrayList<String>
+    private lateinit var mList: ArrayList<*>
     private var mDownloadImageViewField: Field? = null
     override fun key(): String {
         return "save_images"
@@ -61,13 +61,13 @@ class SaveImages : XposedContext(), IHooker, Obfuscated {
                 ArrayList::class.java
             )
         ) { param ->
-            mList = ArrayList(param.args[0] as ArrayList<String>)
-            mList.removeIf { o: String -> o.startsWith("####mLiveRoomPageProvider") }
+            mList = ArrayList(param.args[0] as ArrayList<*>)
+            mList.removeIf { (it as String).startsWith("####mLiveRoomPageProvider") }
         }
 
         val imageViewerBottomLayoutClass = findClass("com.baidu.tbadk.coreExtra.view.ImageViewerBottomLayout")
         val declaredFields = mutableListOf(*imageViewerBottomLayoutClass.declaredFields)
-        declaredFields.removeIf { o: Field -> o.type != ImageView::class.java }
+        declaredFields.removeIf { it.type != ImageView::class.java }
 
         mDownloadImageViewField = declaredFields[declaredFields.size - 1]
         mDownloadImageViewField?.let {
@@ -93,7 +93,7 @@ class SaveImages : XposedContext(), IHooker, Obfuscated {
         thread {
             try {
                 mList.forEachIndexed { index, url ->
-                    val formattedUrl = url.substringBeforeLast("*")
+                    val formattedUrl = (url as String).substringBeforeLast("*")
                     saveImage(
                         formattedUrl,
                         "${formattedTime}_${"%02d".format(Locale.CHINA, index)}",

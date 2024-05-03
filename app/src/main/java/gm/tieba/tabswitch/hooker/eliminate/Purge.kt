@@ -266,7 +266,7 @@ class Purge : XposedContext(), IHooker, Obfuscated {
 
             // 吧友直播
             val frsMainTabList = XposedHelpers.getObjectField(param.thisObject, "frs_main_tab_list") as? MutableList<*>
-            frsMainTabList?.removeIf { tab: Any? -> XposedHelpers.getObjectField(tab, "tab_type") as Int == 92 }
+            frsMainTabList?.removeIf { tab -> XposedHelpers.getObjectField(tab, "tab_type") as Int == 92 }
 
             // 弹出广告
             XposedHelpers.setObjectField(param.thisObject, "business_promot", null)

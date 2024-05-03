@@ -68,9 +68,9 @@ class OriginSrc : XposedContext(), IHooker {
                 ) { param ->
                     val jsonObject = param.args[0] as JSONObject
 
-                    jsonObject.optJSONArray("pic_list")?.let {
-                        for (i in 0 until it.length()) {
-                            val pic = it.optJSONObject(i)
+                    jsonObject.optJSONArray("pic_list")?.let { picList ->
+                        for (i in 0 until picList.length()) {
+                            val pic = picList.optJSONObject(i)
                             val img = pic.getJSONObject("img")
                             val original = img.getJSONObject("original").apply {
                                 put("big_cdn_src", getString("original_src"))
@@ -81,7 +81,7 @@ class OriginSrc : XposedContext(), IHooker {
                                 put("show_original_btn", 0)
                             }
                         }
-                        jsonObject.put("pic_list", it)
+                        jsonObject.put("pic_list", picList)
                     }
                 }
 
@@ -90,10 +90,10 @@ class OriginSrc : XposedContext(), IHooker {
                     "build", Boolean::class.javaPrimitiveType,
                 ) { param ->
                     XposedHelpers.setObjectField(param.thisObject, "show_original_btn", 0)
-                    arrayOf("big_cdn_src", "cdn_src", "cdn_src_active").forEach {
+                    arrayOf("big_cdn_src", "cdn_src", "cdn_src_active").forEach { field ->
                         XposedHelpers.setObjectField(
                             param.thisObject,
-                            it,
+                            field,
                             XposedHelpers.getObjectField(param.thisObject, "origin_src")
                         )
                     }
@@ -104,10 +104,10 @@ class OriginSrc : XposedContext(), IHooker {
                     "build", Boolean::class.javaPrimitiveType,
                 ) { param ->
                     XposedHelpers.setObjectField(param.thisObject, "show_original_btn", 0)
-                    arrayOf("small_pic", "water_pic").forEach {
+                    arrayOf("small_pic", "water_pic").forEach { field ->
                         XposedHelpers.setObjectField(
                             param.thisObject,
-                            it,
+                            field,
                             XposedHelpers.getObjectField(param.thisObject, "big_pic")
                         )
                     }
@@ -117,10 +117,10 @@ class OriginSrc : XposedContext(), IHooker {
                     "tbclient.PicInfo\$Builder",
                     "build", Boolean::class.javaPrimitiveType,
                 ) { param ->
-                    arrayOf("small_pic_url", "big_pic_url").forEach {
+                    arrayOf("small_pic_url", "big_pic_url").forEach { field ->
                         XposedHelpers.setObjectField(
                             param.thisObject,
-                            it,
+                            field,
                             XposedHelpers.getObjectField(param.thisObject, "origin_pic_url")
                         )
                     }
@@ -133,8 +133,8 @@ class OriginSrc : XposedContext(), IHooker {
                     val schema = XposedHelpers.getObjectField(param.thisObject, "schema") as String
                     val paramsJson = Uri.parse(schema).getQueryParameter("params")
 
-                    paramsJson?.let {
-                        val jsonObject = JSONObject(it)
+                    paramsJson?.let { schemaParams ->
+                        val jsonObject = JSONObject(schemaParams)
                         val pageParams = jsonObject.getJSONObject("pageParams")
                         val picDataList = pageParams.getJSONArray("pic_data_list")
                         for (i in 0 until picDataList.length()) {

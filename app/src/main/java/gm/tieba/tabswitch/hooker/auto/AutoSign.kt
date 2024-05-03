@@ -105,24 +105,24 @@ class AutoSign : XposedContext(), IHooker {
 
     private fun runSign() {
         // 当执行 3 轮所有贴吧还未签到成功就结束操作
-        var flag = 3
+        var roundCount = 3
 
         try {
-            while (mSuccess.size < mFollowNum && flag > 0) {
+            while (mSuccess.size < mFollowNum && roundCount > 0) {
 
-                mFollow.removeAll { s ->
-                    val encodedS = URLEncoder.encode(s, "UTF-8")
-                    val body = "kw=$encodedS&tbs=$mTbs&sign=${AutoSignHelper.enCodeMd5("kw=${s}tbs=${mTbs}tiebaclient!!!")}"
+                mFollow.removeAll { forumName ->
+                    val encodedS = URLEncoder.encode(forumName, "UTF-8")
+                    val body = "kw=$encodedS&tbs=$mTbs&sign=${AutoSignHelper.enCodeMd5("kw=${forumName}tbs=${mTbs}tiebaclient!!!")}"
 
                     val post = AutoSignHelper.post(SIGN_URL, body)
                     when (post.getString("error_code")) {
                         "0" -> {
-                            mSuccess.add(s)
-                            XposedBridge.log("$s: 签到成功")
+                            mSuccess.add(forumName)
+                            XposedBridge.log("$forumName: 签到成功")
                             true
                         }
                         else -> {
-                            XposedBridge.log("$s: 签到失败")
+                            XposedBridge.log("$forumName: 签到失败")
                             false
                         }
                     }
@@ -132,7 +132,7 @@ class AutoSign : XposedContext(), IHooker {
                     Thread.sleep(2500)
                     getTbs()
                 }
-                flag--
+                roundCount--
             }
         } catch (e: Exception) {
             XposedBridge.log("签到部分出现错误 -- $e")

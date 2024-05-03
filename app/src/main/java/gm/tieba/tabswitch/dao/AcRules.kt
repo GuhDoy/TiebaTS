@@ -27,25 +27,6 @@ object AcRules {
         ruleDao.insertAll(create(matcher, clazz, method))
     }
 
-    fun findRule(matcher: Matcher, callback: Callback) {
-        ruleDao.loadAllMatch(matcher.toString()).forEach { rule ->
-            callback.onRuleFound(rule.matcher, rule.clazz, rule.method)
-        }
-    }
-
-    fun findRule(matchers: List<Matcher>, callback: Callback) {
-        val matcherStrings = matchers.map { it.toString() }.toTypedArray()
-        ruleDao.loadAllMatch(*matcherStrings).forEach { rule ->
-            callback.onRuleFound(rule.matcher, rule.clazz, rule.method)
-        }
-    }
-
-    fun findRule(str: String, callback: Callback) {
-        ruleDao.loadAllMatch(str).forEach { rule ->
-            callback.onRuleFound(rule.matcher, rule.clazz, rule.method)
-        }
-    }
-
     fun findRule(matcher: Matcher, callback: (String, String, String) -> Unit) {
         ruleDao.loadAllMatch(matcher.toString()).forEach { rule ->
             callback(rule.matcher, rule.clazz, rule.method)
@@ -71,9 +52,5 @@ object AcRules {
 
     fun isRuleFound(vararg matchers: String): Boolean {
         return matchers.all { matcher -> isRuleFound(matcher) }
-    }
-
-    interface Callback {
-        fun onRuleFound(matcher: String, clazz: String, method: String)
     }
 }

@@ -19,7 +19,7 @@ object AutoSignHelper {
         sCookie = "BDUSS=$BDUSS"
     }
 
-    operator fun get(url: String): JSONObject {
+    fun get(url: String): JSONObject {
         val okHttpClient = OkHttpClient()
         val request: Request = Builder()
             .url(url)

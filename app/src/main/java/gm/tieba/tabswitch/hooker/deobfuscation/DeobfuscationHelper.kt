@@ -87,12 +87,12 @@ object DeobfuscationHelper {
             .putString("deobfs_version", version)
             .commit()
 
-        trampoline?.let {
-            hookBeforeMethod(it, "onCreate", Bundle::class.java) { param ->
+        trampoline?.let { trampolineClass ->
+            hookBeforeMethod(trampolineClass, "onCreate", Bundle::class.java) { param ->
                 restart(param.thisObject as Activity)
             }
             activity.startActivity(
-                Intent(activity, it).apply {
+                Intent(activity, trampolineClass).apply {
                     addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
                 }
             )
@@ -107,8 +107,8 @@ object DeobfuscationHelper {
         val length = max(currParts.size, reqParts.size)
         for (i in 0 until length) {
             try {
-                val currPart = (currParts.getOrNull(i))?.toInt() ?: 0
-                val reqPart = (reqParts.getOrNull(i))?.toInt() ?: 0
+                val currPart = currParts.getOrNull(i)?.toInt() ?: 0
+                val reqPart = reqParts.getOrNull(i)?.toInt() ?: 0
                 if (currPart != reqPart) {
                     return currPart > reqPart
                 }

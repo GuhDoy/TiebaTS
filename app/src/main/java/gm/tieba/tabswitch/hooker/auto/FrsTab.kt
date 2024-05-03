@@ -28,14 +28,14 @@ class FrsTab : XposedContext(), IHooker, Obfuscated {
             "tbclient.FrsPage.DataRes\$Builder",
             "build", Boolean::class.javaPrimitiveType,
         ) { param ->
-            val list = XposedHelpers.getObjectField(param.thisObject, "frs_main_tab_list") as? List<*>
-            list?.forEachIndexed { index, item ->
-                if (XposedHelpers.getObjectField(item, "tab_type") as Int == 14) {
+            val tabList = XposedHelpers.getObjectField(param.thisObject, "frs_main_tab_list") as? List<*>
+            tabList?.forEachIndexed { index, tab ->
+                if (XposedHelpers.getObjectField(tab, "tab_type") as Int == 14) {
                     mPosition = index
                     XposedHelpers.setObjectField(
                         param.thisObject,
                         "frs_tab_default",
-                        XposedHelpers.getObjectField(item, "tab_id") as Int
+                        XposedHelpers.getObjectField(tab, "tab_id") as Int
                     )
                     return@hookBeforeMethod
                 }

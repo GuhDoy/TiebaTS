@@ -18,9 +18,9 @@ class ContentFilter : XposedContext(), IHooker, RegexFilter {
         ) { param ->
             val postList = XposedHelpers.getObjectField(param.thisObject, "post_list") as? MutableList<*>
             val pattern = getPattern() ?: return@hookBeforeMethod
-            postList?.removeIf { o: Any? ->
-                (XposedHelpers.getObjectField(o, "floor") as Int != 1
-                        && pattern.matcher(parsePbContent(o, "content")).find())
+            postList?.removeIf { post ->
+                (XposedHelpers.getObjectField(post, "floor") as Int != 1
+                        && pattern.matcher(parsePbContent(post, "content")).find())
             }
         }
 
@@ -31,7 +31,7 @@ class ContentFilter : XposedContext(), IHooker, RegexFilter {
         ) { param ->
             val subPostList = XposedHelpers.getObjectField(param.thisObject, "sub_post_list") as? MutableList<*>
             val pattern = getPattern() ?: return@hookBeforeMethod
-            subPostList?.removeIf { o: Any? -> pattern.matcher(parsePbContent(o, "content")).find() }
+            subPostList?.removeIf { subPost -> pattern.matcher(parsePbContent(subPost, "content")).find() }
         }
 
         // 楼层回复
@@ -41,7 +41,7 @@ class ContentFilter : XposedContext(), IHooker, RegexFilter {
         ) { param ->
             val subPostList = XposedHelpers.getObjectField(param.thisObject, "subpost_list") as? MutableList<*>
             val pattern = getPattern() ?: return@hookBeforeMethod
-            subPostList?.removeIf { o: Any? -> pattern.matcher(parsePbContent(o, "content")).find() }
+            subPostList?.removeIf { subPost -> pattern.matcher(parsePbContent(subPost, "content")).find() }
         }
     }
 }

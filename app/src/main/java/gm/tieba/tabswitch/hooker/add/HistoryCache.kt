@@ -13,7 +13,6 @@ import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.LinearLayout
-import android.widget.TextView
 import de.robv.android.xposed.XposedHelpers
 import gm.tieba.tabswitch.Constants.strings
 import gm.tieba.tabswitch.XposedContext
@@ -53,22 +52,22 @@ class HistoryCache : XposedContext(), IHooker {
         hookBeforeMethod(
             findFirstMethodByExactType("com.baidu.tieba.myCollection.history.PbHistoryActivity", MutableList::class.java)
         ) { param ->
-            val list = param.args[0] as MutableList<*>
+            val historyList = param.args[0] as MutableList<*>
             val pattern = Pattern.compile(mRegex, Pattern.CASE_INSENSITIVE)
 
-            list.removeIf { obj: Any? ->
+            historyList.removeIf { history ->
                 val strings = try {
                     arrayOf(
-                        XposedHelpers.getObjectField(obj, "forumName") as String,
-                        XposedHelpers.getObjectField(obj, "threadName") as String
+                        XposedHelpers.getObjectField(history, "forumName") as String,
+                        XposedHelpers.getObjectField(history, "threadName") as String
                     )
                 } catch (e: NoSuchFieldError) {
                     arrayOf(
-                        getObjectField(obj, 3) as String,
-                        getObjectField(obj, 2) as String
+                        getObjectField(history, 3) as String,
+                        getObjectField(history, 2) as String
                     )
                 }
-                strings.none { string -> pattern.matcher(string).find() }
+                strings.none { pattern.matcher(it).find() }
             }
         }
     }
@@ -140,7 +139,7 @@ class HistoryCache : XposedContext(), IHooker {
         editText.apply {
             setSingleLine()
             setImeOptions(EditorInfo.IME_ACTION_SEARCH)
-            setOnEditorActionListener { _: TextView?, actionId: Int, event: KeyEvent? ->
+            setOnEditorActionListener { _, actionId, event ->
                 when {
                     actionId == EditorInfo.IME_ACTION_SEARCH || event?.keyCode == KeyEvent.KEYCODE_ENTER -> {
                         alert.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
