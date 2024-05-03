@@ -34,6 +34,7 @@ import gm.tieba.tabswitch.util.dipToPx
 import gm.tieba.tabswitch.util.fixAlertDialogWidth
 import gm.tieba.tabswitch.util.getColor
 import gm.tieba.tabswitch.util.getCurrentActivity
+import gm.tieba.tabswitch.util.getDialogTheme
 import gm.tieba.tabswitch.util.getDimen
 import gm.tieba.tabswitch.util.getDimenDip
 import gm.tieba.tabswitch.util.getDrawableId
@@ -243,7 +244,8 @@ object TSPreferenceHelper : XposedContext() {
 
             val alert = AlertDialog.Builder(
                 currentActivity,
-                if (isLightMode) android.R.style.Theme_DeviceDefault_Light_Dialog_Alert else android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                getDialogTheme(getContext())
+            )
                 .setTitle(title)
                 .setView(linearLayout)
                 .setNegativeButton(activity.getString(android.R.string.cancel), null)

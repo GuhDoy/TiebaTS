@@ -23,6 +23,7 @@ import gm.tieba.tabswitch.util.dipToPx
 import gm.tieba.tabswitch.util.findFirstMethodByExactType
 import gm.tieba.tabswitch.util.fixAlertDialogWidth
 import gm.tieba.tabswitch.util.getCurrentActivity
+import gm.tieba.tabswitch.util.getDialogTheme
 import gm.tieba.tabswitch.util.getObjectField
 import gm.tieba.tabswitch.util.isLightMode
 import gm.tieba.tabswitch.widget.NavigationBar
@@ -112,7 +113,8 @@ class HistoryCache : XposedContext(), IHooker {
         val currRegex = mRegex
         val alert = AlertDialog.Builder(
             currentActivity,
-            if (isLightMode) android.R.style.Theme_DeviceDefault_Light_Dialog_Alert else android.R.style.Theme_DeviceDefault_Dialog_Alert)
+            getDialogTheme(isLightMode)
+        )
             .setTitle("搜索")
             .setView(linearLayout)
             .setOnCancelListener { mRegex = currRegex }

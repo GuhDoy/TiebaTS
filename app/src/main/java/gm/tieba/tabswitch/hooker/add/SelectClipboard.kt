@@ -15,6 +15,7 @@ import gm.tieba.tabswitch.hooker.deobfuscation.Matcher
 import gm.tieba.tabswitch.hooker.deobfuscation.SmaliMatcher
 import gm.tieba.tabswitch.util.fixAlertDialogWidth
 import gm.tieba.tabswitch.util.getCurrentActivity
+import gm.tieba.tabswitch.util.getDialogTheme
 import gm.tieba.tabswitch.util.getObjectField
 import gm.tieba.tabswitch.util.getTbadkCoreApplicationInst
 import gm.tieba.tabswitch.util.isLightMode
@@ -55,7 +56,8 @@ class SelectClipboard : XposedContext(), IHooker, Obfuscated {
                         val currentActivity = getCurrentActivity()
                         AlertDialog.Builder(
                             currentActivity,
-                            if (isLightMode(getContext())) android.R.style.Theme_DeviceDefault_Light_Dialog_Alert else android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                            getDialogTheme(getContext())
+                        )
                             .setTitle("自由复制")
                             .setMessage(tbRichText.toString())
                             .setNeutralButton("复制全部") { _, _ ->

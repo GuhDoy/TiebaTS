@@ -79,3 +79,9 @@ fun fixAlertDialogWidth(alert: AlertDialog) {
         it.attributes = layoutParams
     }
 }
+
+fun getDialogTheme(context: Context): Int =
+    if (isLightMode(context)) android.R.style.Theme_DeviceDefault_Light_Dialog_Alert else android.R.style.Theme_DeviceDefault_Dialog_Alert
+
+fun getDialogTheme(isLightMode: Boolean): Int =
+    if (isLightMode) android.R.style.Theme_DeviceDefault_Light_Dialog_Alert else android.R.style.Theme_DeviceDefault_Dialog_Alert
