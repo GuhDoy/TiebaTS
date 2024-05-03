@@ -14,7 +14,7 @@ import java.lang.reflect.Method
 
 abstract class XposedContext {
     companion object {
-        var isModuleBetaVersion = false
+        val isModuleBetaVersion = BuildConfig.VERSION_NAME.contains("alpha") || BuildConfig.VERSION_NAME.contains("beta")
         val exceptions: MutableMap<String, Throwable> = HashMap(0)
 
         lateinit var sClassLoader: ClassLoader

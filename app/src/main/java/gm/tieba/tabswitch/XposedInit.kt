@@ -85,7 +85,6 @@ class XposedInit : XposedContext(), IXposedHookZygoteInit, IXposedHookLoadPackag
         sAssetManager = XModuleResources.createInstance(sPath, null).assets
         mAppComponentFactory = sClassLoader.loadClass("com.baidu.nps.hook.component.NPSComponentFactory")
             .getDeclaredConstructor().newInstance() as AppComponentFactory
-        isModuleBetaVersion = BuildConfig.VERSION_NAME.contains("alpha") || BuildConfig.VERSION_NAME.contains("beta")
 
         // For some reason certain flutter page will not load in LSPatch unless we manually load the flutter plugin
         hookAfterMethod(
