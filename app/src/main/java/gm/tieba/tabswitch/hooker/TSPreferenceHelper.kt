@@ -1,295 +1,308 @@
-package gm.tieba.tabswitch.hooker;
+package gm.tieba.tabswitch.hooker
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.Context;
-import android.graphics.Color;
-import android.text.InputType;
-import android.text.TextUtils;
-import android.util.Log;
-import android.view.Gravity;
-import android.view.KeyEvent;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.view.inputmethod.EditorInfo;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
+import android.annotation.SuppressLint
+import android.app.Activity
+import android.app.AlertDialog
+import android.content.Context
+import android.content.DialogInterface
+import android.graphics.Color
+import android.text.InputType
+import android.text.TextUtils
+import android.util.Log
+import android.view.Gravity
+import android.view.KeyEvent
+import android.view.MotionEvent
+import android.view.View
+import android.view.ViewGroup
+import android.view.WindowManager
+import android.view.inputmethod.EditorInfo
+import android.widget.EditText
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
+import de.robv.android.xposed.XC_MethodHook
+import de.robv.android.xposed.XposedBridge
+import de.robv.android.xposed.XposedHelpers
+import gm.tieba.tabswitch.Constants.strings
+import gm.tieba.tabswitch.XposedContext
+import gm.tieba.tabswitch.dao.Preferences.getBoolean
+import gm.tieba.tabswitch.dao.Preferences.getString
+import gm.tieba.tabswitch.dao.Preferences.putBoolean
+import gm.tieba.tabswitch.dao.Preferences.putString
+import gm.tieba.tabswitch.dao.Preferences.remove
+import gm.tieba.tabswitch.util.dipToPx
+import gm.tieba.tabswitch.util.fixAlertDialogWidth
+import gm.tieba.tabswitch.util.getColor
+import gm.tieba.tabswitch.util.getCurrentActivity
+import gm.tieba.tabswitch.util.getDimen
+import gm.tieba.tabswitch.util.getDimenDip
+import gm.tieba.tabswitch.util.getDrawableId
+import gm.tieba.tabswitch.util.getObjectField
+import gm.tieba.tabswitch.util.getR
+import gm.tieba.tabswitch.util.isLightMode
+import gm.tieba.tabswitch.widget.Switch
+import gm.tieba.tabswitch.widget.TbToast
+import gm.tieba.tabswitch.widget.TbToast.Companion.showTbToast
+import java.lang.reflect.InvocationHandler
+import java.lang.reflect.Method
+import java.util.Random
+import java.util.regex.Pattern
+import java.util.regex.PatternSyntaxException
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
+object TSPreferenceHelper : XposedContext() {
+    @JvmStatic
+    fun createTextView(text: String?): TextView = TextView(getContext()).apply {
+        this.text = text
+        setTextColor(getColor("CAM_X0108"))
+        textSize = getDimenDip("fontsize22")
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
-import gm.tieba.tabswitch.Constants;
-import gm.tieba.tabswitch.XposedContext;
-import gm.tieba.tabswitch.dao.Preferences;
-import gm.tieba.tabswitch.util.DisplayUtils;
-import gm.tieba.tabswitch.util.ReflectUtils;
-import gm.tieba.tabswitch.widget.Switch;
-import gm.tieba.tabswitch.widget.TbToast;
-
-public class TSPreferenceHelper extends XposedContext {
-    public static TextView createTextView(final String text) {
-        final TextView textView = new TextView(getContext());
-        textView.setText(text);
-        textView.setTextColor(ReflectUtils.getColor("CAM_X0108"));
-        textView.setTextSize(ReflectUtils.getDimenDip("fontsize22"));
-        final LinearLayout.LayoutParams layoutParams;
-        if (text != null) {
-            textView.setPaddingRelative((int) ReflectUtils.getDimen("ds30"),
-                    (int) ReflectUtils.getDimen("ds20"), 0,
-                    (int) ReflectUtils.getDimen("ds20"));
-            layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT);
-        } else {
-            layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                    (int) ReflectUtils.getDimen("ds32"));
-        }
-        textView.setLayoutParams(layoutParams);
-        return textView;
+        layoutParams = text?.let {
+            setPaddingRelative(
+                getDimen("ds30").toInt(),
+                getDimen("ds20").toInt(),
+                0,
+                getDimen("ds20").toInt()
+            )
+            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        } ?: LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, getDimen("ds32").toInt())
     }
 
+    @JvmStatic
     @SuppressLint("ClickableViewAccessibility")
-    public static LinearLayout createButton(final String text, final String tip, final boolean showArrow, final View.OnClickListener l) {
-        final Object textTipView = XposedHelpers.newInstance(XposedHelpers.findClass(
-                "com.baidu.tbadk.coreExtra.view.TbSettingTextTipView", sClassLoader), getContext());
-        XposedHelpers.callMethod(textTipView, "setText", text);
-        XposedHelpers.callMethod(textTipView, "setTip", tip);
+    fun createButton(text: String?, tip: String?, showArrow: Boolean, l: View.OnClickListener?): LinearLayout {
+        val textTipView = XposedHelpers.newInstance(
+            findClass("com.baidu.tbadk.coreExtra.view.TbSettingTextTipView"),
+            getContext()
+        )
+        XposedHelpers.callMethod(textTipView, "setText", text)
+        XposedHelpers.callMethod(textTipView, "setTip", tip)
 
-        final var imageView = ReflectUtils.getObjectField(textTipView, ImageView.class);
-        imageView.setVisibility(showArrow ? View.VISIBLE : View.GONE);
-        Object svgManager = XposedHelpers.callStaticMethod(XposedHelpers.findClass("com.baidu.tbadk.core.util.SvgManager", sClassLoader), "getInstance");
+        val imageView = getObjectField(textTipView, ImageView::class.java)?.apply {
+            visibility = if (showArrow) View.VISIBLE else View.GONE
+        }
+
+        val svgManager = XposedHelpers.callStaticMethod(
+            findClass("com.baidu.tbadk.core.util.SvgManager"),
+            "getInstance"
+        )
+
         XposedHelpers.callMethod(
-                svgManager,
-                "setPureDrawableWithDayNightModeAutoChange",
-                imageView,
-                ReflectUtils.getDrawableId("icon_pure_list_arrow16_right_svg"),
-                ReflectUtils.getR("color", "CAM_X0109"),
-                null
-        );
+            svgManager,
+            "setPureDrawableWithDayNightModeAutoChange",
+            imageView,
+            getDrawableId("icon_pure_list_arrow16_right_svg"),
+            getR("color", "CAM_X0109"),
+            null
+        )
 
-        final var newButton = ReflectUtils.getObjectField(textTipView, LinearLayout.class);
-        ((ViewGroup) newButton.getParent()).removeView(newButton);
-        newButton.setBackgroundColor(ReflectUtils.getColor("CAM_X0201"));
-        if (l != null) newButton.setOnClickListener(l);
+        val newButton = getObjectField(textTipView, LinearLayout::class.java)
+        newButton?.apply {
+            (parent as ViewGroup).removeView(this)
+            l?.let { setOnClickListener(it) }
 
-        if (showArrow) {
-            newButton.setOnTouchListener((View v, MotionEvent event) -> {
-                float x = event.getX();
-                float y = event.getY();
+            val backgroundColor = getColor("CAM_X0201")
+            setBackgroundColor(backgroundColor)
 
-                boolean isInside = x > 0 && x < v.getWidth() && y > 0 && y < v.getHeight();
+            if (showArrow) {
+                setOnTouchListener { v, event ->
+                    val isInside = event.x in 0f..v.width.toFloat() && event.y in 0f..v.height.toFloat()
 
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        newButton.setBackgroundColor(Color.argb(128, Color.red(ReflectUtils.getColor("CAM_X0201")), Color.green(ReflectUtils.getColor("CAM_X0201")), Color.blue(ReflectUtils.getColor("CAM_X0201"))));
-                        break;
-
-                    case MotionEvent.ACTION_MOVE:
-                        if (!isInside) {
-                            newButton.setBackgroundColor(ReflectUtils.getColor("CAM_X0201"));
-                        }
-                        break;
-
-                    case MotionEvent.ACTION_UP:
-                    case MotionEvent.ACTION_CANCEL:
-                        newButton.setBackgroundColor(ReflectUtils.getColor("CAM_X0201"));
-                        break;
+                    when (event.action) {
+                        MotionEvent.ACTION_DOWN -> setBackgroundColor(
+                            Color.argb(
+                                128,
+                                Color.red(backgroundColor),
+                                Color.green(backgroundColor),
+                                Color.blue(backgroundColor)
+                            )
+                        )
+                        MotionEvent.ACTION_MOVE -> if (!isInside) setBackgroundColor(backgroundColor)
+                        MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> setBackgroundColor(backgroundColor)
+                    }
+                    false
                 }
-                return false;
-            });
-        }
-
-        // Fix TS Preference button not changing background when skin type changed
-        XposedHelpers.findAndHookMethod("com.baidu.tieba.setting.more.MoreActivity", sClassLoader, "onChangeSkinType", int.class, new XC_MethodHook() {
-            @Override
-            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                newButton.setBackgroundColor(ReflectUtils.getColor("CAM_X0201"));
-                XposedHelpers.callMethod(
-                        svgManager,
-                        "setPureDrawableWithDayNightModeAutoChange",
-                        imageView,
-                        ReflectUtils.getDrawableId("icon_pure_list_arrow16_right_svg"),
-                        ReflectUtils.getR("color", "CAM_X0109"),
-                        null
-                );
             }
-        });
 
-        return newButton;
+            // Fix TS Preference button not changing background when skin type changed
+            hookAfterMethod(
+                "com.baidu.tieba.setting.more.MoreActivity",
+                "onChangeSkinType", Int::class.javaPrimitiveType
+            ) { _ ->
+                setBackgroundColor(getColor("CAM_X0201"))
+                XposedHelpers.callMethod(
+                    svgManager,
+                    "setPureDrawableWithDayNightModeAutoChange",
+                    imageView,
+                    getDrawableId("icon_pure_list_arrow16_right_svg"),
+                    getR("color", "CAM_X0109"),
+                    null
+                )
+            }
+        }
+
+        return newButton ?: throw IllegalStateException("LinearLayout not found in TbSettingTextTipView")
     }
 
-    static String randomToast() {
-        switch (new Random().nextInt(5)) {
-            case 0:
-                return "别点了，新版本在做了";
-            case 1:
-                return "别点了别点了T_T";
-            case 2:
-                return "再点人傻了>_<";
-            case 3:
-                return "点了也没用~";
-            case 4:
-                return "点个小星星吧:)";
-            default:
-                return "";
+    @JvmStatic
+    fun randomToast(): String {
+        return when (Random().nextInt(5)) {
+            0 -> "别点了，新版本在做了"
+            1 -> "别点了别点了T_T"
+            2 -> "再点人傻了>_<"
+            3 -> "点了也没用~"
+            4 -> "点个小星星吧:)"
+            else -> ""
         }
     }
 
-    public static class PreferenceLayout extends LinearLayout {
-        public PreferenceLayout(final Context context) {
-            super(context);
-            setOrientation(LinearLayout.VERTICAL);
+    class PreferenceLayout(context: Context?) : LinearLayout(context) {
+        init {
+            orientation = VERTICAL
         }
 
-        public void addView(final SwitchButtonHolder view) {
-            addView(view.switchButton);
+        fun addView(view: SwitchButtonHolder) {
+            addView(view.switchButton)
         }
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    static class SwitchButtonHolder {
-        public final static int TYPE_SWITCH = 0;
-        public final static int TYPE_DIALOG = 1;
-        public final static Map<Integer, String> sIdToTag = new HashMap<>();
-        private final String mKey;
-        public Switch bdSwitch;
-        public LinearLayout switchButton;
+    class SwitchButtonHolder(activity: Activity, text: String?, private val mKey: String, type: Int) {
+        lateinit var bdSwitch: Switch
+        lateinit var switchButton: LinearLayout
 
-        SwitchButtonHolder(final Activity activity, final String text, final String key, final int type) {
-            mKey = key;
-            if (exceptions.containsKey(key)) {
-                switchButton = createButton(text, "此功能初始化失败", false, v -> {
-                    final Throwable tr = exceptions.get(key);
-                    XposedBridge.log(tr);
-                    TbToast.showTbToast(Log.getStackTraceString(tr), TbToast.LENGTH_SHORT);
-                });
-                return;
+        init {
+            if (exceptions.containsKey(mKey)) {
+                switchButton = createButton(text, "此功能初始化失败", false) { _ ->
+                    val tr = exceptions[mKey]
+                    XposedBridge.log(tr)
+                    showTbToast(Log.getStackTraceString(tr), TbToast.LENGTH_SHORT)
+                }
+
+            } else {
+                bdSwitch = Switch().apply {
+                    setOnSwitchStateChangeListener(SwitchStatusChangeHandler())
+                }
+
+                val bdSwitchView = bdSwitch.bdSwitch.apply {
+                    layoutParams = LinearLayout.LayoutParams(width, height, 0.16f)
+                    id = View.generateViewId()
+                }
+
+                when (type) {
+                    TYPE_SWITCH -> {
+                        switchButton = createButton(text, null, false) { _ -> bdSwitch.changeState() }
+                        sIdToTag[bdSwitchView.id] = "$TYPE_SWITCH$mKey"
+                        if (getBoolean(mKey)) bdSwitch.turnOn() else bdSwitch.turnOff()
+                    }
+
+                    TYPE_DIALOG -> {
+                        switchButton = createButton(text, null, false) { _ -> showRegexDialog(activity, text) }
+                        bdSwitchView.setOnTouchListener { _, _ -> false }
+                        if (getString(mKey) != null) bdSwitch.turnOn() else bdSwitch.turnOff()
+                    }
+                }
+                switchButton.addView(bdSwitchView)
             }
-            bdSwitch = new Switch();
-            bdSwitch.setOnSwitchStateChangeListener(new SwitchStatusChangeHandler());
-            final View bdSwitchView = bdSwitch.bdSwitch;
-            bdSwitchView.setLayoutParams(new LinearLayout.LayoutParams(bdSwitchView.getWidth(),
-                    bdSwitchView.getHeight(), 0.16F));
-            bdSwitchView.setId(View.generateViewId());
-            switch (type) {
-                case TYPE_SWITCH:
-                    switchButton = createButton(text, null, false, v -> bdSwitch.changeState());
-                    sIdToTag.put(bdSwitchView.getId(), TYPE_SWITCH + key);
-                    if (Preferences.getBoolean(key)) bdSwitch.turnOn();
-                    else bdSwitch.turnOff();
-                    break;
-                case TYPE_DIALOG:
-                    switchButton = createButton(text, null, false, v -> showRegexDialog(activity, text));
-                    bdSwitchView.setOnTouchListener((v, event) -> false);
-                    if (Preferences.getString(key) != null) bdSwitch.turnOn();
-                    else bdSwitch.turnOff();
-                    break;
-            }
-            switchButton.addView(bdSwitchView);
         }
 
-        void setOnButtonClickListener(final View.OnClickListener l) {
-            switchButton.setOnClickListener(l);
-            bdSwitch.bdSwitch.setOnTouchListener((View v, MotionEvent event) -> {
-                XposedHelpers.callMethod(bdSwitch.getVibrator(), "vibrate", 30L);
-                return false;
-            });
+        fun setOnButtonClickListener(l: View.OnClickListener?) {
+            switchButton.setOnClickListener(l)
+            bdSwitch.bdSwitch.setOnTouchListener { _, _ ->
+                XposedHelpers.callMethod(bdSwitch.getVibrator(), "vibrate", 30L)
+                false
+            }
         }
 
-        private void showRegexDialog(final Activity activity, final String title) {
-            Activity currentActivity = ReflectUtils.getCurrentActivity();
-            boolean isLightMode = DisplayUtils.isLightMode(getContext());
+        private fun showRegexDialog(activity: Activity, title: String?) {
+            val currentActivity = getCurrentActivity()
+            val isLightMode = isLightMode(getContext())
 
-            final EditText editText = new EditText(currentActivity);
-            editText.setHint(Constants.getStrings().get("regex_hint"));
-            editText.setText(Preferences.getString(mKey));
-            if (!isLightMode) {
-                editText.setTextColor(Color.WHITE);
-                editText.setHintTextColor(Color.GRAY);
-            }
-            editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-            editText.setFallbackLineSpacing(false);
-            editText.setLineSpacing(0, 1.2F);
+            val editText = EditText(currentActivity).apply {
+                hint = strings["regex_hint"]
+                setText(getString(mKey))
+                if (!isLightMode) {
+                    setTextColor(Color.WHITE)
+                    setHintTextColor(Color.GRAY)
+                }
+                inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+                isFallbackLineSpacing = false
+                setLineSpacing(0f, 1.2f)
 
-            final LinearLayout linearLayout = new LinearLayout(currentActivity);
-            linearLayout.setGravity(Gravity.CENTER_HORIZONTAL);
-
-            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+                layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
-            );
-            layoutParams.leftMargin = DisplayUtils.dipToPx(currentActivity, 20F);
-            layoutParams.rightMargin = DisplayUtils.dipToPx(currentActivity, 20F);
-            editText.setLayoutParams(layoutParams);
-
-            linearLayout.addView(editText);
-
-            AlertDialog alert = new AlertDialog.Builder(currentActivity, isLightMode ?
-                    android.R.style.Theme_DeviceDefault_Light_Dialog_Alert : android.R.style.Theme_DeviceDefault_Dialog_Alert)
-                    .setTitle(title).setView(linearLayout)
-                    .setNegativeButton(activity.getString(android.R.string.cancel), null)
-                    .setPositiveButton(activity.getString(android.R.string.ok), null).create();
-
-            alert.setOnShowListener(dialogInterface -> {
-                Button button = alert.getButton(AlertDialog.BUTTON_POSITIVE);
-                button.setOnClickListener(view -> {
-                    try {
-                        if (TextUtils.isEmpty(editText.getText())) {
-                            Preferences.remove(mKey);
-                            bdSwitch.turnOff();
-                        } else {
-                            Pattern.compile(editText.getText().toString());
-                            Preferences.putString(mKey, editText.getText().toString());
-                            bdSwitch.turnOn();
-                        }
-                        alert.dismiss();
-                    } catch (final PatternSyntaxException e) {
-                        TbToast.showTbToast(e.getMessage(), TbToast.LENGTH_SHORT);
-                    }
-                });
-            });
-
-            alert.show();
-            DisplayUtils.fixAlertDialogWidth(alert);
-
-            alert.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
-            editText.setImeOptions(EditorInfo.IME_ACTION_DONE);
-            editText.setOnEditorActionListener((v, actionId, event) -> {
-                if (actionId == EditorInfo.IME_ACTION_DONE || event != null
-                        && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-                    alert.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
-                    return true;
+                ).apply {
+                    leftMargin = dipToPx(currentActivity, 20f)
+                    rightMargin = dipToPx(currentActivity, 20f)
                 }
-                return false;
-            });
-            editText.requestFocus();
+            }
+
+            val linearLayout = LinearLayout(currentActivity).apply {
+                gravity = Gravity.CENTER_HORIZONTAL
+                addView(editText)
+            }
+
+            val alert = AlertDialog.Builder(
+                currentActivity,
+                if (isLightMode) android.R.style.Theme_DeviceDefault_Light_Dialog_Alert else android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                .setTitle(title)
+                .setView(linearLayout)
+                .setNegativeButton(activity.getString(android.R.string.cancel), null)
+                .setPositiveButton(activity.getString(android.R.string.ok), null)
+                .create()
+
+            alert.setOnShowListener { _ ->
+                alert.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { _ ->
+                    try {
+                        if (TextUtils.isEmpty(editText.text)) {
+                            remove(mKey)
+                            bdSwitch.turnOff()
+                        } else {
+                            Pattern.compile(editText.text.toString())
+                            putString(mKey, editText.text.toString())
+                            bdSwitch.turnOn()
+                        }
+                        alert.dismiss()
+                    } catch (e: PatternSyntaxException) {
+                        showTbToast(e.message, TbToast.LENGTH_SHORT)
+                    }
+                }
+            }
+
+            alert.show()
+            fixAlertDialogWidth(alert)
+            alert.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
+
+            editText.imeOptions = EditorInfo.IME_ACTION_DONE
+            editText.setOnEditorActionListener { _, actionId: Int, event: KeyEvent? ->
+                if (actionId == EditorInfo.IME_ACTION_DONE || event != null
+                    && event.keyCode == KeyEvent.KEYCODE_ENTER
+                ) {
+                    alert.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+                    true
+                } else {
+                    false
+                }
+            }
+            editText.requestFocus()
         }
 
-        private static class SwitchStatusChangeHandler implements InvocationHandler {
-            @SuppressWarnings("SuspiciousInvocationHandlerImplementation")
-            @Override
-            public Object invoke(final Object proxy, final Method method, final Object[] args) {
-                final View view = (View) args[0];
-                final var tag = sIdToTag.get(view.getId());
-                if (tag != null) {
-                    if (Integer.parseInt(tag.substring(0, 1)) == TYPE_SWITCH) {
-                        Preferences.putBoolean(tag.substring(1), args[1].toString().equals("ON"));
+        private class SwitchStatusChangeHandler : InvocationHandler {
+            override fun invoke(proxy: Any, method: Method, args: Array<Any>): Any? {
+                val view = args[0] as View
+                val tag = sIdToTag[view.id]
+                tag?.let {
+                    if (it.substring(0, 1).toInt() == TYPE_SWITCH) {
+                        putBoolean(it.substring(1), args[1].toString() == "ON")
                     }
                 }
-                return null;
+                return null
             }
+        }
+
+        companion object {
+            const val TYPE_SWITCH: Int = 0
+            const val TYPE_DIALOG: Int = 1
+            val sIdToTag: MutableMap<Int, String> = HashMap()
         }
     }
 }
