@@ -1,9 +1,7 @@
 package gm.tieba.tabswitch.hooker.auto
 
 import android.os.Bundle
-import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
-import de.robv.android.xposed.XposedHelpers
 import gm.tieba.tabswitch.XposedContext
 import gm.tieba.tabswitch.dao.Adp
 import gm.tieba.tabswitch.dao.Preferences.getIsSigned
@@ -36,12 +34,11 @@ class AutoSign : XposedContext(), IHooker {
         return "auto_sign"
     }
 
-    @Throws(Throwable::class)
     override fun hook() {
         hookAfterMethod(
             "com.baidu.tieba.tblauncher.MainTabActivity",
             "onCreate", Bundle::class.java
-        ) { param ->
+        ) { _ ->
             if (!getIsSigned()) {
                 thread {
                     val result = main(Adp.BDUSS)

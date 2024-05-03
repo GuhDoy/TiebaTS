@@ -1,10 +1,7 @@
 package gm.tieba.tabswitch.hooker.auto
 
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import gm.tieba.tabswitch.XposedContext
-import gm.tieba.tabswitch.dao.AcRules
 import gm.tieba.tabswitch.dao.AcRules.findRule
 import gm.tieba.tabswitch.hooker.IHooker
 import gm.tieba.tabswitch.hooker.Obfuscated
@@ -26,7 +23,6 @@ class FrsTab : XposedContext(), IHooker, Obfuscated {
 
     private var mPosition = 0
 
-    @Throws(Throwable::class)
     override fun hook() {
         hookBeforeMethod(
             "tbclient.FrsPage.DataRes\$Builder",

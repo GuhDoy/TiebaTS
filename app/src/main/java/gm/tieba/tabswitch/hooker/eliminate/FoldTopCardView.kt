@@ -1,8 +1,5 @@
 package gm.tieba.tabswitch.hooker.eliminate
 
-import de.robv.android.xposed.XC_MethodReplacement
-import de.robv.android.xposed.XposedBridge
-import de.robv.android.xposed.XposedHelpers
 import gm.tieba.tabswitch.XposedContext
 import gm.tieba.tabswitch.hooker.IHooker
 
@@ -11,7 +8,6 @@ class FoldTopCardView : XposedContext(), IHooker {
         return "fold_top_card_view"
     }
 
-    @Throws(Throwable::class)
     override fun hook() {
         // 总是折叠置顶帖
         findClass("com.baidu.tieba.forum.view.TopCardView").declaredMethods.filter { method ->

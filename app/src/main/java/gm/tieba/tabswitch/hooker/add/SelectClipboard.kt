@@ -4,8 +4,6 @@ import android.app.AlertDialog
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.DialogInterface
-import android.view.View
 import android.widget.TextView
 import gm.tieba.tabswitch.XposedContext
 import gm.tieba.tabswitch.dao.AcRules.findRule
@@ -18,7 +16,6 @@ import gm.tieba.tabswitch.util.getCurrentActivity
 import gm.tieba.tabswitch.util.getDialogTheme
 import gm.tieba.tabswitch.util.getObjectField
 import gm.tieba.tabswitch.util.getTbadkCoreApplicationInst
-import gm.tieba.tabswitch.util.isLightMode
 import org.luckypray.dexkit.query.matchers.ClassMatcher
 import org.luckypray.dexkit.query.matchers.MethodMatcher
 import org.luckypray.dexkit.query.matchers.MethodsMatcher
@@ -43,7 +40,6 @@ class SelectClipboard : XposedContext(), IHooker, Obfuscated {
         )
     }
 
-    @Throws(Throwable::class)
     override fun hook() {
         findRule(matchers()) { matcher, clazz, method ->
             when (matcher) {

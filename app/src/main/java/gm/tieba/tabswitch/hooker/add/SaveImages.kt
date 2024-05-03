@@ -10,7 +10,6 @@ import android.provider.MediaStore
 import android.view.View.OnLongClickListener
 import android.widget.ImageView
 import android.widget.LinearLayout
-import de.robv.android.xposed.XposedHelpers
 import gm.tieba.tabswitch.XposedContext
 import gm.tieba.tabswitch.dao.AcRules.findRule
 import gm.tieba.tabswitch.hooker.IHooker
@@ -48,7 +47,6 @@ class SaveImages : XposedContext(), IHooker, Obfuscated {
         )
     }
 
-    @Throws(Throwable::class)
     override fun hook() {
         findRule("save_images") { _, clazz, method ->
             hookAfterMethod(clazz, method, Int::class.javaPrimitiveType, Int::class.javaPrimitiveType) { param ->
@@ -122,7 +120,6 @@ class SaveImages : XposedContext(), IHooker, Obfuscated {
     }
 
     companion object {
-        @Throws(IOException::class)
         private fun saveImage(url: String, filename: String, context: Context) {
             URL(url).openStream().use { inputStream ->
                 val byteBuffer = toByteBuffer(inputStream)

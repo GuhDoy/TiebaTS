@@ -1,7 +1,5 @@
 package gm.tieba.tabswitch.hooker.eliminate
 
-import de.robv.android.xposed.XC_MethodReplacement
-import de.robv.android.xposed.XposedHelpers
 import gm.tieba.tabswitch.XposedContext
 import gm.tieba.tabswitch.hooker.IHooker
 
@@ -10,7 +8,6 @@ class RedTip : XposedContext(), IHooker {
         return "red_tip"
     }
 
-    @Throws(Throwable::class)
     override fun hook() {
 //        hookReplaceMethod(
 //            "com.baidu.tbadk.widget.tab.PagerSlidingTabBaseStrip",

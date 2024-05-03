@@ -2,7 +2,6 @@ package gm.tieba.tabswitch.hooker.auto
 
 import android.app.Activity
 import android.os.Build
-import de.robv.android.xposed.XC_MethodReplacement
 import de.robv.android.xposed.XposedHelpers
 import gm.tieba.tabswitch.XposedContext
 import gm.tieba.tabswitch.hooker.IHooker
@@ -32,7 +31,6 @@ class TransitionAnimation : XposedContext(), IHooker {
         return "transition_animation"
     }
 
-    @Throws(Throwable::class)
     override fun hook() {
         if (!(Build.VERSION.SDK_INT >= 34 && isTbSatisfyVersionRequirement("12.58.2.1"))) {
             return

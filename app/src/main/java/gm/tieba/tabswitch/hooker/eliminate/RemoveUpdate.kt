@@ -1,7 +1,5 @@
 package gm.tieba.tabswitch.hooker.eliminate
 
-import de.robv.android.xposed.XC_MethodReplacement
-import de.robv.android.xposed.XposedHelpers
 import gm.tieba.tabswitch.XposedContext
 import gm.tieba.tabswitch.hooker.IHooker
 import org.json.JSONObject
@@ -11,7 +9,6 @@ class RemoveUpdate : XposedContext(), IHooker {
         return "remove_update"
     }
 
-    @Throws(Throwable::class)
     override fun hook() {
         //Lcom/baidu/tbadk/coreExtra/data/VersionData;->parserJson(Lorg/json/JSONObject;)V
         hookReplaceMethod(

@@ -12,7 +12,6 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
 
-@Throws(IOException::class)
 fun copy(input: Any?, output: Any?) {
     val inputStream: InputStream = when (input) {
         is InputStream -> input
@@ -33,7 +32,6 @@ fun copy(input: Any?, output: Any?) {
     copy(inputStream, outputStream)
 }
 
-@Throws(IOException::class)
 fun copy(inputStream: InputStream, outputStream: OutputStream) {
     inputStream.use { input ->
         outputStream.use { output ->
@@ -42,7 +40,6 @@ fun copy(inputStream: InputStream, outputStream: OutputStream) {
     }
 }
 
-@Throws(IOException::class)
 fun copy(bb: ByteBuffer, output: Any?) {
     val outputStream: OutputStream = when (output) {
         is OutputStream -> output
@@ -56,12 +53,10 @@ fun copy(bb: ByteBuffer, output: Any?) {
     }
 }
 
-@Throws(IOException::class)
 fun toByteBuffer(inputStream: InputStream): ByteBuffer {
     return ByteBuffer.wrap(inputStream.readBytes())
 }
 
-@Throws(IOException::class)
 fun getExtension(bb: ByteBuffer): String {
     val chunk = String(bb.array(), 0, 6)
     return when {

@@ -10,9 +10,7 @@ import android.util.AttributeSet
 import android.util.SparseArray
 import android.view.View
 import android.widget.RelativeLayout
-import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
-import de.robv.android.xposed.XposedHelpers
 import gm.tieba.tabswitch.XposedContext
 import gm.tieba.tabswitch.hooker.IHooker
 import gm.tieba.tabswitch.util.dipToPx
@@ -25,7 +23,6 @@ class Ripple : XposedContext(), IHooker {
         return "ripple"
     }
 
-    @Throws(Throwable::class)
     override fun hook() {
 
         val subPbLayoutClass = findClass("com.baidu.tieba.pb.pb.sub.SubPbLayout")

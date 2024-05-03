@@ -7,7 +7,6 @@ import okhttp3.Request
 import okhttp3.Request.Builder
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 import java.math.BigInteger
@@ -20,7 +19,6 @@ object AutoSignHelper {
         sCookie = "BDUSS=$BDUSS"
     }
 
-    @Throws(JSONException::class)
     operator fun get(url: String): JSONObject {
         val okHttpClient = OkHttpClient()
         val request: Request = Builder()
@@ -51,12 +49,10 @@ object AutoSignHelper {
         return respContent?.let { JSONObject(it) } ?: JSONObject()
     }
 
-    @Throws(JSONException::class)
     fun post(url: String, body: String): JSONObject {
         val mediaType = "text/x-markdown; charset=utf-8".toMediaTypeOrNull()
         val stringBody: RequestBody = body.toRequestBody(mediaType)
 
-        val okHttpClient = OkHttpClient()
         val request: Request = Builder()
             .url(url)
             .post(stringBody)

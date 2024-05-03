@@ -5,14 +5,9 @@ import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MotionEvent
-import android.view.View
 import android.view.ViewGroup
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XC_MethodReplacement
-import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import gm.tieba.tabswitch.XposedContext
-import gm.tieba.tabswitch.dao.AcRules
 import gm.tieba.tabswitch.dao.AcRules.findRule
 import gm.tieba.tabswitch.hooker.IHooker
 import gm.tieba.tabswitch.hooker.Obfuscated
@@ -38,7 +33,6 @@ class ForbidGesture : XposedContext(), IHooker, Obfuscated {
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    @Throws(Throwable::class)
     override fun hook() {
         // 帖子字号
         findRule(matchers()) { matcher, clazz, method ->

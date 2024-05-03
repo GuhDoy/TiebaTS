@@ -1,6 +1,5 @@
 package gm.tieba.tabswitch.hooker.auto
 
-import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedHelpers
 import gm.tieba.tabswitch.XposedContext
 import gm.tieba.tabswitch.hooker.IHooker
@@ -10,7 +9,6 @@ class AgreeNum : XposedContext(), IHooker {
         return "agree_num"
     }
 
-    @Throws(Throwable::class)
     override fun hook() {
         hookBeforeMethod(
             "tbclient.Agree\$Builder",

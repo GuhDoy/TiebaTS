@@ -1,7 +1,5 @@
 package gm.tieba.tabswitch.hooker.eliminate
 
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import gm.tieba.tabswitch.XposedContext
 import gm.tieba.tabswitch.dao.AcRules.findRule
@@ -29,7 +27,6 @@ class FragmentTab : XposedContext(), IHooker, Obfuscated {
         )
     }
 
-    @Throws(Throwable::class)
     override fun hook() {
         findRule("has_show_message_tab_tips") { _, clazz, _ ->
             val method = findFirstMethodByExactType(clazz, ArrayList::class.java)

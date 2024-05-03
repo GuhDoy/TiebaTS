@@ -16,9 +16,7 @@ import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import android.widget.TextView
 import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XC_MethodReplacement
 import de.robv.android.xposed.XposedBridge
-import de.robv.android.xposed.XposedHelpers
 import gm.tieba.tabswitch.XposedContext
 import gm.tieba.tabswitch.dao.AcRules.dropAllRules
 import gm.tieba.tabswitch.dao.Preferences.getBoolean
@@ -26,7 +24,6 @@ import gm.tieba.tabswitch.hooker.IHooker
 import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHelper.getTbVersion
 import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHelper.isDexChanged
 import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHelper.saveAndRestart
-import java.util.function.Consumer
 import kotlin.concurrent.thread
 
 class DeobfuscationHooker(private val mMatchers: List<Matcher>) : XposedContext(), IHooker {
@@ -42,7 +39,6 @@ class DeobfuscationHooker(private val mMatchers: List<Matcher>) : XposedContext(
     }
 
     @SuppressLint("ApplySharedPref", "CheckResult")
-    @Throws(Throwable::class)
     override fun hook() {
         hookAfterMethod(
             "com.baidu.tieba.LogoActivity",

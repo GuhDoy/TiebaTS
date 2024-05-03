@@ -2,12 +2,9 @@ package gm.tieba.tabswitch.hooker.eliminate
 
 import android.view.View
 import android.widget.LinearLayout
-import de.robv.android.xposed.XC_MethodReplacement
-import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.XposedHelpers.ClassNotFoundError
 import gm.tieba.tabswitch.XposedContext
-import gm.tieba.tabswitch.dao.AcRules
 import gm.tieba.tabswitch.dao.AcRules.findRule
 import gm.tieba.tabswitch.hooker.IHooker
 import gm.tieba.tabswitch.hooker.Obfuscated
@@ -43,7 +40,6 @@ class PurgeEnter : XposedContext(), IHooker, Obfuscated {
         )
     }
 
-    @Throws(Throwable::class)
     override fun hook() {
         hookReplaceMethod(
             "com.baidu.tieba.enterForum.recforum.message.RecommendForumRespondedMessage",

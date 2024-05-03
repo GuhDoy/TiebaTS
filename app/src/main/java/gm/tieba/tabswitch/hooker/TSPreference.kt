@@ -1,10 +1,8 @@
 package gm.tieba.tabswitch.hooker
 
-import android.R
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.Dialog
-import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -18,13 +16,10 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import android.widget.ScrollView
-import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
-import de.robv.android.xposed.XposedHelpers
 import gm.tieba.tabswitch.BuildConfig
 import gm.tieba.tabswitch.Constants.strings
 import gm.tieba.tabswitch.XposedContext
-import gm.tieba.tabswitch.dao.AcRules
 import gm.tieba.tabswitch.dao.AcRules.findRule
 import gm.tieba.tabswitch.dao.Preferences.commit
 import gm.tieba.tabswitch.dao.Preferences.getBoolean
@@ -47,7 +42,6 @@ import gm.tieba.tabswitch.hooker.deobfuscation.SmaliMatcher
 import gm.tieba.tabswitch.hooker.extra.TraceChecker
 import gm.tieba.tabswitch.util.fixAlertDialogWidth
 import gm.tieba.tabswitch.util.getDialogTheme
-import gm.tieba.tabswitch.util.isLightMode
 import gm.tieba.tabswitch.util.restart
 import gm.tieba.tabswitch.widget.NavigationBar
 import gm.tieba.tabswitch.widget.TbToast
@@ -70,7 +64,6 @@ class TSPreference : XposedContext(), IHooker, Obfuscated {
         )
     }
 
-    @Throws(Throwable::class)
     override fun hook() {
         hookBeforeMethod(
             Dialog::class.java,
@@ -88,7 +81,7 @@ class TSPreference : XposedContext(), IHooker, Obfuscated {
             "onCreate", Bundle::class.java
         ) { param ->
             val activity = param.thisObject as Activity
-            val contentView = activity.findViewById<ViewGroup>(R.id.content)
+            val contentView = activity.findViewById<ViewGroup>(android.R.id.content)
             val parent = contentView.getChildAt(0) as RelativeLayout
             val scroll = parent.getChildAt(0) as ScrollView
             val containerView = scroll.getChildAt(0) as LinearLayout
@@ -127,7 +120,7 @@ class TSPreference : XposedContext(), IHooker, Obfuscated {
                             .setTitle("规则异常")
                             .setMessage(message)
                             .setCancelable(false)
-                            .setPositiveButton(activity.getString(R.string.ok)) { _, _ -> activity.finish() }
+                            .setPositiveButton(activity.getString(android.R.string.ok)) { _, _ -> activity.finish() }
                             .create()
 
                         alert.show()
@@ -139,7 +132,6 @@ class TSPreference : XposedContext(), IHooker, Obfuscated {
         }
     }
 
-    @Throws(Throwable::class)
     private fun proxyPage(activity: Activity, navigationBar: NavigationBar, title: String, preferenceLayout: LinearLayout) {
         navigationBar.apply {
             setTitleText(title)
@@ -150,7 +142,7 @@ class TSPreference : XposedContext(), IHooker, Obfuscated {
             }
         }
 
-        val contentView = activity.findViewById<ViewGroup>(R.id.content)
+        val contentView = activity.findViewById<ViewGroup>(android.R.id.content)
         val parent = contentView.getChildAt(0) as LinearLayout
         val mainScroll = parent.getChildAt(1) as ScrollView
         val containerView = mainScroll.getChildAt(0) as LinearLayout
@@ -176,8 +168,8 @@ class TSPreference : XposedContext(), IHooker, Obfuscated {
             )
                 .setTitle("使用协议")
                 .setMessage(stringBuilder.toString())
-                .setNegativeButton(activity.getString(R.string.cancel), null)
-                .setPositiveButton(activity.getString(R.string.ok)) { _, _ ->
+                .setNegativeButton(activity.getString(android.R.string.cancel), null)
+                .setPositiveButton(activity.getString(android.R.string.ok)) { _, _ ->
                     putEULAAccepted()
                     startRootPreferenceActivity(activity)
                 }
@@ -237,8 +229,8 @@ class TSPreference : XposedContext(), IHooker, Obfuscated {
                 )
                     .setTitle("提示")
                     .setMessage("这是一个需要网络请求并且有封号风险的功能，您需要自行承担使用此功能的风险，请谨慎使用！")
-                    .setNegativeButton(activity.getString(R.string.cancel), null)
-                    .setPositiveButton(activity.getString(R.string.ok)) { _, _ ->
+                    .setNegativeButton(activity.getString(android.R.string.cancel), null)
+                    .setPositiveButton(activity.getString(android.R.string.ok)) { _, _ ->
                         putAutoSignEnabled()
                         autoSign.bdSwitch.turnOn()
                     }

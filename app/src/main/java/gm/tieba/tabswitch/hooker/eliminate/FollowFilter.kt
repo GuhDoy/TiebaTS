@@ -1,6 +1,5 @@
 package gm.tieba.tabswitch.hooker.eliminate
 
-import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedHelpers
 import gm.tieba.tabswitch.XposedContext
 import gm.tieba.tabswitch.dao.Preferences.getLikeForum
@@ -13,7 +12,6 @@ class FollowFilter : XposedContext(), IHooker {
         return "follow_filter"
     }
 
-    @Throws(Throwable::class)
     override fun hook() {
         hookBeforeMethod(
             "tbclient.Personalized.DataRes\$Builder",

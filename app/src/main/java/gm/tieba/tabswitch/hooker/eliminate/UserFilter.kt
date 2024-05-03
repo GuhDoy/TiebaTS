@@ -1,11 +1,8 @@
 package gm.tieba.tabswitch.hooker.eliminate
 
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import gm.tieba.tabswitch.XposedContext
 import gm.tieba.tabswitch.hooker.IHooker
-import java.util.Arrays
 import java.util.regex.Pattern
 
 class UserFilter : XposedContext(), IHooker, RegexFilter {
@@ -14,7 +11,6 @@ class UserFilter : XposedContext(), IHooker, RegexFilter {
         return "user_filter"
     }
 
-    @Throws(Throwable::class)
     override fun hook() {
         hookBeforeMethod("tbclient.Personalized.DataRes\$Builder",
             "build", Boolean::class.javaPrimitiveType) { param ->

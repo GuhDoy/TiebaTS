@@ -4,8 +4,6 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedHelpers
 import gm.tieba.tabswitch.XposedContext
 import gm.tieba.tabswitch.dao.Preferences.getIsSigned
 import gm.tieba.tabswitch.dao.Preferences.putSignDate
@@ -17,7 +15,6 @@ class OpenSign : XposedContext(), IHooker {
         return "open_sign"
     }
 
-    @Throws(Throwable::class)
     override fun hook() {
         hookAfterMethod(
             "com.baidu.tieba.tblauncher.MainTabActivity",

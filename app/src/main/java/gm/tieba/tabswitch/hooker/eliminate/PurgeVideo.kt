@@ -1,6 +1,5 @@
 package gm.tieba.tabswitch.hooker.eliminate
 
-import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedHelpers
 import gm.tieba.tabswitch.XposedContext
 import gm.tieba.tabswitch.hooker.IHooker
@@ -10,7 +9,6 @@ class PurgeVideo : XposedContext(), IHooker {
         return "purge_video"
     }
 
-    @Throws(Throwable::class)
     override fun hook() {
         hookBeforeMethod(
             "tbclient.Personalized.DataRes\$Builder",

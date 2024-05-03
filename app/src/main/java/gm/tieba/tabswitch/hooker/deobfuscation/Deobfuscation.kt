@@ -10,7 +10,6 @@ import org.luckypray.dexkit.query.FindClass
 import org.luckypray.dexkit.query.FindMethod
 import org.luckypray.dexkit.query.matchers.MethodMatcher
 import org.luckypray.dexkit.result.MethodDataList
-import java.io.IOException
 import java.util.Objects
 import java.util.function.Consumer
 import java.util.zip.ZipFile
@@ -74,7 +73,6 @@ class Deobfuscation : XposedContext() {
         return bridge.findMethod(baseMethodQuery.matcher(methodMatcher))
     }
 
-    @Throws(IOException::class)
     fun saveDexSignatureHashCode() {
         ZipFile(packageResource).use { apk ->
             apk.getInputStream(apk.getEntry("classes.dex")).use { inputStream ->

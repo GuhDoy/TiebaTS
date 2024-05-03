@@ -1,7 +1,6 @@
 package gm.tieba.tabswitch
 
 object Constants {
-    @JvmStatic
     val strings = mapOf(
         "EULA" to "如果您对本协议的任何条款表示异议，您可以选择不使用本模块；使用本模块则意味着您已完全理解和同意遵守本协议。\n\n" +
                 "    ①本模块开源免费，所有版本均为自动构建，可确保构建版本与源代码一致。对本模块的任何异议都必须以源代码为依据。\n" +

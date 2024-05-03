@@ -6,9 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
-import de.robv.android.xposed.XposedHelpers
 import gm.tieba.tabswitch.XposedContext.Companion.hookBeforeMethod
 import gm.tieba.tabswitch.dao.Preferences.getSignature
 import gm.tieba.tabswitch.util.restart
@@ -25,7 +23,6 @@ object DeobfuscationHelper {
     private const val SIGNATURE_SIZE = 20
     lateinit var sCurrentTbVersion: String
 
-    @Throws(IOException::class)
     fun calcSignature(dataStoreInput: InputStream): ByteArray {
         val md: MessageDigest = try {
             MessageDigest.getInstance("SHA-1")
@@ -46,13 +43,11 @@ object DeobfuscationHelper {
         }
     }
 
-    @JvmStatic
     fun isVersionChanged(context: Context): Boolean {
         val tsConfig = context.getSharedPreferences("TS_config", Context.MODE_PRIVATE)
         return tsConfig.getString("deobfs_version", "unknown") != getTbVersion(context)
     }
 
-    @JvmStatic
     fun isDexChanged(context: Context): Boolean {
         return try {
             ZipFile(File(context.packageResourcePath)).use { zipFile ->
@@ -68,7 +63,7 @@ object DeobfuscationHelper {
         }
     }
 
-    @JvmStatic
+    @Suppress("DEPRECATION")
     fun getTbVersion(context: Context): String {
         val pm = context.packageManager
         try {
@@ -85,7 +80,6 @@ object DeobfuscationHelper {
         }
     }
 
-    @JvmStatic
     @SuppressLint("ApplySharedPref")
     fun saveAndRestart(activity: Activity, version: String, trampoline: Class<*>?) {
         activity.getSharedPreferences("TS_config", Context.MODE_PRIVATE)
@@ -106,7 +100,6 @@ object DeobfuscationHelper {
     }
 
     // Adapted from https://stackoverflow.com/questions/198431/how-do-you-compare-two-version-strings-in-java
-    @JvmStatic
     fun isTbSatisfyVersionRequirement(requiredVersion: String): Boolean {
         val currParts = sCurrentTbVersion.split(".")
         val reqParts = requiredVersion.split(".")
@@ -127,7 +120,6 @@ object DeobfuscationHelper {
     }
 
     // Inclusive of both ends
-    @JvmStatic
     fun isTbBetweenVersionRequirement(lower: String, upper: String): Boolean {
         return (isTbSatisfyVersionRequirement(lower)
                 && (!isTbSatisfyVersionRequirement(upper) || sCurrentTbVersion == upper))

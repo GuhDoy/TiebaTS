@@ -5,7 +5,6 @@ import android.app.AlertDialog
 import android.app.AppComponentFactory
 import android.app.Application
 import android.app.Instrumentation
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.res.XModuleResources
 import android.net.Uri
@@ -14,7 +13,6 @@ import android.text.TextUtils
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.IXposedHookZygoteInit
 import de.robv.android.xposed.IXposedHookZygoteInit.StartupParam
-import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
@@ -48,7 +46,6 @@ import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHelper.isTbSatisfyVe
 import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHelper.isVersionChanged
 import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHelper.saveAndRestart
 import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHooker
-import gm.tieba.tabswitch.hooker.deobfuscation.Matcher
 import gm.tieba.tabswitch.hooker.eliminate.ContentFilter
 import gm.tieba.tabswitch.hooker.eliminate.FoldTopCardView
 import gm.tieba.tabswitch.hooker.eliminate.FollowFilter
@@ -67,28 +64,17 @@ import gm.tieba.tabswitch.hooker.extra.Hide
 import gm.tieba.tabswitch.hooker.extra.StackTrace
 import gm.tieba.tabswitch.util.fixAlertDialogWidth
 import gm.tieba.tabswitch.util.getDialogTheme
-import gm.tieba.tabswitch.util.isLightMode
 import gm.tieba.tabswitch.widget.TbToast
 import java.util.Locale
-import java.util.function.Function
-import java.util.function.Predicate
-import java.util.stream.Collectors
-import kotlin.Any
-import kotlin.Error
-import kotlin.Int
 import kotlin.String
-import kotlin.Throwable
-import kotlin.Throws
 
 class XposedInit : XposedContext(), IXposedHookZygoteInit, IXposedHookLoadPackage {
-    @Throws(Throwable::class)
     override fun initZygote(startupParam: StartupParam) {
         sPath = startupParam.modulePath
     }
 
     private lateinit var mAppComponentFactory: AppComponentFactory
 
-    @Throws(Throwable::class)
     override fun handleLoadPackage(lpparam: LoadPackageParam) {
         if (("com.baidu.tieba" != lpparam.packageName && XposedHelpers.findClassIfExists(
                 "com.baidu.tieba.tblauncher.MainTabActivity", lpparam.classLoader

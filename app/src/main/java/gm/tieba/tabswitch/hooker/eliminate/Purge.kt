@@ -8,13 +8,11 @@ import android.os.Bundle
 import android.os.Parcelable
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XC_MethodReplacement
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.XposedHelpers.ClassNotFoundError
 import gm.tieba.tabswitch.XposedContext
-import gm.tieba.tabswitch.dao.AcRules
 import gm.tieba.tabswitch.dao.AcRules.findRule
 import gm.tieba.tabswitch.hooker.IHooker
 import gm.tieba.tabswitch.hooker.Obfuscated
@@ -49,7 +47,6 @@ class Purge : XposedContext(), IHooker, Obfuscated {
         )
     }
 
-    @Throws(Throwable::class)
     override fun hook() {
         findRule(matchers()) { matcher, clazz, method ->
             when (matcher) {

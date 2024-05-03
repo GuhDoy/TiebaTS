@@ -12,7 +12,6 @@ import java.lang.reflect.Method
 import java.lang.reflect.Proxy
 
 class Switch : XposedContext() {
-    @JvmField
     var bdSwitch: View
     private var mMethods: Array<Method>
 

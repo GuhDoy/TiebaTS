@@ -1,6 +1,5 @@
 package gm.tieba.tabswitch.hooker.eliminate
 
-import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedHelpers
 import gm.tieba.tabswitch.XposedContext
 import gm.tieba.tabswitch.hooker.IHooker
@@ -10,7 +9,6 @@ class FrsPageFilter : XposedContext(), IHooker, RegexFilter {
         return "frs_page_filter"
     }
 
-    @Throws(Throwable::class)
     override fun hook() {
         hookBeforeMethod(
             "tbclient.FrsPage.PageData\$Builder",

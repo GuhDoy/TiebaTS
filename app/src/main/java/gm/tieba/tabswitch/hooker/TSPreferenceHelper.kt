@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
-import android.content.DialogInterface
 import android.graphics.Color
 import android.text.InputType
 import android.text.TextUtils
@@ -20,7 +19,6 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import gm.tieba.tabswitch.Constants.strings
@@ -68,7 +66,6 @@ object TSPreferenceHelper : XposedContext() {
         } ?: LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, getDimen("ds32").toInt())
     }
 
-    @JvmStatic
     @SuppressLint("ClickableViewAccessibility")
     fun createButton(text: String?, tip: String?, showArrow: Boolean, l: View.OnClickListener?): LinearLayout {
         val textTipView = XposedHelpers.newInstance(
@@ -144,7 +141,6 @@ object TSPreferenceHelper : XposedContext() {
         return newButton ?: throw IllegalStateException("LinearLayout not found in TbSettingTextTipView")
     }
 
-    @JvmStatic
     fun randomToast(): String {
         return when (Random().nextInt(5)) {
             0 -> "别点了，新版本在做了"

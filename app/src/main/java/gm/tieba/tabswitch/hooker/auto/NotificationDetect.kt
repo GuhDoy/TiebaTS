@@ -1,7 +1,5 @@
 package gm.tieba.tabswitch.hooker.auto
 
-import de.robv.android.xposed.XC_MethodReplacement
-import de.robv.android.xposed.XposedHelpers
 import gm.tieba.tabswitch.XposedContext
 import gm.tieba.tabswitch.hooker.IHooker
 
@@ -10,7 +8,6 @@ class NotificationDetect : XposedContext(), IHooker {
         return "notification_detect"
     }
 
-    @Throws(Throwable::class)
     override fun hook() {
         // 禁止检测通知开启状态
         hookReplaceMethod(

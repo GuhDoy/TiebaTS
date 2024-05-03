@@ -11,7 +11,6 @@ import android.net.Uri
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedHelpers
 import gm.tieba.tabswitch.XposedContext
-import gm.tieba.tabswitch.dao.AcRules
 import gm.tieba.tabswitch.dao.AcRules.findRule
 import gm.tieba.tabswitch.dao.Preferences.getBoolean
 import gm.tieba.tabswitch.hooker.IHooker
@@ -23,7 +22,6 @@ class OriginSrc : XposedContext(), IHooker {
     }
 
     @SuppressLint("MissingPermission")
-    @Throws(Throwable::class)
     override fun hook() {
         if (getBoolean("origin_src_only_wifi")) {
             val networkCallback = NetworkCallbackImpl()

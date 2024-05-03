@@ -14,16 +14,11 @@ import java.lang.reflect.Method
 
 abstract class XposedContext {
     companion object {
-        @JvmField
         var isModuleBetaVersion = false
-        @JvmField
         val exceptions: MutableMap<String, Throwable> = HashMap(0)
 
-        @JvmStatic
         lateinit var sClassLoader: ClassLoader
-        @JvmStatic
         lateinit var sPath: String
-        @JvmStatic
         lateinit var sAssetManager: AssetManager
 
         private lateinit var sHandler: Handler
@@ -32,8 +27,7 @@ abstract class XposedContext {
         @JvmStatic
         fun getContext(): Context = checkNotNull(sContextRef.get()) { "ApplicationContext is null" }
 
-        @JvmStatic
-        protected fun attachBaseContext(context: Context) {
+        fun attachBaseContext(context: Context) {
             sContextRef = WeakReference(context.applicationContext)
             sHandler = Handler(Looper.getMainLooper())
         }
@@ -58,8 +52,7 @@ abstract class XposedContext {
             throw linkError
         }
 
-        @JvmStatic
-        protected fun runOnUiThread(r: Runnable) {
+        fun runOnUiThread(r: Runnable) {
             sHandler.post(r)
         }
 
@@ -74,7 +67,6 @@ abstract class XposedContext {
             return XposedHelpers.findAndHookMethod(
                 className, sClassLoader, methodName, *parameterTypes,
                 object : XC_MethodHook() {
-                    @Throws(Throwable::class)
                     override fun beforeHookedMethod(param: MethodHookParam) {
                         beforeHook(param)
                     }
@@ -91,7 +83,6 @@ abstract class XposedContext {
             return XposedHelpers.findAndHookMethod(
                 className, sClassLoader, methodName, *parameterTypes,
                 object : XC_MethodHook() {
-                    @Throws(Throwable::class)
                     override fun afterHookedMethod(param: MethodHookParam) {
                         afterHook(param)
                     }
@@ -108,7 +99,6 @@ abstract class XposedContext {
             return XposedHelpers.findAndHookMethod(
                 className, sClassLoader, methodName, *parameterTypes,
                 object : XC_MethodReplacement() {
-                    @Throws(Throwable::class)
                     override fun replaceHookedMethod(param: MethodHookParam): Any? {
                         return replaceHook(param)
                     }
@@ -125,7 +115,6 @@ abstract class XposedContext {
             return XposedHelpers.findAndHookMethod(
                 clazz, methodName, *parameterTypes,
                 object : XC_MethodHook() {
-                    @Throws(Throwable::class)
                     override fun beforeHookedMethod(param: MethodHookParam) {
                         beforeHook(param)
                     }
@@ -142,7 +131,6 @@ abstract class XposedContext {
             return XposedHelpers.findAndHookMethod(
                 clazz, methodName, *parameterTypes,
                 object : XC_MethodHook() {
-                    @Throws(Throwable::class)
                     override fun afterHookedMethod(param: MethodHookParam) {
                         afterHook(param)
                     }
@@ -159,7 +147,6 @@ abstract class XposedContext {
             return XposedHelpers.findAndHookMethod(
                 clazz, methodName, *parameterTypes,
                 object : XC_MethodReplacement() {
-                    @Throws(Throwable::class)
                     override fun replaceHookedMethod(param: MethodHookParam): Any? {
                         return replaceHook(param)
                     }
@@ -174,7 +161,6 @@ abstract class XposedContext {
             return XposedBridge.hookMethod(
                 method,
                 object : XC_MethodHook() {
-                    @Throws(Throwable::class)
                     override fun beforeHookedMethod(param: MethodHookParam) {
                         beforeHook(param)
                     }
@@ -189,7 +175,6 @@ abstract class XposedContext {
             return XposedBridge.hookMethod(
                 method,
                 object : XC_MethodHook() {
-                    @Throws(Throwable::class)
                     override fun afterHookedMethod(param: MethodHookParam) {
                         afterHook(param)
                     }
@@ -204,7 +189,6 @@ abstract class XposedContext {
             return XposedBridge.hookMethod(
                 method,
                 object : XC_MethodReplacement() {
-                    @Throws(Throwable::class)
                     override fun replaceHookedMethod(param: MethodHookParam): Any? {
                         return replaceHook(param)
                     }
@@ -220,7 +204,6 @@ abstract class XposedContext {
             return XposedHelpers.findAndHookConstructor(
                 className, sClassLoader, *parameterTypes,
                 object : XC_MethodHook() {
-                    @Throws(Throwable::class)
                     override fun beforeHookedMethod(param: MethodHookParam) {
                         beforeHook(param)
                     }
@@ -236,7 +219,6 @@ abstract class XposedContext {
             return XposedHelpers.findAndHookConstructor(
                 className, sClassLoader, *parameterTypes,
                 object : XC_MethodHook() {
-                    @Throws(Throwable::class)
                     override fun afterHookedMethod(param: MethodHookParam) {
                         afterHook(param)
                     }
@@ -252,7 +234,6 @@ abstract class XposedContext {
             return XposedHelpers.findAndHookConstructor(
                 clazz, *parameterTypes,
                 object : XC_MethodHook() {
-                    @Throws(Throwable::class)
                     override fun beforeHookedMethod(param: MethodHookParam) {
                         beforeHook(param)
                     }
@@ -268,7 +249,6 @@ abstract class XposedContext {
             return XposedHelpers.findAndHookConstructor(
                 clazz, *parameterTypes,
                 object : XC_MethodHook() {
-                    @Throws(Throwable::class)
                     override fun afterHookedMethod(param: MethodHookParam) {
                         afterHook(param)
                     }

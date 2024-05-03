@@ -14,7 +14,6 @@ import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
-import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import gm.tieba.tabswitch.Constants.strings
 import gm.tieba.tabswitch.XposedContext
@@ -38,7 +37,6 @@ class HistoryCache : XposedContext(), IHooker {
         return "history_cache"
     }
 
-    @Throws(Throwable::class)
     override fun hook() {
         hookAfterMethod(
             "com.baidu.tieba.myCollection.history.PbHistoryActivity",
