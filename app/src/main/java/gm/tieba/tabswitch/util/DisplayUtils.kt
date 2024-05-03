@@ -11,8 +11,8 @@ import android.view.WindowManager
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import gm.tieba.tabswitch.XposedContext
-import kotlin.system.exitProcess
 import kotlin.math.roundToInt
+import kotlin.system.exitProcess
 
 fun isLightMode(context: Context): Boolean {
     return context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_NO
