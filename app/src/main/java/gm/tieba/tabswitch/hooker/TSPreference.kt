@@ -50,6 +50,7 @@ import org.luckypray.dexkit.query.matchers.ClassMatcher
 import java.util.Locale
 
 class TSPreference : XposedContext(), IHooker, Obfuscated {
+
     override fun key(): String {
         return "ts_pref"
     }

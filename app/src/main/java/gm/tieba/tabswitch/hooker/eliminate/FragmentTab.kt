@@ -14,6 +14,7 @@ import gm.tieba.tabswitch.util.setObjectField
 import org.luckypray.dexkit.query.matchers.ClassMatcher
 
 class FragmentTab : XposedContext(), IHooker, Obfuscated {
+
     override fun key(): String {
         return "fragment_tab"
     }
@@ -43,7 +44,7 @@ class FragmentTab : XposedContext(), IHooker, Obfuscated {
                         findRule("Lcom/airbnb/lottie/LottieAnimationView;->setImageResource(I)V") { _, clazz, method ->
                             val md = XposedHelpers.findMethodExactIfExists(clazz, sClassLoader, method)
                             md?.let {
-                                hookBeforeMethod(md) {param ->
+                                hookBeforeMethod(md) { param ->
                                     setObjectField(
                                         param.thisObject,
                                         "com.baidu.tbadk.widget.lottie.TBLottieAnimationView",

@@ -33,8 +33,10 @@ import java.util.Locale
 import kotlin.concurrent.thread
 
 class SaveImages : XposedContext(), IHooker, Obfuscated {
-    private lateinit var mList: ArrayList<*>
+
     private var mDownloadImageViewField: Field? = null
+    private lateinit var mList: ArrayList<*>
+
     override fun key(): String {
         return "save_images"
     }

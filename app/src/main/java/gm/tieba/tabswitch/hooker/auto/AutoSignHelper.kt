@@ -14,7 +14,9 @@ import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 
 object AutoSignHelper {
+
     private lateinit var sCookie: String
+
     fun setCookie(BDUSS: String) {
         sCookie = "BDUSS=$BDUSS"
     }

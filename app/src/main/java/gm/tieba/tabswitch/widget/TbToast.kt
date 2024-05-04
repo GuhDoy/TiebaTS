@@ -10,6 +10,7 @@ import gm.tieba.tabswitch.util.callStaticMethod
 import gm.tieba.tabswitch.util.findFirstMethodByExactType
 
 class TbToast : XposedContext(), Obfuscated {
+
     override fun matchers(): List<Matcher> {
         // setToastString()
         return listOf(StringMatcher("can not be call not thread! trace = "))

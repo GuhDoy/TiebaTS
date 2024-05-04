@@ -19,6 +19,7 @@ import gm.tieba.tabswitch.util.getObjectField
 import java.lang.reflect.Method
 
 class Ripple : XposedContext(), IHooker {
+
     override fun key(): String {
         return "ripple"
     }
@@ -35,7 +36,7 @@ class Ripple : XposedContext(), IHooker {
                 subPbLayoutClass.declaredFields[4].type.getDeclaredMethod("b")
             }
 
-            hookAfterMethod(md) {param ->
+            hookAfterMethod(md) { param ->
                 val newSubPbListItem = param.result as View
                 val tag = newSubPbListItem.tag as SparseArray<*>
                 val b = tag.valueAt(0)
@@ -52,7 +53,7 @@ class Ripple : XposedContext(), IHooker {
         hookAfterConstructor(
             subPbLayoutClass,
             Context::class.java, AttributeSet::class.java,
-        ) {param ->
+        ) { param ->
             getObjectField(param.thisObject, RelativeLayout::class.java)
                 ?.background = createSubPbBackground(dipToPx(getContext(), 3.5f))
         }

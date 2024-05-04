@@ -5,6 +5,7 @@ import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.subjects.PublishSubject
 
 class DeobfuscationViewModel {
+
     private val _progress = PublishSubject.create<Float>()
     val progress: Observable<Float> = _progress
     private val deobfuscation = Deobfuscation()

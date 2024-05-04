@@ -6,7 +6,9 @@ import gm.tieba.tabswitch.hooker.IHooker
 import java.util.regex.Pattern
 
 class UserFilter : XposedContext(), IHooker, RegexFilter {
+
     private val mIds: MutableSet<Any> = HashSet()
+
     override fun key(): String {
         return "user_filter"
     }

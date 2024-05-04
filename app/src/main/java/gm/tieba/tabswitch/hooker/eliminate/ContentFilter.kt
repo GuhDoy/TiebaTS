@@ -6,6 +6,7 @@ import gm.tieba.tabswitch.hooker.IHooker
 import gm.tieba.tabswitch.util.parsePbContent
 
 class ContentFilter : XposedContext(), IHooker, RegexFilter {
+
     override fun key(): String {
         return "content_filter"
     }

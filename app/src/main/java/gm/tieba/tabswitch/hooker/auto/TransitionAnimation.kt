@@ -9,7 +9,7 @@ import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHelper.isTbSatisfyVe
 
 @Suppress("DEPRECATION")
 class TransitionAnimation : XposedContext(), IHooker {
-    private lateinit var activityPendingTransitionFactory: Class<*>
+
     private var CHAT_SQUARE_FADE_IN = 0
     private var CHAT_SQUARE_FADE_OUT = 0
     private var RES_BIG_IMAGE_IN_FROM_RIGHT = 0
@@ -26,6 +26,7 @@ class TransitionAnimation : XposedContext(), IHooker {
     private var RES_NORMAL_OUT_TO_BOTTOM = 0
     private var RES_NORMAL_OUT_TO_LEFT = 0
     private var RES_NORMAL_OUT_TO_RIGHT = 0
+    private lateinit var activityPendingTransitionFactory: Class<*>
 
     override fun key(): String {
         return "transition_animation"

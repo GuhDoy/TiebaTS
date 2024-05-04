@@ -9,12 +9,7 @@ object Adp : XposedContext() {
     var tbs: String? = null
     var account: String? = null
 
-    init {
-        refreshAccountData()
-        refreshCache()
-    }
-
-    fun initialize() {
+    fun initializeAdp() {
         refreshAccountData()
         refreshCache()
     }
@@ -32,10 +27,11 @@ object Adp : XposedContext() {
     }
 
     private fun refreshCache() {
-        hookBeforeMethod("tbclient.ForumRecommend.DataRes\$Builder", "build", Boolean::class.javaPrimitiveType) { param ->
+        hookBeforeMethod("tbclient.ForumRecommend.DataRes\$Builder",
+            "build", Boolean::class.javaPrimitiveType) { param ->
             val forums: MutableSet<String?> = HashSet()
-            val list = XposedHelpers.getObjectField(param.thisObject, "like_forum") as List<*>
-            list.forEach { forums.add(XposedHelpers.getObjectField(it, "forum_name") as String) }
+            val likeForumList = XposedHelpers.getObjectField(param.thisObject, "like_forum") as List<*>
+            likeForumList.forEach { forums.add(XposedHelpers.getObjectField(it, "forum_name") as String) }
             putLikeForum(forums)
         }
     }

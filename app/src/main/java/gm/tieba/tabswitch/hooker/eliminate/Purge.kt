@@ -28,6 +28,7 @@ import org.json.JSONObject
 import java.io.Serializable
 
 class Purge : XposedContext(), IHooker, Obfuscated {
+
     override fun key(): String {
         return "purge"
     }

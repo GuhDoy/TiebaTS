@@ -5,6 +5,7 @@ import gm.tieba.tabswitch.XposedContext
 import gm.tieba.tabswitch.hooker.IHooker
 
 class PurgeVideo : XposedContext(), IHooker {
+
     override fun key(): String {
         return "purge_video"
     }

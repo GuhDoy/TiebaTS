@@ -4,6 +4,7 @@ import gm.tieba.tabswitch.XposedContext
 import gm.tieba.tabswitch.hooker.IHooker
 
 class FoldTopCardView : XposedContext(), IHooker {
+
     override fun key(): String {
         return "fold_top_card_view"
     }

@@ -11,6 +11,7 @@ import gm.tieba.tabswitch.hooker.IHooker
 import java.util.Calendar
 
 class OpenSign : XposedContext(), IHooker {
+
     override fun key(): String {
         return "open_sign"
     }

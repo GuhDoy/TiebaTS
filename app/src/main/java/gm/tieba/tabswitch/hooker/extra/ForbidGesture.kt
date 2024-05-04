@@ -19,6 +19,7 @@ import gm.tieba.tabswitch.util.getR
 import org.luckypray.dexkit.query.matchers.ClassMatcher
 
 class ForbidGesture : XposedContext(), IHooker, Obfuscated {
+
     override fun key(): String {
         return "forbid_gesture"
     }

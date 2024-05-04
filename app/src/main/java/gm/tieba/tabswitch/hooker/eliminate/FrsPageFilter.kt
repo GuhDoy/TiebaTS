@@ -5,6 +5,7 @@ import gm.tieba.tabswitch.XposedContext
 import gm.tieba.tabswitch.hooker.IHooker
 
 class FrsPageFilter : XposedContext(), IHooker, RegexFilter {
+
     override fun key(): String {
         return "frs_page_filter"
     }

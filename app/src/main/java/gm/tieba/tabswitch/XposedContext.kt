@@ -13,6 +13,7 @@ import java.lang.ref.WeakReference
 import java.lang.reflect.Method
 
 abstract class XposedContext {
+
     companion object {
         val isModuleBetaVersion = BuildConfig.VERSION_NAME.contains("alpha") || BuildConfig.VERSION_NAME.contains("beta")
         val exceptions: MutableMap<String, Throwable> = HashMap(0)

@@ -42,16 +42,16 @@ class Deobfuscation : XposedContext() {
         Objects.requireNonNull(bridge)
 
         forEachProgressed(progress, matchers) { matcher: Matcher ->
-            val ret = MethodDataList()
+            val methodDataList = MethodDataList()
 
             matcher.classMatcher?.let { classMatcher ->
                 bridge.findClass(FindClass.create().matcher(classMatcher))
-                    .flatMapTo(ret) { retClass ->
-                        findMethod(bridge, FindMethod.create().searchPackages(retClass.name), matcher)
+                    .flatMapTo(methodDataList) { classData ->
+                        findMethod(bridge, FindMethod.create().searchPackages(classData.name), matcher)
                     }
-            } ?: ret.addAll(findMethod(bridge, FindMethod.create(), matcher))
+            } ?: methodDataList.addAll(findMethod(bridge, FindMethod.create(), matcher))
 
-            ret.forEach { methodData ->
+            methodDataList.forEach { methodData ->
                 putRule(matcher.toString(), methodData.className, methodData.name)
             }
         }

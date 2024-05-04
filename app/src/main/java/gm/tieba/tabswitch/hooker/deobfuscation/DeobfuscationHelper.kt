@@ -19,6 +19,7 @@ import java.util.zip.ZipFile
 import kotlin.math.max
 
 object DeobfuscationHelper {
+
     private const val SIGNATURE_DATA_START_OFFSET = 32
     private const val SIGNATURE_SIZE = 20
     lateinit var sCurrentTbVersion: String

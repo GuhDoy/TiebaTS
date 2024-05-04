@@ -4,6 +4,7 @@ import gm.tieba.tabswitch.XposedContext
 import gm.tieba.tabswitch.hooker.IHooker
 
 class RedTip : XposedContext(), IHooker {
+
     override fun key(): String {
         return "red_tip"
     }

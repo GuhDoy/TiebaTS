@@ -19,15 +19,16 @@ import org.luckypray.dexkit.query.matchers.ClassMatcher
 import java.lang.reflect.Modifier
 
 class PurgeEnter : XposedContext(), IHooker, Obfuscated {
-    override fun key(): String {
-        return "purge_enter"
-    }
 
     private val mLayoutOffset = getDimen("tbds50").toInt()
     private var mInitLayoutHeight = -1
     private var mPbListViewInnerViewConstructorName: String? = null
     private lateinit var mRecForumClassName: String
     private lateinit var mRecForumSetNextPageMethodName: String
+
+    override fun key(): String {
+        return "purge_enter"
+    }
 
     override fun matchers(): List<Matcher> {
         return listOf(

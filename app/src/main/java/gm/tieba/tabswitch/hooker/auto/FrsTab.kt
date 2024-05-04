@@ -10,6 +10,7 @@ import gm.tieba.tabswitch.hooker.deobfuscation.StringMatcher
 import java.lang.reflect.Method
 
 class FrsTab : XposedContext(), IHooker, Obfuscated {
+
     override fun key(): String {
         return "frs_tab"
     }

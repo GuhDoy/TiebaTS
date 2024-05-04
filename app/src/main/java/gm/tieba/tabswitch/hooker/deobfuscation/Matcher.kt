@@ -5,7 +5,7 @@ import org.luckypray.dexkit.query.matchers.MethodMatcher
 
 abstract class Matcher(private val name: String) {
     var classMatcher: ClassMatcher? = null
-    var reqVersion: String? = null
+    var requiredVersion: String? = null
     abstract val methodMatcher: MethodMatcher
 
     override fun toString(): String = name

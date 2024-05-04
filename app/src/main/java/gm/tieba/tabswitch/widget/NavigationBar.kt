@@ -8,6 +8,7 @@ import gm.tieba.tabswitch.util.getColor
 import gm.tieba.tabswitch.util.getObjectField
 
 class NavigationBar(thisObject: Any) : XposedContext() {
+
     private val mNavigationBar: Any? = getObjectField(
         thisObject,
         "com.baidu.tbadk.core.view.NavigationBar"

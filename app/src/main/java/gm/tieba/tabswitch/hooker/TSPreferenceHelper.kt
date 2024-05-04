@@ -49,6 +49,7 @@ import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
 
 object TSPreferenceHelper : XposedContext() {
+
     @JvmStatic
     fun createTextView(text: String?): TextView = TextView(getContext()).apply {
         this.text = text

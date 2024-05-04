@@ -17,6 +17,7 @@ import gm.tieba.tabswitch.hooker.IHooker
 import org.json.JSONObject
 
 class OriginSrc : XposedContext(), IHooker {
+
     override fun key(): String {
         return "origin_src"
     }
@@ -53,17 +54,14 @@ class OriginSrc : XposedContext(), IHooker {
     }
 
     companion object {
-        private var isHooked = false
-        private var picListUnhook: XC_MethodHook.Unhook? = null
-        private var pbContentUnhook: XC_MethodHook.Unhook? = null
-        private var mediaUnhook: XC_MethodHook.Unhook? = null
-        private var picInfoUnhook: XC_MethodHook.Unhook? = null
-        private var feedPicComponentUnhook: XC_MethodHook.Unhook? = null
+
+        private val unhookList = mutableListOf<XC_MethodHook.Unhook>()
+
         private fun doHook() {
-            if (isHooked) return
+            if (unhookList.isNotEmpty()) return
 
             findRule("pic_amount") { _, clazz, method ->
-                picListUnhook = hookBeforeMethod(
+                unhookList.add(hookBeforeMethod(
                     clazz, method, JSONObject::class.java, Boolean::class.javaObjectType
                 ) { param ->
                     val jsonObject = param.args[0] as JSONObject
@@ -83,9 +81,9 @@ class OriginSrc : XposedContext(), IHooker {
                         }
                         jsonObject.put("pic_list", picList)
                     }
-                }
+                })
 
-                pbContentUnhook = hookBeforeMethod(
+                unhookList.add(hookBeforeMethod(
                     "tbclient.PbContent\$Builder",
                     "build", Boolean::class.javaPrimitiveType,
                 ) { param ->
@@ -97,9 +95,9 @@ class OriginSrc : XposedContext(), IHooker {
                             XposedHelpers.getObjectField(param.thisObject, "origin_src")
                         )
                     }
-                }
+                })
 
-                mediaUnhook = hookBeforeMethod(
+                unhookList.add(hookBeforeMethod(
                     "tbclient.Media\$Builder",
                     "build", Boolean::class.javaPrimitiveType,
                 ) { param ->
@@ -111,9 +109,9 @@ class OriginSrc : XposedContext(), IHooker {
                             XposedHelpers.getObjectField(param.thisObject, "big_pic")
                         )
                     }
-                }
+                })
 
-                picInfoUnhook = hookBeforeMethod(
+                unhookList.add(hookBeforeMethod(
                     "tbclient.PicInfo\$Builder",
                     "build", Boolean::class.javaPrimitiveType,
                 ) { param ->
@@ -124,9 +122,9 @@ class OriginSrc : XposedContext(), IHooker {
                             XposedHelpers.getObjectField(param.thisObject, "origin_pic_url")
                         )
                     }
-                }
+                })
 
-                feedPicComponentUnhook = hookBeforeMethod(
+                unhookList.add(hookBeforeMethod(
                     "tbclient.FeedPicComponent\$Builder",
                     "build", Boolean::class.javaPrimitiveType,
                 ) { param ->
@@ -149,36 +147,14 @@ class OriginSrc : XposedContext(), IHooker {
                         val modifiedUri = "tiebaapp://router/portal?params=$jsonObject"
                         XposedHelpers.setObjectField(param.thisObject, "schema", modifiedUri)
                     }
-                }
-
-                isHooked = true
+                })
             }
         }
 
         private fun doUnHook() {
-            if (!isHooked) return
-            picListUnhook?.let {
-                it.unhook()
-                picListUnhook = null
-            }
-            pbContentUnhook?.let {
-                it.unhook()
-                pbContentUnhook = null
-            }
-            mediaUnhook?.let {
-                it.unhook()
-                mediaUnhook = null
-            }
-            picInfoUnhook?.let {
-                it.unhook()
-                picInfoUnhook = null
-            }
-            feedPicComponentUnhook?.let {
-                it.unhook()
-                feedPicComponentUnhook = null
-            }
-            isHooked = false
-
+            if (unhookList.isEmpty()) return
+            unhookList.forEach { it.unhook() }
+            unhookList.clear()
         }
     }
 }

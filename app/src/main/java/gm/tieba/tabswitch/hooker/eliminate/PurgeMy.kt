@@ -14,11 +14,13 @@ import gm.tieba.tabswitch.util.getObjectField
 import org.luckypray.dexkit.query.matchers.ClassMatcher
 
 class PurgeMy : XposedContext(), IHooker, Obfuscated {
+
+    private val mGridTopPadding = getDimen("tbds25").toInt()
+
     override fun key(): String {
         return "purge_my"
     }
 
-    private val mGridTopPadding = getDimen("tbds25").toInt()
     override fun matchers(): List<Matcher> {
         return listOf(
             SmaliMatcher("Lcom/baidu/tieba/personCenter/view/PersonOftenFuncItemView;-><init>(Landroid/content/Context;)V"),

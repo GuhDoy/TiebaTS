@@ -14,6 +14,7 @@ import java.net.URLEncoder
 import kotlin.concurrent.thread
 
 class AutoSign : XposedContext(), IHooker {
+
     companion object {
         //获取用户所有关注贴吧
         private const val LIKE_URL = "https://tieba.baidu.com/mo/q/newmoindex"

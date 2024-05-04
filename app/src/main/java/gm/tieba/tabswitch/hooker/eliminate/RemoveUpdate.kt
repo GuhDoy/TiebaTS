@@ -5,6 +5,7 @@ import gm.tieba.tabswitch.hooker.IHooker
 import org.json.JSONObject
 
 class RemoveUpdate : XposedContext(), IHooker {
+
     override fun key(): String {
         return "remove_update"
     }

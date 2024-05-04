@@ -5,6 +5,7 @@ import gm.tieba.tabswitch.XposedContext
 import gm.tieba.tabswitch.hooker.IHooker
 
 class AgreeNum : XposedContext(), IHooker {
+
     override fun key(): String {
         return "agree_num"
     }

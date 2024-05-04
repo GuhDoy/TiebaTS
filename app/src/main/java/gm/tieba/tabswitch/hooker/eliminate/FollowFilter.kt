@@ -8,6 +8,7 @@ import gm.tieba.tabswitch.widget.TbToast
 import gm.tieba.tabswitch.widget.TbToast.Companion.showTbToast
 
 class FollowFilter : XposedContext(), IHooker {
+
     override fun key(): String {
         return "follow_filter"
     }

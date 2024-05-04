@@ -5,6 +5,7 @@ import gm.tieba.tabswitch.hooker.IHooker
 import gm.tieba.tabswitch.util.setObjectField
 
 class MsgCenterTab : XposedContext(), IHooker {
+
     override fun key(): String {
         return "msg_center_tab"
     }

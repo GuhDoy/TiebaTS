@@ -21,6 +21,7 @@ import org.luckypray.dexkit.query.matchers.MethodMatcher
 import org.luckypray.dexkit.query.matchers.MethodsMatcher
 
 class SelectClipboard : XposedContext(), IHooker, Obfuscated {
+
     override fun key(): String {
         return "select_clipboard"
     }
@@ -45,11 +46,13 @@ class SelectClipboard : XposedContext(), IHooker, Obfuscated {
             when (matcher) {
                 "Landroid/text/ClipboardManager;->setText(Ljava/lang/CharSequence;)V" ->
                     hookReplaceMethod(clazz, method) { param ->
+
                         val tbRichText = getObjectField(
                             param.thisObject,
                             "com.baidu.tbadk.widget.richText.TbRichText"
                         )
                         val currentActivity = getCurrentActivity()
+
                         AlertDialog.Builder(
                             currentActivity,
                             getDialogTheme(getContext())

@@ -31,7 +31,9 @@ import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
 
 class HistoryCache : XposedContext(), IHooker {
+
     private var mRegex = ""
+
     override fun key(): String {
         return "history_cache"
     }
@@ -40,13 +42,12 @@ class HistoryCache : XposedContext(), IHooker {
         hookAfterMethod(
             "com.baidu.tieba.myCollection.history.PbHistoryActivity",
             "onCreate", Bundle::class.java
-        ) {param ->
+        ) { param ->
             val activity = param.thisObject as Activity
             if (param.args[0] == null) {
                 mRegex = ""
             }
-            NavigationBar(param.thisObject)
-                .addTextButton("搜索") { showRegexDialog(activity) }
+            NavigationBar(param.thisObject).addTextButton("搜索") { showRegexDialog(activity) }
         }
 
         hookBeforeMethod(

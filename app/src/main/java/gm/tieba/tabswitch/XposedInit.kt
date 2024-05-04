@@ -19,7 +19,7 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 import gm.tieba.tabswitch.Constants.strings
 import gm.tieba.tabswitch.dao.AcRules
 import gm.tieba.tabswitch.dao.AcRules.isRuleFound
-import gm.tieba.tabswitch.dao.Adp.initialize
+import gm.tieba.tabswitch.dao.Adp.initializeAdp
 import gm.tieba.tabswitch.dao.Preferences
 import gm.tieba.tabswitch.dao.Preferences.getAll
 import gm.tieba.tabswitch.dao.Preferences.getBoolean
@@ -69,11 +69,12 @@ import java.util.Locale
 import kotlin.String
 
 class XposedInit : XposedContext(), IXposedHookZygoteInit, IXposedHookLoadPackage {
+
+    private lateinit var mAppComponentFactory: AppComponentFactory
+
     override fun initZygote(startupParam: StartupParam) {
         sPath = startupParam.modulePath
     }
-
-    private lateinit var mAppComponentFactory: AppComponentFactory
 
     override fun handleLoadPackage(lpparam: LoadPackageParam) {
         if (("com.baidu.tieba" != lpparam.packageName && XposedHelpers.findClassIfExists(
@@ -177,7 +178,7 @@ class XposedInit : XposedContext(), IXposedHookZygoteInit, IXposedHookLoadPackag
 
             // Remove matchers that does not satisfy version requirement
             matchersList.removeIf { matcher ->
-                matcher.reqVersion?.let { requiredVersion ->
+                matcher.requiredVersion?.let { requiredVersion ->
                     val isVersionSatisfied = isTbSatisfyVersionRequirement(requiredVersion)
                     if (!isVersionSatisfied) {
                         XposedBridge.log(
@@ -264,7 +265,7 @@ class XposedInit : XposedContext(), IXposedHookZygoteInit, IXposedHookLoadPackag
                 return@hookAfterMethod
             }
 
-            initialize()
+            initializeAdp()
             if (getBoolean("hide_native")) {
                 try {
                     System.loadLibrary("hide")

@@ -27,6 +27,7 @@ import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHelper.saveAndRestar
 import kotlin.concurrent.thread
 
 class DeobfuscationHooker(private val mMatchers: List<Matcher>) : XposedContext(), IHooker {
+
     private val viewModel = DeobfuscationViewModel()
     private lateinit var mActivity: Activity
     private lateinit var mProgress: View
