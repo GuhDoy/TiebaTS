@@ -8,7 +8,6 @@ import io.reactivex.rxjava3.subjects.PublishSubject
 import org.luckypray.dexkit.DexKitBridge
 import org.luckypray.dexkit.query.FindClass
 import org.luckypray.dexkit.query.FindMethod
-import org.luckypray.dexkit.query.matchers.MethodMatcher
 import org.luckypray.dexkit.result.MethodDataList
 import java.util.Objects
 import java.util.function.Consumer
@@ -61,16 +60,7 @@ class Deobfuscation : XposedContext() {
     }
 
     private fun findMethod(bridge: DexKitBridge, baseMethodQuery: FindMethod, matcher: Matcher): MethodDataList {
-        val methodMatcher = when (matcher) {
-            is StringMatcher -> MethodMatcher.create().usingStrings(matcher.str)
-            is ResMatcher -> MethodMatcher.create().usingNumbers(matcher.id)
-            is SmaliMatcher -> MethodMatcher.create().addInvoke(MethodMatcher.create().descriptor(matcher.descriptor))
-            is MethodNameMatcher -> MethodMatcher.create().name(matcher.methodName)
-            is ReturnTypeMatcher<*> -> MethodMatcher.create().returnType(matcher.returnType)
-            else -> throw IllegalArgumentException("Unsupported matcher type: ${matcher.javaClass.simpleName}")
-        }
-
-        return bridge.findMethod(baseMethodQuery.matcher(methodMatcher))
+        return bridge.findMethod(baseMethodQuery.matcher(matcher.methodMatcher))
     }
 
     fun saveDexSignatureHashCode() {
