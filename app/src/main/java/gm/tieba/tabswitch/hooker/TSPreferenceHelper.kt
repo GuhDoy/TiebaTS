@@ -98,13 +98,12 @@ object TSPreferenceHelper : XposedContext() {
         newButton?.apply {
             (parent as ViewGroup).removeView(this)
             l?.let { setOnClickListener(it) }
-
-            val backgroundColor = getColor("CAM_X0201")
-            setBackgroundColor(backgroundColor)
+            setBackgroundColor(getColor("CAM_X0201"))
 
             if (showArrow) {
                 setOnTouchListener { v, event ->
                     val isInside = event.x in 0f..v.width.toFloat() && event.y in 0f..v.height.toFloat()
+                    val backgroundColor = getColor("CAM_X0201")
 
                     when (event.action) {
                         MotionEvent.ACTION_DOWN -> setBackgroundColor(
