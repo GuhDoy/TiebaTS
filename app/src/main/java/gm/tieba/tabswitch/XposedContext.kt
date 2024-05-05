@@ -91,6 +91,22 @@ abstract class XposedContext {
             )
         }
 
+        inline fun hookAfterMethodPriority(
+            className: String,
+            methodName: String,
+            vararg parameterTypes: Any?,
+            crossinline afterHook: (XC_MethodHook.MethodHookParam) -> Unit
+        ): XC_MethodHook.Unhook {
+            return XposedHelpers.findAndHookMethod(
+                className, sClassLoader, methodName, *parameterTypes,
+                object : XC_MethodHook(-1) {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        afterHook(param)
+                    }
+                }
+            )
+        }
+
         inline fun hookReplaceMethod(
             className: String,
             methodName: String,

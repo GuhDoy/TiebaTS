@@ -156,7 +156,7 @@ class Purge : XposedContext(), IHooker, Obfuscated {
         hookReplaceMethod("com.baidu.tbadk.abtest.UbsABTestHelper", "isPushLaunchWithoutSplashAdA") { true }
 
         // Fix bugs related to isPushLaunch4SplashAd
-        hookAfterMethod(
+        hookAfterMethodPriority(
             "com.baidu.tieba.tblauncher.MainTabActivity",
             "onCreate", Bundle::class.java
         ) { _ ->
@@ -368,7 +368,6 @@ class Purge : XposedContext(), IHooker, Obfuscated {
 
             // 小说推荐
             XposedHelpers.setObjectField(param.thisObject, "novel_recom_card", null)
-
         }
 
         // 首页样式 AB test
