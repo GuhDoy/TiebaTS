@@ -1,8 +1,14 @@
 package gm.tieba.tabswitch.dao
 
-import androidx.room.*
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
+import androidx.room.ColumnInfo
+import androidx.room.Dao
+import androidx.room.Database
+import androidx.room.Delete
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.PrimaryKey
+import androidx.room.Query
+import androidx.room.RoomDatabase
 
 @Entity
 data class AcRule(
@@ -35,14 +41,4 @@ interface AcRuleDao {
 @Database(entities = [AcRule::class], version = 1, exportSchema = false)
 abstract class AcRuleDatabase : RoomDatabase() {
     abstract fun acRuleDao(): AcRuleDao
-}
-
-object AcRuleMigrations {
-    @JvmStatic
-    val MIGRATION_1_2 = object : Migration(1, 2) {
-        override fun migrate(database: SupportSQLiteDatabase) {
-            database.execSQL("alter table rules rename column rule to matcher")
-            database.execSQL("alter table rules rename to AcRule")
-        }
-    }
 }
