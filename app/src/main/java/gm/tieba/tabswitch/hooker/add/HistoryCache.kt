@@ -53,10 +53,10 @@ class HistoryCache : XposedContext(), IHooker {
         hookBeforeMethod(
             findFirstMethodByExactType("com.baidu.tieba.myCollection.history.PbHistoryActivity", MutableList::class.java)
         ) { param ->
-            val historyList = param.args[0] as MutableList<*>
+            val historyList = param.args[0] as? MutableList<*>
             val pattern = Pattern.compile(mRegex, Pattern.CASE_INSENSITIVE)
 
-            historyList.removeIf { history ->
+            historyList?.removeIf { history ->
                 val strings = try {
                     arrayOf(
                         XposedHelpers.getObjectField(history, "forumName") as String,

@@ -63,7 +63,7 @@ class Purge : XposedContext(), IHooker, Obfuscated {
                 "pic_amount" ->
                     findClass(clazz).declaredMethods.filter { md ->
                         md.parameterTypes.contentToString().contains("JSONObject") && md.name != method
-                    }.forEach { md -> hookReplaceMethod(md) {null} }
+                    }.forEach { md -> hookReplaceMethod(md) { null } }
 
                 // 吧内%s新贴热议中
                 "准备展示精灵动画提示控件" ->
@@ -207,7 +207,7 @@ class Purge : XposedContext(), IHooker, Obfuscated {
         // 首页直播推荐卡片：R.layout.card_home_page_ala_live_item_new
         findClass("com.baidu.tieba.homepage.personalize.adapter.HomePageAlaLiveThreadAdapter").declaredMethods.filter { method ->
             method.returnType.toString().endsWith("HomePageAlaLiveThreadViewHolder")
-        }.forEach { method -> hookReplaceMethod(method) {null} }
+        }.forEach { method -> hookReplaceMethod(method) { null } }
 
         // 首页推荐
         hookBeforeMethod(
