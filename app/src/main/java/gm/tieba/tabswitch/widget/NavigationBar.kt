@@ -15,9 +15,7 @@ class NavigationBar(thisObject: Any) : XposedContext() {
     )
 
     fun addTextButton(text: String?, l: View.OnClickListener?) {
-        val controlAlignClass = XposedHelpers.findClass(
-            "com.baidu.tbadk.core.view.NavigationBar\$ControlAlign", sClassLoader
-        )
+        val controlAlignClass = findClass("com.baidu.tbadk.core.view.NavigationBar\$ControlAlign")
         val horizontalRight = controlAlignClass.enumConstants.find { it.toString() == "HORIZONTAL_RIGHT" }
             ?: throw IllegalStateException("HORIZONTAL_RIGHT enum constant not found")
         val textView = XposedHelpers.callMethod(

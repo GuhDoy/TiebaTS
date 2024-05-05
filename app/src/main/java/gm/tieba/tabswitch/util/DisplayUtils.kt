@@ -30,12 +30,7 @@ fun restart(activity: Activity) {
 fun getTbSkin(context: Context): String {
     //Lcom/baidu/tbadk/core/TbadkCoreApplication;->getSkinType()I
     val skinType: Int = try {
-        val instance = XposedHelpers.callStaticMethod(
-            XposedHelpers.findClass(
-                "com.baidu.tbadk.core.TbadkCoreApplication",
-                XposedContext.sClassLoader
-            ), "getInst"
-        )
+        val instance = getTbadkCoreApplicationInst()
         XposedHelpers.callMethod(instance, "getSkinType") as Int
     } catch (e: Exception) {
         XposedBridge.log(e)

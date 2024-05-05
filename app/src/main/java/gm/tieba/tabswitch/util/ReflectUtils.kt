@@ -8,6 +8,7 @@ import androidx.annotation.ColorInt
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import gm.tieba.tabswitch.XposedContext
+import gm.tieba.tabswitch.XposedContext.Companion.findClass
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 
@@ -73,7 +74,7 @@ fun getObjectField(instance: Any?, className: String): Any? {
     return try {
         XposedHelpers.findFirstFieldByExactType(
             instance?.javaClass,
-            XposedHelpers.findClass(className, XposedContext.sClassLoader)
+            findClass(className)
         )[instance]
     } catch (e: IllegalAccessException) {
         XposedBridge.log(e)
@@ -94,7 +95,7 @@ fun setObjectField(instance: Any?, className: String, value: Any?) {
     try {
         XposedHelpers.findFirstFieldByExactType(
             instance?.javaClass,
-            XposedHelpers.findClass(className, XposedContext.sClassLoader)
+            findClass(className)
         )[instance] = value
     } catch (e: IllegalAccessException) {
         XposedBridge.log(e)
@@ -141,7 +142,7 @@ fun findFirstMethodByExactType(cls: Class<*>, vararg paramTypes: Class<*>): Meth
 
 fun findFirstMethodByExactType(className: String, vararg paramTypes: Class<*>): Method {
     return findFirstMethodByExactType(
-        XposedHelpers.findClass(className, XposedContext.sClassLoader),
+        findClass(className),
         *paramTypes
     )
 }
@@ -154,7 +155,7 @@ fun findFirstMethodByExactReturnType(cls: Class<*>, returnType: Class<*>): Metho
 
 fun findFirstMethodByExactReturnType(className: String, returnType: Class<*>): Method {
     return findFirstMethodByExactReturnType(
-        XposedHelpers.findClass(className, XposedContext.sClassLoader),
+        findClass(className),
         returnType
     )
 }
@@ -177,10 +178,7 @@ fun callStaticMethod(method: Method, vararg args: Any?): Any? {
 }
 
 fun getTbadkCoreApplicationInst(): Application = XposedHelpers.callStaticMethod(
-    XposedHelpers.findClass(
-        "com.baidu.tbadk.core.TbadkCoreApplication",
-        XposedContext.sClassLoader
-    ),
+    findClass("com.baidu.tbadk.core.TbadkCoreApplication"),
     "getInst"
 ) as Application
 

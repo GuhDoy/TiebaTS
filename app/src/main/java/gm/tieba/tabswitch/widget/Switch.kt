@@ -17,23 +17,16 @@ class Switch : XposedContext() {
     private var mMethods: Array<Method>
 
     init {
-        val cls =
-            XposedHelpers.findClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView", sClassLoader)
+        val cls = findClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView")
         bdSwitch = XposedHelpers.newInstance(cls, getContext()) as View
         mMethods = cls.declaredMethods
     }
 
     fun setOnSwitchStateChangeListener(l: InvocationHandler) {
         val clazz: Class<*> = try {
-            XposedHelpers.findClass(
-                "com.baidu.adp.widget.BdSwitchView.BdSwitchView\$b",
-                sClassLoader
-            )
+            findClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView\$b")
         } catch (e: ClassNotFoundError) {
-            XposedHelpers.findClass(
-                "com.baidu.adp.widget.BdSwitchView.BdSwitchView\$a",
-                sClassLoader
-            )
+            findClass("com.baidu.adp.widget.BdSwitchView.BdSwitchView\$a")
         }
         val proxy = Proxy.newProxyInstance(sClassLoader, arrayOf(clazz), l)
         XposedHelpers.callMethod(bdSwitch, "setOnSwitchStateChangeListener", proxy)
