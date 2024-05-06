@@ -93,7 +93,6 @@ dependencies {
     implementation("androidx.room:room-ktx:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")
 
-    implementation("io.reactivex.rxjava3:rxjava:3.1.8")
     implementation("org.luckypray:dexkit:2.0.1")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("dev.rikka.ndk.thirdparty:cxx:1.2.0")

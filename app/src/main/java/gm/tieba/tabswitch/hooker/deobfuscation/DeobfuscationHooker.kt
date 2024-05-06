@@ -25,10 +25,15 @@ import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHelper.getTbVersion
 import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHelper.isDexChanged
 import gm.tieba.tabswitch.hooker.deobfuscation.DeobfuscationHelper.saveAndRestart
 import kotlin.concurrent.thread
+import kotlin.properties.Delegates
 
 class DeobfuscationHooker(private val mMatchers: List<Matcher>) : XposedContext(), IHooker {
 
-    private val viewModel = DeobfuscationViewModel()
+    var progress : Float by Delegates.observable(0f) { _, _, new ->
+        updateProgress(new)
+    }
+
+    private val deobfuscation = Deobfuscation()
     private lateinit var mActivity: Activity
     private lateinit var mProgress: View
     private lateinit var mMessage: TextView
@@ -68,12 +73,11 @@ class DeobfuscationHooker(private val mMatchers: List<Matcher>) : XposedContext(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT
                 )
             )
-            viewModel.progress.subscribe { progress: Float -> setProgress(progress) }
 
             thread {
                 try {
                     setMessage("搜索资源，字符串和方法调用")
-                    viewModel.deobfuscate(mActivity, mMatchers)
+                    performDeobfuscation(mActivity, mMatchers)
 
                     XposedBridge.log("Deobfuscation complete, current version: ${getTbVersion(mActivity)}")
                     hooks.forEach { it.unhook() }
@@ -88,6 +92,12 @@ class DeobfuscationHooker(private val mMatchers: List<Matcher>) : XposedContext(
                 }
             }
         }
+    }
+
+    private fun performDeobfuscation(context: Context, matchers: List<Matcher>) {
+        deobfuscation.setMatchers(matchers)
+        deobfuscation.dexkit(context, this)
+        deobfuscation.saveDexSignatureHashCode()
     }
 
     private fun disableStartAndFinishActivity(): List<XC_MethodHook.Unhook> {
@@ -158,7 +168,7 @@ class DeobfuscationHooker(private val mMatchers: List<Matcher>) : XposedContext(
         mActivity.runOnUiThread { mMessage.text = message }
     }
 
-    private fun setProgress(progress: Float) {
+    private fun updateProgress(progress: Float) {
         mActivity.runOnUiThread {
             mProgress.layoutParams = mProgress.layoutParams.apply {
                 height = mMessage.height

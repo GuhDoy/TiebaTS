@@ -4,13 +4,11 @@ import android.content.Context
 import gm.tieba.tabswitch.XposedContext
 import gm.tieba.tabswitch.dao.AcRules.putRule
 import gm.tieba.tabswitch.dao.Preferences.putSignature
-import io.reactivex.rxjava3.subjects.PublishSubject
 import org.luckypray.dexkit.DexKitBridge
 import org.luckypray.dexkit.query.FindClass
 import org.luckypray.dexkit.query.FindMethod
 import org.luckypray.dexkit.result.MethodDataList
 import java.util.Objects
-import java.util.function.Consumer
 import java.util.zip.ZipFile
 
 class Deobfuscation : XposedContext() {
@@ -24,24 +22,24 @@ class Deobfuscation : XposedContext() {
     }
 
     private fun <T> forEachProgressed(
-        progress: PublishSubject<Float>,
+        hooker: DeobfuscationHooker,
         collection: Collection<T>,
-        action: Consumer<in T>
+        action: (T) -> Unit
     ) {
         val size = collection.size
         collection.forEachIndexed { index, item ->
-            progress.onNext((index + 1).toFloat() / size)
-            action.accept(item)
+            hooker.progress = (index + 1).toFloat() / size
+            action(item)
         }
     }
 
-    fun dexkit(progress: PublishSubject<Float>, context: Context) {
+    fun dexkit(context: Context, hooker: DeobfuscationHooker) {
         load("dexkit")
         packageResource = context.packageResourcePath
         val bridge = DexKitBridge.create(packageResource)
         Objects.requireNonNull(bridge)
 
-        forEachProgressed(progress, matchers) { matcher: Matcher ->
+        forEachProgressed(hooker, matchers) { matcher: Matcher ->
             val methodDataList = MethodDataList()
 
             matcher.classMatcher?.let { classMatcher ->

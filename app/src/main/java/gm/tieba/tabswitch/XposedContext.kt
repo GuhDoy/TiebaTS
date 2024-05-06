@@ -9,6 +9,7 @@ import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XC_MethodReplacement
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
+import de.robv.android.xposed.callbacks.XCallback
 import java.lang.ref.WeakReference
 import java.lang.reflect.Method
 
@@ -99,7 +100,7 @@ abstract class XposedContext {
         ): XC_MethodHook.Unhook {
             return XposedHelpers.findAndHookMethod(
                 className, sClassLoader, methodName, *parameterTypes,
-                object : XC_MethodHook(-1) {
+                object : XC_MethodHook(XCallback.PRIORITY_LOWEST) {
                     override fun afterHookedMethod(param: MethodHookParam) {
                         afterHook(param)
                     }
