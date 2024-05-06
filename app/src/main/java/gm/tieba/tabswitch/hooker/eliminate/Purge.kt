@@ -246,6 +246,9 @@ class Purge : XposedContext(), IHooker, Obfuscated {
         ) { param ->
             val postList = XposedHelpers.getObjectField(param.thisObject, "post_list") as? MutableList<*>
             postList?.removeIf { post -> XposedHelpers.getObjectField(post, "aichat_bot_comment_card") != null }
+
+            // AI聊天卡片
+            XposedHelpers.setObjectField(param.thisObject, "aichat_bot_card", null)
         }
 
         // 吧页面
