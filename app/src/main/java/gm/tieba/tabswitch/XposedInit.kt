@@ -59,6 +59,7 @@ import gm.tieba.tabswitch.hooker.eliminate.PurgeVideo
 import gm.tieba.tabswitch.hooker.eliminate.RedTip
 import gm.tieba.tabswitch.hooker.eliminate.RemoveUpdate
 import gm.tieba.tabswitch.hooker.eliminate.UserFilter
+import gm.tieba.tabswitch.hooker.extra.AutoRefresh
 import gm.tieba.tabswitch.hooker.extra.ForbidGesture
 import gm.tieba.tabswitch.hooker.extra.Hide
 import gm.tieba.tabswitch.hooker.extra.StackTrace
@@ -164,7 +165,8 @@ class XposedInit : XposedContext(), IXposedHookZygoteInit, IXposedHookLoadPackag
                 PurgeVideo(),
                 SelectClipboard(),
                 UserFilter(),
-                TransitionAnimation()
+                TransitionAnimation(),
+                AutoRefresh()
             )
             val matchers = ArrayList<Obfuscated>(hookers.size + 1)
             matchers.add(TbToast())

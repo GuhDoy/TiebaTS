@@ -266,6 +266,7 @@ class TSPreference : XposedContext(), IHooker, Obfuscated {
         preferenceLayout.addView(SwitchButtonHolder(activity, "禁用帖子手势", "forbid_gesture", SwitchButtonHolder.TYPE_SWITCH))
         preferenceLayout.addView(SwitchButtonHolder(activity, "用赞踩差数代替赞数", "agree_num", SwitchButtonHolder.TYPE_SWITCH))
         preferenceLayout.addView(SwitchButtonHolder(activity, "禁止检测通知开启状态", "notification_detect", SwitchButtonHolder.TYPE_SWITCH))
+        preferenceLayout.addView(SwitchButtonHolder(activity, "禁止首页自动刷新", "auto_refresh", SwitchButtonHolder.TYPE_SWITCH))
 
         preferenceLayout.addView(createButton(TRACE, "希望有一天不再需要贴吧TS", true) { _ ->
             activity.startActivity(Intent().apply {
