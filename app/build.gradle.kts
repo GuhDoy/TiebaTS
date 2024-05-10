@@ -31,11 +31,11 @@ android {
         minSdk = 28
         targetSdk = sdk
         versionCode = gitCommitCount
-        versionName = "3.0.0-beta"
+        versionName = "3.0.0"
         if (versionName!!.contains("alpha") || versionName!!.contains("beta")) {
             versionNameSuffix = ".$commitCountSinceLatestTag"
         }
-        buildConfigField("String", "TARGET_VERSION", "\"12.60.1.1\"")
+        buildConfigField("String", "TARGET_VERSION", "\"12.60.4.1\"")
         buildConfigField("String", "MIN_VERSION", "\"12.53.1.0\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
