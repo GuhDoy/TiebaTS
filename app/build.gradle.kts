@@ -31,7 +31,7 @@ android {
         minSdk = 28
         targetSdk = sdk
         versionCode = gitCommitCount
-        versionName = "3.0.0"
+        versionName = "3.0.1"
         if (versionName!!.contains("alpha") || versionName!!.contains("beta")) {
             versionNameSuffix = ".$commitCountSinceLatestTag"
         }
