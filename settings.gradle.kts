@@ -5,8 +5,8 @@ pluginManagement {
         mavenCentral()
     }
     plugins {
-        id("com.android.application") version "8.4.0"
-        id("com.android.library") version "8.4.0"
+        id("com.android.application") version "8.4.1"
+        id("com.android.library") version "8.4.1"
         id("org.jetbrains.kotlin.android") version "1.9.0"
         id("com.google.devtools.ksp") version "1.9.0-1.0.13" apply false
     }
