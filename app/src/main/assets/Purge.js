@@ -18,6 +18,7 @@
             "ai_chatroom_guide",
             "friend_forum",
             "game_card_guide",
+            "area_data",
           ];
         } else if (
           // 一键签到页面

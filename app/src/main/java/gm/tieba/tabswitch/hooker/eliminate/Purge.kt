@@ -98,19 +98,20 @@ class Purge : XposedContext(), IHooker, Obfuscated {
                     if (method == "invoke") {
                         hookBeforeMethod(clazz, method) { param ->
                             getObjectField(param.thisObject, JSONObject::class.java)?.apply {
+                                val removeTabType = listOf("202", "6")
                                 val indexTabInfo = getJSONArray("index_tab_info")
                                 val newIndexTabInfo = JSONArray()
                                 if (DeobfuscationHelper.isTbSatisfyVersionRequirement("12.59")) {
                                     for (i in 0 until indexTabInfo.length()) {
                                         val currTab = indexTabInfo.getJSONObject(i)
-                                        if (currTab.getString("is_main_tab") == "1" && currTab.getString("tab_type") != "6") {
+                                        if (currTab.getString("is_main_tab") == "1" && currTab.getString("tab_type") !in removeTabType) {
                                             newIndexTabInfo.put(currTab)
                                         }
                                     }
                                 } else {
                                     for (i in 0 until indexTabInfo.length()) {
                                         val currTab = indexTabInfo.getJSONObject(i)
-                                        if (currTab.getString("tab_type") != "202" && currTab.getString("tab_type") != "6") {
+                                        if (currTab.getString("tab_type") !in removeTabType) {
                                             newIndexTabInfo.put(currTab)
                                         }
                                     }
