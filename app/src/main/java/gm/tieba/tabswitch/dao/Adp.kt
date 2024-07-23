@@ -30,8 +30,8 @@ object Adp : XposedContext() {
         hookBeforeMethod("tbclient.ForumRecommend.DataRes\$Builder",
             "build", Boolean::class.javaPrimitiveType) { param ->
             val forums: MutableSet<String?> = HashSet()
-            val likeForumList = XposedHelpers.getObjectField(param.thisObject, "like_forum") as List<*>
-            likeForumList.forEach { forums.add(XposedHelpers.getObjectField(it, "forum_name") as String) }
+            val likeForumList = XposedHelpers.getObjectField(param.thisObject, "like_forum") as? List<*>
+            likeForumList?.forEach { forums.add(XposedHelpers.getObjectField(it, "forum_name") as String) }
             putLikeForum(forums)
         }
     }
