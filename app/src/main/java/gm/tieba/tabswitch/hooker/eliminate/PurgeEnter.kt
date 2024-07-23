@@ -59,10 +59,10 @@ class PurgeEnter : XposedContext(), IHooker, Obfuscated {
                     hookReplaceMethod(clazz, method) { param ->
                         val pbListView = getObjectField(param.thisObject, "com.baidu.tbadk.core.view.PbListView")
                         val pbListViewInnerView =
-                            XposedHelpers.callMethod(pbListView, mPbListViewInnerViewConstructorName) as View
+                            XposedHelpers.callMethod(pbListView, mPbListViewInnerViewConstructorName) as? View
                         val bdListView =
                             getObjectField(param.thisObject, "com.baidu.adp.widget.ListView.BdListView")
-                        if (pbListViewInnerView.parent == null) {
+                        if (pbListViewInnerView?.parent == null) {
                             XposedHelpers.callMethod(bdListView, "setNextPage", pbListView)
                             XposedHelpers.callMethod(bdListView, "setOverScrollMode", View.OVER_SCROLL_ALWAYS)
                         }
