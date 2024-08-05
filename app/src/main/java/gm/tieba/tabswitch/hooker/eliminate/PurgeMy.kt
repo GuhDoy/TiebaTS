@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import de.robv.android.xposed.XposedHelpers
 import gm.tieba.tabswitch.XposedContext
 import gm.tieba.tabswitch.dao.AcRules.findRule
+import gm.tieba.tabswitch.dao.Preferences.getBoolean
 import gm.tieba.tabswitch.hooker.IHooker
 import gm.tieba.tabswitch.hooker.Obfuscated
 import gm.tieba.tabswitch.hooker.deobfuscation.Matcher
@@ -89,21 +90,24 @@ class PurgeMy : XposedContext(), IHooker, Obfuscated {
             }
         }
 
-        // 我的页面 AB test
-        hookBeforeMethod(
-            "com.baidu.tbadk.abtest.UbsABTestDataManager",
-            "parseJSONArray",
-            JSONArray::class.java
-        ) { param ->
-            val currentABTestJson = param.args[0] as JSONArray
-            val newABTestJson = JSONArray()
-            for (i in 0 until currentABTestJson.length()) {
-                val currTest = currentABTestJson.getJSONObject(i)
-                if (!currTest.getString("sid").startsWith("12_64_my_tab_new")) {
-                    newABTestJson.put(currTest)
+        // Skip because we already disabled all AB tests in purge
+        if (!getBoolean("purge")) {
+            // 我的页面 AB test
+            hookBeforeMethod(
+                "com.baidu.tbadk.abtest.UbsABTestDataManager",
+                "parseJSONArray",
+                JSONArray::class.java
+            ) { param ->
+                val currentABTestJson = param.args[0] as JSONArray
+                val newABTestJson = JSONArray()
+                for (i in 0 until currentABTestJson.length()) {
+                    val currTest = currentABTestJson.getJSONObject(i)
+                    if (!currTest.getString("sid").startsWith("12_64_my_tab_new")) {
+                        newABTestJson.put(currTest)
+                    }
                 }
+                param.args[0] = newABTestJson
             }
-            param.args[0] = newABTestJson
         }
     }
 }

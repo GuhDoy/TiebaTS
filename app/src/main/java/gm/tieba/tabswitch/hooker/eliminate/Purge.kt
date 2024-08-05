@@ -378,21 +378,16 @@ class Purge : XposedContext(), IHooker, Obfuscated {
             XposedHelpers.setObjectField(param.thisObject, "novel_recom_card", null)
         }
 
-        // 首页样式 AB test
+        // 移除所有AB test
         hookBeforeMethod(
             "com.baidu.tbadk.abtest.UbsABTestDataManager",
             "parseJSONArray",
             JSONArray::class.java
         ) { param ->
-            val currentABTestJson = param.args[0] as JSONArray
-            val newABTestJson = JSONArray()
-            for (i in 0 until currentABTestJson.length()) {
-                val currTest = currentABTestJson.getJSONObject(i)
-                if (!currTest.getString("sid").startsWith("12_57_5_home_search")) {
-                    newABTestJson.put(currTest)
-                }
-            }
-            param.args[0] = newABTestJson
+            val exemptSidList = listOf("12_57_frs_pre_request", "12_53_frs_loading_opt")
+            val sidArray = JSONArray()
+            exemptSidList.forEach { sidArray.put(JSONObject().put("sid", it)) }
+            param.args[0] = sidArray
         }
     }
 
