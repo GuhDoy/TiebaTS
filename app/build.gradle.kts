@@ -35,7 +35,7 @@ android {
         if (versionName!!.contains("alpha") || versionName!!.contains("beta")) {
             versionNameSuffix = ".$commitCountSinceLatestTag"
         }
-        buildConfigField("String", "TARGET_VERSION", "\"12.65.1.1\"")
+        buildConfigField("String", "TARGET_VERSION", "\"12.66.1.0\"")
         buildConfigField("String", "MIN_VERSION", "\"12.53.1.0\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

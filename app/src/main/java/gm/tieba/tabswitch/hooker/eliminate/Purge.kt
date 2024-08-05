@@ -223,9 +223,12 @@ class Purge : XposedContext(), IHooker, Obfuscated {
                 if (XposedHelpers.getObjectField(thread, "ala_info") != null) {
                     return@removeIf true
                 }
-                val gameExt = XposedHelpers.getObjectField(thread, "game_ext") as? String
-                if (gameExt?.length != 0) {
-                    return@removeIf true
+                try {
+                    val gameExt = XposedHelpers.getObjectField(thread, "game_ext") as? String
+                    if (gameExt?.length != 0) {
+                        return@removeIf true
+                    }
+                } catch (ignored: NoSuchFieldError) {
                 }
                 val worksInfo = XposedHelpers.getObjectField(thread, "works_info")
                 worksInfo != null && XposedHelpers.getObjectField(worksInfo, "is_works") as? Int == 1
