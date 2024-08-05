@@ -11,6 +11,7 @@ import gm.tieba.tabswitch.hooker.deobfuscation.Matcher
 import gm.tieba.tabswitch.hooker.deobfuscation.SmaliMatcher
 import gm.tieba.tabswitch.util.getDimen
 import gm.tieba.tabswitch.util.getObjectField
+import org.json.JSONArray
 import org.luckypray.dexkit.query.matchers.ClassMatcher
 
 class PurgeMy : XposedContext(), IHooker, Obfuscated {
@@ -86,6 +87,23 @@ class PurgeMy : XposedContext(), IHooker, Obfuscated {
                 val mView = getObjectField(param.thisObject, View::class.java)
                 (mView?.parent as? ViewGroup)?.removeView(mView)
             }
+        }
+
+        // 我的页面 AB test
+        hookBeforeMethod(
+            "com.baidu.tbadk.abtest.UbsABTestDataManager",
+            "parseJSONArray",
+            JSONArray::class.java
+        ) { param ->
+            val currentABTestJson = param.args[0] as JSONArray
+            val newABTestJson = JSONArray()
+            for (i in 0 until currentABTestJson.length()) {
+                val currTest = currentABTestJson.getJSONObject(i)
+                if (!currTest.getString("sid").startsWith("12_64_my_tab_new")) {
+                    newABTestJson.put(currTest)
+                }
+            }
+            param.args[0] = newABTestJson
         }
     }
 }
