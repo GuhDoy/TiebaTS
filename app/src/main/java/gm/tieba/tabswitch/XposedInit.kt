@@ -80,8 +80,7 @@ class XposedInit : XposedContext(), IXposedHookZygoteInit, IXposedHookLoadPackag
     override fun handleLoadPackage(lpparam: LoadPackageParam) {
         if (("com.baidu.tieba" != lpparam.packageName && XposedHelpers.findClassIfExists(
                 "com.baidu.tieba.tblauncher.MainTabActivity", lpparam.classLoader
-            ) == null) || !lpparam.isFirstApplication
-        ) return
+            ) == null)) return
 
         sClassLoader = lpparam.classLoader
         sAssetManager = XModuleResources.createInstance(sPath, null).assets
