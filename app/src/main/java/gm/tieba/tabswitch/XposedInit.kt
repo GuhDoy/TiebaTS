@@ -82,6 +82,8 @@ class XposedInit : XposedContext(), IXposedHookZygoteInit, IXposedHookLoadPackag
                 "com.baidu.tieba.tblauncher.MainTabActivity", lpparam.classLoader
             ) == null)) return
 
+        XposedBridge.log("Loading TiebaTS, version ${BuildConfig.VERSION_CODE}")
+
         sClassLoader = lpparam.classLoader
         sAssetManager = XModuleResources.createInstance(sPath, null).assets
         mAppComponentFactory = sClassLoader.loadClass("com.baidu.nps.hook.component.NPSComponentFactory")
@@ -119,12 +121,14 @@ class XposedInit : XposedContext(), IXposedHookZygoteInit, IXposedHookLoadPackag
             Preferences.init(getContext())
             AcRules.init(getContext())
             DeobfuscationHelper.sCurrentTbVersion = getTbVersion(getContext())
+            XposedBridge.log("TB client detected, version ${DeobfuscationHelper.sCurrentTbVersion}")
 
             // Workaround to address an issue with LSPatch (unable to open personal homepage)
             // com.baidu.tieba.flutter.base.view.FlutterPageActivity must be instantiated by com.baidu.nps.hook.component.NPSComponentFactory
             // However, LSPatch incorrectly sets appComponentFactory to null, causing android.app.Instrumentation.getFactory to fall back to AppComponentFactory.DEFAULT
             // (see https://github.com/LSPosed/LSPatch/blob/bbe8d93fb9230f7b04babaf1c4a11642110f55a6/patch-loader/src/main/java/org/lsposed/lspatch/loader/LSPApplication.java#L173)
             if (getContext().applicationInfo.appComponentFactory == null) {
+                XposedBridge.log("Applying LSPatch workaround")
                 hookAfterMethod(
                     Instrumentation::class.java,
                     "getFactory", String::class.java
@@ -175,6 +179,9 @@ class XposedInit : XposedContext(), IXposedHookZygoteInit, IXposedHookLoadPackag
                 }
             }
 
+            val enabledKeys = getAll().filter { (_, value) -> value is Boolean && value == true }.keys
+            XposedBridge.log("Enabled hooks: ${enabledKeys.joinToString(", ")}")
+
             val matchersList = matchers.flatMap { it.matchers() }.toMutableList()
 
             // Remove matchers that does not satisfy version requirement
@@ -209,7 +216,7 @@ class XposedInit : XposedContext(), IXposedHookZygoteInit, IXposedHookLoadPackag
                         ).apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK) })
                     }
                 }
-                XposedBridge.log("Deobfuscation")
+                XposedBridge.log("Tb version changed. Performing deobfuscation")
 
                 DeobfuscationHooker(matchersList).hook()
                 return@hookAfterMethod
