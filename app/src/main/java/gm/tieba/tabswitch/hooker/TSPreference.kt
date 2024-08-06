@@ -26,7 +26,6 @@ import gm.tieba.tabswitch.dao.Preferences.getBoolean
 import gm.tieba.tabswitch.dao.Preferences.getIsAutoSignEnabled
 import gm.tieba.tabswitch.dao.Preferences.getIsEULAAccepted
 import gm.tieba.tabswitch.dao.Preferences.getIsPurgeEnabled
-import gm.tieba.tabswitch.dao.Preferences.getTransitionAnimationEnabled
 import gm.tieba.tabswitch.dao.Preferences.putAutoSignEnabled
 import gm.tieba.tabswitch.dao.Preferences.putEULAAccepted
 import gm.tieba.tabswitch.dao.Preferences.putPurgeEnabled
@@ -268,6 +267,10 @@ class TSPreference : XposedContext(), IHooker, Obfuscated {
         preferenceLayout.addView(SwitchButtonHolder(activity, "禁止检测通知开启状态", "notification_detect", SwitchButtonHolder.TYPE_SWITCH))
         preferenceLayout.addView(SwitchButtonHolder(activity, "禁止首页自动刷新", "auto_refresh", SwitchButtonHolder.TYPE_SWITCH))
 
+        if (isModuleBetaVersion) {
+            preferenceLayout.addView(SwitchButtonHolder(activity, "重定向内部日志", "log_redirect", SwitchButtonHolder.TYPE_SWITCH))
+        }
+
         preferenceLayout.addView(createButton(TRACE, "希望有一天不再需要贴吧TS", true) { _ ->
             activity.startActivity(Intent().apply {
                 setClassName(activity, PROXY_ACTIVITY)
@@ -327,10 +330,6 @@ class TSPreference : XposedContext(), IHooker, Obfuscated {
         val transitionAnimation = SwitchButtonHolder(activity, "修复过渡动画", "transition_animation", SwitchButtonHolder.TYPE_SWITCH)
 
         val shouldEnableTransitionAnimationFix = Build.VERSION.SDK_INT >= 34 && isTbSatisfyVersionRequirement("12.58.2.1")
-        if (!shouldEnableTransitionAnimationFix && getTransitionAnimationEnabled()) {
-            transitionAnimation.bdSwitch.turnOff()
-        }
-
         transitionAnimation.setOnButtonClickListener { _ ->
             if (!shouldEnableTransitionAnimationFix) {
                 showTbToast("当前贴吧版本不支持此功能", TbToast.LENGTH_SHORT)

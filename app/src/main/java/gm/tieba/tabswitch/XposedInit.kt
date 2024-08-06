@@ -8,6 +8,7 @@ import android.app.Instrumentation
 import android.content.Intent
 import android.content.res.XModuleResources
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.text.TextUtils
 import de.robv.android.xposed.IXposedHookLoadPackage
@@ -23,6 +24,7 @@ import gm.tieba.tabswitch.dao.Adp.initializeAdp
 import gm.tieba.tabswitch.dao.Preferences
 import gm.tieba.tabswitch.dao.Preferences.getAll
 import gm.tieba.tabswitch.dao.Preferences.getBoolean
+import gm.tieba.tabswitch.dao.Preferences.putBoolean
 import gm.tieba.tabswitch.dao.Preferences.putSignature
 import gm.tieba.tabswitch.hooker.IHooker
 import gm.tieba.tabswitch.hooker.Obfuscated
@@ -62,6 +64,7 @@ import gm.tieba.tabswitch.hooker.eliminate.UserFilter
 import gm.tieba.tabswitch.hooker.extra.AutoRefresh
 import gm.tieba.tabswitch.hooker.extra.ForbidGesture
 import gm.tieba.tabswitch.hooker.extra.Hide
+import gm.tieba.tabswitch.hooker.extra.LogRedirect
 import gm.tieba.tabswitch.hooker.extra.StackTrace
 import gm.tieba.tabswitch.util.fixAlertDialogWidth
 import gm.tieba.tabswitch.util.getDialogTheme
@@ -169,7 +172,8 @@ class XposedInit : XposedContext(), IXposedHookZygoteInit, IXposedHookLoadPackag
                 SelectClipboard(),
                 UserFilter(),
                 TransitionAnimation(),
-                AutoRefresh()
+                AutoRefresh(),
+                LogRedirect()
             )
             val matchers = ArrayList<Obfuscated>(hookers.size + 1)
             matchers.add(TbToast())
@@ -178,9 +182,6 @@ class XposedInit : XposedContext(), IXposedHookZygoteInit, IXposedHookLoadPackag
                     matchers.add(hooker as Obfuscated)
                 }
             }
-
-            val enabledKeys = getAll().filter { (_, value) -> value is Boolean && value == true }.keys
-            XposedBridge.log("Enabled hooks: ${enabledKeys.joinToString(", ")}")
 
             val matchersList = matchers.flatMap { it.matchers() }.toMutableList()
 
@@ -216,7 +217,7 @@ class XposedInit : XposedContext(), IXposedHookZygoteInit, IXposedHookLoadPackag
                         ).apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK) })
                     }
                 }
-                XposedBridge.log("Tb version changed. Performing deobfuscation")
+                XposedBridge.log("Tb version changed, performing deobfuscation")
 
                 DeobfuscationHooker(matchersList).hook()
                 return@hookAfterMethod
@@ -282,6 +283,15 @@ class XposedInit : XposedContext(), IXposedHookZygoteInit, IXposedHookLoadPackag
                 }
             }
 
+            val shouldEnableTransitionAnimationFix = Build.VERSION.SDK_INT >= 34 && isTbSatisfyVersionRequirement("12.58.2.1")
+            if (!shouldEnableTransitionAnimationFix && getBoolean("transition_animation")) {
+                putBoolean("transition_animation", false)
+            }
+
+            if (!isModuleBetaVersion && getBoolean("log_redirect")) {
+                putBoolean("log_redirect", false)
+            }
+
             val activeHookerKeys = getAll().entries
                 .filter { it.value != false }
                 .map { it.key }
@@ -290,6 +300,7 @@ class XposedInit : XposedContext(), IXposedHookZygoteInit, IXposedHookLoadPackag
                     add("ts_pref")
                     add("fragment_tab")
                 }
+            XposedBridge.log("Enabled hooks: ${activeHookerKeys.joinToString(", ")}")
 
             hookers.forEach { hooker ->
                 try {

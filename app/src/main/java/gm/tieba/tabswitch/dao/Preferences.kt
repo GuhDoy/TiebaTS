@@ -58,9 +58,6 @@ object Preferences {
 
     fun getIsAutoSignEnabled(): Boolean = sTsConfig.getBoolean("auto_sign", false)
 
-    fun getTransitionAnimationEnabled(): Boolean =
-        sTsPreferences.getBoolean("transition_animation", false)
-
     @SuppressLint("ApplySharedPref")
     fun putPurgeEnabled() {
         sTsConfig.edit().putBoolean("ze", true).commit()
