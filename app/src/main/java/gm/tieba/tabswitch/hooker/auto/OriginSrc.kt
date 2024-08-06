@@ -14,6 +14,7 @@ import gm.tieba.tabswitch.XposedContext
 import gm.tieba.tabswitch.dao.AcRules.findRule
 import gm.tieba.tabswitch.dao.Preferences.getBoolean
 import gm.tieba.tabswitch.hooker.IHooker
+import org.json.JSONException
 import org.json.JSONObject
 
 class OriginSrc : XposedContext(), IHooker {
@@ -128,24 +129,27 @@ class OriginSrc : XposedContext(), IHooker {
                     "tbclient.FeedPicComponent\$Builder",
                     "build", Boolean::class.javaPrimitiveType,
                 ) { param ->
-                    val schema = XposedHelpers.getObjectField(param.thisObject, "schema") as String
-                    val paramsJson = Uri.parse(schema).getQueryParameter("params")
+                    val schema = XposedHelpers.getObjectField(param.thisObject, "schema") as? String
+                    val paramsJson = schema?.let { Uri.parse(it).getQueryParameter("params") }
 
                     paramsJson?.let { schemaParams ->
                         val jsonObject = JSONObject(schemaParams)
-                        val pageParams = jsonObject.getJSONObject("pageParams")
-                        val picDataList = pageParams.getJSONArray("pic_data_list")
-                        for (i in 0 until picDataList.length()) {
-                            val picData = picDataList.getJSONObject(i)
-                            val originPicUrl = picData.getString("origin_pic_url")
-                            picData.apply {
-                                put("big_pic_url", originPicUrl)
-                                put("small_pic_url", originPicUrl)
-                                put("is_show_origin_btn", 0)
+                        try {
+                            val pageParams = jsonObject.getJSONObject("pageParams")
+                            val picDataList = pageParams.getJSONArray("pic_data_list")
+                            for (i in 0 until picDataList.length()) {
+                                val picData = picDataList.getJSONObject(i)
+                                val originPicUrl = picData.getString("origin_pic_url")
+                                picData.apply {
+                                    put("big_pic_url", originPicUrl)
+                                    put("small_pic_url", originPicUrl)
+                                    put("is_show_origin_btn", 0)
+                                }
                             }
+                            val modifiedUri = "tiebaapp://router/portal?params=$jsonObject"
+                            XposedHelpers.setObjectField(param.thisObject, "schema", modifiedUri)
+                        } catch (ignored: JSONException) {
                         }
-                        val modifiedUri = "tiebaapp://router/portal?params=$jsonObject"
-                        XposedHelpers.setObjectField(param.thisObject, "schema", modifiedUri)
                     }
                 })
             }
