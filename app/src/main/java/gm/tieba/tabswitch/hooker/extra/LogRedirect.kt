@@ -1,6 +1,5 @@
 package gm.tieba.tabswitch.hooker.extra
 
-import android.util.Log
 import de.robv.android.xposed.XposedBridge
 import gm.tieba.tabswitch.XposedContext
 import gm.tieba.tabswitch.hooker.IHooker
@@ -13,12 +12,13 @@ class LogRedirect : XposedContext(), IHooker {
 
     override fun hook() {
         XposedBridge.log("TbLog redirect enabled")
+        hookReplaceMethod("com.baidu.searchbox.config.AppConfig", "isDebug") { true }
         hookAfterMethod("com.baidu.tieba.log.TbLog",
             "d", String::class.java, String::class.java
         ) { param ->
             (param.args[0] as? String)?.let { tag ->
                 (param.args[1] as? String)?.let { msg ->
-                    Log.d("TbLog-$tag", msg)
+                    XposedBridge.log("[D] [$tag] $msg")
                 }
             }
         }
@@ -27,7 +27,7 @@ class LogRedirect : XposedContext(), IHooker {
         ) { param ->
             (param.args[0] as? String)?.let { tag ->
                 (param.args[1] as? String)?.let { msg ->
-                    Log.e("TbLog-$tag", msg)
+                    XposedBridge.log("[E] [$tag] $msg")
                 }
             }
         }
@@ -36,7 +36,7 @@ class LogRedirect : XposedContext(), IHooker {
         ) { param ->
             (param.args[0] as? String)?.let { tag ->
                 (param.args[1] as? String)?.let { msg ->
-                    Log.i("TbLog-$tag", msg)
+                    XposedBridge.log("[I] [$tag] $msg")
                 }
             }
         }
@@ -45,7 +45,7 @@ class LogRedirect : XposedContext(), IHooker {
         ) { param ->
             (param.args[0] as? String)?.let { tag ->
                 (param.args[1] as? String)?.let { msg ->
-                    Log.v("TbLog-$tag", msg)
+                    XposedBridge.log("[V] [$tag] $msg")
                 }
             }
         }
@@ -54,7 +54,7 @@ class LogRedirect : XposedContext(), IHooker {
         ) { param ->
             (param.args[0] as? String)?.let { tag ->
                 (param.args[1] as? String)?.let { msg ->
-                    Log.w("TbLog-$tag", msg)
+                    XposedBridge.log("[W] [$tag] $msg")
                 }
             }
         }
